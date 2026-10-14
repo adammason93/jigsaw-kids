@@ -36,29 +36,38 @@ function speak(beat, items) {
     predict: "Say what you think is happening before the explanation.",
     name: item.kind === "relationship" || item.kind === "procedure" ? "The class gives this idea its own name." : item.text,
     explain: item.text,
-    exemplify: "Here is one clear example of the idea in use.",
-    model: "Watch this worked step and say what changes.",
+    exemplify: "For example, you can see it when " + known.charAt(0).toLowerCase() + known.slice(1) + ".",
+    model: "First follow this step: " + known.charAt(0).toLowerCase() + known.slice(1) + ", then check what changed.",
     compare: "Look at both sides and say what is different.",
     connect: "These two ideas belong together in this lesson.",
-    practise: "Use " + known + " in what you make.",
-    apply: "Use " + known + " in what you make.",
+    practise: "Show a new case where " + known.charAt(0).toLowerCase() + known.slice(1) + ".",
+    apply: "Show a new case where " + known.charAt(0).toLowerCase() + known.slice(1) + ".",
     retrieve: "Which sentence matches the idea you just learned?",
-    reveal: "The class can now use the idea from this lesson.",
-    consolidate: "The class can now use the idea about " + known.split(" ")[0].toLowerCase() + "."
+    reveal: "So, " + known.charAt(0).toLowerCase() + known.slice(1) + ".",
+    consolidate: "So, " + known.charAt(0).toLowerCase() + known.slice(1) + "."
   }[beat.move];
   return { id: beat.id, cue: "", text: text };
 }
 
 var knowledge = [
-  "Sharks have a streamlined body that reduces water resistance, helping them swim more easily.",
-  "Sharks push water with the tail so that they swim forward."
+  "The pointed shape lets water slide past, so the shark can swim more easily.",
+  "The tail pushes water backwards so that the shark swims forward."
 ];
+var bodySentence = "A shark's body is made for moving through water.";
+var pointedBody = "A shark has a smooth, pointed body.";
+var strongTail = "A shark has a strong tail.";
 var plan = {
-  learningObjective: knowledge[0],
+  learningObjective: "Understand how a shark body helps it swim.",
   subject: "Science",
-  topic: knowledge[0],
+  topic: "Sharks",
   yearGroup: "Year 1",
-  keyKnowledge: knowledge,
+  learningMap: [
+    { id: "p1", knowledge: bodySentence, role: "foundation", importance: "core", dependsOn: [] },
+    { id: "p2", knowledge: pointedBody, role: "feature", importance: "core", dependsOn: ["p1"] },
+    { id: "p3", knowledge: knowledge[0], role: "mechanism", importance: "core", dependsOn: ["p2"] },
+    { id: "p4", knowledge: strongTail, role: "feature", importance: "core", dependsOn: ["p1"] },
+    { id: "p5", knowledge: knowledge[1], role: "mechanism", importance: "core", dependsOn: ["p4"] }
+  ],
   lessonArc: [{ purpose: "teach" }, { purpose: "check" }]
 };
 var story = {
@@ -102,7 +111,25 @@ global.fetch = function (url, init) {
   var system = body.messages[0].content;
   var user = body.messages[1].content;
   var payload;
-  if (system.indexOf("You interpret one primary teacher's request.") === 0) {
+  if (system.indexOf("You ground subject knowledge") === 0) {
+    payload = {
+      status: "usable",
+      claims: [
+        { text: bodySentence, depth: "concrete", confidence: "high", provenance: "model", factuallyVerified: false, ageFit: { from: 1, to: 6 } },
+        { text: pointedBody, depth: "concrete", confidence: "high", provenance: "model", factuallyVerified: false, ageFit: { from: 1, to: 6 } },
+        { text: knowledge[0], depth: "mechanism", kind: "mechanism", confidence: "high", provenance: "model", factuallyVerified: false, ageFit: { from: 1, to: 6 } },
+        { text: strongTail, depth: "concrete", confidence: "high", provenance: "model", factuallyVerified: false, ageFit: { from: 1, to: 6 } },
+        { text: knowledge[1], depth: "mechanism", kind: "mechanism", confidence: "high", provenance: "model", factuallyVerified: false, ageFit: { from: 1, to: 6 } },
+        { text: "Fins, tail and gills work together as one system for living in the sea.", depth: "system", confidence: "medium", provenance: "model", factuallyVerified: false, ageFit: { from: 5, to: 6 } }
+      ],
+      mechanisms: [
+        { text: knowledge[0], feature: "pointed body" },
+        { text: knowledge[1], feature: "strong tail" }
+      ],
+      concepts: ["shark body"],
+      vocabulary: [{ term: "fin", gloss: "a flat part a shark uses to steer" }]
+    };
+  } else if (system.indexOf("You interpret one primary teacher's request.") === 0) {
     payload = {
       learningGoal: "Understand how a shark body helps it swim.",
       requiredEvidence: "say how fins help a shark turn",

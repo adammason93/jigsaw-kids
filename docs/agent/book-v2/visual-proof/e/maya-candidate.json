@@ -1,0 +1,11 @@
+{
+  "ok": true,
+  "locked": false,
+  "status": "candidate",
+  "characterId": "maya",
+  "assetIds": [
+    "maya-sheet"
+  ],
+  "note": "Pending human review. Not canonical.",
+  "file": "images/maya-sheet.jpg"
+}

@@ -1,0 +1,41 @@
+{
+  "title": "A Blink for the Sky",
+  "ready": true,
+  "problems": [],
+  "storyPagesNotGenerated": true,
+  "members": [
+    {
+      "characterId": "maya",
+      "name": "Maya",
+      "origin": "canonical",
+      "relationship": "selected",
+      "species": "human",
+      "recurring": true,
+      "firstAppearance": "p1",
+      "finalAppearance": "p11",
+      "spreadsPresent": [
+        "p1",
+        "p2",
+        "p3",
+        "p4",
+        "p5",
+        "p6",
+        "p7",
+        "p8",
+        "p9",
+        "p10",
+        "p11"
+      ],
+      "reference": {
+        "strength": "canonical-sheet",
+        "required": true,
+        "expensive": false,
+        "ready": true
+      },
+      "referenceAssetIds": [
+        "maya-v1"
+      ],
+      "referenceVersionId": "maya-v1"
+    }
+  ]
+}

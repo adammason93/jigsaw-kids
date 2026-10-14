@@ -15,7 +15,10 @@ var portal = read("portal.html");
 var homeJs = read("js/portal-home.js");
 var css = read("css/portal-home.css");
 var teacher = read("schools/learn/home.js");
+var book = read("games/book-create.js");
+var game = read("games/prompt-game.js");
 var create = read("schools/learn/create.js");
+var brain = read("js/book-brain.js");
 var bible = read("js/character-bible.js");
 
 var family = Account.capabilities({ userId: "user-1", role: "" });
@@ -58,7 +61,10 @@ assert.strictEqual(Model.launchUrl("story", "A dinosaur"), "games/storybook.html
 assert.strictEqual(Model.launchUrl("game", "A game about planets"), "games/prompt-game.html?idea=A%20game%20about%20planets");
 assert.strictEqual(Model.launchUrl("puzzle", "Under the sea"), "#puzzles");
 assert.strictEqual(Model.launchUrl("adventure", "Teach Year 3 why volcanoes erupt"), "schools/learn/create.html?idea=Teach%20Year%203%20why%20volcanoes%20erupt");
+assert.ok(book.indexOf('params().get("idea")') >= 0);
+assert.ok(game.indexOf('get("idea")') >= 0);
 assert.ok(create.indexOf('params.get("idea")') >= 0);
+assert.ok(brain.indexOf("function acceptCreation") >= 0);
 assert.ok(bible.indexOf("function lockCast") >= 0);
 
 /* 7. Continue uses the resources it is given and does not invent a page position. */

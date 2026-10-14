@@ -962,12 +962,35 @@
     return "";
   }
 
+  // Deep-time topics: the explorer characters are present-day people, and no person ever saw a
+  // living dinosaur. A scene with people shows the past only as fossils, skeletons or models.
+  var DEEP_TIME = /\b(?:dinosaurs?|prehistoric|fossils?|jurassic|cretaceous|triassic|mesozoic|pterosaurs?|ichthyosaurs?|plesiosaurs?|sauropods?|palaeontolog\w*|paleontolog\w*)\b/i;
+
+  function periodGuard(adventure) {
+    var text = [adventure && adventure.topic, adventure && adventure.subject, adventure && adventure.title].join(" ");
+    if (!DEEP_TIME.test(text)) return "";
+    return "The explorers are present-day people. Dinosaurs died out millions of years before any people lived, so never show a person beside a living dinosaur. When people are in the scene, show dinosaurs only as fossils, skeletons, or museum models. A scene of living dinosaurs has no people in it. Give every animal the body features the lesson teaches, in correct proportions.";
+  }
+
+  // A deep-time place that is the living past (not a fossil dig, museum or model) cannot hold the
+  // present-day explorers. Live run 9 sent "Place: a prehistoric landscape filled with dinosaurs"
+  // together with three character sheets, and all four pictures put children beside living
+  // dinosaurs despite the guard sentence. For such a place the characters are left out entirely.
+  var PAST_AS_EVIDENCE = /\b(?:fossil\w*|skeletons?|museum\w*|models?|replicas?|casts?|dig|digs|excavat\w*|bones?|footprints?|trackways?|exhibits?|gallery|galleries)\b/i;
+  function livingPastScene(adventure, place) {
+    if (!periodGuard(adventure)) return false;
+    var text = String(place || "");
+    return DEEP_TIME.test(text) && !PAST_AS_EVIDENCE.test(text);
+  }
+  var NO_PEOPLE_LINE = "This picture shows living dinosaurs in their own time, millions of years before people, so there are no people in it: no children, no explorers, no characters, no human figures. Show the animals and the body features the lesson teaches clearly.";
+
   function buildAdventurePrompt(adventure, asset, characters) {
     var shot = shotFor(asset) || {};
     var brief = (asset && asset.brief) || {};
     var story = (adventure && adventure.storyPlan) || {};
     var year = yearOf(adventure);
     var place = brief.setting || (story.continuity && story.continuity.setting) || story.setting || (adventure && adventure.topic) || "the adventure";
+    var noPeople = livingPastScene(adventure, place);
     var topic = String((adventure && (adventure.topic || adventure.subject)) || "").toLowerCase();
     var guard = /volcano|magma|erupt/.test(topic) ? "" : "Draw this lesson's own place. Do not add a volcano, a harbour science station, or another lesson's landmark.";
     return [
@@ -977,10 +1000,11 @@
       NO_TEXT,
       SAFETY,
       guard,
+      periodGuard(adventure),
       "Place: " + place + ".",
       continuityLine(story),
-      avatarDirection(adventure),
-      (adventure && adventure.avatarRefs && adventure.avatarRefs.length) ? "" : describeCharacters(characters || []),
+      noPeople ? NO_PEOPLE_LINE : avatarDirection(adventure),
+      noPeople || (adventure && adventure.avatarRefs && adventure.avatarRefs.length) ? "" : describeCharacters(characters || []),
       "Camera for this moment only: " + (shot.shotType || "a clear scene") + ", " + (shot.cameraDistance || "medium") + " distance. Change pose, expression, and staging.",
       asset && asset.id === "opening" ? "Arrival photograph. A wide view of the whole place. The characters are small in the landscape. This is not a close-up." : "",
       asset && asset.id === "discovery" ? "Teaching photograph. Move much closer than the arrival. A cutaway or a clear model of the idea fills the frame. Use a different angle. The characters stay small at the edge, looking at the idea." : "",
@@ -1001,6 +1025,246 @@
       "Leave " + (asset && asset.uiSafeArea || shot.uiSafeArea || "LOWER_LEFT") + " visually quiet for a panel. Keep faces, hands, and the teaching objects out of that area.",
       "Do not write a pupil's name. Do not base a face on a real child."
     ].filter(Boolean).join("\n");
+  }
+
+  // ---- Teaching visuals for source-grounded lessons (patch 6) ---------------------------
+  // Opt-in planner (production planVisualAssets is unchanged). One teaching picture per
+  // gate-ready unit, chosen by a reusable rule from the unit's own source wording:
+  //   comparison: the explanation compares (than, compared with, unlike) -> side by side;
+  //   cutaway: the feature is inside the body (skull, hole, bone, muscle, joint, ...) -> a
+  //            cutaway or skull view where that part is visible;
+  //   close-up: otherwise -> a close view of the feature.
+  // Each picture shows one animal type (plus the compared animal for a comparison), no people,
+  // no text. The hook is an adventure picture framed as fiction; the apply picture shows the
+  // new example. Every asset carries a frame label that the player shows on screen.
+  var INTERNAL_PART = /\b(skull|skulls|hole|holes|opening|openings|bone|bones|muscle|muscles|joint|joints|jaw|jaws|socket|sockets|brain|heart|lung|lungs|stomach|gizzard|inside|internal|hip|hips|spine|vertebra|vertebrae|ribs?)\b/i;
+  var COMPARES = /\b(than|compared (?:with|to)|unlike|whereas|instead of)\b/i;
+  var FRAME_LABELS = {
+    story: "Story picture: an imagined adventure scene",
+    teaching: "Teaching picture: an artist's reconstruction",
+    example: "Example picture: an imagined example to think about"
+  };
+
+  // Patch 7: a comparison with another part of the same animal ("forelegs longer than its hind
+  // legs") is one animal, not two side by side; and every teaching picture shows one whole,
+  // identifiable animal (a close-up of a snout or an arm is not identifiable).
+  function teachingView(unit) {
+    var explanation = [unit && unit.explanationQuote, unit && unit.explanation].join(" ");
+    var compared = comparedWith(unit && (unit.explanationQuote || unit.explanation)) || comparedWith(unit && unit.featureQuote);
+    if (COMPARES.test(explanation) && compared && !SAME_BODY.test(compared)) return "comparison";
+    if (INTERNAL_PART.test(String(unit && unit.feature || ""))) return "cutaway";
+    return "whole-animal";
+  }
+  var SAME_BODY = /^(?:its|their|his|her|the animal's|the dinosaur's|the other)\b/i;
+
+  function comparedWith(text) {
+    var m = /\b(?:than|compared (?:with|to)|unlike)\s+([^.;]+)/i.exec(String(text || ""));
+    return m ? m[1].replace(/\s+/g, " ").trim().slice(0, 160) : "";
+  }
+
+  // ---- Patch 7 image rules (teaching visuals only; reusable, no animal list) ----
+  // Geological periods come from the source passages and pack text, never from a list of animals.
+  var PERIODS = ["Cambrian", "Ordovician", "Silurian", "Devonian", "Carboniferous", "Permian", "Triassic", "Jurassic", "Cretaceous", "Palaeogene", "Paleogene", "Neogene", "Quaternary", "Pleistocene", "Ice Age"];
+  var PERIOD_RE = new RegExp("\\b(" + PERIODS.join("|") + ")\\b", "gi");
+  function periodsIn(text) {
+    var found = [];
+    String(text || "").replace(PERIOD_RE, function (m) {
+      var name = m.toLowerCase() === "paleogene" ? "Palaeogene" : PERIODS.filter(function (p) { return p.toLowerCase() === m.toLowerCase(); })[0];
+      if (found.indexOf(name) === -1) found.push(name);
+      return m;
+    });
+    return found;
+  }
+  function sentencesOf(text) { return String(text || "").split(/(?<=[.!?])\s+(?=[A-Z"'(\u201c])/).map(function (s) { return s.trim(); }).filter(Boolean); }
+  // The animal a unit is about: a capitalised name its own claims use mid-sentence, else "".
+  // Patch 9: a name that opens a claim ("Spinosaurus's webbed feet ...") also counts when the
+  // unit's own passage uses that word capitalised mid-sentence (", Spinosaurus lived"). Live run
+  // 24's teaching pictures named no animal (every explanation opened with the name), and one
+  // came back as a sea reptile.
+  function midSentenceName(word, passage) {
+    return new RegExp("[a-z0-9,;:\u2014\u2013-]\\s+" + word + "(?![a-z])").test(String(passage || ""));
+  }
+  function unitSubject(unit) {
+    var name = "";
+    [unit && unit.explanation, unit && unit.feature, unit && unit.featureQuote, unit && unit.explanationQuote].forEach(function (text) {
+      if (name) return;
+      String(text || "").split(/\s+/).forEach(function (raw, index) {
+        var word = raw.replace(/[\u2019]/g, "'").replace(/[^A-Za-z'-]/g, "").replace(/'s$/i, "");
+        if (name || !/^[A-Z][a-z]{3,}$/.test(word) || PERIODS.indexOf(word) !== -1) return;
+        if (index > 0 || midSentenceName(word, unit && unit.passageText)) name = word;
+      });
+    });
+    return name;
+  }
+  // The period a unit's animal lived in, read from its passage sentences that name it (or from the
+  // whole passage when the animal has no name), plus any extra pack text. Unknown when the source
+  // gives none or more than one.
+  function unitPeriod(unit) {
+    var name = unitSubject(unit);
+    var text = [unit && unit.passageText, unit && unit.periodText].join(" ");
+    var scope = name ? sentencesOf(text).filter(function (s) { return s.indexOf(name) !== -1 || /^(?:It|Its|The animal|This dinosaur)\b/.test(s); }).join(" ") : text;
+    var periods = periodsIn(scope);
+    if (!periods.length && name) periods = periodsIn(text);
+    return { subject: name, period: periods.length === 1 ? periods[0] : "", periods: periods };
+  }
+  // A story picture may show several animals only when the sources place them all in one
+  // period. Otherwise it shows one animal and the limitation is recorded.
+  function storyScenePlan(units) {
+    var rows = (units || []).map(function (u) { return Object.assign({ unitId: u.unitId }, unitPeriod(u)); });
+    var named = rows.filter(function (r) { return r.subject; });
+    var periods = [];
+    rows.forEach(function (r) { if (r.period && periods.indexOf(r.period) === -1) periods.push(r.period); });
+    var allKnown = rows.length && rows.every(function (r) { return r.subject && r.period; });
+    if (allKnown && periods.length === 1) {
+      return { mode: "group", period: periods[0], animals: rows.map(function (r) { return r.subject; }), rows: rows, limitation: "" };
+    }
+    var pick = named.filter(function (r) { return r.period; })[0] || named[0] || rows[0] || null;
+    var why = periods.length > 1
+      ? "the taught animals lived in different periods (" + rows.filter(function (r) { return r.period; }).map(function (r) { return r.subject + ": " + r.period; }).join("; ") + ")"
+      : "the sources do not say when every taught animal lived" + (rows.filter(function (r) { return !r.period; }).length ? " (" + rows.filter(function (r) { return !r.period; }).map(function (r) { return r.subject || ("the " + r.unitId + " animal"); }).join(", ") + ")" : "");
+    return { mode: "single", animal: pick ? pick.subject : "", period: pick ? pick.period : "", unitId: pick ? pick.unitId : "", rows: rows,
+      limitation: "The story picture shows one animal" + (pick && pick.subject ? " (" + pick.subject + ")" : "") + " because " + why + "." };
+  }
+  function aName(name) { return (/^[AEIOU]/i.test(String(name || "")) ? "an " : "a ") + name; }
+  function storySceneLine(scene) {
+    if (!scene) return "";
+    if (scene.mode === "group") return "Show only these animals, which the sources place in the " + scene.period + " period: " + scene.animals.join(", ") + ". No other animals.";
+    return "Show exactly one animal" + (scene.animal ? ": " + aName(scene.animal) + (scene.period ? " (" + scene.period + " period)" : "") : "") + ". No other animals of any kind, not even in the background. This overrides any mention of several animals above.";
+  }
+  // The player's text panel covers the lower left of the screen (about x 5-56%, y 55-80%).
+  var PANEL_RECT = { left: 0, top: 50, right: 58, bottom: 88 };
+  var COMPOSITION_LINE = "Composition: a text panel will cover the lower left of the picture (the left 58%, from halfway down to near the bottom). Put the whole animal, its taught feature and every compared body part either in the top half of the picture or in the right 42%; keep the lower-left area plain, empty background.";
+  // A feature box (percent of the image) is clear when it does not overlap the panel rectangle.
+  function featureBoxClear(box, rect) {
+    rect = rect || PANEL_RECT;
+    if (!box || typeof box !== "object") return false;
+    var l = Number(box.left), t = Number(box.top), w = Number(box.width), h = Number(box.height);
+    if (![l, t, w, h].every(function (n) { return isFinite(n); }) || w <= 0 || h <= 0) return false;
+    var r = l + w, b = t + h;
+    return r <= rect.left || l >= rect.right || b <= rect.top || t >= rect.bottom;
+  }
+  // Source sentences that help identify the animal (they name it), excluding the taught quotes.
+  function identifyingSentences(unit, max) {
+    var name = unitSubject(unit);
+    if (!name) return [];
+    var skip = [unit.featureQuote, unit.explanationQuote].map(function (q) { return String(q || "").slice(0, 40); });
+    return sentencesOf(unit.passageText).filter(function (s) {
+      return s.indexOf(name) !== -1 && s.length <= 260 && !skip.some(function (q) { return q && s.indexOf(q) !== -1; });
+    }).slice(0, max || 2);
+  }
+
+  function planTeachingVisuals(adventure, units, options) {
+    options = options || {};
+    var activities = (adventure && adventure.activities) || [];
+    var staged = stagedActivities(activities);
+    if (!staged || !(units || []).length) return [];
+    var hook = stageAsset("hook", staged.hook, adventure);
+    hook.framing = "story";
+    hook.frameLabel = FRAME_LABELS.story;
+    // Patch 7: the story picture's animals follow the sources' periods (one animal if mixed or unknown).
+    if (periodGuard(adventure)) {
+      hook.storyScene = storyScenePlan(units);
+      if (hook.storyScene.limitation) hook.limitation = hook.storyScene.limitation;
+    }
+    var list = [hook];
+    units.forEach(function (unit) {
+      var view = teachingView(unit);
+      var who = unitPeriod(unit);
+      list.push({
+        id: "teach-" + unit.unitId,
+        slotId: "teach",
+        unitId: unit.unitId,
+        type: "teaching_visual",
+        view: view,
+        framing: "teaching",
+        frameLabel: FRAME_LABELS.teaching,
+        usedByScenes: [],
+        beatIds: (unit.beatIds || []).slice(),
+        generationRequired: true,
+        brief: {
+          setting: "a plain, softly lit background with nothing else in it",
+          action: unit.feature,
+          educationalFocus: unit.explanation || "",
+          mood: "clear and calm",
+          importantObjects: [unit.feature]
+        },
+        feature: unit.feature,
+        featureQuote: unit.featureQuote || "",
+        explanation: unit.explanation || "",
+        explanationQuote: unit.explanationQuote || "",
+        compared: view === "comparison" ? (comparedWith(unit.explanationQuote || unit.explanation) || comparedWith(unit.featureQuote)) : "",
+        subject: who.subject,
+        period: who.period,
+        identify: identifyingSentences(unit, 2),
+        shot: { shotType: view, cameraDistance: view === "cutaway" ? "close" : "medium", cameraAngle: "side view, the feature fully visible", location: "plain background", uiSafeArea: "LOWER_LEFT" },
+        uiSafeArea: "LOWER_LEFT",
+        status: "planned"
+      });
+    });
+    var applyStep = staged.apply && staged.apply.scene && staged.apply.scene.interaction;
+    if (applyStep && applyStep.type === "choose" && applyStep.newCase && applyStep.newCase.text) {
+      var sourced = applyStep.newCase.kind === "sourced";
+      list.push({
+        id: "apply",
+        slotId: "apply",
+        unitId: applyStep.unitId || "",
+        type: "story_scene",
+        view: "example",
+        framing: sourced ? "teaching" : "example",
+        frameLabel: sourced ? FRAME_LABELS.teaching : FRAME_LABELS.example,
+        usedByScenes: [staged.apply.title || "apply"],
+        generationRequired: true,
+        brief: { setting: "a plain, softly lit background", action: applyStep.newCase.text, educationalFocus: "", mood: "clear and calm", importantObjects: [] },
+        newCase: applyStep.newCase.text,
+        choices: (applyStep.choices || []).map(function (c) { return c.text; }),
+        shot: { shotType: "example", cameraDistance: "medium", cameraAngle: "side view, every option equally visible", location: "plain background", uiSafeArea: "LEFT" },
+        uiSafeArea: "LEFT",
+        status: "planned"
+      });
+    }
+    return list.slice(0, options.max || 6);
+  }
+
+  function deepTimeGroupLine(adventure) {
+    if (!periodGuard(adventure)) return "";
+    var topic = String((adventure && adventure.topic) || "the lesson's animals").toLowerCase();
+    return "Show only " + topic + " as the lesson animal. Do not show flying reptiles (pterosaurs), sea reptiles (plesiosaurs, ichthyosaurs, mosasaurs), mammals, or birds presented as " + topic + ". Every animal shown lived in the same time period; do not mix animals from different periods.";
+  }
+
+  function buildTeachingVisualPrompt(adventure, asset) {
+    var year = yearOf(adventure);
+    if (!asset || asset.framing === "story") {
+      return [buildAdventurePrompt(adventure, asset, charactersForAdventure(adventure)), "STORY PICTURE: this is an imagined adventure scene for the story, not a scientific reconstruction. " + deepTimeGroupLine(adventure), storySceneLine(asset && asset.storyScene)].filter(Boolean).join("\n");
+    }
+    var common = [
+      "Clear, accurate natural-history illustration for a " + (year || "primary") + " science lesson. Soft, even light, gentle colours, a plain background. Not a photograph of a real place.",
+      NO_TEXT,
+      SAFETY,
+      "No people, no children, no explorers, no characters, no hands, no human figures.",
+      deepTimeGroupLine(adventure),
+      "Do not paint arrows, labels, or writing. A later layer adds those."
+    ];
+    if (asset.slotId === "apply") {
+      return common.concat([
+        "This picture shows an example for the class to reason about: " + asset.newCase,
+        "Show every option in the example equally clearly, side by side, at the same size and in the same pose, so the picture does not give away which option is the answer.",
+        "Leave " + (asset.uiSafeArea || "LEFT") + " visually quiet for a panel."
+      ]).filter(Boolean).join("\n");
+    }
+    var view = asset.view;
+    var who = asset.subject ? "one " + asset.subject : "one animal of a single type";
+    var line = view === "comparison"
+      ? "Side-by-side comparison on one plain background. Left: " + who + " that has this feature: " + asset.feature + ". Right: " + (asset.compared || "the animal the source compares it with") + ". Same scale, same side-on pose, whole bodies visible and small enough to fit the composition below, so the difference in the feature is obvious."
+      : view === "cutaway"
+        ? "Cutaway or skull view of " + who + " so this internal feature is clearly visible: " + asset.feature + ". Show the part in its real position and proportion, with the surrounding body faded or cut away."
+        : "The whole of " + who + ", side-on, with this feature clearly visible: " + asset.feature + ". Only this one animal is in the picture.";
+    return common.concat([
+      "Teaching picture (artist's reconstruction). " + line,
+      asset.subject ? "The animal must be recognisable as " + aName(asset.subject) + (asset.period ? " (" + asset.period + " period)" : "") + "." : "",
+      (asset.identify || []).length ? "The source describes it: \"" + asset.identify.join(" ") + "\" Use only what these sentences say to make it recognisable." : "",
+      "The source says: \"" + (asset.featureQuote || asset.feature) + "\" and \"" + (asset.explanationQuote || asset.explanation) + "\". Draw only what these sentences say about the feature; do not add features the source does not describe.",
+      COMPOSITION_LINE
+    ]).filter(Boolean).join("\n");
   }
 
   function stampActivities(activities, assets) {
@@ -1214,6 +1478,21 @@
     visualsAllowed: visualsAllowed,
     charactersForAdventure: charactersForAdventure,
     buildAdventurePrompt: buildAdventurePrompt,
+    periodGuard: periodGuard,
+    livingPastScene: livingPastScene,
+    planTeachingVisuals: planTeachingVisuals,
+    buildTeachingVisualPrompt: buildTeachingVisualPrompt,
+    teachingView: teachingView,
+    periodsIn: periodsIn,
+    unitSubject: unitSubject,
+    unitPeriod: unitPeriod,
+    storyScenePlan: storyScenePlan,
+    storySceneLine: storySceneLine,
+    featureBoxClear: featureBoxClear,
+    identifyingSentences: identifyingSentences,
+    PANEL_RECT: PANEL_RECT,
+    COMPOSITION_LINE: COMPOSITION_LINE,
+    FRAME_LABELS: FRAME_LABELS,
     stampActivities: stampActivities,
     scheduleVisualAssets: scheduleVisualAssets,
     attachResult: attachResult,

@@ -1,0 +1,68 @@
+{
+  "at": "2026-10-14T09:32:28.304Z",
+  "model": "gpt-image-2.5-sunburst",
+  "endpoint": "https://api.openai.com/v1/images/edits",
+  "size": "1536x1024",
+  "quality": "medium",
+  "calls": 2,
+  "budget": {
+    "planningUsd": 0.294,
+    "enforcedByProvider": false
+  },
+  "both": {
+    "label": "both",
+    "http": 200,
+    "ok": true,
+    "file": "docs/agent/book-v2/castle-page-test/both.jpg",
+    "bytes": 236158,
+    "references": [
+      "games/images/characters/maya-v1.jpg",
+      "games/images/characters/crew/wondii-leo.jpg"
+    ],
+    "usage": {
+      "present": true,
+      "perReference": false,
+      "reason": "aggregate-only",
+      "model": "gpt-image-2.5-sunburst",
+      "inputTokens": 3628,
+      "imageInputTokens": 3072,
+      "textInputTokens": 556,
+      "outputTokens": 343,
+      "imageOutputTokens": 343
+    },
+    "listedUsd": 0.037646,
+    "error": ""
+  },
+  "mayaOnly": {
+    "label": "maya-only",
+    "http": 200,
+    "ok": true,
+    "file": "docs/agent/book-v2/castle-page-test/maya-only.jpg",
+    "bytes": 224814,
+    "references": [
+      "games/images/characters/maya-v1.jpg"
+    ],
+    "usage": {
+      "present": true,
+      "perReference": false,
+      "reason": "aggregate-only",
+      "model": "gpt-image-2.5-sunburst",
+      "inputTokens": 2082,
+      "imageInputTokens": 1536,
+      "textInputTokens": 546,
+      "outputTokens": 343,
+      "imageOutputTokens": 343
+    },
+    "listedUsd": 0.025308,
+    "error": ""
+  },
+  "leoPortrait": {
+    "measurable": true,
+    "imageInputTokens": 1536,
+    "usd": 0.012,
+    "outputTokensExcluded": true
+  },
+  "listedUsdTotal": 0.062954,
+  "outputTokenDifference": 0,
+  "stopped": ""
+}

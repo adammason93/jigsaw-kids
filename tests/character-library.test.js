@@ -53,16 +53,13 @@ assert.strictEqual(Lib.artworkSrc("games/images/characters/maya-v1.jpg", true), 
 assert.strictEqual(Lib.artworkSrc("games/images/characters/maya-v1.jpg", false), "games/images/characters/maya-v1.jpg");
 assert.strictEqual(Lib.artworkSrc("https://example.test/a.png", true), "https://example.test/a.png");
 
-var bookPath = path.join(__dirname, "../games/book-create.js");
+var book = fs.readFileSync(path.join(__dirname, "../games/book-create.js"), "utf8");
 var portal = fs.readFileSync(path.join(__dirname, "../portal.html"), "utf8");
 var home = fs.readFileSync(path.join(__dirname, "../schools/learn/home.js"), "utf8");
 var page = fs.readFileSync(path.join(__dirname, "../schools/learn/character-portal.js"), "utf8");
-if (fs.existsSync(bookPath)) {
-  var book = fs.readFileSync(bookPath, "utf8");
-  assert.ok(book.indexOf("WondiiCharacterLibrary") >= 0);
-  assert.ok(book.indexOf("availableCharacters") >= 0);
-  assert.ok(book.indexOf("bookSelection") >= 0);
-}
+assert.ok(book.indexOf("WondiiCharacterLibrary") >= 0);
+assert.ok(book.indexOf("availableCharacters") >= 0);
+assert.ok(book.indexOf("bookSelection") >= 0);
 assert.ok(portal.indexOf('data-teacher="characters"') >= 0);
 assert.ok(home.indexOf('"characters"') >= 0);
 assert.ok(page.indexOf("Bring your stories to life") >= 0);

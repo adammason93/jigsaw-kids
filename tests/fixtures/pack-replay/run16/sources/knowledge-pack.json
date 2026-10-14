@@ -1,0 +1,1212 @@
+{
+ "note": "Test fixture: saved pack-stage outputs of live run run16 (6 Oct 2026), trimmed to what pack replay reads.",
+ "rawModelPacks": [
+  {
+   "status": "usable",
+   "falsePremise": null,
+   "blockReason": null,
+   "niche": "How dinosaur features relate to movement and habitat",
+   "claims": [
+    {
+     "text": "Dinosaurs had straight back legs positioned perpendicular to their bodies.",
+     "kind": "feature",
+     "depth": "concrete",
+     "confidence": "high",
+     "provenance": "retrieved",
+     "sourceRef": [
+      "S4-P01"
+     ],
+     "quote": "they had straight back legs, perpendicular to their bodies.",
+     "teacherRequested": false,
+     "factuallyVerified": false,
+     "contested": false,
+     "uncertainty": null,
+     "ageFit": {
+      "from": 1,
+      "to": 6
+     },
+     "correctsPremise": false,
+     "importance": "high",
+     "accepted": true
+    },
+    {
+     "text": "Dinosaurs' straight back legs let them use less energy to move than reptiles with a sprawling stance.",
+     "kind": "mechanism",
+     "depth": "mechanism",
+     "confidence": "high",
+     "provenance": "retrieved",
+     "sourceRef": [
+      "S4-P01"
+     ],
+     "quote": "This allowed them to use less energy to move than other reptiles that had a sprawling stance",
+     "teacherRequested": false,
+     "factuallyVerified": false,
+     "contested": false,
+     "uncertainty": null,
+     "ageFit": {
+      "from": 2,
+      "to": 6
+     },
+     "correctsPremise": false,
+     "importance": "high",
+     "accepted": true
+    },
+    {
+     "text": "Spinosaurus had nostrils further up on its snout than other dinosaurs.",
+     "kind": "feature",
+     "depth": "concrete",
+     "confidence": "high",
+     "provenance": "retrieved",
+     "sourceRef": [
+      "S9-P02"
+     ],
+     "quote": "Its nostrils were further up on its snout than the nostrils of other dinosaurs.",
+     "teacherRequested": false,
+     "factuallyVerified": false,
+     "contested": false,
+     "uncertainty": null,
+     "ageFit": {
+      "from": 1,
+      "to": 6
+     },
+     "correctsPremise": false,
+     "importance": "high",
+     "accepted": true
+    },
+    {
+     "text": "Spinosaurus's nostrils further up on its snout let it breathe with most of its snout underwater.",
+     "kind": "mechanism",
+     "depth": "mechanism",
+     "confidence": "high",
+     "provenance": "retrieved",
+     "sourceRef": [
+      "S9-P02"
+     ],
+     "quote": "This would\u2019ve allowed the animal to breathe even with most of its snout submerged.",
+     "teacherRequested": false,
+     "factuallyVerified": false,
+     "contested": false,
+     "uncertainty": null,
+     "ageFit": {
+      "from": 2,
+      "to": 6
+     },
+     "correctsPremise": false,
+     "importance": "high",
+     "accepted": true
+    },
+    {
+     "text": "Spinosaurus had paddle-like webbed feet.",
+     "kind": "feature",
+     "depth": "concrete",
+     "confidence": "high",
+     "provenance": "retrieved",
+     "sourceRef": [
+      "S9-P02"
+     ],
+     "quote": "And its paddle-like webbed feet would\u2019ve allowed the animal to swim.",
+     "teacherRequested": false,
+     "factuallyVerified": false,
+     "contested": false,
+     "uncertainty": null,
+     "ageFit": {
+      "from": 1,
+      "to": 6
+     },
+     "correctsPremise": false,
+     "importance": "high",
+     "accepted": true
+    },
+    {
+     "text": "Spinosaurus's paddle-like webbed feet allowed it to swim.",
+     "kind": "mechanism",
+     "depth": "mechanism",
+     "confidence": "high",
+     "provenance": "retrieved",
+     "sourceRef": [
+      "S9-P02"
+     ],
+     "quote": "And its paddle-like webbed feet would\u2019ve allowed the animal to swim.",
+     "teacherRequested": false,
+     "factuallyVerified": false,
+     "contested": false,
+     "uncertainty": null,
+     "ageFit": {
+      "from": 2,
+      "to": 6
+     },
+     "correctsPremise": false,
+     "importance": "high",
+     "accepted": true
+    },
+    {
+     "text": "Spinosaurus inhabited what is now North Africa\u2019s Sahara region, which then had a large river system.",
+     "kind": "context",
+     "depth": "concrete",
+     "confidence": "high",
+     "provenance": "retrieved",
+     "sourceRef": [
+      "S9-P02"
+     ],
+     "quote": "It inhabited what is now North Africa\u2019s Sahara region, which at the time featured a large river system.",
+     "teacherRequested": false,
+     "factuallyVerified": false,
+     "contested": false,
+     "uncertainty": null,
+     "ageFit": {
+      "from": 2,
+      "to": 6
+     },
+     "correctsPremise": false,
+     "importance": "medium",
+     "accepted": true
+    }
+   ],
+   "mechanisms": [
+    {
+     "text": "Dinosaurs' straight back legs let them use less energy to move than reptiles with a sprawling stance.",
+     "feature": "straight back legs",
+     "sourceRef": [
+      "S4-P01"
+     ],
+     "quote": "This allowed them to use less energy to move than other reptiles that had a sprawling stance"
+    },
+    {
+     "text": "Spinosaurus's nostrils further up on its snout let it breathe with most of its snout underwater.",
+     "feature": "nostrils further up",
+     "sourceRef": [
+      "S9-P02"
+     ],
+     "quote": "This would\u2019ve allowed the animal to breathe even with most of its snout submerged."
+    },
+    {
+     "text": "Spinosaurus's paddle-like webbed feet allowed it to swim.",
+     "feature": "webbed feet",
+     "sourceRef": [
+      "S9-P02"
+     ],
+     "quote": "And its paddle-like webbed feet would\u2019ve allowed the animal to swim."
+    }
+   ],
+   "concepts": [],
+   "vocabulary": [
+    {
+     "term": "habitat",
+     "gloss": "The place or environment where an animal lived.",
+     "sourceRef": [
+      "S6-P12"
+     ],
+     "quote": "tracks were made by a dinosaur moving about its environment - so they are an important link between these prehistoric animals and the habitats they lived in."
+    },
+    {
+     "term": "adapted",
+     "gloss": "Having features suited to a way of life.",
+     "sourceRef": [
+      "S9-P02"
+     ],
+     "quote": "Spinosaurus was well adapted for aquatic life."
+    }
+   ],
+   "misconceptions": [],
+   "openQuestions": []
+  },
+  {
+   "status": "usable",
+   "falsePremise": null,
+   "blockReason": null,
+   "niche": "Dinosaur features and how they relate to movement and habitat",
+   "claims": [
+    {
+     "text": "Dinosaurs had straight back legs positioned perpendicular to their bodies.",
+     "kind": "claim",
+     "depth": "concrete",
+     "confidence": "high",
+     "provenance": "retrieved",
+     "sourceRef": [
+      "S4-P01"
+     ],
+     "quote": "they had straight back legs, perpendicular to their bodies.",
+     "teacherRequested": false,
+     "factuallyVerified": false,
+     "contested": false,
+     "uncertainty": null,
+     "ageFit": {
+      "from": 1,
+      "to": 6
+     },
+     "correctsPremise": false,
+     "importance": "core",
+     "accepted": true
+    },
+    {
+     "text": "Dinosaurs' straight back legs let them use less energy to move than reptiles with a sprawling stance.",
+     "kind": "claim",
+     "depth": "mechanism",
+     "confidence": "high",
+     "provenance": "retrieved",
+     "sourceRef": [
+      "S4-P01"
+     ],
+     "quote": "This allowed them to use less energy to move than other reptiles that had a sprawling stance",
+     "teacherRequested": false,
+     "factuallyVerified": false,
+     "contested": false,
+     "uncertainty": null,
+     "ageFit": {
+      "from": 2,
+      "to": 6
+     },
+     "correctsPremise": false,
+     "importance": "core",
+     "accepted": true
+    },
+    {
+     "text": "Spinosaurus had nostrils further up on its snout than other dinosaurs.",
+     "kind": "claim",
+     "depth": "concrete",
+     "confidence": "high",
+     "provenance": "retrieved",
+     "sourceRef": [
+      "S9-P02"
+     ],
+     "quote": "Its nostrils were further up on its snout than the nostrils of other dinosaurs.",
+     "teacherRequested": false,
+     "factuallyVerified": false,
+     "contested": false,
+     "uncertainty": null,
+     "ageFit": {
+      "from": 1,
+      "to": 6
+     },
+     "correctsPremise": false,
+     "importance": "core",
+     "accepted": true
+    },
+    {
+     "text": "Spinosaurus's nostrils further up on its snout would have allowed it to breathe with most of its snout submerged.",
+     "kind": "claim",
+     "depth": "mechanism",
+     "confidence": "high",
+     "provenance": "retrieved",
+     "sourceRef": [
+      "S9-P02"
+     ],
+     "quote": "This would\u2019ve allowed the animal to breathe even with most of its snout submerged.",
+     "teacherRequested": false,
+     "factuallyVerified": false,
+     "contested": false,
+     "uncertainty": null,
+     "ageFit": {
+      "from": 3,
+      "to": 6
+     },
+     "correctsPremise": false,
+     "importance": "core",
+     "accepted": true
+    },
+    {
+     "text": "Spinosaurus had paddle-like webbed feet.",
+     "kind": "claim",
+     "depth": "concrete",
+     "confidence": "high",
+     "provenance": "retrieved",
+     "sourceRef": [
+      "S9-P02"
+     ],
+     "quote": "And its paddle-like webbed feet would\u2019ve allowed the animal to swim.",
+     "teacherRequested": false,
+     "factuallyVerified": false,
+     "contested": false,
+     "uncertainty": null,
+     "ageFit": {
+      "from": 1,
+      "to": 6
+     },
+     "correctsPremise": false,
+     "importance": "core",
+     "accepted": true
+    },
+    {
+     "text": "Spinosaurus's paddle-like webbed feet would have allowed it to swim.",
+     "kind": "claim",
+     "depth": "mechanism",
+     "confidence": "high",
+     "provenance": "retrieved",
+     "sourceRef": [
+      "S9-P02"
+     ],
+     "quote": "And its paddle-like webbed feet would\u2019ve allowed the animal to swim.",
+     "teacherRequested": false,
+     "factuallyVerified": false,
+     "contested": false,
+     "uncertainty": null,
+     "ageFit": {
+      "from": 2,
+      "to": 6
+     },
+     "correctsPremise": false,
+     "importance": "core",
+     "accepted": true
+    },
+    {
+     "text": "Spinosaurus inhabited what is now North Africa\u2019s Sahara region, which then had a large river system.",
+     "kind": "claim",
+     "depth": "concrete",
+     "confidence": "high",
+     "provenance": "retrieved",
+     "sourceRef": [
+      "S9-P02"
+     ],
+     "quote": "It inhabited what is now North Africa\u2019s Sahara region, which at the time featured a large river system.",
+     "teacherRequested": false,
+     "factuallyVerified": false,
+     "contested": false,
+     "uncertainty": null,
+     "ageFit": {
+      "from": 2,
+      "to": 6
+     },
+     "correctsPremise": false,
+     "importance": "supporting",
+     "accepted": true
+    }
+   ],
+   "mechanisms": [
+    {
+     "text": "Dinosaurs' straight back legs let them use less energy to move than reptiles with a sprawling stance.",
+     "feature": "straight back legs",
+     "sourceRef": [
+      "S4-P01"
+     ],
+     "quote": "This allowed them to use less energy to move than other reptiles that had a sprawling stance"
+    },
+    {
+     "text": "Spinosaurus's nostrils further up on its snout would have allowed it to breathe with most of its snout submerged.",
+     "feature": "nostrils further up",
+     "sourceRef": [
+      "S9-P02"
+     ],
+     "quote": "This would\u2019ve allowed the animal to breathe even with most of its snout submerged."
+    },
+    {
+     "text": "Spinosaurus's paddle-like webbed feet would have allowed it to swim.",
+     "feature": "webbed feet",
+     "sourceRef": [
+      "S9-P02"
+     ],
+     "quote": "And its paddle-like webbed feet would\u2019ve allowed the animal to swim."
+    }
+   ],
+   "concepts": [],
+   "vocabulary": [
+    {
+     "term": "habitat",
+     "gloss": "The place where an animal lives.",
+     "sourceRef": [
+      "S6-P12"
+     ],
+     "quote": "tracks were made by a dinosaur moving about its environment - so they are an important link between these prehistoric animals and the habitats they lived in."
+    }
+   ],
+   "misconceptions": [],
+   "openQuestions": []
+  }
+ ],
+ "allPacks": [
+  {
+   "packId": "kp_uodfih",
+   "pack": {
+    "id": "kp_uodfih",
+    "version": 1,
+    "phase": 1,
+    "topic": "Dinosaurs",
+    "subject": "Science",
+    "status": "usable",
+    "statusReason": "Enough claims to select from. Every claim is still unverified.",
+    "modelStatus": "usable",
+    "modelNiche": false,
+    "localAdmission": "clear",
+    "needsSource": false,
+    "falsePremise": "",
+    "provenanceSummary": "Retrieved mode: every admitted claim cites a fetched passage and carries a quote that code found verbatim in that passage after whitespace, case, and typographic-quote normalisation. An automated entailment check then labels support; a claim without a supported verdict is held out of the lesson. Support label: quote-verified + automated entailment check. No claim is human-verified and factuallyVerified stays false. Model confidence and search snippets are not support.",
+    "verificationOverrides": 0,
+    "claims": [
+     {
+      "claimId": "czlmmyl",
+      "text": "Dinosaurs had straight back legs positioned perpendicular to their bodies.",
+      "kind": "fact",
+      "depth": "concrete",
+      "confidence": "high",
+      "provenance": "retrieved",
+      "provenanceNote": "retrieved; quote found verbatim in cited passage; automated entailment check: supported; not human-verified",
+      "teacherRequested": false,
+      "factuallyVerified": false,
+      "contested": false,
+      "uncertainty": "",
+      "ageFit": {
+       "from": 1,
+       "to": 6
+      },
+      "correctsPremise": false,
+      "importance": "core",
+      "classificationHold": false,
+      "sourceRef": [
+       "S4-P01"
+      ],
+      "sourceQuote": "they had straight back legs, perpendicular to their bodies.",
+      "sourceUrls": [
+       "https://www.nhm.ac.uk/discover/what-are-dinosaurs.html"
+      ],
+      "sourceTitles": [
+       "What are dinosaurs? | Natural History Museum"
+      ],
+      "quoteVerified": true,
+      "wordsNotInSource": [],
+      "entailment": "supported",
+      "sourceSupport": "quote-verified + automated entailment check",
+      "sourceHold": false,
+      "placeBound": false,
+      "placeNames": [],
+      "supplied": false,
+      "support": "generic",
+      "localHold": false,
+      "entailmentNote": ""
+     },
+     {
+      "claimId": "c3065dt",
+      "text": "Dinosaurs' straight back legs let them use less energy to move than reptiles with a sprawling stance.",
+      "kind": "mechanism",
+      "depth": "mechanism",
+      "confidence": "high",
+      "provenance": "retrieved",
+      "provenanceNote": "retrieved; quote found verbatim in cited passage; automated entailment check: supported; not human-verified",
+      "teacherRequested": false,
+      "factuallyVerified": false,
+      "contested": false,
+      "uncertainty": "",
+      "ageFit": {
+       "from": 2,
+       "to": 6
+      },
+      "correctsPremise": false,
+      "importance": "core",
+      "classificationHold": false,
+      "sourceRef": [
+       "S4-P01"
+      ],
+      "sourceQuote": "This allowed them to use less energy to move than other reptiles that had a sprawling stance",
+      "sourceUrls": [
+       "https://www.nhm.ac.uk/discover/what-are-dinosaurs.html"
+      ],
+      "sourceTitles": [
+       "What are dinosaurs? | Natural History Museum"
+      ],
+      "quoteVerified": true,
+      "wordsNotInSource": [],
+      "entailment": "supported",
+      "sourceSupport": "quote-verified + automated entailment check",
+      "sourceHold": false,
+      "placeBound": false,
+      "placeNames": [],
+      "supplied": false,
+      "support": "generic",
+      "localHold": false,
+      "linkQuote": "This allowed them to use less energy to move than other reptiles that had a sprawling stance",
+      "entailmentNote": ""
+     },
+     {
+      "claimId": "c70tt8c",
+      "text": "Spinosaurus had nostrils further up on its snout than other dinosaurs.",
+      "kind": "fact",
+      "depth": "concrete",
+      "confidence": "high",
+      "provenance": "retrieved",
+      "provenanceNote": "retrieved; quote found verbatim in cited passage; automated entailment check: supported; not human-verified",
+      "teacherRequested": false,
+      "factuallyVerified": false,
+      "contested": false,
+      "uncertainty": "",
+      "ageFit": {
+       "from": 1,
+       "to": 6
+      },
+      "correctsPremise": false,
+      "importance": "core",
+      "classificationHold": false,
+      "sourceRef": [
+       "S9-P02"
+      ],
+      "sourceQuote": "Its nostrils were further up on its snout than the nostrils of other dinosaurs.",
+      "sourceUrls": [
+       "https://kids.nationalgeographic.com/animals/prehistoric/facts/spinosaurus"
+      ],
+      "sourceTitles": [
+       "Spinosaurus"
+      ],
+      "quoteVerified": true,
+      "wordsNotInSource": [],
+      "entailment": "supported",
+      "sourceSupport": "quote-verified + automated entailment check",
+      "sourceHold": false,
+      "placeBound": false,
+      "placeNames": [
+       "Spinosaurus"
+      ],
+      "supplied": false,
+      "support": "generic",
+      "localHold": false,
+      "entailmentNote": ""
+     },
+     {
+      "claimId": "cr8xkcc",
+      "text": "Spinosaurus's nostrils further up on its snout let it breathe with most of its snout underwater.",
+      "kind": "mechanism",
+      "depth": "mechanism",
+      "confidence": "high",
+      "provenance": "retrieved",
+      "provenanceNote": "retrieved; quote found verbatim; automated entailment check: unsupported; held out of the lesson",
+      "teacherRequested": false,
+      "factuallyVerified": false,
+      "contested": false,
+      "uncertainty": "",
+      "ageFit": {
+       "from": 2,
+       "to": 6
+      },
+      "correctsPremise": false,
+      "importance": "core",
+      "classificationHold": false,
+      "sourceRef": [
+       "S9-P02"
+      ],
+      "sourceQuote": "This would\u2019ve allowed the animal to breathe even with most of its snout submerged.",
+      "sourceUrls": [
+       "https://kids.nationalgeographic.com/animals/prehistoric/facts/spinosaurus"
+      ],
+      "sourceTitles": [
+       "Spinosaurus"
+      ],
+      "quoteVerified": true,
+      "wordsNotInSource": [
+       "underwater"
+      ],
+      "entailment": "unsupported",
+      "sourceSupport": "quote-verified; automated entailment check: unsupported",
+      "sourceHold": true,
+      "placeBound": false,
+      "placeNames": [
+       "Spinosaurus"
+      ],
+      "supplied": false,
+      "support": "generic",
+      "localHold": false,
+      "entailmentNote": "The source says the nostril position would have allowed breathing; the claim states this as certain."
+     },
+     {
+      "claimId": "c4qgx9e",
+      "text": "Spinosaurus had paddle-like webbed feet.",
+      "kind": "fact",
+      "depth": "concrete",
+      "confidence": "high",
+      "provenance": "retrieved",
+      "provenanceNote": "retrieved; quote found verbatim in cited passage; automated entailment check: supported; not human-verified",
+      "teacherRequested": false,
+      "factuallyVerified": false,
+      "contested": false,
+      "uncertainty": "",
+      "ageFit": {
+       "from": 1,
+       "to": 6
+      },
+      "correctsPremise": false,
+      "importance": "core",
+      "classificationHold": false,
+      "sourceRef": [
+       "S9-P02"
+      ],
+      "sourceQuote": "And its paddle-like webbed feet would\u2019ve allowed the animal to swim.",
+      "sourceUrls": [
+       "https://kids.nationalgeographic.com/animals/prehistoric/facts/spinosaurus"
+      ],
+      "sourceTitles": [
+       "Spinosaurus"
+      ],
+      "quoteVerified": true,
+      "wordsNotInSource": [],
+      "entailment": "supported",
+      "sourceSupport": "quote-verified + automated entailment check",
+      "sourceHold": false,
+      "placeBound": false,
+      "placeNames": [
+       "Spinosaurus"
+      ],
+      "supplied": false,
+      "support": "generic",
+      "localHold": false,
+      "entailmentNote": ""
+     },
+     {
+      "claimId": "c1vpd3du",
+      "text": "Spinosaurus's paddle-like webbed feet allowed it to swim.",
+      "kind": "mechanism",
+      "depth": "mechanism",
+      "confidence": "high",
+      "provenance": "retrieved",
+      "provenanceNote": "retrieved; quote found verbatim; automated entailment check: unsupported; held out of the lesson",
+      "teacherRequested": false,
+      "factuallyVerified": false,
+      "contested": false,
+      "uncertainty": "",
+      "ageFit": {
+       "from": 2,
+       "to": 6
+      },
+      "correctsPremise": false,
+      "importance": "core",
+      "classificationHold": false,
+      "sourceRef": [
+       "S9-P02"
+      ],
+      "sourceQuote": "And its paddle-like webbed feet would\u2019ve allowed the animal to swim.",
+      "sourceUrls": [
+       "https://kids.nationalgeographic.com/animals/prehistoric/facts/spinosaurus"
+      ],
+      "sourceTitles": [
+       "Spinosaurus"
+      ],
+      "quoteVerified": true,
+      "wordsNotInSource": [],
+      "entailment": "unsupported",
+      "sourceSupport": "quote-verified; automated entailment check: unsupported",
+      "sourceHold": true,
+      "placeBound": false,
+      "placeNames": [
+       "Spinosaurus"
+      ],
+      "supplied": false,
+      "support": "generic",
+      "localHold": false,
+      "entailmentNote": "The source says the feet would have allowed swimming; the claim states this as certain."
+     },
+     {
+      "claimId": "cspr2t9",
+      "text": "Spinosaurus inhabited what is now North Africa\u2019s Sahara region, which then had a large river system.",
+      "kind": "fact",
+      "depth": "concrete",
+      "confidence": "high",
+      "provenance": "retrieved",
+      "provenanceNote": "retrieved; quote found verbatim in cited passage; automated entailment check: supported; not human-verified",
+      "teacherRequested": false,
+      "factuallyVerified": false,
+      "contested": false,
+      "uncertainty": "",
+      "ageFit": {
+       "from": 2,
+       "to": 6
+      },
+      "correctsPremise": false,
+      "importance": "core",
+      "classificationHold": false,
+      "sourceRef": [
+       "S9-P02"
+      ],
+      "sourceQuote": "It inhabited what is now North Africa\u2019s Sahara region, which at the time featured a large river system.",
+      "sourceUrls": [
+       "https://kids.nationalgeographic.com/animals/prehistoric/facts/spinosaurus"
+      ],
+      "sourceTitles": [
+       "Spinosaurus"
+      ],
+      "quoteVerified": true,
+      "wordsNotInSource": [],
+      "entailment": "supported",
+      "sourceSupport": "quote-verified + automated entailment check",
+      "sourceHold": false,
+      "placeBound": false,
+      "placeNames": [
+       "Spinosaurus",
+       "North Africa\u2019s Sahara"
+      ],
+      "supplied": false,
+      "support": "generic",
+      "localHold": false,
+      "entailmentNote": ""
+     }
+    ],
+    "mechanisms": [
+     {
+      "claimId": "c3065dt",
+      "text": "Dinosaurs' straight back legs let them use less energy to move than reptiles with a sprawling stance.",
+      "feature": "straight back legs",
+      "featureClaimId": "czlmmyl"
+     },
+     {
+      "claimId": "cr8xkcc",
+      "text": "Spinosaurus's nostrils further up on its snout let it breathe with most of its snout underwater.",
+      "feature": "nostrils further up",
+      "featureClaimId": "c70tt8c"
+     },
+     {
+      "claimId": "c1vpd3du",
+      "text": "Spinosaurus's paddle-like webbed feet allowed it to swim.",
+      "feature": "webbed feet",
+      "featureClaimId": "c4qgx9e"
+     }
+    ],
+    "concepts": [],
+    "vocabulary": [
+     {
+      "term": "habitat",
+      "gloss": "The place or environment where an animal lived.",
+      "sourceRef": [
+       "S6-P12"
+      ],
+      "sourceQuote": "tracks were made by a dinosaur moving about its environment - so they are an important link between these prehistoric animals and the habitats they lived in."
+     },
+     {
+      "term": "adapted",
+      "gloss": "Having features suited to a way of life.",
+      "sourceRef": [
+       "S9-P02"
+      ],
+      "sourceQuote": "Spinosaurus was well adapted for aquatic life."
+     }
+    ],
+    "misconceptions": [],
+    "openQuestions": [],
+    "rejectedClaims": [],
+    "strippedFields": [],
+    "sourceMode": "retrieved",
+    "sourceAudit": {
+     "label": "quote-verified + automated entailment check",
+     "checked": 7,
+     "admitted": 7,
+     "rejected": [],
+     "rejectedByReason": {},
+     "entailmentRan": true,
+     "humanVerified": false,
+     "entailment": {
+      "supported": 5,
+      "partial": 0,
+      "unsupported": 2,
+      "unchecked": 0
+     }
+    }
+   },
+   "selection": {
+    "status": "ready",
+    "reason": "Year 3 selects concrete claims and mechanisms. System claims stay in the pack.",
+    "depthMode": "mechanism",
+    "year": 3,
+    "claimIds": [
+     "c4qgx9e",
+     "c70tt8c",
+     "cspr2t9",
+     "czlmmyl",
+     "c3065dt"
+    ],
+    "heldBack": [
+     {
+      "claimId": "cr8xkcc",
+      "depth": "mechanism",
+      "reason": "source support not confirmed (unsupported)"
+     },
+     {
+      "claimId": "c1vpd3du",
+      "depth": "mechanism",
+      "reason": "source support not confirmed (unsupported)"
+     }
+    ]
+   }
+  },
+  {
+   "packId": "kp_1e1b9ut",
+   "pack": {
+    "id": "kp_1e1b9ut",
+    "version": 1,
+    "phase": 1,
+    "topic": "Dinosaurs",
+    "subject": "Science",
+    "status": "usable",
+    "statusReason": "Enough claims to select from. Every claim is still unverified.",
+    "modelStatus": "usable",
+    "modelNiche": false,
+    "localAdmission": "clear",
+    "needsSource": false,
+    "falsePremise": "",
+    "provenanceSummary": "Retrieved mode: every admitted claim cites a fetched passage and carries a quote that code found verbatim in that passage after whitespace, case, and typographic-quote normalisation. An automated entailment check then labels support; a claim without a supported verdict is held out of the lesson. Support label: quote-verified + automated entailment check. No claim is human-verified and factuallyVerified stays false. Model confidence and search snippets are not support.",
+    "verificationOverrides": 0,
+    "claims": [
+     {
+      "claimId": "czlmmyl",
+      "text": "Dinosaurs had straight back legs positioned perpendicular to their bodies.",
+      "kind": "fact",
+      "depth": "concrete",
+      "confidence": "high",
+      "provenance": "retrieved",
+      "provenanceNote": "retrieved; quote found verbatim in cited passage; automated entailment check: supported; not human-verified",
+      "teacherRequested": false,
+      "factuallyVerified": false,
+      "contested": false,
+      "uncertainty": "",
+      "ageFit": {
+       "from": 1,
+       "to": 6
+      },
+      "correctsPremise": false,
+      "importance": "core",
+      "classificationHold": false,
+      "sourceRef": [
+       "S4-P01"
+      ],
+      "sourceQuote": "they had straight back legs, perpendicular to their bodies.",
+      "sourceUrls": [
+       "https://www.nhm.ac.uk/discover/what-are-dinosaurs.html"
+      ],
+      "sourceTitles": [
+       "What are dinosaurs? | Natural History Museum"
+      ],
+      "quoteVerified": true,
+      "wordsNotInSource": [],
+      "entailment": "supported",
+      "sourceSupport": "quote-verified + automated entailment check",
+      "sourceHold": false,
+      "placeBound": false,
+      "placeNames": [],
+      "supplied": false,
+      "support": "generic",
+      "localHold": false,
+      "entailmentNote": ""
+     },
+     {
+      "claimId": "c3065dt",
+      "text": "Dinosaurs' straight back legs let them use less energy to move than reptiles with a sprawling stance.",
+      "kind": "fact",
+      "depth": "mechanism",
+      "confidence": "high",
+      "provenance": "retrieved",
+      "provenanceNote": "retrieved; quote found verbatim in cited passage; automated entailment check: supported; not human-verified",
+      "teacherRequested": false,
+      "factuallyVerified": false,
+      "contested": false,
+      "uncertainty": "",
+      "ageFit": {
+       "from": 2,
+       "to": 6
+      },
+      "correctsPremise": false,
+      "importance": "core",
+      "classificationHold": false,
+      "sourceRef": [
+       "S4-P01"
+      ],
+      "sourceQuote": "This allowed them to use less energy to move than other reptiles that had a sprawling stance",
+      "sourceUrls": [
+       "https://www.nhm.ac.uk/discover/what-are-dinosaurs.html"
+      ],
+      "sourceTitles": [
+       "What are dinosaurs? | Natural History Museum"
+      ],
+      "quoteVerified": true,
+      "wordsNotInSource": [],
+      "entailment": "supported",
+      "sourceSupport": "quote-verified + automated entailment check",
+      "sourceHold": false,
+      "placeBound": false,
+      "placeNames": [],
+      "supplied": false,
+      "support": "generic",
+      "localHold": false,
+      "linkQuote": "This allowed them to use less energy to move than other reptiles that had a sprawling stance",
+      "entailmentNote": ""
+     },
+     {
+      "claimId": "c70tt8c",
+      "text": "Spinosaurus had nostrils further up on its snout than other dinosaurs.",
+      "kind": "fact",
+      "depth": "concrete",
+      "confidence": "high",
+      "provenance": "retrieved",
+      "provenanceNote": "retrieved; quote found verbatim in cited passage; automated entailment check: supported; not human-verified",
+      "teacherRequested": false,
+      "factuallyVerified": false,
+      "contested": false,
+      "uncertainty": "",
+      "ageFit": {
+       "from": 1,
+       "to": 6
+      },
+      "correctsPremise": false,
+      "importance": "core",
+      "classificationHold": false,
+      "sourceRef": [
+       "S9-P02"
+      ],
+      "sourceQuote": "Its nostrils were further up on its snout than the nostrils of other dinosaurs.",
+      "sourceUrls": [
+       "https://kids.nationalgeographic.com/animals/prehistoric/facts/spinosaurus"
+      ],
+      "sourceTitles": [
+       "Spinosaurus"
+      ],
+      "quoteVerified": true,
+      "wordsNotInSource": [],
+      "entailment": "supported",
+      "sourceSupport": "quote-verified + automated entailment check",
+      "sourceHold": false,
+      "placeBound": false,
+      "placeNames": [
+       "Spinosaurus"
+      ],
+      "supplied": false,
+      "support": "generic",
+      "localHold": false,
+      "entailmentNote": ""
+     },
+     {
+      "claimId": "c1ilto8",
+      "text": "Spinosaurus's nostrils further up on its snout would have allowed it to breathe with most of its snout submerged.",
+      "kind": "fact",
+      "depth": "mechanism",
+      "confidence": "high",
+      "provenance": "retrieved",
+      "provenanceNote": "retrieved; quote found verbatim in cited passage; automated entailment check: supported; not human-verified",
+      "teacherRequested": false,
+      "factuallyVerified": false,
+      "contested": false,
+      "uncertainty": "",
+      "ageFit": {
+       "from": 3,
+       "to": 6
+      },
+      "correctsPremise": false,
+      "importance": "core",
+      "classificationHold": false,
+      "sourceRef": [
+       "S9-P02"
+      ],
+      "sourceQuote": "This would\u2019ve allowed the animal to breathe even with most of its snout submerged.",
+      "sourceUrls": [
+       "https://kids.nationalgeographic.com/animals/prehistoric/facts/spinosaurus"
+      ],
+      "sourceTitles": [
+       "Spinosaurus"
+      ],
+      "quoteVerified": true,
+      "wordsNotInSource": [],
+      "entailment": "supported",
+      "sourceSupport": "quote-verified + automated entailment check",
+      "sourceHold": false,
+      "placeBound": false,
+      "placeNames": [
+       "Spinosaurus"
+      ],
+      "supplied": false,
+      "support": "generic",
+      "localHold": false,
+      "linkQuote": "This would\u2019ve allowed the animal to breathe even with most of its snout submerged.",
+      "entailmentNote": ""
+     },
+     {
+      "claimId": "c4qgx9e",
+      "text": "Spinosaurus had paddle-like webbed feet.",
+      "kind": "fact",
+      "depth": "concrete",
+      "confidence": "high",
+      "provenance": "retrieved",
+      "provenanceNote": "retrieved; quote found verbatim in cited passage; automated entailment check: supported; not human-verified",
+      "teacherRequested": false,
+      "factuallyVerified": false,
+      "contested": false,
+      "uncertainty": "",
+      "ageFit": {
+       "from": 1,
+       "to": 6
+      },
+      "correctsPremise": false,
+      "importance": "core",
+      "classificationHold": false,
+      "sourceRef": [
+       "S9-P02"
+      ],
+      "sourceQuote": "And its paddle-like webbed feet would\u2019ve allowed the animal to swim.",
+      "sourceUrls": [
+       "https://kids.nationalgeographic.com/animals/prehistoric/facts/spinosaurus"
+      ],
+      "sourceTitles": [
+       "Spinosaurus"
+      ],
+      "quoteVerified": true,
+      "wordsNotInSource": [],
+      "entailment": "supported",
+      "sourceSupport": "quote-verified + automated entailment check",
+      "sourceHold": false,
+      "placeBound": false,
+      "placeNames": [
+       "Spinosaurus"
+      ],
+      "supplied": false,
+      "support": "generic",
+      "localHold": false,
+      "entailmentNote": ""
+     },
+     {
+      "claimId": "c5tti7x",
+      "text": "Spinosaurus's paddle-like webbed feet would have allowed it to swim.",
+      "kind": "fact",
+      "depth": "mechanism",
+      "confidence": "high",
+      "provenance": "retrieved",
+      "provenanceNote": "retrieved; quote found verbatim in cited passage; automated entailment check: supported; not human-verified",
+      "teacherRequested": false,
+      "factuallyVerified": false,
+      "contested": false,
+      "uncertainty": "",
+      "ageFit": {
+       "from": 2,
+       "to": 6
+      },
+      "correctsPremise": false,
+      "importance": "core",
+      "classificationHold": false,
+      "sourceRef": [
+       "S9-P02"
+      ],
+      "sourceQuote": "And its paddle-like webbed feet would\u2019ve allowed the animal to swim.",
+      "sourceUrls": [
+       "https://kids.nationalgeographic.com/animals/prehistoric/facts/spinosaurus"
+      ],
+      "sourceTitles": [
+       "Spinosaurus"
+      ],
+      "quoteVerified": true,
+      "wordsNotInSource": [],
+      "entailment": "supported",
+      "sourceSupport": "quote-verified + automated entailment check",
+      "sourceHold": false,
+      "placeBound": false,
+      "placeNames": [
+       "Spinosaurus"
+      ],
+      "supplied": false,
+      "support": "generic",
+      "localHold": false,
+      "linkQuote": "And its paddle-like webbed feet would\u2019ve allowed the animal to swim.",
+      "entailmentNote": ""
+     },
+     {
+      "claimId": "cspr2t9",
+      "text": "Spinosaurus inhabited what is now North Africa\u2019s Sahara region, which then had a large river system.",
+      "kind": "fact",
+      "depth": "concrete",
+      "confidence": "high",
+      "provenance": "retrieved",
+      "provenanceNote": "retrieved; quote found verbatim in cited passage; automated entailment check: supported; not human-verified",
+      "teacherRequested": false,
+      "factuallyVerified": false,
+      "contested": false,
+      "uncertainty": "",
+      "ageFit": {
+       "from": 2,
+       "to": 6
+      },
+      "correctsPremise": false,
+      "importance": "supporting",
+      "classificationHold": false,
+      "sourceRef": [
+       "S9-P02"
+      ],
+      "sourceQuote": "It inhabited what is now North Africa\u2019s Sahara region, which at the time featured a large river system.",
+      "sourceUrls": [
+       "https://kids.nationalgeographic.com/animals/prehistoric/facts/spinosaurus"
+      ],
+      "sourceTitles": [
+       "Spinosaurus"
+      ],
+      "quoteVerified": true,
+      "wordsNotInSource": [],
+      "entailment": "supported",
+      "sourceSupport": "quote-verified + automated entailment check",
+      "sourceHold": false,
+      "placeBound": false,
+      "placeNames": [
+       "Spinosaurus",
+       "North Africa\u2019s Sahara"
+      ],
+      "supplied": false,
+      "support": "generic",
+      "localHold": false,
+      "entailmentNote": ""
+     }
+    ],
+    "mechanisms": [
+     {
+      "claimId": "c3065dt",
+      "text": "Dinosaurs' straight back legs let them use less energy to move than reptiles with a sprawling stance.",
+      "feature": "straight back legs",
+      "featureClaimId": "czlmmyl"
+     },
+     {
+      "claimId": "c1ilto8",
+      "text": "Spinosaurus's nostrils further up on its snout would have allowed it to breathe with most of its snout submerged.",
+      "feature": "nostrils further up",
+      "featureClaimId": "c70tt8c"
+     },
+     {
+      "claimId": "c5tti7x",
+      "text": "Spinosaurus's paddle-like webbed feet would have allowed it to swim.",
+      "feature": "webbed feet",
+      "featureClaimId": "c4qgx9e"
+     }
+    ],
+    "concepts": [],
+    "vocabulary": [
+     {
+      "term": "habitat",
+      "gloss": "The place where an animal lives.",
+      "sourceRef": [
+       "S6-P12"
+      ],
+      "sourceQuote": "tracks were made by a dinosaur moving about its environment - so they are an important link between these prehistoric animals and the habitats they lived in."
+     }
+    ],
+    "misconceptions": [],
+    "openQuestions": [],
+    "rejectedClaims": [],
+    "strippedFields": [],
+    "sourceMode": "retrieved",
+    "sourceAudit": {
+     "label": "quote-verified + automated entailment check",
+     "checked": 7,
+     "admitted": 7,
+     "rejected": [],
+     "rejectedByReason": {},
+     "entailmentRan": true,
+     "humanVerified": false,
+     "entailment": {
+      "supported": 7,
+      "partial": 0,
+      "unsupported": 0,
+      "unchecked": 0
+     }
+    }
+   },
+   "selection": {
+    "status": "ready",
+    "reason": "Year 3 selects concrete claims and mechanisms. System claims stay in the pack.",
+    "depthMode": "mechanism",
+    "year": 3,
+    "claimIds": [
+     "c4qgx9e",
+     "c70tt8c",
+     "cspr2t9",
+     "czlmmyl",
+     "c1ilto8",
+     "c3065dt",
+     "c5tti7x"
+    ],
+    "heldBack": []
+   }
+  }
+ ]
+}

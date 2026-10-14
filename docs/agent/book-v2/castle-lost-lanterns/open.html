@@ -1,0 +1,1 @@
+<!DOCTYPE html><meta charset="utf-8"><title>Open the castle book</title><script>fetch("reader-book.json").then(function(r){return r.json()}).then(function(book){sessionStorage.setItem("wondii-reader-fixture", JSON.stringify({userId:"local-fixture", books:[book]})); location.replace("/games/book-prototype/?book="+encodeURIComponent(book.id));});</script>

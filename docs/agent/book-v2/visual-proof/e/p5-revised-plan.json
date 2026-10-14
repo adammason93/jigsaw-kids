@@ -1,0 +1,86 @@
+{
+  "spreadId": "p5",
+  "redrawn": false,
+  "montage": false,
+  "characterInstances": {
+    "maya": 1
+  },
+  "fullStoryEvent": "Maya opens her hands, closes them, and opens them again. The star answers with two small blinks.",
+  "stateBefore": {
+    "characters": [
+      {
+        "characterId": "maya",
+        "locationId": "flowerpot-corner",
+        "clothing": "yellow cardigan, white shirt, blue skirt",
+        "carriedEntities": [
+          "hidden-star"
+        ],
+        "emotion": "Growing trust",
+        "storyRole": "friend"
+      }
+    ],
+    "entities": [
+      {
+        "entityId": "clay-flowerpot",
+        "ownerCharacterId": null,
+        "locationId": "flowerpot-corner",
+        "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+      },
+      {
+        "entityId": "garden-wall",
+        "ownerCharacterId": null,
+        "locationId": "flowerpot-corner",
+        "state": "Blocking most of the sky above the corner."
+      },
+      {
+        "entityId": "hidden-star",
+        "ownerCharacterId": "maya",
+        "locationId": "flowerpot-corner",
+        "state": "Unfolded inside Maya's cupped hands, blinking once."
+      }
+    ]
+  },
+  "sequentialActions": [
+    "Maya opens her hands",
+    "closes them",
+    "opens them again",
+    "The star answers with two small blinks"
+  ],
+  "illustrationMoment": "Maya opens them again while the star answers with two small blinks",
+  "stateAfter": {
+    "characters": [
+      {
+        "characterId": "maya",
+        "locationId": "flowerpot-corner",
+        "clothing": "yellow cardigan, white shirt, blue skirt",
+        "carriedEntities": [
+          "hidden-star"
+        ],
+        "emotion": "Gentle discovery",
+        "storyRole": "friend"
+      }
+    ],
+    "entities": [
+      {
+        "entityId": "clay-flowerpot",
+        "ownerCharacterId": null,
+        "locationId": "flowerpot-corner",
+        "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+      },
+      {
+        "entityId": "garden-wall",
+        "ownerCharacterId": null,
+        "locationId": "flowerpot-corner",
+        "state": "Blocking most of the sky above the corner."
+      },
+      {
+        "entityId": "hidden-star",
+        "ownerCharacterId": "maya",
+        "locationId": "flowerpot-corner",
+        "state": "Answering Maya's hand signals with two blinks."
+      }
+    ]
+  },
+  "momentProblems": [],
+  "revisedPrompt": "One illustration for a children's picture book, in the same painted style as the character reference. Match the reference child's face, hair, skin, age, and clothes. Do not redesign them. No letters, no words, no numbers, no captions, no speech balloons, no watermark. Leave the upper-left area quieter, with open sky, wall, or ground, so type can sit there later. Do not draw a box. Place: the flowerpot corner. A sheltered corner beneath a tall garden wall, with one clay flowerpot and soft evening shadows.. Who: Maya, long dark curls, medium brown, wearing yellow cardigan, white shirt, blue skirt and navy shoes. Already true at the start of this picture: the flowerpot (A round clay pot with a dark gap beneath its rim.) state now: Standing beside the wall, with a sheltered gap beneath its rim.; the garden wall (A tall pale wall that blocks the sky from the sheltered corner.) state now: Blocking most of the sky above the corner.; the hidden star (A small warm-white star whose points fold inward when it hides; it communicates by blinking.) state now: Unfolded inside Maya's cupped hands, blinking once.. The full event, for understanding only: Maya opens her hands, closes them, and opens them again. The star answers with two small blinks. Draw only this instant: Maya opens them again while the star answers with two small blinks Draw each character exactly once. Do not repeat a character to show an earlier or later moment. Emotion to show, not a caption: Gentle discovery. Shot: vignette. Use a simple sequence of hands and answering light. Focus: The repeated open-close-open pattern. Light: evening light, quiet contrast, warm points of light. Do not show a later result that has not happened yet."
+}

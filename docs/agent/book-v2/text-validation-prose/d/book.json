@@ -1,0 +1,2456 @@
+{
+  "status": "REVIEWABLE",
+  "request": {
+    "castIds": [
+      "leo",
+      "ravi",
+      "mina"
+    ],
+    "idea": "Every clock in the world suddenly stops except one.",
+    "yearGroup": "Year 5",
+    "length": "storybook",
+    "tone": "mystery"
+  },
+  "modelCalls": 2,
+  "repairCalls": 0,
+  "repairs": [],
+  "stagesRepaired": [],
+  "bible": {
+    "title": "The Last Tick",
+    "yearGroup": "Year 5",
+    "readerAge": "Year 5",
+    "tone": "mystery",
+    "targetLength": "storybook",
+    "userIdea": "Every clock in the world suddenly stops except one.",
+    "castIds": [
+      "leo",
+      "ravi",
+      "mina"
+    ],
+    "visualStyle": "wondii-picture-book",
+    "premise": "A silver thread links every clock in the world, carrying their movement between them. When the thread catches around a winding key, the network stops, except for one clock protected by a loose loop.",
+    "hook": "Why does one clock keep ticking when all the others have fallen silent?",
+    "goal": "Discover why the last clock still ticks and restore the silent clocks without losing its movement.",
+    "centralProblem": "The children must understand how a tangled silver thread has stopped the connected clocks before their repairs silence the remaining one.",
+    "stakes": "Their only working guide to the mystery could stop before they understand what makes it different.",
+    "climaxBeatId": "b5",
+    "resolutionBeatId": "b6",
+    "emotionalArc": [
+      "puzzlement",
+      "focused interest",
+      "hopeful confidence",
+      "uneasy silence",
+      "recognition",
+      "quiet assurance"
+    ],
+    "motif": "A silver loop that opens and closes with each tick.",
+    "locations": [
+      {
+        "locationId": "clockwork-gallery",
+        "name": "the clockwork gallery",
+        "connectedTo": [],
+        "visualIdentity": "A circular room of motionless clock faces, with a brass world-map display surrounding one glass-sided clock."
+      }
+    ],
+    "entities": [
+      {
+        "entityId": "glass-clock",
+        "name": "the glass-sided clock",
+        "identity": "A green-framed clock with a visible pendulum and a winding key projecting from its side.",
+        "ownerCharacterId": null,
+        "locationId": "clockwork-gallery",
+        "state": "Ticking again with an unobstructed pendulum.",
+        "introducedAt": "b1"
+      },
+      {
+        "entityId": "silver-thread",
+        "name": "the silver thread",
+        "identity": "An enchanted thread connecting the world's clocks, visible inside the gallery as branching silver lines.",
+        "ownerCharacterId": null,
+        "locationId": "clockwork-gallery",
+        "state": "Freed from the key and pendulum, carrying movement throughout its branches.",
+        "introducedAt": "b1"
+      },
+      {
+        "entityId": "winding-key",
+        "name": "the winding key",
+        "identity": "A brass butterfly-shaped key fitted into the glass-sided clock.",
+        "ownerCharacterId": null,
+        "locationId": "clockwork-gallery",
+        "state": "Turned backwards until its stem is clear of thread.",
+        "introducedAt": "b1"
+      },
+      {
+        "entityId": "world-clock-display",
+        "name": "the world-clock display",
+        "identity": "A brass world map whose tiny clock faces mirror every connected clock across the world.",
+        "ownerCharacterId": null,
+        "locationId": "clockwork-gallery",
+        "state": "Showing moving hands everywhere on the map.",
+        "introducedAt": "b1"
+      }
+    ],
+    "beats": [
+      {
+        "beatId": "b1",
+        "role": "hook",
+        "locationId": "clockwork-gallery",
+        "charactersPresent": [
+          "leo",
+          "ravi",
+          "mina"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "leo",
+            "trait": "careful",
+            "shows": "Holds his hands behind his back while checking the motionless faces."
+          }
+        ],
+        "problemFamily": "",
+        "because": "",
+        "resolvesProblem": false,
+        "action": "The world-clock display shows motionless hands everywhere, but the glass-sided clock keeps ticking. The children search for what makes it different.",
+        "emotion": "puzzlement",
+        "entitiesRequired": [
+          "glass-clock",
+          "world-clock-display",
+          "winding-key",
+          "silver-thread"
+        ],
+        "visualFocus": "One swinging pendulum among motionless hands.",
+        "shotType": "establishing",
+        "compositionIntent": "Surround the three children with still faces while giving the moving pendulum a clear central position.",
+        "textPurpose": "Establish the worldwide silence and plant the question of the surviving tick.",
+        "pageTurnHook": "What has this clock got that the others have not?",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "clockwork-gallery",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "clockwork-gallery",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "clockwork-gallery",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": []
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "clockwork-gallery",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "puzzlement",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "clockwork-gallery",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "puzzlement",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "clockwork-gallery",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "puzzlement",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "glass-clock",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Ticking with its pendulum moving."
+            },
+            {
+              "entityId": "world-clock-display",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Showing stopped clock hands across the entire map."
+            },
+            {
+              "entityId": "winding-key",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Fitted into the side of the glass-sided clock."
+            },
+            {
+              "entityId": "silver-thread",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Branching towards the display, wrapped around the winding key, with one loose loop beside the pendulum."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b2",
+        "role": "discovery",
+        "locationId": "clockwork-gallery",
+        "charactersPresent": [
+          "leo",
+          "ravi",
+          "mina"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "mina",
+            "trait": "observant",
+            "shows": "Tracks the silver loop through several swings and points out where its movement ends."
+          }
+        ],
+        "problemFamily": "blocked-connection",
+        "because": "b1",
+        "resolvesProblem": false,
+        "action": "Mina traces the silver thread from the silent display to the winding key. Only its loose loop moves with the surviving pendulum.",
+        "emotion": "focused interest",
+        "entitiesRequired": [
+          "glass-clock",
+          "world-clock-display",
+          "winding-key",
+          "silver-thread"
+        ],
+        "visualFocus": "Movement reaching the winding key and going no farther.",
+        "shotType": "close",
+        "compositionIntent": "Place Mina's pointing finger beside the moving loop, with the trapped thread clearly visible behind it.",
+        "textPurpose": "Identify the connection to investigate and establish the loop as a reusable clue.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "clockwork-gallery",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "puzzlement",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "clockwork-gallery",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "puzzlement",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "clockwork-gallery",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "puzzlement",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "glass-clock",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Ticking with its pendulum moving."
+            },
+            {
+              "entityId": "world-clock-display",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Showing stopped clock hands across the entire map."
+            },
+            {
+              "entityId": "winding-key",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Fitted into the side of the glass-sided clock."
+            },
+            {
+              "entityId": "silver-thread",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Branching towards the display, wrapped around the winding key, with one loose loop beside the pendulum."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "clockwork-gallery",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "focused interest",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "clockwork-gallery",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "focused interest",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "clockwork-gallery",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "focused interest",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "glass-clock",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Ticking with its pendulum moving."
+            },
+            {
+              "entityId": "world-clock-display",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Showing stopped clock hands across the entire map."
+            },
+            {
+              "entityId": "winding-key",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Fitted into the side of the glass-sided clock."
+            },
+            {
+              "entityId": "silver-thread",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Branching towards the display, wrapped around the winding key, with one loose loop beside the pendulum."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b3",
+        "role": "attempt",
+        "locationId": "clockwork-gallery",
+        "charactersPresent": [
+          "leo",
+          "ravi",
+          "mina"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "ravi",
+            "trait": "inventive",
+            "shows": "Uses the winding key as a handle to try feeding movement into the still thread."
+          },
+          {
+            "characterId": "leo",
+            "trait": "kind",
+            "shows": "Steadies the clock's frame so Ravi can turn the key without tipping it."
+          }
+        ],
+        "problemFamily": "misdirected-repair",
+        "because": "b2",
+        "resolvesProblem": false,
+        "action": "Ravi turns the winding key, hoping to send the remaining tick along the thread. Leo steadies the frame as the loop shrinks.",
+        "emotion": "hopeful confidence",
+        "entitiesRequired": [
+          "glass-clock",
+          "world-clock-display",
+          "winding-key",
+          "silver-thread"
+        ],
+        "visualFocus": "The key gathering another turn of silver thread.",
+        "shotType": "medium",
+        "compositionIntent": "Keep the children's cooperating hands and the shrinking loop in the same view.",
+        "textPurpose": "Make the attempted repair directly cause the next difficulty.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "clockwork-gallery",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "focused interest",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "clockwork-gallery",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "focused interest",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "clockwork-gallery",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "focused interest",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "glass-clock",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Ticking with its pendulum moving."
+            },
+            {
+              "entityId": "world-clock-display",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Showing stopped clock hands across the entire map."
+            },
+            {
+              "entityId": "winding-key",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Fitted into the side of the glass-sided clock."
+            },
+            {
+              "entityId": "silver-thread",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Branching towards the display, wrapped around the winding key, with one loose loop beside the pendulum."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "clockwork-gallery",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "hopeful confidence",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "clockwork-gallery",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "hopeful confidence",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "clockwork-gallery",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "hopeful confidence",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "glass-clock",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Ticking with its pendulum moving."
+            },
+            {
+              "entityId": "world-clock-display",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Showing stopped clock hands across the entire map."
+            },
+            {
+              "entityId": "winding-key",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Turned forward, gathering the thread around its stem."
+            },
+            {
+              "entityId": "silver-thread",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Wrapped more tightly around the key, with the loose loop almost consumed."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b4",
+        "role": "complication",
+        "locationId": "clockwork-gallery",
+        "charactersPresent": [
+          "leo",
+          "ravi",
+          "mina"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "mina",
+            "trait": "gentle",
+            "shows": "Touches Ravi's sleeve to stop another turn rather than grabbing his hand."
+          }
+        ],
+        "problemFamily": "lost-last-tick",
+        "because": "b3",
+        "resolvesProblem": false,
+        "action": "The tightened thread catches the pendulum, silencing the last tick. Mina stops Ravi's hand and points to the vanished loop.",
+        "emotion": "uneasy silence",
+        "entitiesRequired": [
+          "glass-clock",
+          "world-clock-display",
+          "winding-key",
+          "silver-thread"
+        ],
+        "visualFocus": "The pendulum held sideways by taut silver thread.",
+        "shotType": "reaction",
+        "compositionIntent": "Frame the children listening to the empty space where the tick should be.",
+        "textPurpose": "Expose the cost of their repair and make the earlier loop essential to solving the mystery.",
+        "pageTurnHook": "What vanished just before the ticking stopped?",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "clockwork-gallery",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "hopeful confidence",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "clockwork-gallery",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "hopeful confidence",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "clockwork-gallery",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "hopeful confidence",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "glass-clock",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Ticking with its pendulum moving."
+            },
+            {
+              "entityId": "world-clock-display",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Showing stopped clock hands across the entire map."
+            },
+            {
+              "entityId": "winding-key",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Turned forward, gathering the thread around its stem."
+            },
+            {
+              "entityId": "silver-thread",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Wrapped more tightly around the key, with the loose loop almost consumed."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "clockwork-gallery",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "uneasy silence",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "clockwork-gallery",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "uneasy silence",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "clockwork-gallery",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "uneasy silence",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "glass-clock",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Silent, with its pendulum caught by the taut thread."
+            },
+            {
+              "entityId": "world-clock-display",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Showing stopped clock hands across the entire map."
+            },
+            {
+              "entityId": "winding-key",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Turned forward, gathering the thread around its stem."
+            },
+            {
+              "entityId": "silver-thread",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Pulled taut around the key and pendulum, with no loose loop remaining."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b5",
+        "role": "climax",
+        "locationId": "clockwork-gallery",
+        "charactersPresent": [
+          "leo",
+          "ravi",
+          "mina"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "leo",
+            "trait": "careful",
+            "shows": "Supports the freed loop without pulling while the key turns backwards."
+          },
+          {
+            "characterId": "ravi",
+            "trait": "bold",
+            "shows": "Reverses his own repair while watching Mina's signals."
+          },
+          {
+            "characterId": "mina",
+            "trait": "observant",
+            "shows": "Signals each backward turn by watching the thread lift from the key."
+          }
+        ],
+        "problemFamily": "released-entanglement",
+        "because": "b4",
+        "resolvesProblem": false,
+        "action": "Guided by Mina, Ravi reverses the key while Leo lifts the thread clear; every clock restarts. The loose loop had spared one pendulum.",
+        "emotion": "recognition",
+        "entitiesRequired": [
+          "glass-clock",
+          "world-clock-display",
+          "winding-key",
+          "silver-thread"
+        ],
+        "visualFocus": "An open silver loop and moving hands across the world-clock display.",
+        "shotType": "overhead",
+        "compositionIntent": "Show all three children's contributions around the released thread and the newly moving map.",
+        "textPurpose": "Use the observed loop to repair the original blockage and answer why one clock survived.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "clockwork-gallery",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "uneasy silence",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "clockwork-gallery",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "uneasy silence",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "clockwork-gallery",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "uneasy silence",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "glass-clock",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Silent, with its pendulum caught by the taut thread."
+            },
+            {
+              "entityId": "world-clock-display",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Showing stopped clock hands across the entire map."
+            },
+            {
+              "entityId": "winding-key",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Turned forward, gathering the thread around its stem."
+            },
+            {
+              "entityId": "silver-thread",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Pulled taut around the key and pendulum, with no loose loop remaining."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "clockwork-gallery",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "recognition",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "clockwork-gallery",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "recognition",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "clockwork-gallery",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "recognition",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "glass-clock",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Ticking again with an unobstructed pendulum."
+            },
+            {
+              "entityId": "world-clock-display",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Showing moving hands everywhere on the map."
+            },
+            {
+              "entityId": "winding-key",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Turned backwards until its stem is clear of thread."
+            },
+            {
+              "entityId": "silver-thread",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Freed from the key and pendulum, carrying movement throughout its branches."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b6",
+        "role": "resolution",
+        "locationId": "clockwork-gallery",
+        "charactersPresent": [
+          "leo",
+          "ravi",
+          "mina"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "ravi",
+            "trait": "inventive",
+            "shows": "Tests his next idea with a tracing finger before touching any mechanism."
+          }
+        ],
+        "problemFamily": "",
+        "because": "b5",
+        "resolvesProblem": true,
+        "action": "Ravi reaches towards another clock, pauses, and traces its thread without touching. Leo and Mina lean beside him beneath the moving hands.",
+        "emotion": "quiet assurance",
+        "entitiesRequired": [
+          "glass-clock",
+          "world-clock-display",
+          "winding-key",
+          "silver-thread"
+        ],
+        "visualFocus": "Ravi's hovering finger following an unbroken silver line.",
+        "shotType": "vignette",
+        "compositionIntent": "Echo the opening arrangement, now with moving clock hands and hands kept clear of the machinery.",
+        "textPurpose": "Show a changed approach through behaviour rather than explaining the solution again.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "clockwork-gallery",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "recognition",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "clockwork-gallery",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "recognition",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "clockwork-gallery",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "recognition",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "glass-clock",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Ticking again with an unobstructed pendulum."
+            },
+            {
+              "entityId": "world-clock-display",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Showing moving hands everywhere on the map."
+            },
+            {
+              "entityId": "winding-key",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Turned backwards until its stem is clear of thread."
+            },
+            {
+              "entityId": "silver-thread",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Freed from the key and pendulum, carrying movement throughout its branches."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "clockwork-gallery",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "quiet assurance",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "clockwork-gallery",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "quiet assurance",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "clockwork-gallery",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "quiet assurance",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "glass-clock",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Ticking again with an unobstructed pendulum."
+            },
+            {
+              "entityId": "world-clock-display",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Showing moving hands everywhere on the map."
+            },
+            {
+              "entityId": "winding-key",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Turned backwards until its stem is clear of thread."
+            },
+            {
+              "entityId": "silver-thread",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-gallery",
+              "state": "Freed from the key and pendulum, carrying movement throughout its branches."
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "storyProblems": [],
+  "planProblems": [],
+  "textProblems": [],
+  "pages": [
+    {
+      "pageId": "p1",
+      "beatId": "b1",
+      "locationId": "clockwork-gallery",
+      "charactersPresent": [
+        "leo",
+        "ravi",
+        "mina"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-gallery",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-gallery",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-gallery",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": []
+      },
+      "action": "The world-clock display shows motionless hands everywhere, but the glass-sided clock keeps ticking. The children search for what makes it different.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-gallery",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "puzzlement",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-gallery",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "puzzlement",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-gallery",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "puzzlement",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "glass-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Ticking with its pendulum moving."
+          },
+          {
+            "entityId": "world-clock-display",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Showing stopped clock hands across the entire map."
+          },
+          {
+            "entityId": "winding-key",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Fitted into the side of the glass-sided clock."
+          },
+          {
+            "entityId": "silver-thread",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Branching towards the display, wrapped around the winding key, with one loose loop beside the pendulum."
+          }
+        ]
+      },
+      "emotion": "puzzlement",
+      "entitiesRequired": [
+        "glass-clock",
+        "world-clock-display",
+        "winding-key",
+        "silver-thread"
+      ],
+      "visualFocus": "One swinging pendulum among motionless hands.",
+      "shotType": "establishing",
+      "compositionIntent": "Surround the three children with still faces while giving the moving pendulum a clear central position.",
+      "textPurpose": "Establish the worldwide silence and plant the question of the surviving tick.",
+      "pageTurnHook": "What has this clock got that the others have not?",
+      "needsFromPrevious": null,
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-gallery",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "puzzlement",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-gallery",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "puzzlement",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-gallery",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "puzzlement",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "glass-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Ticking with its pendulum moving."
+          },
+          {
+            "entityId": "world-clock-display",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Showing stopped clock hands across the entire map."
+          },
+          {
+            "entityId": "winding-key",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Fitted into the side of the glass-sided clock."
+          },
+          {
+            "entityId": "silver-thread",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Branching towards the display, wrapped around the winding key, with one loose loop beside the pendulum."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Across the clockwork gallery's world-clock display, not one hand moved.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Tick, tick—the glass-sided clock kept going.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Ravi bent towards its winding key; Leo checked the display again while Mina peered beside the swinging pendulum.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"What has this one got that the others haven't?\" Leo asked.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Across the clockwork gallery's world-clock display, not one hand moved. Tick, tick—the glass-sided clock kept going. Ravi bent towards its winding key; Leo checked the display again while Mina peered beside the swinging pendulum. \"What has this one got that the others haven't?\" Leo asked."
+    },
+    {
+      "pageId": "p2",
+      "beatId": "b2",
+      "locationId": "clockwork-gallery",
+      "charactersPresent": [
+        "leo",
+        "ravi",
+        "mina"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-gallery",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "puzzlement",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-gallery",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "puzzlement",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-gallery",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "puzzlement",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "glass-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Ticking with its pendulum moving."
+          },
+          {
+            "entityId": "world-clock-display",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Showing stopped clock hands across the entire map."
+          },
+          {
+            "entityId": "winding-key",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Fitted into the side of the glass-sided clock."
+          },
+          {
+            "entityId": "silver-thread",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Branching towards the display, wrapped around the winding key, with one loose loop beside the pendulum."
+          }
+        ]
+      },
+      "action": "Mina traces the silver thread from the silent display to the winding key. Only its loose loop moves with the surviving pendulum.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-gallery",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "focused interest",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-gallery",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "focused interest",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-gallery",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "focused interest",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "glass-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Ticking with its pendulum moving."
+          },
+          {
+            "entityId": "world-clock-display",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Showing stopped clock hands across the entire map."
+          },
+          {
+            "entityId": "winding-key",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Fitted into the side of the glass-sided clock."
+          },
+          {
+            "entityId": "silver-thread",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Branching towards the display, wrapped around the winding key, with one loose loop beside the pendulum."
+          }
+        ]
+      },
+      "emotion": "focused interest",
+      "entitiesRequired": [
+        "glass-clock",
+        "world-clock-display",
+        "winding-key",
+        "silver-thread"
+      ],
+      "visualFocus": "Movement reaching the winding key and going no farther.",
+      "shotType": "close",
+      "compositionIntent": "Place Mina's pointing finger beside the moving loop, with the trapped thread clearly visible behind it.",
+      "textPurpose": "Identify the connection to investigate and establish the loop as a reusable clue.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-gallery",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "puzzlement",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-gallery",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "puzzlement",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-gallery",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "puzzlement",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "glass-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Ticking with its pendulum moving."
+          },
+          {
+            "entityId": "world-clock-display",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Showing stopped clock hands across the entire map."
+          },
+          {
+            "entityId": "winding-key",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Fitted into the side of the glass-sided clock."
+          },
+          {
+            "entityId": "silver-thread",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Branching towards the display, wrapped around the winding key, with one loose loop beside the pendulum."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-gallery",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "focused interest",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-gallery",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "focused interest",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-gallery",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "focused interest",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "glass-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Ticking with its pendulum moving."
+          },
+          {
+            "entityId": "world-clock-display",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Showing stopped clock hands across the entire map."
+          },
+          {
+            "entityId": "winding-key",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Fitted into the side of the glass-sided clock."
+          },
+          {
+            "entityId": "silver-thread",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Branching towards the display, wrapped around the winding key, with one loose loop beside the pendulum."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Mina followed a silver thread from the silent display to the winding key.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "It curled around the key, leaving one loose loop beside the pendulum.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "She crouched lower: the loop stirred with each swing, but the branching thread stayed still.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"There,\" she said, and the others bent beside her.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Mina followed a silver thread from the silent display to the winding key. It curled around the key, leaving one loose loop beside the pendulum. She crouched lower: the loop stirred with each swing, but the branching thread stayed still. \"There,\" she said, and the others bent beside her."
+    },
+    {
+      "pageId": "p3",
+      "beatId": "b3",
+      "locationId": "clockwork-gallery",
+      "charactersPresent": [
+        "leo",
+        "ravi",
+        "mina"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-gallery",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "focused interest",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-gallery",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "focused interest",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-gallery",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "focused interest",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "glass-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Ticking with its pendulum moving."
+          },
+          {
+            "entityId": "world-clock-display",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Showing stopped clock hands across the entire map."
+          },
+          {
+            "entityId": "winding-key",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Fitted into the side of the glass-sided clock."
+          },
+          {
+            "entityId": "silver-thread",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Branching towards the display, wrapped around the winding key, with one loose loop beside the pendulum."
+          }
+        ]
+      },
+      "action": "Ravi turns the winding key, hoping to send the remaining tick along the thread. Leo steadies the frame as the loop shrinks.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-gallery",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "hopeful confidence",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-gallery",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "hopeful confidence",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-gallery",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "hopeful confidence",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "glass-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Ticking with its pendulum moving."
+          },
+          {
+            "entityId": "world-clock-display",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Showing stopped clock hands across the entire map."
+          },
+          {
+            "entityId": "winding-key",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Turned forward, gathering the thread around its stem."
+          },
+          {
+            "entityId": "silver-thread",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Wrapped more tightly around the key, with the loose loop almost consumed."
+          }
+        ]
+      },
+      "emotion": "hopeful confidence",
+      "entitiesRequired": [
+        "glass-clock",
+        "world-clock-display",
+        "winding-key",
+        "silver-thread"
+      ],
+      "visualFocus": "The key gathering another turn of silver thread.",
+      "shotType": "medium",
+      "compositionIntent": "Keep the children's cooperating hands and the shrinking loop in the same view.",
+      "textPurpose": "Make the attempted repair directly cause the next difficulty.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-gallery",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "focused interest",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-gallery",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "focused interest",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-gallery",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "focused interest",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "glass-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Ticking with its pendulum moving."
+          },
+          {
+            "entityId": "world-clock-display",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Showing stopped clock hands across the entire map."
+          },
+          {
+            "entityId": "winding-key",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Fitted into the side of the glass-sided clock."
+          },
+          {
+            "entityId": "silver-thread",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Branching towards the display, wrapped around the winding key, with one loose loop beside the pendulum."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-gallery",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "hopeful confidence",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-gallery",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "hopeful confidence",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-gallery",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "hopeful confidence",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "glass-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Ticking with its pendulum moving."
+          },
+          {
+            "entityId": "world-clock-display",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Showing stopped clock hands across the entire map."
+          },
+          {
+            "entityId": "winding-key",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Turned forward, gathering the thread around its stem."
+          },
+          {
+            "entityId": "silver-thread",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Wrapped more tightly around the key, with the loose loop almost consumed."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "\"Maybe winding it will send the tick along,\" Ravi said.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Leo hesitated, then checked his grip on the clock's frame.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"I've got it steady.\"",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Ravi turned the key, gathering silver thread around its stem until the loose loop was nearly gone.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "\"Maybe winding it will send the tick along,\" Ravi said. Leo hesitated, then checked his grip on the clock's frame. \"I've got it steady.\" Ravi turned the key, gathering silver thread around its stem until the loose loop was nearly gone."
+    },
+    {
+      "pageId": "p4",
+      "beatId": "b4",
+      "locationId": "clockwork-gallery",
+      "charactersPresent": [
+        "leo",
+        "ravi",
+        "mina"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-gallery",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "hopeful confidence",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-gallery",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "hopeful confidence",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-gallery",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "hopeful confidence",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "glass-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Ticking with its pendulum moving."
+          },
+          {
+            "entityId": "world-clock-display",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Showing stopped clock hands across the entire map."
+          },
+          {
+            "entityId": "winding-key",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Turned forward, gathering the thread around its stem."
+          },
+          {
+            "entityId": "silver-thread",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Wrapped more tightly around the key, with the loose loop almost consumed."
+          }
+        ]
+      },
+      "action": "The tightened thread catches the pendulum, silencing the last tick. Mina stops Ravi's hand and points to the vanished loop.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-gallery",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "uneasy silence",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-gallery",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "uneasy silence",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-gallery",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "uneasy silence",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "glass-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Silent, with its pendulum caught by the taut thread."
+          },
+          {
+            "entityId": "world-clock-display",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Showing stopped clock hands across the entire map."
+          },
+          {
+            "entityId": "winding-key",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Turned forward, gathering the thread around its stem."
+          },
+          {
+            "entityId": "silver-thread",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Pulled taut around the key and pendulum, with no loose loop remaining."
+          }
+        ]
+      },
+      "emotion": "uneasy silence",
+      "entitiesRequired": [
+        "glass-clock",
+        "world-clock-display",
+        "winding-key",
+        "silver-thread"
+      ],
+      "visualFocus": "The pendulum held sideways by taut silver thread.",
+      "shotType": "reaction",
+      "compositionIntent": "Frame the children listening to the empty space where the tick should be.",
+      "textPurpose": "Expose the cost of their repair and make the earlier loop essential to solving the mystery.",
+      "pageTurnHook": "What vanished just before the ticking stopped?",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-gallery",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "hopeful confidence",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-gallery",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "hopeful confidence",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-gallery",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "hopeful confidence",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "glass-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Ticking with its pendulum moving."
+          },
+          {
+            "entityId": "world-clock-display",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Showing stopped clock hands across the entire map."
+          },
+          {
+            "entityId": "winding-key",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Turned forward, gathering the thread around its stem."
+          },
+          {
+            "entityId": "silver-thread",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Wrapped more tightly around the key, with the loose loop almost consumed."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-gallery",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "uneasy silence",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-gallery",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "uneasy silence",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-gallery",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "uneasy silence",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "glass-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Silent, with its pendulum caught by the taut thread."
+          },
+          {
+            "entityId": "world-clock-display",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Showing stopped clock hands across the entire map."
+          },
+          {
+            "entityId": "winding-key",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Turned forward, gathering the thread around its stem."
+          },
+          {
+            "entityId": "silver-thread",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Pulled taut around the key and pendulum, with no loose loop remaining."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "The thread pulled tight and caught the pendulum.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Tick—then nothing.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Mina stopped Ravi's hand before he could turn the key again.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"The loop,\" she whispered, pointing beside the trapped pendulum. \"It's gone.\"",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "The thread pulled tight and caught the pendulum. Tick—then nothing. Mina stopped Ravi's hand before he could turn the key again. \"The loop,\" she whispered, pointing beside the trapped pendulum. \"It's gone.\""
+    },
+    {
+      "pageId": "p5",
+      "beatId": "b5",
+      "locationId": "clockwork-gallery",
+      "charactersPresent": [
+        "leo",
+        "ravi",
+        "mina"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-gallery",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "uneasy silence",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-gallery",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "uneasy silence",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-gallery",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "uneasy silence",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "glass-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Silent, with its pendulum caught by the taut thread."
+          },
+          {
+            "entityId": "world-clock-display",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Showing stopped clock hands across the entire map."
+          },
+          {
+            "entityId": "winding-key",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Turned forward, gathering the thread around its stem."
+          },
+          {
+            "entityId": "silver-thread",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Pulled taut around the key and pendulum, with no loose loop remaining."
+          }
+        ]
+      },
+      "action": "Guided by Mina, Ravi reverses the key while Leo lifts the thread clear; every clock restarts. The loose loop had spared one pendulum.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-gallery",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "recognition",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-gallery",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "recognition",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-gallery",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "recognition",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "glass-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Ticking again with an unobstructed pendulum."
+          },
+          {
+            "entityId": "world-clock-display",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Showing moving hands everywhere on the map."
+          },
+          {
+            "entityId": "winding-key",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Turned backwards until its stem is clear of thread."
+          },
+          {
+            "entityId": "silver-thread",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Freed from the key and pendulum, carrying movement throughout its branches."
+          }
+        ]
+      },
+      "emotion": "recognition",
+      "entitiesRequired": [
+        "glass-clock",
+        "world-clock-display",
+        "winding-key",
+        "silver-thread"
+      ],
+      "visualFocus": "An open silver loop and moving hands across the world-clock display.",
+      "shotType": "overhead",
+      "compositionIntent": "Show all three children's contributions around the released thread and the newly moving map.",
+      "textPurpose": "Use the observed loop to repair the original blockage and answer why one clock survived.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-gallery",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "uneasy silence",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-gallery",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "uneasy silence",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-gallery",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "uneasy silence",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "glass-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Silent, with its pendulum caught by the taut thread."
+          },
+          {
+            "entityId": "world-clock-display",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Showing stopped clock hands across the entire map."
+          },
+          {
+            "entityId": "winding-key",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Turned forward, gathering the thread around its stem."
+          },
+          {
+            "entityId": "silver-thread",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Pulled taut around the key and pendulum, with no loose loop remaining."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-gallery",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "recognition",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-gallery",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "recognition",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-gallery",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "recognition",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "glass-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Ticking again with an unobstructed pendulum."
+          },
+          {
+            "entityId": "world-clock-display",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Showing moving hands everywhere on the map."
+          },
+          {
+            "entityId": "winding-key",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Turned backwards until its stem is clear of thread."
+          },
+          {
+            "entityId": "silver-thread",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Freed from the key and pendulum, carrying movement throughout its branches."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "\"Turn it back,\" Mina said. \"That loose loop let this pendulum swing when the others couldn't.\"",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Ravi reversed the key while Leo lifted the thread clear of the pendulum.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The last curl slipped off the stem, and the glass clock ticked again.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Movement ran through the silver branches; across the whole display, every clock's hands began to move.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "\"Turn it back,\" Mina said. \"That loose loop let this pendulum swing when the others couldn't.\" Ravi reversed the key while Leo lifted the thread clear of the pendulum. The last curl slipped off the stem, and the glass clock ticked again. Movement ran through the silver branches; across the whole display, every clock's hands began to move."
+    },
+    {
+      "pageId": "p6",
+      "beatId": "b6",
+      "locationId": "clockwork-gallery",
+      "charactersPresent": [
+        "leo",
+        "ravi",
+        "mina"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-gallery",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "recognition",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-gallery",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "recognition",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-gallery",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "recognition",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "glass-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Ticking again with an unobstructed pendulum."
+          },
+          {
+            "entityId": "world-clock-display",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Showing moving hands everywhere on the map."
+          },
+          {
+            "entityId": "winding-key",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Turned backwards until its stem is clear of thread."
+          },
+          {
+            "entityId": "silver-thread",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Freed from the key and pendulum, carrying movement throughout its branches."
+          }
+        ]
+      },
+      "action": "Ravi reaches towards another clock, pauses, and traces its thread without touching. Leo and Mina lean beside him beneath the moving hands.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-gallery",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "quiet assurance",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-gallery",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "quiet assurance",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-gallery",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "quiet assurance",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "glass-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Ticking again with an unobstructed pendulum."
+          },
+          {
+            "entityId": "world-clock-display",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Showing moving hands everywhere on the map."
+          },
+          {
+            "entityId": "winding-key",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Turned backwards until its stem is clear of thread."
+          },
+          {
+            "entityId": "silver-thread",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Freed from the key and pendulum, carrying movement throughout its branches."
+          }
+        ]
+      },
+      "emotion": "quiet assurance",
+      "entitiesRequired": [
+        "glass-clock",
+        "world-clock-display",
+        "winding-key",
+        "silver-thread"
+      ],
+      "visualFocus": "Ravi's hovering finger following an unbroken silver line.",
+      "shotType": "vignette",
+      "compositionIntent": "Echo the opening arrangement, now with moving clock hands and hands kept clear of the machinery.",
+      "textPurpose": "Show a changed approach through behaviour rather than explaining the solution again.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-gallery",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "recognition",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-gallery",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "recognition",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-gallery",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "recognition",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "glass-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Ticking again with an unobstructed pendulum."
+          },
+          {
+            "entityId": "world-clock-display",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Showing moving hands everywhere on the map."
+          },
+          {
+            "entityId": "winding-key",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Turned backwards until its stem is clear of thread."
+          },
+          {
+            "entityId": "silver-thread",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Freed from the key and pendulum, carrying movement throughout its branches."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-gallery",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "quiet assurance",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-gallery",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "quiet assurance",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-gallery",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "quiet assurance",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "glass-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Ticking again with an unobstructed pendulum."
+          },
+          {
+            "entityId": "world-clock-display",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Showing moving hands everywhere on the map."
+          },
+          {
+            "entityId": "winding-key",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Turned backwards until its stem is clear of thread."
+          },
+          {
+            "entityId": "silver-thread",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-gallery",
+            "state": "Freed from the key and pendulum, carrying movement throughout its branches."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Ravi reached towards another clock on the display.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "His hand paused.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Without touching, he traced the silver thread's path, and Leo and Mina leaned beside him.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Above their heads, the hands kept moving.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Ravi reached towards another clock on the display. His hand paused. Without touching, he traced the silver thread's path, and Leo and Mina leaned beside him. Above their heads, the hands kept moving."
+    }
+  ],
+  "imageCalls": 0,
+  "imageDraws": 0,
+  "imageReason": "images_disabled",
+  "imageUsd": 0,
+  "id": "d",
+  "listedUsd": 0.042394,
+  "guardUsd": 0.084788
+}

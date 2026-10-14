@@ -1,0 +1,43 @@
+{
+  "observations": "Maya is depicted with long dark curls, medium brown skin, a round face, warm brown eyes, and soft eyebrows. She wears a yellow cardigan, a white shirt, and a blue skirt, along with white socks and navy shoes. The scene shows a sheltered corner beneath a tall garden wall with a clay flowerpot, confirming the setting and elements described in the plan. The moment where Maya spots a flicker beneath the flowerpot is clearly illustrated, fitting the specific instant requested.",
+  "characters": [
+    {
+      "characterId": "maya",
+      "identityMatch": true,
+      "outfitMatch": true,
+      "count": 1
+    }
+  ],
+  "entities": [
+    {
+      "entityId": "clay-flowerpot",
+      "status": "confirmed",
+      "seen": "A round clay pot with a dark gap beneath its rim."
+    },
+    {
+      "entityId": "garden-wall",
+      "status": "confirmed",
+      "seen": "A tall pale wall that blocks the sky from the sheltered corner."
+    }
+  ],
+  "locationMatch": true,
+  "prematureResult": false,
+  "textDetected": false,
+  "anatomyOk": true,
+  "textSafeUsable": true,
+  "duplicateCharacter": false,
+  "momentMatch": true,
+  "montageShown": false,
+  "style": {
+    "rendering": "painted",
+    "characterRendering": "painted",
+    "proportions": "picture-book",
+    "edge": "soft",
+    "texture": "painted",
+    "finish": "picture-book",
+    "environmentRendering": "painted",
+    "palette": "",
+    "weather": "",
+    "timeOfDay": ""
+  }
+}

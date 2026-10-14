@@ -1,0 +1,130 @@
+{
+  "status": "awaiting human review",
+  "mayaLocked": true,
+  "referenceVersionId": "maya-v1",
+  "results": [
+    {
+      "spreadId": "p5",
+      "status": "VISUAL_REVIEWABLE",
+      "problems": [],
+      "notes": "",
+      "repairs": 0,
+      "repairNote": "",
+      "file": "images/p5.jpg"
+    },
+    {
+      "spreadId": "p1",
+      "status": "VISUAL_REVIEWABLE",
+      "problems": [],
+      "notes": "",
+      "repairs": 0,
+      "repairNote": "",
+      "file": "images/p1.jpg"
+    },
+    {
+      "spreadId": "p3",
+      "status": "VISUAL_REVIEWABLE",
+      "problems": [],
+      "notes": "Recovered with one sanitised image call after two earlier safety rejections. No repair of this image.",
+      "repairs": 0,
+      "repairNote": "",
+      "file": "images/p3.jpg"
+    },
+    {
+      "spreadId": "p4",
+      "status": "VISUAL_REVIEWABLE",
+      "problems": [],
+      "notes": "",
+      "repairs": 0,
+      "repairNote": "",
+      "file": "images/p4.jpg"
+    },
+    {
+      "spreadId": "p6",
+      "status": "VISUAL_REVIEWABLE",
+      "problems": [],
+      "notes": "",
+      "repairs": 0,
+      "repairNote": "",
+      "file": "images/p6.jpg"
+    },
+    {
+      "spreadId": "p7",
+      "status": "VISUAL_REVIEWABLE",
+      "problems": [],
+      "notes": "",
+      "repairs": 0,
+      "repairNote": "",
+      "file": "images/p7.jpg"
+    },
+    {
+      "spreadId": "p8",
+      "status": "VISUAL_REVIEWABLE",
+      "problems": [],
+      "notes": "",
+      "repairs": 0,
+      "repairNote": "",
+      "file": "images/p8.jpg"
+    },
+    {
+      "spreadId": "p9",
+      "status": "VISUAL_REVIEWABLE",
+      "problems": [],
+      "notes": "",
+      "repairs": 0,
+      "repairNote": "",
+      "file": "images/p9.jpg"
+    },
+    {
+      "spreadId": "p11",
+      "status": "VISUAL_REVIEWABLE",
+      "problems": [],
+      "notes": "",
+      "repairs": 0,
+      "repairNote": "",
+      "file": "images/p11.jpg"
+    }
+  ],
+  "listedUsd": 0.378805,
+  "guardUsd": 0.757612,
+  "imageCalls": 10,
+  "spreads": [
+    {
+      "spreadId": "p2",
+      "file": "images/p2.jpg",
+      "repairs": 0,
+      "automated": [
+        "entity:hidden-star",
+        "entity:garden-wall"
+      ],
+      "seen": "One Maya, consistent with the sheet, crouching by a clay pot. A small gold star sits in the gap under the rim. The pale wall fills the background. Upper right is open wall. No words."
+    },
+    {
+      "spreadId": "p5",
+      "file": "images/p5.jpg",
+      "rejectedFile": "images/p5-rejected.jpg",
+      "repairs": 0,
+      "automated": [],
+      "seen": "One Maya, open hands, one warm five-pointed star, white socks, navy shoes, yellow cardigan, blue skirt. Pale wall on the left is open for type. One flowerpot. No second pose and no words."
+    },
+    {
+      "spreadId": "p10",
+      "file": "images/p10.jpg",
+      "repairs": 1,
+      "automated": [
+        "entity:hidden-star"
+      ],
+      "seen": "One Maya in the open garden at night, hands empty and lifted, one star rising, two brighter stars answering. Upper right is open sky. The same clothes and face."
+    }
+  ],
+  "artDirection": {
+    "maya": "approved",
+    "styleId": "wondii-picture-book",
+    "p2": "approved",
+    "p10": "approved",
+    "p5": "approved",
+    "cover": "awaiting human review"
+  },
+  "coverGenerated": true,
+  "classroomReady": false
+}

@@ -1,0 +1,4553 @@
+{
+  "status": "REVIEWABLE",
+  "request": {
+    "castIds": [
+      "leo",
+      "ravi",
+      "mina"
+    ],
+    "idea": "Every clock in the world suddenly stops except one.",
+    "yearGroup": "Year 5",
+    "ageBand": "",
+    "length": "storybook",
+    "tone": "mystery",
+    "context": "school"
+  },
+  "modelCalls": 2,
+  "repairCalls": 0,
+  "repairs": [],
+  "stagesRepaired": [],
+  "bible": {
+    "title": "The Clock That Kept Going",
+    "yearGroup": "Year 5",
+    "ageBand": "",
+    "readerAge": "9–10",
+    "readerStage": "year5",
+    "narrativeComplexity": "a question that can last across the book",
+    "tone": "mystery",
+    "targetLength": "storybook",
+    "userIdea": "Every clock in the world suddenly stops except one.",
+    "castIds": [
+      "leo",
+      "ravi",
+      "mina"
+    ],
+    "visualStyle": "wondii-picture-book",
+    "premise": "When every clock across the world stops except a small brass clock Ravi has lifted from a dusty shelf, three children investigate its hidden connection to the others.",
+    "hook": "Why does the brass clock still tick when all the others are silent?",
+    "goal": "Discover why the brass clock keeps ticking and restore the silent clocks.",
+    "centralProblem": "The children do not know that the clock Ravi removed supplies the ticks that all other clocks borrow.",
+    "stakes": "Until they uncover the connection, clocks everywhere remain motionless, and Ravi fears his cleaning has caused damage he cannot repair.",
+    "climaxBeatId": "b10",
+    "resolutionBeatId": "b11",
+    "emotionalArc": [
+      "puzzlement",
+      "unease",
+      "disagreement",
+      "patient attention",
+      "responsibility",
+      "understanding",
+      "renewed trust"
+    ],
+    "motif": "A single tick travelling along branching copper lines.",
+    "locations": [
+      {
+        "locationId": "clock-map-room",
+        "name": "the clock-map room",
+        "connectedTo": [
+          "shelf-alcove"
+        ],
+        "visualIdentity": "Tall silent clock faces surround a copper-lined world map; a recessed shelf alcove opens beside it."
+      },
+      {
+        "locationId": "shelf-alcove",
+        "name": "the shelf alcove",
+        "connectedTo": [
+          "clock-map-room"
+        ],
+        "visualIdentity": "A narrow recess with dusty shelves, a low brass fitting, and copper lines disappearing through the wall."
+      }
+    ],
+    "entities": [
+      {
+        "entityId": "brass-source-clock",
+        "name": "the brass clock",
+        "identity": "A palm-sized clock with a scalloped base, a steady tick, and three copper feet.",
+        "ownerCharacterId": null,
+        "locationId": "shelf-alcove",
+        "state": "Seated in the cradle, transmitting each tick.",
+        "introducedAt": "b1"
+      },
+      {
+        "entityId": "world-clock-map",
+        "name": "the world clock-map",
+        "identity": "A wall-sized map whose miniature clock faces are joined by branching copper lines.",
+        "ownerCharacterId": null,
+        "locationId": "clock-map-room",
+        "state": "Every miniature clock face is moving again.",
+        "introducedAt": "b1"
+      },
+      {
+        "entityId": "cleaning-cloth",
+        "name": "the cleaning cloth",
+        "identity": "A soft blue cloth carrying a fresh crescent of brass-coloured dust.",
+        "ownerCharacterId": "ravi",
+        "locationId": "shelf-alcove",
+        "state": "Folded into a narrow strip for cleaning around the occupied cradle.",
+        "introducedAt": "b1"
+      },
+      {
+        "entityId": "brass-cradle",
+        "name": "the brass cradle",
+        "identity": "A shelf fitting with three copper sockets, a scalloped outline, and an engraved diagram showing one clock feeding many.",
+        "ownerCharacterId": null,
+        "locationId": "shelf-alcove",
+        "state": "All three sockets are connected and conducting ticks.",
+        "introducedAt": "b4"
+      }
+    ],
+    "beats": [
+      {
+        "beatId": "b1",
+        "role": "hook",
+        "locationId": "clock-map-room",
+        "charactersPresent": [
+          "leo",
+          "ravi",
+          "mina"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "ravi",
+            "trait": "bold",
+            "shows": "Holds up the clock he has brought from the alcove so the others can examine it."
+          }
+        ],
+        "problemFamily": "",
+        "because": "",
+        "resolvesProblem": false,
+        "action": "Ravi brings in the brass clock he has lifted for cleaning; every face on the world clock-map falls still. His clock keeps ticking.",
+        "emotion": "puzzlement",
+        "entitiesRequired": [
+          "brass-source-clock",
+          "world-clock-map",
+          "cleaning-cloth"
+        ],
+        "visualFocus": "Ravi's raised clock and the silent map.",
+        "shotType": "establishing",
+        "compositionIntent": "Place the tiny ticking clock against the vast field of motionless faces.",
+        "textPurpose": "Plant the question of why this clock alone continues.",
+        "pageTurnHook": "Why does this one still tick?",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "clock-map-room",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "clock-map-room",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "clock-map-room",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": []
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "clock-map-room",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "puzzlement",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "clock-map-room",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "brass-source-clock",
+                "cleaning-cloth"
+              ],
+              "emotion": "puzzlement",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "clock-map-room",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "puzzlement",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "brass-source-clock",
+              "ownerCharacterId": "ravi",
+              "locationId": "clock-map-room",
+              "state": "Ticking after being lifted from the alcove shelf."
+            },
+            {
+              "entityId": "world-clock-map",
+              "ownerCharacterId": null,
+              "locationId": "clock-map-room",
+              "state": "Every miniature clock face is stopped."
+            },
+            {
+              "entityId": "cleaning-cloth",
+              "ownerCharacterId": "ravi",
+              "locationId": "clock-map-room",
+              "state": "Draped over Ravi's wrist after cleaning the brass clock."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b2",
+        "role": "discovery",
+        "locationId": "clock-map-room",
+        "charactersPresent": [
+          "leo",
+          "ravi",
+          "mina"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "mina",
+            "trait": "observant",
+            "shows": "Checks widely separated faces and traces the copper line joining them."
+          }
+        ],
+        "problemFamily": "global-silence",
+        "because": "b1",
+        "resolvesProblem": false,
+        "action": "Mina checks clock faces across the map and finds the same frozen minute on each. Their copper lines all lead towards the alcove.",
+        "emotion": "unease",
+        "entitiesRequired": [
+          "brass-source-clock",
+          "world-clock-map",
+          "cleaning-cloth"
+        ],
+        "visualFocus": "Matching stopped hands and converging copper paths.",
+        "shotType": "close",
+        "compositionIntent": "Show Mina's finger connecting distant places through one branching line.",
+        "textPurpose": "Establish that the silence is worldwide and direct the investigation.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "clock-map-room",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "puzzlement",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "clock-map-room",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "brass-source-clock",
+                "cleaning-cloth"
+              ],
+              "emotion": "puzzlement",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "clock-map-room",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "puzzlement",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "brass-source-clock",
+              "ownerCharacterId": "ravi",
+              "locationId": "clock-map-room",
+              "state": "Ticking after being lifted from the alcove shelf."
+            },
+            {
+              "entityId": "world-clock-map",
+              "ownerCharacterId": null,
+              "locationId": "clock-map-room",
+              "state": "Every miniature clock face is stopped."
+            },
+            {
+              "entityId": "cleaning-cloth",
+              "ownerCharacterId": "ravi",
+              "locationId": "clock-map-room",
+              "state": "Draped over Ravi's wrist after cleaning the brass clock."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "clock-map-room",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "unease",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "clock-map-room",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "brass-source-clock",
+                "cleaning-cloth"
+              ],
+              "emotion": "unease",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "clock-map-room",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "unease",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "brass-source-clock",
+              "ownerCharacterId": "ravi",
+              "locationId": "clock-map-room",
+              "state": "Ticking after being lifted from the alcove shelf."
+            },
+            {
+              "entityId": "world-clock-map",
+              "ownerCharacterId": null,
+              "locationId": "clock-map-room",
+              "state": "Every miniature clock face is stopped."
+            },
+            {
+              "entityId": "cleaning-cloth",
+              "ownerCharacterId": "ravi",
+              "locationId": "clock-map-room",
+              "state": "Draped over Ravi's wrist after cleaning the brass clock."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b3",
+        "role": "reaction",
+        "locationId": "clock-map-room",
+        "charactersPresent": [
+          "leo",
+          "ravi",
+          "mina"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "leo",
+            "trait": "kind",
+            "shows": "Keeps his hand beside Ravi's rather than taking the clock away."
+          }
+        ],
+        "problemFamily": "suspected-damage",
+        "because": "b2",
+        "resolvesProblem": false,
+        "action": "Ravi wants to open the clock, convinced he has damaged something. Leo asks him to keep it ticking while they examine its shelf.",
+        "emotion": "strained trust",
+        "entitiesRequired": [
+          "brass-source-clock",
+          "world-clock-map",
+          "cleaning-cloth"
+        ],
+        "visualFocus": "The clock held between two different proposed actions.",
+        "shotType": "reaction",
+        "compositionIntent": "Contrast Ravi's gripping fingers with Leo's open hand.",
+        "textPurpose": "Introduce disagreement and preserve the essential evidence.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "clock-map-room",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "unease",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "clock-map-room",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "brass-source-clock",
+                "cleaning-cloth"
+              ],
+              "emotion": "unease",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "clock-map-room",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "unease",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "brass-source-clock",
+              "ownerCharacterId": "ravi",
+              "locationId": "clock-map-room",
+              "state": "Ticking after being lifted from the alcove shelf."
+            },
+            {
+              "entityId": "world-clock-map",
+              "ownerCharacterId": null,
+              "locationId": "clock-map-room",
+              "state": "Every miniature clock face is stopped."
+            },
+            {
+              "entityId": "cleaning-cloth",
+              "ownerCharacterId": "ravi",
+              "locationId": "clock-map-room",
+              "state": "Draped over Ravi's wrist after cleaning the brass clock."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "clock-map-room",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "strained trust",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "clock-map-room",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "brass-source-clock",
+                "cleaning-cloth"
+              ],
+              "emotion": "strained trust",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "clock-map-room",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "strained trust",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "brass-source-clock",
+              "ownerCharacterId": "ravi",
+              "locationId": "clock-map-room",
+              "state": "Ticking after being lifted from the alcove shelf."
+            },
+            {
+              "entityId": "world-clock-map",
+              "ownerCharacterId": null,
+              "locationId": "clock-map-room",
+              "state": "Every miniature clock face is stopped."
+            },
+            {
+              "entityId": "cleaning-cloth",
+              "ownerCharacterId": "ravi",
+              "locationId": "clock-map-room",
+              "state": "Draped over Ravi's wrist after cleaning the brass clock."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b4",
+        "role": "exploration",
+        "locationId": "shelf-alcove",
+        "charactersPresent": [
+          "leo",
+          "ravi",
+          "mina"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "leo",
+            "trait": "careful",
+            "shows": "Stops Ravi's cloth above the shelf before it can wipe away the outline."
+          }
+        ],
+        "problemFamily": "fragile-evidence",
+        "because": "b3",
+        "resolvesProblem": false,
+        "action": "Following the copper lines into the alcove, they find a scalloped dust outline surrounding three sockets. Leo prevents Ravi from wiping it away.",
+        "emotion": "concentration",
+        "entitiesRequired": [
+          "brass-source-clock",
+          "world-clock-map",
+          "cleaning-cloth",
+          "brass-cradle"
+        ],
+        "visualFocus": "Three sockets inside a scalloped silhouette.",
+        "shotType": "overhead",
+        "compositionIntent": "Make the dust outline readable beside the clock's matching base.",
+        "textPurpose": "Introduce the cradle and preserve the clue needed for restoration.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "clock-map-room",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "strained trust",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "clock-map-room",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "brass-source-clock",
+                "cleaning-cloth"
+              ],
+              "emotion": "strained trust",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "clock-map-room",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "strained trust",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "brass-source-clock",
+              "ownerCharacterId": "ravi",
+              "locationId": "clock-map-room",
+              "state": "Ticking after being lifted from the alcove shelf."
+            },
+            {
+              "entityId": "world-clock-map",
+              "ownerCharacterId": null,
+              "locationId": "clock-map-room",
+              "state": "Every miniature clock face is stopped."
+            },
+            {
+              "entityId": "cleaning-cloth",
+              "ownerCharacterId": "ravi",
+              "locationId": "clock-map-room",
+              "state": "Draped over Ravi's wrist after cleaning the brass clock."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "shelf-alcove",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "concentration",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "shelf-alcove",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "brass-source-clock",
+                "cleaning-cloth"
+              ],
+              "emotion": "concentration",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "shelf-alcove",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "concentration",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "brass-source-clock",
+              "ownerCharacterId": "ravi",
+              "locationId": "shelf-alcove",
+              "state": "Held above its former shelf, still ticking."
+            },
+            {
+              "entityId": "world-clock-map",
+              "ownerCharacterId": null,
+              "locationId": "clock-map-room",
+              "state": "Every miniature clock face is stopped."
+            },
+            {
+              "entityId": "cleaning-cloth",
+              "ownerCharacterId": "ravi",
+              "locationId": "shelf-alcove",
+              "state": "Stopped before touching the remaining dust outline."
+            },
+            {
+              "entityId": "brass-cradle",
+              "ownerCharacterId": null,
+              "locationId": "shelf-alcove",
+              "state": "Empty, with its engraved diagram partly obscured by dust."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b5",
+        "role": "attempt",
+        "locationId": "shelf-alcove",
+        "charactersPresent": [
+          "leo",
+          "ravi",
+          "mina"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "ravi",
+            "trait": "inventive",
+            "shows": "Uses the clock's moving hand to test whether touching a copper line sends a tick."
+          }
+        ],
+        "problemFamily": "false-connection",
+        "because": "b4",
+        "resolvesProblem": false,
+        "action": "Ravi presses one copper foot against a line beside the cradle, testing whether the clock can wake it. Nothing travels through the line.",
+        "emotion": "uncertainty",
+        "entitiesRequired": [
+          "brass-source-clock",
+          "world-clock-map",
+          "cleaning-cloth",
+          "brass-cradle"
+        ],
+        "visualFocus": "One copper foot touching the wrong connection.",
+        "shotType": "action",
+        "compositionIntent": "Bring the attempted contact forward while the empty sockets remain visible behind it.",
+        "textPurpose": "Test a plausible explanation without solving the mechanism.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "shelf-alcove",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "concentration",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "shelf-alcove",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "brass-source-clock",
+                "cleaning-cloth"
+              ],
+              "emotion": "concentration",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "shelf-alcove",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "concentration",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "brass-source-clock",
+              "ownerCharacterId": "ravi",
+              "locationId": "shelf-alcove",
+              "state": "Held above its former shelf, still ticking."
+            },
+            {
+              "entityId": "world-clock-map",
+              "ownerCharacterId": null,
+              "locationId": "clock-map-room",
+              "state": "Every miniature clock face is stopped."
+            },
+            {
+              "entityId": "cleaning-cloth",
+              "ownerCharacterId": "ravi",
+              "locationId": "shelf-alcove",
+              "state": "Stopped before touching the remaining dust outline."
+            },
+            {
+              "entityId": "brass-cradle",
+              "ownerCharacterId": null,
+              "locationId": "shelf-alcove",
+              "state": "Empty, with its engraved diagram partly obscured by dust."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "shelf-alcove",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "uncertainty",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "shelf-alcove",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "brass-source-clock",
+                "cleaning-cloth"
+              ],
+              "emotion": "uncertainty",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "shelf-alcove",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "uncertainty",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "brass-source-clock",
+              "ownerCharacterId": "ravi",
+              "locationId": "shelf-alcove",
+              "state": "Held above its former shelf, still ticking."
+            },
+            {
+              "entityId": "world-clock-map",
+              "ownerCharacterId": null,
+              "locationId": "clock-map-room",
+              "state": "Every miniature clock face is stopped."
+            },
+            {
+              "entityId": "cleaning-cloth",
+              "ownerCharacterId": "ravi",
+              "locationId": "shelf-alcove",
+              "state": "Stopped before touching the remaining dust outline."
+            },
+            {
+              "entityId": "brass-cradle",
+              "ownerCharacterId": null,
+              "locationId": "shelf-alcove",
+              "state": "Empty, with its engraved diagram partly obscured by dust."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b6",
+        "role": "wonder",
+        "locationId": "shelf-alcove",
+        "charactersPresent": [
+          "leo",
+          "ravi",
+          "mina"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "mina",
+            "trait": "gentle",
+            "shows": "Touches Ravi's sleeve lightly to ask him to hold the clock still."
+          }
+        ],
+        "problemFamily": "hidden-pattern",
+        "because": "b5",
+        "resolvesProblem": false,
+        "action": "Mina asks Ravi to hold the clock still while she listens. Each tick briefly lights all three copper feet together.",
+        "emotion": "absorbed attention",
+        "entitiesRequired": [
+          "brass-source-clock",
+          "world-clock-map",
+          "cleaning-cloth",
+          "brass-cradle"
+        ],
+        "visualFocus": "The clock's three glowing feet.",
+        "shotType": "close",
+        "compositionIntent": "Let darkness around the base reveal three small simultaneous glimmers.",
+        "textPurpose": "Give quiet observation a decisive role in the investigation.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "shelf-alcove",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "uncertainty",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "shelf-alcove",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "brass-source-clock",
+                "cleaning-cloth"
+              ],
+              "emotion": "uncertainty",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "shelf-alcove",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "uncertainty",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "brass-source-clock",
+              "ownerCharacterId": "ravi",
+              "locationId": "shelf-alcove",
+              "state": "Held above its former shelf, still ticking."
+            },
+            {
+              "entityId": "world-clock-map",
+              "ownerCharacterId": null,
+              "locationId": "clock-map-room",
+              "state": "Every miniature clock face is stopped."
+            },
+            {
+              "entityId": "cleaning-cloth",
+              "ownerCharacterId": "ravi",
+              "locationId": "shelf-alcove",
+              "state": "Stopped before touching the remaining dust outline."
+            },
+            {
+              "entityId": "brass-cradle",
+              "ownerCharacterId": null,
+              "locationId": "shelf-alcove",
+              "state": "Empty, with its engraved diagram partly obscured by dust."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "shelf-alcove",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "absorbed attention",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "shelf-alcove",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "brass-source-clock",
+                "cleaning-cloth"
+              ],
+              "emotion": "absorbed attention",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "shelf-alcove",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "absorbed attention",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "brass-source-clock",
+              "ownerCharacterId": "ravi",
+              "locationId": "shelf-alcove",
+              "state": "Held above its former shelf, still ticking."
+            },
+            {
+              "entityId": "world-clock-map",
+              "ownerCharacterId": null,
+              "locationId": "clock-map-room",
+              "state": "Every miniature clock face is stopped."
+            },
+            {
+              "entityId": "cleaning-cloth",
+              "ownerCharacterId": "ravi",
+              "locationId": "shelf-alcove",
+              "state": "Stopped before touching the remaining dust outline."
+            },
+            {
+              "entityId": "brass-cradle",
+              "ownerCharacterId": null,
+              "locationId": "shelf-alcove",
+              "state": "Empty, with its engraved diagram partly obscured by dust."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b7",
+        "role": "setback",
+        "locationId": "shelf-alcove",
+        "charactersPresent": [
+          "leo",
+          "ravi",
+          "mina"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "leo",
+            "trait": "careful",
+            "shows": "Catches the clock's base with his palm before Ravi can force it into the sockets."
+          }
+        ],
+        "problemFamily": "misaligned-fit",
+        "because": "b6",
+        "resolvesProblem": false,
+        "action": "Ravi tries all three sockets, but the clock rocks instead of settling. Leo stops him forcing it and compares the preserved outline.",
+        "emotion": "frustration",
+        "entitiesRequired": [
+          "brass-source-clock",
+          "world-clock-map",
+          "cleaning-cloth",
+          "brass-cradle"
+        ],
+        "visualFocus": "A scallop pointing in the wrong direction.",
+        "shotType": "medium",
+        "compositionIntent": "Show the tilted clock and the untouched dust outline in the same frame.",
+        "textPurpose": "Make the earlier protection of evidence necessary.",
+        "pageTurnHook": "One scallop points the other way.",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "shelf-alcove",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "absorbed attention",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "shelf-alcove",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "brass-source-clock",
+                "cleaning-cloth"
+              ],
+              "emotion": "absorbed attention",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "shelf-alcove",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "absorbed attention",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "brass-source-clock",
+              "ownerCharacterId": "ravi",
+              "locationId": "shelf-alcove",
+              "state": "Held above its former shelf, still ticking."
+            },
+            {
+              "entityId": "world-clock-map",
+              "ownerCharacterId": null,
+              "locationId": "clock-map-room",
+              "state": "Every miniature clock face is stopped."
+            },
+            {
+              "entityId": "cleaning-cloth",
+              "ownerCharacterId": "ravi",
+              "locationId": "shelf-alcove",
+              "state": "Stopped before touching the remaining dust outline."
+            },
+            {
+              "entityId": "brass-cradle",
+              "ownerCharacterId": null,
+              "locationId": "shelf-alcove",
+              "state": "Empty, with its engraved diagram partly obscured by dust."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "shelf-alcove",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "frustration",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "shelf-alcove",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "brass-source-clock",
+                "cleaning-cloth"
+              ],
+              "emotion": "frustration",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "shelf-alcove",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "frustration",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "brass-source-clock",
+              "ownerCharacterId": "ravi",
+              "locationId": "shelf-alcove",
+              "state": "Held above its former shelf, still ticking."
+            },
+            {
+              "entityId": "world-clock-map",
+              "ownerCharacterId": null,
+              "locationId": "clock-map-room",
+              "state": "Every miniature clock face is stopped."
+            },
+            {
+              "entityId": "cleaning-cloth",
+              "ownerCharacterId": "ravi",
+              "locationId": "shelf-alcove",
+              "state": "Stopped before touching the remaining dust outline."
+            },
+            {
+              "entityId": "brass-cradle",
+              "ownerCharacterId": null,
+              "locationId": "shelf-alcove",
+              "state": "Empty, with its engraved diagram partly obscured by dust."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b8",
+        "role": "reveal",
+        "locationId": "shelf-alcove",
+        "charactersPresent": [
+          "leo",
+          "ravi",
+          "mina"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "mina",
+            "trait": "observant",
+            "shows": "Follows the engraved arrows away from the single clock rather than towards it."
+          }
+        ],
+        "problemFamily": "reversed-assumption",
+        "because": "b7",
+        "resolvesProblem": false,
+        "action": "Turning the clock to match the outline exposes an engraved diagram beneath its rim. Arrows run from one clock towards many others.",
+        "emotion": " dawning understanding",
+        "entitiesRequired": [
+          "brass-source-clock",
+          "world-clock-map",
+          "cleaning-cloth",
+          "brass-cradle"
+        ],
+        "visualFocus": "One source feeding a branching network.",
+        "shotType": "reveal",
+        "compositionIntent": "Align the real clock above its engraved counterpart and the outward-running arrows.",
+        "textPurpose": "Reveal that the surviving clock supplies ticks rather than borrowing them.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "shelf-alcove",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "frustration",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "shelf-alcove",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "brass-source-clock",
+                "cleaning-cloth"
+              ],
+              "emotion": "frustration",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "shelf-alcove",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "frustration",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "brass-source-clock",
+              "ownerCharacterId": "ravi",
+              "locationId": "shelf-alcove",
+              "state": "Held above its former shelf, still ticking."
+            },
+            {
+              "entityId": "world-clock-map",
+              "ownerCharacterId": null,
+              "locationId": "clock-map-room",
+              "state": "Every miniature clock face is stopped."
+            },
+            {
+              "entityId": "cleaning-cloth",
+              "ownerCharacterId": "ravi",
+              "locationId": "shelf-alcove",
+              "state": "Stopped before touching the remaining dust outline."
+            },
+            {
+              "entityId": "brass-cradle",
+              "ownerCharacterId": null,
+              "locationId": "shelf-alcove",
+              "state": "Empty, with its engraved diagram partly obscured by dust."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "shelf-alcove",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": " dawning understanding",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "shelf-alcove",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "brass-source-clock",
+                "cleaning-cloth"
+              ],
+              "emotion": " dawning understanding",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "shelf-alcove",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": " dawning understanding",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "brass-source-clock",
+              "ownerCharacterId": "ravi",
+              "locationId": "shelf-alcove",
+              "state": "Held above its former shelf, still ticking."
+            },
+            {
+              "entityId": "world-clock-map",
+              "ownerCharacterId": null,
+              "locationId": "clock-map-room",
+              "state": "Every miniature clock face is stopped."
+            },
+            {
+              "entityId": "cleaning-cloth",
+              "ownerCharacterId": "ravi",
+              "locationId": "shelf-alcove",
+              "state": "Stopped before touching the remaining dust outline."
+            },
+            {
+              "entityId": "brass-cradle",
+              "ownerCharacterId": null,
+              "locationId": "shelf-alcove",
+              "state": "Its diagram is visible beneath the correctly oriented clock."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b9",
+        "role": "approach",
+        "locationId": "shelf-alcove",
+        "charactersPresent": [
+          "leo",
+          "ravi",
+          "mina"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "ravi",
+            "trait": "bold",
+            "shows": "Keeps hold of the clock and asks the others to guide his hands as he replaces it."
+          }
+        ],
+        "problemFamily": "taking-responsibility",
+        "because": "b8",
+        "resolvesProblem": false,
+        "action": "Ravi admits lifting the clock broke its connection and offers to replace it. Leo guides the outline while Mina checks each foot.",
+        "emotion": "resolve",
+        "entitiesRequired": [
+          "brass-source-clock",
+          "world-clock-map",
+          "cleaning-cloth",
+          "brass-cradle"
+        ],
+        "visualFocus": "Clock feet poised directly above their sockets.",
+        "shotType": "high",
+        "compositionIntent": "Arrange three sets of hands around one shared task.",
+        "textPurpose": "Turn the discovery into a cooperative repair.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "shelf-alcove",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": " dawning understanding",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "shelf-alcove",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "brass-source-clock",
+                "cleaning-cloth"
+              ],
+              "emotion": " dawning understanding",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "shelf-alcove",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": " dawning understanding",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "brass-source-clock",
+              "ownerCharacterId": "ravi",
+              "locationId": "shelf-alcove",
+              "state": "Held above its former shelf, still ticking."
+            },
+            {
+              "entityId": "world-clock-map",
+              "ownerCharacterId": null,
+              "locationId": "clock-map-room",
+              "state": "Every miniature clock face is stopped."
+            },
+            {
+              "entityId": "cleaning-cloth",
+              "ownerCharacterId": "ravi",
+              "locationId": "shelf-alcove",
+              "state": "Stopped before touching the remaining dust outline."
+            },
+            {
+              "entityId": "brass-cradle",
+              "ownerCharacterId": null,
+              "locationId": "shelf-alcove",
+              "state": "Its diagram is visible beneath the correctly oriented clock."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "shelf-alcove",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "resolve",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "shelf-alcove",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "brass-source-clock",
+                "cleaning-cloth"
+              ],
+              "emotion": "resolve",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "shelf-alcove",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "resolve",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "brass-source-clock",
+              "ownerCharacterId": "ravi",
+              "locationId": "shelf-alcove",
+              "state": "Held above its former shelf, still ticking."
+            },
+            {
+              "entityId": "world-clock-map",
+              "ownerCharacterId": null,
+              "locationId": "clock-map-room",
+              "state": "Every miniature clock face is stopped."
+            },
+            {
+              "entityId": "cleaning-cloth",
+              "ownerCharacterId": "ravi",
+              "locationId": "shelf-alcove",
+              "state": "Stopped before touching the remaining dust outline."
+            },
+            {
+              "entityId": "brass-cradle",
+              "ownerCharacterId": null,
+              "locationId": "shelf-alcove",
+              "state": "Its diagram is visible beneath the correctly oriented clock."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b10",
+        "role": "climax",
+        "locationId": "shelf-alcove",
+        "charactersPresent": [
+          "leo",
+          "ravi",
+          "mina"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "leo",
+            "trait": "careful",
+            "shows": "Waits for Mina's last check before releasing his supporting hand."
+          }
+        ],
+        "problemFamily": "restored-transmission",
+        "because": "b9",
+        "resolvesProblem": false,
+        "action": "Ravi seats the clock using Leo's preserved outline and Mina's three-foot check. Its next tick races through the copper lines, restarting every clock.",
+        "emotion": "release",
+        "entitiesRequired": [
+          "brass-source-clock",
+          "world-clock-map",
+          "cleaning-cloth",
+          "brass-cradle"
+        ],
+        "visualFocus": "Three lit sockets and a branching wave of ticks.",
+        "shotType": "action",
+        "compositionIntent": "Carry a visible pulse from the seated clock through the alcove opening towards the map.",
+        "textPurpose": "Answer the opening question through the successful restoration of the source clock.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "shelf-alcove",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "resolve",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "shelf-alcove",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "brass-source-clock",
+                "cleaning-cloth"
+              ],
+              "emotion": "resolve",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "shelf-alcove",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "resolve",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "brass-source-clock",
+              "ownerCharacterId": "ravi",
+              "locationId": "shelf-alcove",
+              "state": "Held above its former shelf, still ticking."
+            },
+            {
+              "entityId": "world-clock-map",
+              "ownerCharacterId": null,
+              "locationId": "clock-map-room",
+              "state": "Every miniature clock face is stopped."
+            },
+            {
+              "entityId": "cleaning-cloth",
+              "ownerCharacterId": "ravi",
+              "locationId": "shelf-alcove",
+              "state": "Stopped before touching the remaining dust outline."
+            },
+            {
+              "entityId": "brass-cradle",
+              "ownerCharacterId": null,
+              "locationId": "shelf-alcove",
+              "state": "Its diagram is visible beneath the correctly oriented clock."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "shelf-alcove",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "release",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "shelf-alcove",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "cleaning-cloth"
+              ],
+              "emotion": "release",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "shelf-alcove",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "release",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "brass-source-clock",
+              "ownerCharacterId": null,
+              "locationId": "shelf-alcove",
+              "state": "Seated in the cradle, transmitting each tick."
+            },
+            {
+              "entityId": "world-clock-map",
+              "ownerCharacterId": null,
+              "locationId": "clock-map-room",
+              "state": "Every miniature clock face is moving again."
+            },
+            {
+              "entityId": "cleaning-cloth",
+              "ownerCharacterId": "ravi",
+              "locationId": "shelf-alcove",
+              "state": "Stopped before touching the remaining dust outline."
+            },
+            {
+              "entityId": "brass-cradle",
+              "ownerCharacterId": null,
+              "locationId": "shelf-alcove",
+              "state": "All three sockets are connected and conducting ticks."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b11",
+        "role": "resolution",
+        "locationId": "shelf-alcove",
+        "charactersPresent": [
+          "leo",
+          "ravi",
+          "mina"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "ravi",
+            "trait": "inventive",
+            "shows": "Folds the cloth into a narrow strip that cleans around the cradle without lifting the clock."
+          }
+        ],
+        "problemFamily": "",
+        "because": "b10",
+        "resolvesProblem": true,
+        "action": "Ravi folds his cloth to clean around the clock without lifting it. Leo and Mina leave the scalloped outline untouched.",
+        "emotion": "quiet assurance",
+        "entitiesRequired": [
+          "brass-source-clock",
+          "world-clock-map",
+          "cleaning-cloth",
+          "brass-cradle"
+        ],
+        "visualFocus": "A narrow cloth passing around a firmly seated clock.",
+        "shotType": "vignette",
+        "compositionIntent": "Echo the opening cleaning gesture, now shaped by what the children have learned.",
+        "textPurpose": "Show changed behaviour through a quiet callback.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "shelf-alcove",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "release",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "shelf-alcove",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "cleaning-cloth"
+              ],
+              "emotion": "release",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "shelf-alcove",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "release",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "brass-source-clock",
+              "ownerCharacterId": null,
+              "locationId": "shelf-alcove",
+              "state": "Seated in the cradle, transmitting each tick."
+            },
+            {
+              "entityId": "world-clock-map",
+              "ownerCharacterId": null,
+              "locationId": "clock-map-room",
+              "state": "Every miniature clock face is moving again."
+            },
+            {
+              "entityId": "cleaning-cloth",
+              "ownerCharacterId": "ravi",
+              "locationId": "shelf-alcove",
+              "state": "Stopped before touching the remaining dust outline."
+            },
+            {
+              "entityId": "brass-cradle",
+              "ownerCharacterId": null,
+              "locationId": "shelf-alcove",
+              "state": "All three sockets are connected and conducting ticks."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "shelf-alcove",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "quiet assurance",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "shelf-alcove",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "cleaning-cloth"
+              ],
+              "emotion": "quiet assurance",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "shelf-alcove",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "quiet assurance",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "brass-source-clock",
+              "ownerCharacterId": null,
+              "locationId": "shelf-alcove",
+              "state": "Seated in the cradle, transmitting each tick."
+            },
+            {
+              "entityId": "world-clock-map",
+              "ownerCharacterId": null,
+              "locationId": "clock-map-room",
+              "state": "Every miniature clock face is moving again."
+            },
+            {
+              "entityId": "cleaning-cloth",
+              "ownerCharacterId": "ravi",
+              "locationId": "shelf-alcove",
+              "state": "Folded into a narrow strip for cleaning around the occupied cradle."
+            },
+            {
+              "entityId": "brass-cradle",
+              "ownerCharacterId": null,
+              "locationId": "shelf-alcove",
+              "state": "All three sockets are connected and conducting ticks."
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "storyProblems": [],
+  "planProblems": [],
+  "textProblems": [],
+  "pages": [
+    {
+      "pageId": "p1",
+      "beatId": "b1",
+      "locationId": "clock-map-room",
+      "charactersPresent": [
+        "leo",
+        "ravi",
+        "mina"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clock-map-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clock-map-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clock-map-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": []
+      },
+      "action": "Ravi brings in the brass clock he has lifted for cleaning; every face on the world clock-map falls still. His clock keeps ticking.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clock-map-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "puzzlement",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clock-map-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": "puzzlement",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clock-map-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "puzzlement",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "clock-map-room",
+            "state": "Ticking after being lifted from the alcove shelf."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "clock-map-room",
+            "state": "Draped over Ravi's wrist after cleaning the brass clock."
+          }
+        ]
+      },
+      "emotion": "puzzlement",
+      "entitiesRequired": [
+        "brass-source-clock",
+        "world-clock-map",
+        "cleaning-cloth"
+      ],
+      "visualFocus": "Ravi's raised clock and the silent map.",
+      "shotType": "establishing",
+      "compositionIntent": "Place the tiny ticking clock against the vast field of motionless faces.",
+      "textPurpose": "Plant the question of why this clock alone continues.",
+      "pageTurnHook": "Why does this one still tick?",
+      "needsFromPrevious": null,
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clock-map-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "puzzlement",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clock-map-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": "puzzlement",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clock-map-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "puzzlement",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "clock-map-room",
+            "state": "Ticking after being lifted from the alcove shelf."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "clock-map-room",
+            "state": "Draped over Ravi's wrist after cleaning the brass clock."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Ravi carried the brass clock into the clock-map room, his cleaning cloth hanging over his wrist.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Across the world clock-map, every miniature hand stopped.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Leo leaned closer; Mina turned towards the ticking in Ravi's hands.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"Why does this one keep going?\" Ravi asked.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Ravi carried the brass clock into the clock-map room, his cleaning cloth hanging over his wrist. Across the world clock-map, every miniature hand stopped. Leo leaned closer; Mina turned towards the ticking in Ravi's hands. \"Why does this one keep going?\" Ravi asked."
+    },
+    {
+      "pageId": "p2",
+      "beatId": "b2",
+      "locationId": "clock-map-room",
+      "charactersPresent": [
+        "leo",
+        "ravi",
+        "mina"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clock-map-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "puzzlement",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clock-map-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": "puzzlement",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clock-map-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "puzzlement",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "clock-map-room",
+            "state": "Ticking after being lifted from the alcove shelf."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "clock-map-room",
+            "state": "Draped over Ravi's wrist after cleaning the brass clock."
+          }
+        ]
+      },
+      "action": "Mina checks clock faces across the map and finds the same frozen minute on each. Their copper lines all lead towards the alcove.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clock-map-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "unease",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clock-map-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": "unease",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clock-map-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "unease",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "clock-map-room",
+            "state": "Ticking after being lifted from the alcove shelf."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "clock-map-room",
+            "state": "Draped over Ravi's wrist after cleaning the brass clock."
+          }
+        ]
+      },
+      "emotion": "unease",
+      "entitiesRequired": [
+        "brass-source-clock",
+        "world-clock-map",
+        "cleaning-cloth"
+      ],
+      "visualFocus": "Matching stopped hands and converging copper paths.",
+      "shotType": "close",
+      "compositionIntent": "Show Mina's finger connecting distant places through one branching line.",
+      "textPurpose": "Establish that the silence is worldwide and direct the investigation.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clock-map-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "puzzlement",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clock-map-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": "puzzlement",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clock-map-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "puzzlement",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "clock-map-room",
+            "state": "Ticking after being lifted from the alcove shelf."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "clock-map-room",
+            "state": "Draped over Ravi's wrist after cleaning the brass clock."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clock-map-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "unease",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clock-map-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": "unease",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clock-map-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "unease",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "clock-map-room",
+            "state": "Ticking after being lifted from the alcove shelf."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "clock-map-room",
+            "state": "Draped over Ravi's wrist after cleaning the brass clock."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Mina checked a face at one edge of the map, then another far across it.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"The same minute,\" she said.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Leo checked a third and nodded.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Beneath the frozen faces, Mina traced the copper lines with her finger; every one led towards the alcove.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Mina checked a face at one edge of the map, then another far across it. \"The same minute,\" she said. Leo checked a third and nodded. Beneath the frozen faces, Mina traced the copper lines with her finger; every one led towards the alcove."
+    },
+    {
+      "pageId": "p3",
+      "beatId": "b3",
+      "locationId": "clock-map-room",
+      "charactersPresent": [
+        "leo",
+        "ravi",
+        "mina"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clock-map-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "unease",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clock-map-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": "unease",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clock-map-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "unease",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "clock-map-room",
+            "state": "Ticking after being lifted from the alcove shelf."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "clock-map-room",
+            "state": "Draped over Ravi's wrist after cleaning the brass clock."
+          }
+        ]
+      },
+      "action": "Ravi wants to open the clock, convinced he has damaged something. Leo asks him to keep it ticking while they examine its shelf.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clock-map-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "strained trust",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clock-map-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": "strained trust",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clock-map-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "strained trust",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "clock-map-room",
+            "state": "Ticking after being lifted from the alcove shelf."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "clock-map-room",
+            "state": "Draped over Ravi's wrist after cleaning the brass clock."
+          }
+        ]
+      },
+      "emotion": "strained trust",
+      "entitiesRequired": [
+        "brass-source-clock",
+        "world-clock-map",
+        "cleaning-cloth"
+      ],
+      "visualFocus": "The clock held between two different proposed actions.",
+      "shotType": "reaction",
+      "compositionIntent": "Contrast Ravi's gripping fingers with Leo's open hand.",
+      "textPurpose": "Introduce disagreement and preserve the essential evidence.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clock-map-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "unease",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clock-map-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": "unease",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clock-map-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "unease",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "clock-map-room",
+            "state": "Ticking after being lifted from the alcove shelf."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "clock-map-room",
+            "state": "Draped over Ravi's wrist after cleaning the brass clock."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clock-map-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "strained trust",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clock-map-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": "strained trust",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clock-map-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "strained trust",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "clock-map-room",
+            "state": "Ticking after being lifted from the alcove shelf."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "clock-map-room",
+            "state": "Draped over Ravi's wrist after cleaning the brass clock."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Ravi turned the brass clock over, searching for a way to open it.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"I've broken something inside.\"",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Leo paused, listening to its steady tick.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"Wait. Keep it ticking. Let's check where it stood first.\"",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Ravi turned the brass clock over, searching for a way to open it. \"I've broken something inside.\" Leo paused, listening to its steady tick. \"Wait. Keep it ticking. Let's check where it stood first.\""
+    },
+    {
+      "pageId": "p4",
+      "beatId": "b4",
+      "locationId": "shelf-alcove",
+      "charactersPresent": [
+        "leo",
+        "ravi",
+        "mina"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clock-map-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "strained trust",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clock-map-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": "strained trust",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clock-map-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "strained trust",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "clock-map-room",
+            "state": "Ticking after being lifted from the alcove shelf."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "clock-map-room",
+            "state": "Draped over Ravi's wrist after cleaning the brass clock."
+          }
+        ]
+      },
+      "action": "Following the copper lines into the alcove, they find a scalloped dust outline surrounding three sockets. Leo prevents Ravi from wiping it away.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "shelf-alcove",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "concentration",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "shelf-alcove",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": "concentration",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "shelf-alcove",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "concentration",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Held above its former shelf, still ticking."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Stopped before touching the remaining dust outline."
+          },
+          {
+            "entityId": "brass-cradle",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "Empty, with its engraved diagram partly obscured by dust."
+          }
+        ]
+      },
+      "emotion": "concentration",
+      "entitiesRequired": [
+        "brass-source-clock",
+        "world-clock-map",
+        "cleaning-cloth",
+        "brass-cradle"
+      ],
+      "visualFocus": "Three sockets inside a scalloped silhouette.",
+      "shotType": "overhead",
+      "compositionIntent": "Make the dust outline readable beside the clock's matching base.",
+      "textPurpose": "Introduce the cradle and preserve the clue needed for restoration.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clock-map-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "strained trust",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clock-map-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": "strained trust",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clock-map-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "strained trust",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "clock-map-room",
+            "state": "Ticking after being lifted from the alcove shelf."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "clock-map-room",
+            "state": "Draped over Ravi's wrist after cleaning the brass clock."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "shelf-alcove",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "concentration",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "shelf-alcove",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": "concentration",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "shelf-alcove",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "concentration",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Held above its former shelf, still ticking."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Stopped before touching the remaining dust outline."
+          },
+          {
+            "entityId": "brass-cradle",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "Empty, with its engraved diagram partly obscured by dust."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "The copper lines led them into the shelf alcove, where the empty brass cradle waited.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Dust made a scalloped outline around three sockets.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Ravi lifted his cloth, but Leo caught his wrist before it touched the dust.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"Leave that bit. Let's look first.\"",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "The copper lines led them into the shelf alcove, where the empty brass cradle waited. Dust made a scalloped outline around three sockets. Ravi lifted his cloth, but Leo caught his wrist before it touched the dust. \"Leave that bit. Let's look first.\""
+    },
+    {
+      "pageId": "p5",
+      "beatId": "b5",
+      "locationId": "shelf-alcove",
+      "charactersPresent": [
+        "leo",
+        "ravi",
+        "mina"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "shelf-alcove",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "concentration",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "shelf-alcove",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": "concentration",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "shelf-alcove",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "concentration",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Held above its former shelf, still ticking."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Stopped before touching the remaining dust outline."
+          },
+          {
+            "entityId": "brass-cradle",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "Empty, with its engraved diagram partly obscured by dust."
+          }
+        ]
+      },
+      "action": "Ravi presses one copper foot against a line beside the cradle, testing whether the clock can wake it. Nothing travels through the line.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "shelf-alcove",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "uncertainty",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "shelf-alcove",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": "uncertainty",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "shelf-alcove",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "uncertainty",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Held above its former shelf, still ticking."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Stopped before touching the remaining dust outline."
+          },
+          {
+            "entityId": "brass-cradle",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "Empty, with its engraved diagram partly obscured by dust."
+          }
+        ]
+      },
+      "emotion": "uncertainty",
+      "entitiesRequired": [
+        "brass-source-clock",
+        "world-clock-map",
+        "cleaning-cloth",
+        "brass-cradle"
+      ],
+      "visualFocus": "One copper foot touching the wrong connection.",
+      "shotType": "action",
+      "compositionIntent": "Bring the attempted contact forward while the empty sockets remain visible behind it.",
+      "textPurpose": "Test a plausible explanation without solving the mechanism.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "shelf-alcove",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "concentration",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "shelf-alcove",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": "concentration",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "shelf-alcove",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "concentration",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Held above its former shelf, still ticking."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Stopped before touching the remaining dust outline."
+          },
+          {
+            "entityId": "brass-cradle",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "Empty, with its engraved diagram partly obscured by dust."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "shelf-alcove",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "uncertainty",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "shelf-alcove",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": "uncertainty",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "shelf-alcove",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "uncertainty",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Held above its former shelf, still ticking."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Stopped before touching the remaining dust outline."
+          },
+          {
+            "entityId": "brass-cradle",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "Empty, with its engraved diagram partly obscured by dust."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "\"Perhaps it only needs to touch,\" Ravi said.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "He pressed one copper foot against a line beside the cradle.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The clock ticked against his fingers, but nothing travelled along the copper.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "He held it there for one more tick, then lifted it away.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "\"Perhaps it only needs to touch,\" Ravi said. He pressed one copper foot against a line beside the cradle. The clock ticked against his fingers, but nothing travelled along the copper. He held it there for one more tick, then lifted it away."
+    },
+    {
+      "pageId": "p6",
+      "beatId": "b6",
+      "locationId": "shelf-alcove",
+      "charactersPresent": [
+        "leo",
+        "ravi",
+        "mina"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "shelf-alcove",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "uncertainty",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "shelf-alcove",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": "uncertainty",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "shelf-alcove",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "uncertainty",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Held above its former shelf, still ticking."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Stopped before touching the remaining dust outline."
+          },
+          {
+            "entityId": "brass-cradle",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "Empty, with its engraved diagram partly obscured by dust."
+          }
+        ]
+      },
+      "action": "Mina asks Ravi to hold the clock still while she listens. Each tick briefly lights all three copper feet together.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "shelf-alcove",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "absorbed attention",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "shelf-alcove",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": "absorbed attention",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "shelf-alcove",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "absorbed attention",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Held above its former shelf, still ticking."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Stopped before touching the remaining dust outline."
+          },
+          {
+            "entityId": "brass-cradle",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "Empty, with its engraved diagram partly obscured by dust."
+          }
+        ]
+      },
+      "emotion": "absorbed attention",
+      "entitiesRequired": [
+        "brass-source-clock",
+        "world-clock-map",
+        "cleaning-cloth",
+        "brass-cradle"
+      ],
+      "visualFocus": "The clock's three glowing feet.",
+      "shotType": "close",
+      "compositionIntent": "Let darkness around the base reveal three small simultaneous glimmers.",
+      "textPurpose": "Give quiet observation a decisive role in the investigation.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "shelf-alcove",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "uncertainty",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "shelf-alcove",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": "uncertainty",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "shelf-alcove",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "uncertainty",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Held above its former shelf, still ticking."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Stopped before touching the remaining dust outline."
+          },
+          {
+            "entityId": "brass-cradle",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "Empty, with its engraved diagram partly obscured by dust."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "shelf-alcove",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "absorbed attention",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "shelf-alcove",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": "absorbed attention",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "shelf-alcove",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "absorbed attention",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Held above its former shelf, still ticking."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Stopped before touching the remaining dust outline."
+          },
+          {
+            "entityId": "brass-cradle",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "Empty, with its engraved diagram partly obscured by dust."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "\"Hold it still,\" Mina said, steadying Ravi's wrist.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "She bent close and listened.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Tick—and all three copper feet flashed together.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "At the next tick, Mina watched the feet instead of the face; all three lit again.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "\"Hold it still,\" Mina said, steadying Ravi's wrist. She bent close and listened. Tick—and all three copper feet flashed together. At the next tick, Mina watched the feet instead of the face; all three lit again."
+    },
+    {
+      "pageId": "p7",
+      "beatId": "b7",
+      "locationId": "shelf-alcove",
+      "charactersPresent": [
+        "leo",
+        "ravi",
+        "mina"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "shelf-alcove",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "absorbed attention",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "shelf-alcove",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": "absorbed attention",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "shelf-alcove",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "absorbed attention",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Held above its former shelf, still ticking."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Stopped before touching the remaining dust outline."
+          },
+          {
+            "entityId": "brass-cradle",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "Empty, with its engraved diagram partly obscured by dust."
+          }
+        ]
+      },
+      "action": "Ravi tries all three sockets, but the clock rocks instead of settling. Leo stops him forcing it and compares the preserved outline.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "shelf-alcove",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "frustration",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "shelf-alcove",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": "frustration",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "shelf-alcove",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "frustration",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Held above its former shelf, still ticking."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Stopped before touching the remaining dust outline."
+          },
+          {
+            "entityId": "brass-cradle",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "Empty, with its engraved diagram partly obscured by dust."
+          }
+        ]
+      },
+      "emotion": "frustration",
+      "entitiesRequired": [
+        "brass-source-clock",
+        "world-clock-map",
+        "cleaning-cloth",
+        "brass-cradle"
+      ],
+      "visualFocus": "A scallop pointing in the wrong direction.",
+      "shotType": "medium",
+      "compositionIntent": "Show the tilted clock and the untouched dust outline in the same frame.",
+      "textPurpose": "Make the earlier protection of evidence necessary.",
+      "pageTurnHook": "One scallop points the other way.",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "shelf-alcove",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "absorbed attention",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "shelf-alcove",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": "absorbed attention",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "shelf-alcove",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "absorbed attention",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Held above its former shelf, still ticking."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Stopped before touching the remaining dust outline."
+          },
+          {
+            "entityId": "brass-cradle",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "Empty, with its engraved diagram partly obscured by dust."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "shelf-alcove",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "frustration",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "shelf-alcove",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": "frustration",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "shelf-alcove",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "frustration",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Held above its former shelf, still ticking."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Stopped before touching the remaining dust outline."
+          },
+          {
+            "entityId": "brass-cradle",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "Empty, with its engraved diagram partly obscured by dust."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Ravi lowered all three feet towards the sockets, but the clock rocked beneath his hands.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"I can push it down.\"",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"Don't push yet,\" Leo said, and Ravi lifted it clear.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Leo compared its edge with the dust outline: one scallop pointed the other way.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Ravi lowered all three feet towards the sockets, but the clock rocked beneath his hands. \"I can push it down.\" \"Don't push yet,\" Leo said, and Ravi lifted it clear. Leo compared its edge with the dust outline: one scallop pointed the other way."
+    },
+    {
+      "pageId": "p8",
+      "beatId": "b8",
+      "locationId": "shelf-alcove",
+      "charactersPresent": [
+        "leo",
+        "ravi",
+        "mina"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "shelf-alcove",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "frustration",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "shelf-alcove",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": "frustration",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "shelf-alcove",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "frustration",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Held above its former shelf, still ticking."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Stopped before touching the remaining dust outline."
+          },
+          {
+            "entityId": "brass-cradle",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "Empty, with its engraved diagram partly obscured by dust."
+          }
+        ]
+      },
+      "action": "Turning the clock to match the outline exposes an engraved diagram beneath its rim. Arrows run from one clock towards many others.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "shelf-alcove",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": " dawning understanding",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "shelf-alcove",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": " dawning understanding",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "shelf-alcove",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": " dawning understanding",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Held above its former shelf, still ticking."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Stopped before touching the remaining dust outline."
+          },
+          {
+            "entityId": "brass-cradle",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "Its diagram is visible beneath the correctly oriented clock."
+          }
+        ]
+      },
+      "emotion": " dawning understanding",
+      "entitiesRequired": [
+        "brass-source-clock",
+        "world-clock-map",
+        "cleaning-cloth",
+        "brass-cradle"
+      ],
+      "visualFocus": "One source feeding a branching network.",
+      "shotType": "reveal",
+      "compositionIntent": "Align the real clock above its engraved counterpart and the outward-running arrows.",
+      "textPurpose": "Reveal that the surviving clock supplies ticks rather than borrowing them.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "shelf-alcove",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "frustration",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "shelf-alcove",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": "frustration",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "shelf-alcove",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "frustration",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Held above its former shelf, still ticking."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Stopped before touching the remaining dust outline."
+          },
+          {
+            "entityId": "brass-cradle",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "Empty, with its engraved diagram partly obscured by dust."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "shelf-alcove",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": " dawning understanding",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "shelf-alcove",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": " dawning understanding",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "shelf-alcove",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": " dawning understanding",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Held above its former shelf, still ticking."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Stopped before touching the remaining dust outline."
+          },
+          {
+            "entityId": "brass-cradle",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "Its diagram is visible beneath the correctly oriented clock."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Ravi turned the clock while Leo followed the scalloped edge.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Now an engraved diagram showed beneath its rim, with arrows running from one clock towards many.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Mina followed the arrows with her fingertip.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"This one makes its own ticks—and sends them to the others.\"",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Ravi turned the clock while Leo followed the scalloped edge. Now an engraved diagram showed beneath its rim, with arrows running from one clock towards many. Mina followed the arrows with her fingertip. \"This one makes its own ticks—and sends them to the others.\""
+    },
+    {
+      "pageId": "p9",
+      "beatId": "b9",
+      "locationId": "shelf-alcove",
+      "charactersPresent": [
+        "leo",
+        "ravi",
+        "mina"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "shelf-alcove",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": " dawning understanding",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "shelf-alcove",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": " dawning understanding",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "shelf-alcove",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": " dawning understanding",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Held above its former shelf, still ticking."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Stopped before touching the remaining dust outline."
+          },
+          {
+            "entityId": "brass-cradle",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "Its diagram is visible beneath the correctly oriented clock."
+          }
+        ]
+      },
+      "action": "Ravi admits lifting the clock broke its connection and offers to replace it. Leo guides the outline while Mina checks each foot.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "shelf-alcove",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "resolve",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "shelf-alcove",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": "resolve",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "shelf-alcove",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "resolve",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Held above its former shelf, still ticking."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Stopped before touching the remaining dust outline."
+          },
+          {
+            "entityId": "brass-cradle",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "Its diagram is visible beneath the correctly oriented clock."
+          }
+        ]
+      },
+      "emotion": "resolve",
+      "entitiesRequired": [
+        "brass-source-clock",
+        "world-clock-map",
+        "cleaning-cloth",
+        "brass-cradle"
+      ],
+      "visualFocus": "Clock feet poised directly above their sockets.",
+      "shotType": "high",
+      "compositionIntent": "Arrange three sets of hands around one shared task.",
+      "textPurpose": "Turn the discovery into a cooperative repair.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "shelf-alcove",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": " dawning understanding",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "shelf-alcove",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": " dawning understanding",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "shelf-alcove",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": " dawning understanding",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Held above its former shelf, still ticking."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Stopped before touching the remaining dust outline."
+          },
+          {
+            "entityId": "brass-cradle",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "Its diagram is visible beneath the correctly oriented clock."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "shelf-alcove",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "resolve",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "shelf-alcove",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": "resolve",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "shelf-alcove",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "resolve",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Held above its former shelf, still ticking."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Stopped before touching the remaining dust outline."
+          },
+          {
+            "entityId": "brass-cradle",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "Its diagram is visible beneath the correctly oriented clock."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Ravi held the clock above the cradle without letting it rock.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"I lifted it out of the connection. I'll put it back.\"",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Leo guided the scalloped edge along the preserved outline.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Mina checked each copper foot, then nodded for Ravi to lower it.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Ravi held the clock above the cradle without letting it rock. \"I lifted it out of the connection. I'll put it back.\" Leo guided the scalloped edge along the preserved outline. Mina checked each copper foot, then nodded for Ravi to lower it."
+    },
+    {
+      "pageId": "p10",
+      "beatId": "b10",
+      "locationId": "shelf-alcove",
+      "charactersPresent": [
+        "leo",
+        "ravi",
+        "mina"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "shelf-alcove",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "resolve",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "shelf-alcove",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": "resolve",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "shelf-alcove",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "resolve",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Held above its former shelf, still ticking."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Stopped before touching the remaining dust outline."
+          },
+          {
+            "entityId": "brass-cradle",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "Its diagram is visible beneath the correctly oriented clock."
+          }
+        ]
+      },
+      "action": "Ravi seats the clock using Leo's preserved outline and Mina's three-foot check. Its next tick races through the copper lines, restarting every clock.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "shelf-alcove",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "release",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "shelf-alcove",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "cleaning-cloth"
+            ],
+            "emotion": "release",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "shelf-alcove",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "release",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "Seated in the cradle, transmitting each tick."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is moving again."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Stopped before touching the remaining dust outline."
+          },
+          {
+            "entityId": "brass-cradle",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "All three sockets are connected and conducting ticks."
+          }
+        ]
+      },
+      "emotion": "release",
+      "entitiesRequired": [
+        "brass-source-clock",
+        "world-clock-map",
+        "cleaning-cloth",
+        "brass-cradle"
+      ],
+      "visualFocus": "Three lit sockets and a branching wave of ticks.",
+      "shotType": "action",
+      "compositionIntent": "Carry a visible pulse from the seated clock through the alcove opening towards the map.",
+      "textPurpose": "Answer the opening question through the successful restoration of the source clock.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "shelf-alcove",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "resolve",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "shelf-alcove",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "brass-source-clock",
+              "cleaning-cloth"
+            ],
+            "emotion": "resolve",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "shelf-alcove",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "resolve",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Held above its former shelf, still ticking."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is stopped."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Stopped before touching the remaining dust outline."
+          },
+          {
+            "entityId": "brass-cradle",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "Its diagram is visible beneath the correctly oriented clock."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "shelf-alcove",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "release",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "shelf-alcove",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "cleaning-cloth"
+            ],
+            "emotion": "release",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "shelf-alcove",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "release",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "Seated in the cradle, transmitting each tick."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is moving again."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Stopped before touching the remaining dust outline."
+          },
+          {
+            "entityId": "brass-cradle",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "All three sockets are connected and conducting ticks."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Ravi lowered the clock into the outline Leo had saved.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Mina watched all three feet settle into their sockets; this time, nothing rocked.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The next tick raced through the copper lines.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Across the world clock-map, every miniature hand moved again.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Ravi lowered the clock into the outline Leo had saved. Mina watched all three feet settle into their sockets; this time, nothing rocked. The next tick raced through the copper lines. Across the world clock-map, every miniature hand moved again."
+    },
+    {
+      "pageId": "p11",
+      "beatId": "b11",
+      "locationId": "shelf-alcove",
+      "charactersPresent": [
+        "leo",
+        "ravi",
+        "mina"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "shelf-alcove",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "release",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "shelf-alcove",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "cleaning-cloth"
+            ],
+            "emotion": "release",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "shelf-alcove",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "release",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "Seated in the cradle, transmitting each tick."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is moving again."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Stopped before touching the remaining dust outline."
+          },
+          {
+            "entityId": "brass-cradle",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "All three sockets are connected and conducting ticks."
+          }
+        ]
+      },
+      "action": "Ravi folds his cloth to clean around the clock without lifting it. Leo and Mina leave the scalloped outline untouched.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "shelf-alcove",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "quiet assurance",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "shelf-alcove",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "cleaning-cloth"
+            ],
+            "emotion": "quiet assurance",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "shelf-alcove",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "quiet assurance",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "Seated in the cradle, transmitting each tick."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is moving again."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Folded into a narrow strip for cleaning around the occupied cradle."
+          },
+          {
+            "entityId": "brass-cradle",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "All three sockets are connected and conducting ticks."
+          }
+        ]
+      },
+      "emotion": "quiet assurance",
+      "entitiesRequired": [
+        "brass-source-clock",
+        "world-clock-map",
+        "cleaning-cloth",
+        "brass-cradle"
+      ],
+      "visualFocus": "A narrow cloth passing around a firmly seated clock.",
+      "shotType": "vignette",
+      "compositionIntent": "Echo the opening cleaning gesture, now shaped by what the children have learned.",
+      "textPurpose": "Show changed behaviour through a quiet callback.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "shelf-alcove",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "release",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "shelf-alcove",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "cleaning-cloth"
+            ],
+            "emotion": "release",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "shelf-alcove",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "release",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "Seated in the cradle, transmitting each tick."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is moving again."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Stopped before touching the remaining dust outline."
+          },
+          {
+            "entityId": "brass-cradle",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "All three sockets are connected and conducting ticks."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "shelf-alcove",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "quiet assurance",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "shelf-alcove",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "cleaning-cloth"
+            ],
+            "emotion": "quiet assurance",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "shelf-alcove",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "quiet assurance",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "brass-source-clock",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "Seated in the cradle, transmitting each tick."
+          },
+          {
+            "entityId": "world-clock-map",
+            "ownerCharacterId": null,
+            "locationId": "clock-map-room",
+            "state": "Every miniature clock face is moving again."
+          },
+          {
+            "entityId": "cleaning-cloth",
+            "ownerCharacterId": "ravi",
+            "locationId": "shelf-alcove",
+            "state": "Folded into a narrow strip for cleaning around the occupied cradle."
+          },
+          {
+            "entityId": "brass-cradle",
+            "ownerCharacterId": null,
+            "locationId": "shelf-alcove",
+            "state": "All three sockets are connected and conducting ticks."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Ravi folded his cloth into a narrow strip.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "He cleaned around the occupied cradle, keeping the cloth clear of the scalloped dust.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Leo and Mina left the outline untouched.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Between their hands, the brass clock stayed in place, sending out tick after tick.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Ravi folded his cloth into a narrow strip. He cleaned around the occupied cradle, keeping the cloth clear of the scalloped dust. Leo and Mina left the outline untouched. Between their hands, the brass clock stayed in place, sending out tick after tick."
+    }
+  ],
+  "imageCalls": 0,
+  "imageDraws": 0,
+  "imageReason": "images_disabled",
+  "imageUsd": 0,
+  "id": "d",
+  "listedUsd": 0.05674,
+  "guardUsd": 0.11348
+}

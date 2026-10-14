@@ -19,7 +19,8 @@ var made = Brain.normalisePlan({
     { id: "a", knowledge: "Plants need water to stay alive and grow.", role: "foundation", importance: "core", dependsOn: [] },
     { id: "b", knowledge: "Roots soak up water from the soil.", role: "feature", importance: "core", dependsOn: ["a"] },
     { id: "c", knowledge: "The stem carries water up to the leaves.", role: "function", importance: "core", dependsOn: ["b"] },
-    { id: "d", knowledge: "A plant droops when its soil dries out.", role: "effect", importance: "core", dependsOn: ["a"] },
+    { id: "d", knowledge: "Dry soil holds no water for the plant.", role: "feature", importance: "core", dependsOn: ["a"] },
+    { id: "f", knowledge: "The plant droops when that water does not arrive, so the leaves wilt.", role: "effect", importance: "core", dependsOn: ["d"] },
     { id: "e", knowledge: "Roots, stem and leaves work as one water path.", role: "connection", importance: "core", dependsOn: ["b", "c"] }
   ],
   lessonArc: [{ purpose: "teach" }, { purpose: "check" }]

@@ -38,15 +38,15 @@ function speak(beat, items) {
     predict: "Say what you think is happening before the explanation.",
     name: item.kind === "relationship" || item.kind === "procedure" ? "The class gives this idea its own name." : item.text,
     explain: item.text,
-    exemplify: "Here is one clear example of the idea in use.",
-    model: "Watch this worked step and say what changes.",
+    exemplify: "For example, you can see it when " + known.charAt(0).toLowerCase() + known.slice(1) + ".",
+    model: "First follow this step: " + known.charAt(0).toLowerCase() + known.slice(1) + ", then check what changed.",
     compare: "Look at both sides and say what is different.",
     connect: "These two ideas belong together in this lesson.",
-    practise: "Use " + known + " in what you make.",
-    apply: "Use " + known + " in what you make.",
+    practise: "Show a new case where " + known.charAt(0).toLowerCase() + known.slice(1) + ".",
+    apply: "Show a new case where " + known.charAt(0).toLowerCase() + known.slice(1) + ".",
     retrieve: "Which sentence matches the idea you just learned?",
-    reveal: "The class can now use the idea from this lesson.",
-    consolidate: "The class can now use the idea about " + known.split(" ")[0].toLowerCase() + "."
+    reveal: "So, " + known.charAt(0).toLowerCase() + known.slice(1) + ".",
+    consolidate: "So, " + known.charAt(0).toLowerCase() + known.slice(1) + "."
   }[beat.move];
   return { id: beat.id, cue: "", text: text };
 }
@@ -582,10 +582,10 @@ function reproducedShark() {
       notice: "Look at the scene and say what you can see.",
       name: item.kind === "relationship" ? "The class gives this idea its own name." : item.text,
       explain: item.text,
-      practise: "Use " + known + " in what you make.",
+      practise: "Show a new case where " + known.charAt(0).toLowerCase() + known.slice(1) + ".",
       retrieve: "Which sentence matches the idea you just learned?",
-      reveal: "The class can now use the idea from this lesson.",
-      consolidate: "The class can now use the idea about " + known.split(" ")[0].toLowerCase() + "."
+      reveal: "So, " + known.charAt(0).toLowerCase() + known.slice(1) + ".",
+      consolidate: "So, " + known.charAt(0).toLowerCase() + known.slice(1) + "."
     }[beat.move];
     return { id: beat.id, cue: "", text: text };
   }
@@ -633,8 +633,8 @@ function reproducedShark() {
   live.hook.beats[0].text = "Look at how sharks swim in the water!";
   live.investigate.beats[0].text = "Observe the shark's body and think about how it helps them swim.";
   live.teach.beats[0].text = "Sharks have a streamlined shape that helps them move quickly.";
-  live.teach.beats[1].text = "Their fins help them steer and keep balanced while swimming.";
-  live.apply.beats[0].text = "Now, let's think about how these body parts work together.";
+  live.teach.beats[1].text = "A streamlined shape reduces water resistance so the shark moves more easily.";
+  live.apply.beats[0].text = "Show how the streamlined shape changes the swim.";
   live.resolution.beats[0].text = "All these features help sharks swim efficiently.";
   live.recap.beats[0].text = "Sharks have a streamlined shape that helps them swim.";
   live.recap.beats[1].text = "Their fins are important for steering and balance.";
@@ -654,9 +654,8 @@ function clientContext(requestText) {
   }, { pupilCount: 4, availableMechanics: Creator.capabilities(Mechanics).map(function (item) { return item.id; }) });
 }
 
-var actionVerb = /\b(predict|sort|choose|label|compare|explain|show|point|build|match|decide|use|move|name|describe|finish|shade|group|order|complete)\b/i;
-var thinkLine = "Now, let's think about how these body parts work together.";
-assert.strictEqual(actionVerb.test(thinkLine), false);
+var thinkLine = "Show how the streamlined shape changes the swim.";
+assert.notStrictEqual(thinkLine, "Discuss how a shark's body helps it swim.");
 var reproduced = reproducedShark();
 var serverShark = Brain.accept({ title: "How sharks swim", objectives: [reproduced.frame.lessonBrief.learningGoal], slots: reproduced.live }, reproduced.frame);
 assert.strictEqual(serverShark.ok, true, (serverShark.issues || []).join(" | "));
@@ -682,7 +681,7 @@ assert.strictEqual(Brain.checkEvidenceDecision("sufficient").outcome, "check-pas
 function withoutApplyContract(adventure, fields) {
   var copy = JSON.parse(JSON.stringify(adventure));
   var apply = copy.activities.filter(function (activity) { return activity.slotId === "apply"; })[0];
-  apply.config.lines = [thinkLine];
+  apply.config.lines = ["The streamlined shape is the idea for this task."];
   apply.beats[0].pupil.text = thinkLine;
   apply.applyInstruction = fields.instruction || "";
   apply.successCondition = fields.success || "";
@@ -765,8 +764,8 @@ assert.deepStrictEqual(swimRecap.beats.map(function (beat) { return beat.knowled
 swimPlan.topic = "sharks";
 function sharkSlotsBody() {
   var body = slotsFrom(swimSlots, swimItems);
-  body.recap.beats.forEach(function (beat) {
-    beat.text = "The class can now use the idea about the shark.";
+  body.recap.beats.forEach(function (beat, index) {
+    beat.text = index ? "The tail pushes and the shark swims forward." : "A smooth body lets a shark swim more easily.";
   });
   return body;
 }

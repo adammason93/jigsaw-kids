@@ -1,0 +1,617 @@
+{
+  "stage": "story-and-plans",
+  "generated": true,
+  "pictures": "not-run",
+  "title": "The Rain That Rose",
+  "status": "REVIEWABLE",
+  "calls": {
+    "text": 3,
+    "image": 0
+  },
+  "listedUsd": 0.172486,
+  "listedGbp": 0.130054,
+  "repairs": [
+    {
+      "stage": "bible",
+      "problems": [
+        "journey-unknown-place:mist-pathway"
+      ]
+    }
+  ],
+  "storyProblems": [],
+  "planProblems": [],
+  "textProblems": [],
+  "adventure": {
+    "kind": "adventure",
+    "needsJourney": true,
+    "blockProblems": [],
+    "reviewProblems": [],
+    "distinctSettings": [
+      "rock shelf beside falling water",
+      "passage through water-smoothed rock",
+      "hidden lake beneath an open shaft of sky",
+      "grove of towering waterside plants"
+    ],
+    "sectionCount": 7,
+    "placeShare": 0.4166666666666667,
+    "handlingShare": 0.4166666666666667
+  },
+  "progression": {
+    "verdict": "PASS",
+    "blockProblems": [],
+    "reviewProblems": []
+  },
+  "visualJourney": {
+    "problems": [],
+    "repetition": []
+  },
+  "journey": [
+    {
+      "section": "Finding the concealed entrance",
+      "locationId": "waterfall-shelf",
+      "purpose": "Investigate the dry leaf passing through falling water.",
+      "objective": "Find a safe opening.",
+      "discoveryOrObstacle": "The leaf exposes a dry gap with firm footing.",
+      "change": "Maya follows the gap, and Leo checks the ledge before joining her.",
+      "leadsTo": "mist-pathway",
+      "knownPlace": true
+    },
+    {
+      "section": "Following water uphill",
+      "locationId": "mist-pathway",
+      "purpose": "Discover where the opening leads.",
+      "objective": "Follow the droplets climbing the passage walls.",
+      "discoveryOrObstacle": "The passage opens above a hidden lake, with stepping stones descending to its shore.",
+      "change": "The visible crossing lets the children enter the world below.",
+      "leadsTo": "bowl-leaf-lake",
+      "knownPlace": true
+    },
+    {
+      "section": "Discovering the floating bowls",
+      "locationId": "bowl-leaf-lake",
+      "purpose": "Explore the lake revealed by the passage.",
+      "objective": "Find out how its enormous leaves stay level.",
+      "discoveryOrObstacle": "Water pooled in each leaf's center settles its rocking rim; matching leaves grow beside the shore.",
+      "change": "Maya wants to investigate the plants that produce these floating bowls.",
+      "leadsTo": "sunstripe-grove",
+      "knownPlace": true
+    },
+    {
+      "section": "Losing the way down",
+      "locationId": "sunstripe-grove",
+      "purpose": "Investigate the bowl-leaf plants and the upward droplets.",
+      "objective": "Test the water's rule, then find another route home.",
+      "discoveryOrObstacle": "Sunlight lifts water; when it reaches the crossing, the stones rise beyond reach.",
+      "change": "The children choose a fallen bowl leaf with a sturdy stem to ride the lifting water.",
+      "leadsTo": "bowl-leaf-lake",
+      "knownPlace": true
+    },
+    {
+      "section": "Learning to ride the rain",
+      "locationId": "bowl-leaf-lake",
+      "purpose": "Use the remaining sunlight to reach the entrance.",
+      "objective": "Steer their boat into the lifting current and keep it level.",
+      "discoveryOrObstacle": "Their first launch spins away, but the attached stem stops them in shallow water.",
+      "change": "A small leaf tests the route; the stem steers their boat, and the central pool steadies its ascent.",
+      "leadsTo": "mist-pathway",
+      "knownPlace": true
+    },
+    {
+      "section": "Landing and returning",
+      "locationId": "mist-pathway",
+      "purpose": "Transfer from the rising boat to solid stone.",
+      "objective": "Get both children safely onto the passage.",
+      "discoveryOrObstacle": "The boat must be held against the lip while they cross.",
+      "change": "They brace the familiar stem and take turns anchoring it, regaining the connected route outside.",
+      "leadsTo": "waterfall-shelf",
+      "knownPlace": true
+    },
+    {
+      "section": "Looking together",
+      "locationId": "waterfall-shelf",
+      "purpose": "Complete their return through the original opening.",
+      "objective": "Take one last look at the water curtain.",
+      "discoveryOrObstacle": "Leo notices another dry gap.",
+      "change": "Maya waits beside him instead of rushing ahead.",
+      "leadsTo": "",
+      "knownPlace": true
+    }
+  ],
+  "locations": [
+    {
+      "locationId": "waterfall-shelf",
+      "name": "the waterfall shelf",
+      "setting": "rock shelf beside falling water",
+      "visualIdentity": "Silver water curtains a broad gray ledge, leaving a dry gap at one edge."
+    },
+    {
+      "locationId": "mist-pathway",
+      "name": "the mist pathway",
+      "setting": "passage through water-smoothed rock",
+      "visualIdentity": "Blue stone walls hold upward-moving droplets; the high mouth overlooks a luminous lake."
+    },
+    {
+      "locationId": "bowl-leaf-lake",
+      "name": "the bowl-leaf lake",
+      "setting": "hidden lake beneath an open shaft of sky",
+      "visualIdentity": "Enormous floating leaves cup water beneath a golden shaft reaching the high passage mouth."
+    },
+    {
+      "locationId": "sunstripe-grove",
+      "name": "the sunstripe grove",
+      "setting": "grove of towering waterside plants",
+      "visualIdentity": "Arched stems bear bowl-shaped leaves; sunlit droplets rise while shaded droplets fall."
+    }
+  ],
+  "pages": [
+    {
+      "page": 1,
+      "pageId": "p1",
+      "role": "hook",
+      "action": "Maya follows a dry leaf through the waterfall's edge and finds an opening. Leo checks the footing beside her.",
+      "locationId": "waterfall-shelf",
+      "location": "the waterfall shelf",
+      "setting": "rock shelf beside falling water",
+      "visualIdentity": "Silver water curtains a broad gray ledge, leaving a dry gap at one edge.",
+      "discovery": "drifting-leaf",
+      "progression": "opening",
+      "phase": "SETUP",
+      "continuity": "First view of the waterfall shelf. Establish this look and keep it later: Silver water curtains a broad gray ledge, leaving a dry gap at one edge.",
+      "transition": "",
+      "camera": "Wide establishing view, so this place feels larger than the characters.",
+      "shot": "establishing",
+      "focus": "The copper leaf passing through the curtain.",
+      "characters": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "references": [
+        {
+          "characterId": "wondii-maya",
+          "file": "maya-v1.jpg"
+        },
+        {
+          "characterId": "wondii-leo",
+          "file": "wondii-leo.jpg"
+        }
+      ],
+      "style": true
+    },
+    {
+      "page": 2,
+      "pageId": "p2",
+      "role": "discovery",
+      "action": "They follow water beads climbing the passage wall to a high opening. Below, pale stepping stones lead toward enormous floating leaves.",
+      "locationId": "mist-pathway",
+      "location": "the mist pathway",
+      "setting": "passage through water-smoothed rock",
+      "visualIdentity": "Blue stone walls hold upward-moving droplets; the high mouth overlooks a luminous lake.",
+      "discovery": "bowl-leaves,climbing-water,floating-stones",
+      "progression": "location, goal, obstacle, action, consequence, discovery, world_state, entity_state, information",
+      "phase": "DISCOVERY",
+      "continuity": "First view of the mist pathway. Establish this look and keep it later: Blue stone walls hold upward-moving droplets; the high mouth overlooks a luminous lake.",
+      "transition": "New story location. Draw this place only. Do not bring the previous place's scenery unless the story says it is still here.",
+      "camera": "A reveal: the new discovery is the clearest thing in the picture.",
+      "shot": "reveal",
+      "focus": "Climbing droplets above descending stones.",
+      "characters": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "references": [
+        {
+          "characterId": "wondii-maya",
+          "file": "maya-v1.jpg"
+        },
+        {
+          "characterId": "wondii-leo",
+          "file": "wondii-leo.jpg"
+        }
+      ],
+      "style": true
+    },
+    {
+      "page": 3,
+      "pageId": "p3",
+      "role": "exploration",
+      "action": "Maya presses a bowl leaf's rim and watches its pooled water settle it level. Matching leaves tower nearby.",
+      "locationId": "bowl-leaf-lake",
+      "location": "the bowl-leaf lake",
+      "setting": "hidden lake beneath an open shaft of sky",
+      "visualIdentity": "Enormous floating leaves cup water beneath a golden shaft reaching the high passage mouth.",
+      "discovery": "",
+      "progression": "location, goal, obstacle, action, consequence, world_state, information",
+      "phase": "ATTEMPT",
+      "continuity": "First view of the bowl-leaf lake. Establish this look and keep it later: Enormous floating leaves cup water beneath a golden shaft reaching the high passage mouth.",
+      "transition": "New story location. Draw this place only. Do not bring the previous place's scenery unless the story says it is still here.",
+      "camera": "Move in close on the discovery. Do not repeat a wide view of the room.",
+      "shot": "close",
+      "focus": "Water settling in the leaf's middle.",
+      "characters": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "references": [
+        {
+          "characterId": "wondii-maya",
+          "file": "maya-v1.jpg"
+        },
+        {
+          "characterId": "wondii-leo",
+          "file": "wondii-leo.jpg"
+        }
+      ],
+      "style": true
+    },
+    {
+      "page": 4,
+      "pageId": "p4",
+      "role": "wonder",
+      "action": "Maya moves her wet hand into a sunstripe, where droplets lift from her fingers. In the shade, they fall.",
+      "locationId": "sunstripe-grove",
+      "location": "the sunstripe grove",
+      "setting": "grove of towering waterside plants",
+      "visualIdentity": "Arched stems bear bowl-shaped leaves; sunlit droplets rise while shaded droplets fall.",
+      "discovery": "",
+      "progression": "location, goal, obstacle, consequence, world_state, entity_state, information",
+      "phase": "ATTEMPT",
+      "continuity": "First view of the sunstripe grove. Establish this look and keep it later: Arched stems bear bowl-shaped leaves; sunlit droplets rise while shaded droplets fall.",
+      "transition": "New story location. Draw this place only. Do not bring the previous place's scenery unless the story says it is still here.",
+      "camera": "A medium view of the characters doing this moment.",
+      "shot": "medium",
+      "focus": "Droplets moving in opposite directions.",
+      "characters": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "references": [
+        {
+          "characterId": "wondii-maya",
+          "file": "maya-v1.jpg"
+        },
+        {
+          "characterId": "wondii-leo",
+          "file": "wondii-leo.jpg"
+        }
+      ],
+      "style": true
+    },
+    {
+      "page": 5,
+      "pageId": "p5",
+      "role": "setback",
+      "action": "Sunlit water lifts the stepping stones away from shore. Leo grips Maya's sleeve as their route home rises overhead.",
+      "locationId": "sunstripe-grove",
+      "location": "the sunstripe grove",
+      "setting": "grove of towering waterside plants",
+      "visualIdentity": "Arched stems bear bowl-shaped leaves; sunlit droplets rise while shaded droplets fall.",
+      "discovery": "",
+      "progression": "location, goal, obstacle, action, consequence, world_state, information",
+      "phase": "SETBACK",
+      "continuity": "Same place as p4: the sunstripe grove. Keep its look: Arched stems bear bowl-shaped leaves; sunlit droplets rise while shaded droplets fall. Do not redesign it as a new room.",
+      "transition": "",
+      "camera": "A high view that shows how this place is arranged.",
+      "shot": "high",
+      "focus": "The unusable crossing above the children.",
+      "characters": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "references": [
+        {
+          "characterId": "wondii-maya",
+          "file": "maya-v1.jpg"
+        },
+        {
+          "characterId": "wondii-leo",
+          "file": "wondii-leo.jpg"
+        }
+      ],
+      "style": true
+    },
+    {
+      "page": 6,
+      "pageId": "p6",
+      "role": "goal",
+      "action": "Maya proposes riding a fallen bowl leaf up with the water. Leo checks its rim and keeps the long stem.",
+      "locationId": "sunstripe-grove",
+      "location": "the sunstripe grove",
+      "setting": "grove of towering waterside plants",
+      "visualIdentity": "Arched stems bear bowl-shaped leaves; sunlit droplets rise while shaded droplets fall.",
+      "discovery": "leaf-boat",
+      "progression": "location, goal, obstacle, action, consequence, discovery, world_state, entity_state, information",
+      "phase": "COMMITMENT",
+      "continuity": "Same place as p5: the sunstripe grove. Keep its look: Arched stems bear bowl-shaped leaves; sunlit droplets rise while shaded droplets fall. Do not redesign it as a new room.",
+      "transition": "",
+      "camera": "A low viewpoint along the ground.",
+      "shot": "low",
+      "focus": "The intact bowl and trailing stem.",
+      "characters": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "references": [
+        {
+          "characterId": "wondii-maya",
+          "file": "maya-v1.jpg"
+        },
+        {
+          "characterId": "wondii-leo",
+          "file": "wondii-leo.jpg"
+        }
+      ],
+      "style": true
+    },
+    {
+      "page": 7,
+      "pageId": "p7",
+      "role": "attempt",
+      "action": "Leo steadies the leaf while Maya boards, then climbs in beside her. Their boat spins away from the rising rain.",
+      "locationId": "bowl-leaf-lake",
+      "location": "the bowl-leaf lake",
+      "setting": "hidden lake beneath an open shaft of sky",
+      "visualIdentity": "Enormous floating leaves cup water beneath a golden shaft reaching the high passage mouth.",
+      "discovery": "",
+      "progression": "location, goal, obstacle, action, consequence, world_state, entity_state, information",
+      "phase": "ATTEMPT",
+      "continuity": "Same place as p3: the bowl-leaf lake. Keep its look: Enormous floating leaves cup water beneath a golden shaft reaching the high passage mouth. Do not redesign it as a new room.",
+      "transition": "Returning to a place already shown. Keep its established look. Do not redesign it.",
+      "camera": "Show the movement, with a pose that changes from the previous picture.",
+      "shot": "action",
+      "focus": "The boat moving away from sunlight.",
+      "characters": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "references": [
+        {
+          "characterId": "wondii-maya",
+          "file": "maya-v1.jpg"
+        },
+        {
+          "characterId": "wondii-leo",
+          "file": "wondii-leo.jpg"
+        }
+      ],
+      "style": true
+    },
+    {
+      "page": 8,
+      "pageId": "p8",
+      "role": "consequence",
+      "action": "Leo lowers the long stem until it catches the shallow bottom. The boat stops, and Maya helps push it straight.",
+      "locationId": "bowl-leaf-lake",
+      "location": "the bowl-leaf lake",
+      "setting": "hidden lake beneath an open shaft of sky",
+      "visualIdentity": "Enormous floating leaves cup water beneath a golden shaft reaching the high passage mouth.",
+      "discovery": "",
+      "progression": "location, goal, obstacle, action, consequence, world_state, information",
+      "phase": "ESCALATION",
+      "continuity": "Same place as p7: the bowl-leaf lake. Keep its look: Enormous floating leaves cup water beneath a golden shaft reaching the high passage mouth. Do not redesign it as a new room.",
+      "transition": "",
+      "camera": "Look down, so the arrangement on the ground is easy to read.",
+      "shot": "overhead",
+      "focus": "The attached stem becoming a pole.",
+      "characters": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "references": [
+        {
+          "characterId": "wondii-maya",
+          "file": "maya-v1.jpg"
+        },
+        {
+          "characterId": "wondii-leo",
+          "file": "wondii-leo.jpg"
+        }
+      ],
+      "style": true
+    },
+    {
+      "page": 9,
+      "pageId": "p9",
+      "role": "relationship",
+      "action": "Maya starts pushing toward the light, but Leo suggests testing a small floating leaf first. They watch it climb toward the entrance.",
+      "locationId": "bowl-leaf-lake",
+      "location": "the bowl-leaf lake",
+      "setting": "hidden lake beneath an open shaft of sky",
+      "visualIdentity": "Enormous floating leaves cup water beneath a golden shaft reaching the high passage mouth.",
+      "discovery": "test-leaf",
+      "progression": "goal, obstacle, action, consequence, discovery, world_state, entity_state, information",
+      "phase": "COMMITMENT",
+      "continuity": "Same place as p8: the bowl-leaf lake. Keep its look: Enormous floating leaves cup water beneath a golden shaft reaching the high passage mouth. Do not redesign it as a new room.",
+      "transition": "",
+      "camera": "Stay near the faces, and keep the cause of the feeling visible.",
+      "shot": "reaction",
+      "focus": "Their shared attention following the test.",
+      "characters": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "references": [
+        {
+          "characterId": "wondii-maya",
+          "file": "maya-v1.jpg"
+        },
+        {
+          "characterId": "wondii-leo",
+          "file": "wondii-leo.jpg"
+        }
+      ],
+      "style": true
+    },
+    {
+      "page": 10,
+      "pageId": "p10",
+      "role": "approach",
+      "action": "They pole into the tested current, and the leaf lifts unevenly. Both settle beside its central pool, leveling their boat.",
+      "locationId": "bowl-leaf-lake",
+      "location": "the bowl-leaf lake",
+      "setting": "hidden lake beneath an open shaft of sky",
+      "visualIdentity": "Enormous floating leaves cup water beneath a golden shaft reaching the high passage mouth.",
+      "discovery": "",
+      "progression": "location, goal, obstacle, action, consequence, world_state, entity_state, information",
+      "phase": "ESCALATION",
+      "continuity": "Same place as p9: the bowl-leaf lake. Keep its look: Enormous floating leaves cup water beneath a golden shaft reaching the high passage mouth. Do not redesign it as a new room.",
+      "transition": "",
+      "camera": "A low viewpoint along the ground.",
+      "shot": "low",
+      "focus": "The central pool holding the bowl level.",
+      "characters": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "references": [
+        {
+          "characterId": "wondii-maya",
+          "file": "maya-v1.jpg"
+        },
+        {
+          "characterId": "wondii-leo",
+          "file": "wondii-leo.jpg"
+        }
+      ],
+      "style": true
+    },
+    {
+      "page": 11,
+      "pageId": "p11",
+      "role": "climax",
+      "action": "Leo braces the stem against the pathway lip, and Maya steps onto the stone. She holds it while he crosses.",
+      "locationId": "mist-pathway",
+      "location": "the mist pathway",
+      "setting": "passage through water-smoothed rock",
+      "visualIdentity": "Blue stone walls hold upward-moving droplets; the high mouth overlooks a luminous lake.",
+      "discovery": "",
+      "progression": "location, goal, obstacle, action, consequence, world_state, entity_state, information",
+      "phase": "CLIMAX",
+      "continuity": "Same place as p2: the mist pathway. Keep its look: Blue stone walls hold upward-moving droplets; the high mouth overlooks a luminous lake. Do not redesign it as a new room.",
+      "transition": "Returning to a place already shown. Keep its established look. Do not redesign it.",
+      "camera": "Show the movement, with a pose that changes from the previous picture.",
+      "shot": "action",
+      "focus": "Both children gaining solid footing.",
+      "characters": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "references": [
+        {
+          "characterId": "wondii-maya",
+          "file": "maya-v1.jpg"
+        },
+        {
+          "characterId": "wondii-leo",
+          "file": "wondii-leo.jpg"
+        }
+      ],
+      "style": true
+    },
+    {
+      "page": 12,
+      "pageId": "p12",
+      "role": "resolution",
+      "action": "Back beside the waterfall, Leo bends to inspect another dry gap. Maya crouches beside him as their upside-down reflections shimmer.",
+      "locationId": "waterfall-shelf",
+      "location": "the waterfall shelf",
+      "setting": "rock shelf beside falling water",
+      "visualIdentity": "Silver water curtains a broad gray ledge, leaving a dry gap at one edge.",
+      "discovery": "",
+      "progression": "location, goal, action, consequence, world_state, information",
+      "phase": "RESOLUTION",
+      "continuity": "Same place as p1: the waterfall shelf. Keep its look: Silver water curtains a broad gray ledge, leaving a dry gap at one edge. Do not redesign it as a new room.",
+      "transition": "Returning to a place already shown. Keep its established look. Do not redesign it.",
+      "camera": "A quiet closing view, with the changed place or the way onward still visible.",
+      "shot": "vignette",
+      "focus": "Two searching faces above two upside-down reflections.",
+      "characters": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "references": [
+        {
+          "characterId": "wondii-maya",
+          "file": "maya-v1.jpg"
+        },
+        {
+          "characterId": "wondii-leo",
+          "file": "wondii-leo.jpg"
+        }
+      ],
+      "style": true
+    }
+  ],
+  "writing": {
+    "ageBand": "7-9",
+    "yearGroup": "",
+    "readerStage": "ages-7-9",
+    "constraint": "Ages 7–9"
+  },
+  "baselineUntouched": true,
+  "castleUntouched": true,
+  "ledger": [
+    {
+      "purpose": "book-bible",
+      "http": 200,
+      "usd": 0.077004,
+      "usage": {
+        "prompt_tokens": 2492,
+        "completion_tokens": 7202,
+        "total_tokens": 9694,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 2489,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 887,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    },
+    {
+      "purpose": "book-bible-repair",
+      "http": 200,
+      "usd": 0.07943,
+      "usage": {
+        "prompt_tokens": 7305,
+        "completion_tokens": 6482,
+        "total_tokens": 13787,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 7302,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 75,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    },
+    {
+      "purpose": "book-prose",
+      "http": 200,
+      "usd": 0.016052,
+      "usage": {
+        "prompt_tokens": 3196,
+        "completion_tokens": 966,
+        "total_tokens": 4162,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 3193,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    }
+  ]
+}

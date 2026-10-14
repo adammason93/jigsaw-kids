@@ -1,0 +1,2428 @@
+{
+  "status": "NOT_REVIEWABLE",
+  "request": {
+    "castIds": [
+      "leo",
+      "ravi",
+      "mina"
+    ],
+    "idea": "Every clock in the world suddenly stops except one.",
+    "yearGroup": "Year 5",
+    "length": "storybook",
+    "tone": "mystery"
+  },
+  "modelCalls": 4,
+  "repairCalls": 2,
+  "repairs": [
+    {
+      "stage": "prose",
+      "problems": [
+        "age-amount:p1"
+      ]
+    },
+    {
+      "stage": "prose",
+      "problems": [
+        "age-amount:p1"
+      ]
+    }
+  ],
+  "stagesRepaired": [
+    "prose"
+  ],
+  "bible": {
+    "title": "The Clock with the Broken Circle",
+    "yearGroup": "Year 5",
+    "readerAge": "Year 5",
+    "tone": "mystery",
+    "targetLength": "storybook",
+    "userIdea": "Every clock in the world suddenly stops except one.",
+    "castIds": [
+      "leo",
+      "ravi",
+      "mina"
+    ],
+    "visualStyle": "wondii-picture-book",
+    "premise": "Every clock in the world stops except one. Leo, Ravi, and Mina must discover why its ticking reaches nobody else.",
+    "hook": "Why does one clock keep ticking while every other clock stands still?",
+    "goal": "Find what prevents the remaining clock from sharing its ticks, and restore the connection.",
+    "centralProblem": "A missing link has broken the enchanted chain that carries the keeper clock's ticks to every other clock.",
+    "stakes": "Until the children repair the connection, the world's clocks cannot move beyond the same unfinished minute.",
+    "climaxBeatId": "b5",
+    "resolutionBeatId": "b6",
+    "emotionalArc": [
+      "puzzlement",
+      "focused interest",
+      "hope",
+      "unease",
+      "understanding",
+      "relief"
+    ],
+    "motif": "A circle with one small gap.",
+    "locations": [
+      {
+        "locationId": "clockwork-room",
+        "name": "the clockwork room",
+        "connectedTo": [],
+        "visualIdentity": "A round room with blue walls, a tall brass clock, and a glowing dial showing clocks across the world."
+      }
+    ],
+    "entities": [
+      {
+        "entityId": "keeper-clock",
+        "name": "the keeper clock",
+        "identity": "A tall brass clock whose ticking supplies the world's clocks through an enchanted circular chain.",
+        "ownerCharacterId": null,
+        "locationId": "clockwork-room",
+        "state": "Ticking steadily with its inspection door closed.",
+        "introducedAt": "b1"
+      },
+      {
+        "entityId": "world-dial",
+        "name": "the world dial",
+        "identity": "A glowing circular display showing the current movement of clocks throughout the world.",
+        "ownerCharacterId": null,
+        "locationId": "clockwork-room",
+        "state": "Showing clocks throughout the world moving again.",
+        "introducedAt": "b1"
+      },
+      {
+        "entityId": "tick-chain",
+        "name": "the tick chain",
+        "identity": "A brass chain inside the keeper clock, with a gap where one link belongs.",
+        "ownerCharacterId": null,
+        "locationId": "clockwork-room",
+        "state": "A complete, correctly sized circle carrying ticks outward.",
+        "introducedAt": "b2"
+      },
+      {
+        "entityId": "loose-link",
+        "name": "the loose link",
+        "identity": "A small brass link with two openable ends, matching the gap in the tick chain.",
+        "ownerCharacterId": null,
+        "locationId": "clockwork-room",
+        "state": "Installed securely between the chain ends.",
+        "introducedAt": "b2"
+      }
+    ],
+    "beats": [
+      {
+        "beatId": "b1",
+        "role": "hook",
+        "locationId": "clockwork-room",
+        "charactersPresent": [
+          "leo",
+          "ravi",
+          "mina"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "mina",
+            "trait": "observant",
+            "shows": "She compares the moving brass hands with the motionless hands across the glowing dial."
+          }
+        ],
+        "problemFamily": "",
+        "because": "",
+        "resolvesProblem": false,
+        "action": "The world dial shows every clock stopped, but the keeper clock ticks beside it. Mina points out the difference and asks why.",
+        "emotion": "Puzzlement",
+        "entitiesRequired": [
+          "keeper-clock",
+          "world-dial"
+        ],
+        "visualFocus": "The keeper clock's moving second hand.",
+        "shotType": "establishing",
+        "compositionIntent": "Contrast one moving clock with a broad circle of frozen clock faces.",
+        "textPurpose": "Establish the worldwide stoppage and plant the question the ending must answer.",
+        "pageTurnHook": "What makes this clock different?",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "clockwork-room",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "clockwork-room",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "clockwork-room",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": []
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "clockwork-room",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Puzzlement",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "clockwork-room",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "Puzzlement",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "clockwork-room",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Puzzlement",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "keeper-clock",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "Ticking normally while its front inspection door stands open."
+            },
+            {
+              "entityId": "world-dial",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "Showing motionless clocks throughout the world."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b2",
+        "role": "discovery",
+        "locationId": "clockwork-room",
+        "charactersPresent": [
+          "leo",
+          "ravi",
+          "mina"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "leo",
+            "trait": "careful",
+            "shows": "He lifts a fallen brass link by its edges and holds it away from the moving gears."
+          }
+        ],
+        "problemFamily": "broken-connection",
+        "because": "b1",
+        "resolvesProblem": false,
+        "action": "Following the ticking inside, Mina finds a broken circular chain beneath the inscription, 'A closed circle shares the beat.' Leo retrieves its fallen link.",
+        "emotion": "Focused interest",
+        "entitiesRequired": [
+          "keeper-clock",
+          "world-dial",
+          "tick-chain",
+          "loose-link"
+        ],
+        "visualFocus": "The missing space between two chain ends.",
+        "shotType": "close",
+        "compositionIntent": "Frame the chain's gap, inscription, and matching link together without explaining their full mechanism.",
+        "textPurpose": "Give the children a repair goal and plant the object needed for the solution.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "clockwork-room",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Puzzlement",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "clockwork-room",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "Puzzlement",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "clockwork-room",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Puzzlement",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "keeper-clock",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "Ticking normally while its front inspection door stands open."
+            },
+            {
+              "entityId": "world-dial",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "Showing motionless clocks throughout the world."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "clockwork-room",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [
+                "loose-link"
+              ],
+              "emotion": "Focused interest",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "clockwork-room",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "Focused interest",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "clockwork-room",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Focused interest",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "keeper-clock",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "Ticking normally while its front inspection door stands open."
+            },
+            {
+              "entityId": "world-dial",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "Showing motionless clocks throughout the world."
+            },
+            {
+              "entityId": "tick-chain",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "Moving around the clock's gears with one link missing; its separated ends cannot carry ticks outward."
+            },
+            {
+              "entityId": "loose-link",
+              "ownerCharacterId": "leo",
+              "locationId": "clockwork-room",
+              "state": "Retrieved from the clock's base and held clear of the gears."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b3",
+        "role": "attempt",
+        "locationId": "clockwork-room",
+        "charactersPresent": [
+          "leo",
+          "ravi",
+          "mina"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "ravi",
+            "trait": "bold",
+            "shows": "He reaches through the inspection door and brings the separated chain ends together."
+          }
+        ],
+        "problemFamily": "shortened-circle",
+        "because": "b2",
+        "resolvesProblem": false,
+        "action": "Ravi joins the chain ends directly, and every clock on the dial advances once. Without the missing link, the shortened chain tightens.",
+        "emotion": "Hope turning to concern",
+        "entitiesRequired": [
+          "keeper-clock",
+          "world-dial",
+          "tick-chain",
+          "loose-link"
+        ],
+        "visualFocus": "The chain pulling tight around its gears.",
+        "shotType": "action",
+        "compositionIntent": "Connect Ravi's intervention visually with the single movement across the dial.",
+        "textPurpose": "Test the connection and establish that closing the circle can transmit a tick.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "clockwork-room",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [
+                "loose-link"
+              ],
+              "emotion": "Focused interest",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "clockwork-room",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "Focused interest",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "clockwork-room",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Focused interest",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "keeper-clock",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "Ticking normally while its front inspection door stands open."
+            },
+            {
+              "entityId": "world-dial",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "Showing motionless clocks throughout the world."
+            },
+            {
+              "entityId": "tick-chain",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "Moving around the clock's gears with one link missing; its separated ends cannot carry ticks outward."
+            },
+            {
+              "entityId": "loose-link",
+              "ownerCharacterId": "leo",
+              "locationId": "clockwork-room",
+              "state": "Retrieved from the clock's base and held clear of the gears."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "clockwork-room",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [
+                "loose-link"
+              ],
+              "emotion": "Hope turning to concern",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "clockwork-room",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "Hope turning to concern",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "clockwork-room",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Hope turning to concern",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "keeper-clock",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "Ticking normally while its front inspection door stands open."
+            },
+            {
+              "entityId": "world-dial",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "Every displayed clock has advanced by one tick."
+            },
+            {
+              "entityId": "tick-chain",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "Joined without its missing link, making the circle too short and pulling it tight."
+            },
+            {
+              "entityId": "loose-link",
+              "ownerCharacterId": "leo",
+              "locationId": "clockwork-room",
+              "state": "Retrieved from the clock's base and held clear of the gears."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b4",
+        "role": "complication",
+        "locationId": "clockwork-room",
+        "charactersPresent": [
+          "leo",
+          "ravi",
+          "mina"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "mina",
+            "trait": "gentle",
+            "shows": "She guides Ravi's hand away from the strained chain rather than pulling at it."
+          },
+          {
+            "characterId": "leo",
+            "trait": "kind",
+            "shows": "He places the saved link in Ravi's open palm when Ravi withdraws his hand."
+          }
+        ],
+        "problemFamily": "jammed-mechanism",
+        "because": "b3",
+        "resolvesProblem": false,
+        "action": "The tightened chain jams the keeper clock, stopping its ticking too. Mina points to the stretched join, and Leo offers the saved link.",
+        "emotion": "Unease sharpened into understanding",
+        "entitiesRequired": [
+          "keeper-clock",
+          "world-dial",
+          "tick-chain",
+          "loose-link"
+        ],
+        "visualFocus": "The brass link resting in Ravi's palm.",
+        "shotType": "reaction",
+        "compositionIntent": "Show the children's attention moving from the silent clock to the useful link.",
+        "textPurpose": "Make the failed attempt cause a new mechanical problem while revealing why the saved piece matters.",
+        "pageTurnHook": "The circle needs its missing space back.",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "clockwork-room",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [
+                "loose-link"
+              ],
+              "emotion": "Hope turning to concern",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "clockwork-room",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "Hope turning to concern",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "clockwork-room",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Hope turning to concern",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "keeper-clock",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "Ticking normally while its front inspection door stands open."
+            },
+            {
+              "entityId": "world-dial",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "Every displayed clock has advanced by one tick."
+            },
+            {
+              "entityId": "tick-chain",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "Joined without its missing link, making the circle too short and pulling it tight."
+            },
+            {
+              "entityId": "loose-link",
+              "ownerCharacterId": "leo",
+              "locationId": "clockwork-room",
+              "state": "Retrieved from the clock's base and held clear of the gears."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "clockwork-room",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Unease sharpened into understanding",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "clockwork-room",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "loose-link"
+              ],
+              "emotion": "Unease sharpened into understanding",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "clockwork-room",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Unease sharpened into understanding",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "keeper-clock",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "Stopped because the shortened chain has jammed its gears."
+            },
+            {
+              "entityId": "world-dial",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "Every displayed clock has advanced by one tick."
+            },
+            {
+              "entityId": "tick-chain",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "Stretched tight and jammed at the improvised join."
+            },
+            {
+              "entityId": "loose-link",
+              "ownerCharacterId": "ravi",
+              "locationId": "clockwork-room",
+              "state": "Passed from Leo to Ravi for the repair."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b5",
+        "role": "climax",
+        "locationId": "clockwork-room",
+        "charactersPresent": [
+          "leo",
+          "ravi",
+          "mina"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "ravi",
+            "trait": "inventive",
+            "shows": "He replaces his direct join with the saved link, restoring the chain's full circumference."
+          },
+          {
+            "characterId": "leo",
+            "trait": "careful",
+            "shows": "He steadies the loose chain end until both clasps are closed."
+          }
+        ],
+        "problemFamily": "restoring-transmission",
+        "because": "b4",
+        "resolvesProblem": false,
+        "action": "Ravi releases the strained join; Leo steadies the chain while Ravi inserts the saved link. Every clock restarts, proving the broken circle trapped the keeper's ticks.",
+        "emotion": "Understanding and release",
+        "entitiesRequired": [
+          "keeper-clock",
+          "world-dial",
+          "tick-chain",
+          "loose-link"
+        ],
+        "visualFocus": "The repaired link passing smoothly around a gear.",
+        "shotType": "reveal",
+        "compositionIntent": "Show the completed chain and the answering movement of the world dial in one view.",
+        "textPurpose": "Use the earlier clue, test, and saved object to solve the stoppage and answer the opening question.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "clockwork-room",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Unease sharpened into understanding",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "clockwork-room",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "loose-link"
+              ],
+              "emotion": "Unease sharpened into understanding",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "clockwork-room",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Unease sharpened into understanding",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "keeper-clock",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "Stopped because the shortened chain has jammed its gears."
+            },
+            {
+              "entityId": "world-dial",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "Every displayed clock has advanced by one tick."
+            },
+            {
+              "entityId": "tick-chain",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "Stretched tight and jammed at the improvised join."
+            },
+            {
+              "entityId": "loose-link",
+              "ownerCharacterId": "ravi",
+              "locationId": "clockwork-room",
+              "state": "Passed from Leo to Ravi for the repair."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "clockwork-room",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Understanding and release",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "clockwork-room",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "Understanding and release",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "clockwork-room",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Understanding and release",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "keeper-clock",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "Ticking again with its gears moving freely."
+            },
+            {
+              "entityId": "world-dial",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "Showing clocks throughout the world moving again."
+            },
+            {
+              "entityId": "tick-chain",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "A complete, correctly sized circle carrying ticks outward."
+            },
+            {
+              "entityId": "loose-link",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "Installed securely between the chain ends."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b6",
+        "role": "resolution",
+        "locationId": "clockwork-room",
+        "charactersPresent": [
+          "leo",
+          "ravi",
+          "mina"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "mina",
+            "trait": "observant",
+            "shows": "She watches several faces on the dial through a full minute before nodding."
+          }
+        ],
+        "problemFamily": "",
+        "because": "b5",
+        "resolvesProblem": true,
+        "action": "Mina watches every clock complete the interrupted minute while Leo closes the inspection door. The shared ticking lets their shoulders settle.",
+        "emotion": "Quiet relief",
+        "entitiesRequired": [
+          "keeper-clock",
+          "world-dial",
+          "tick-chain",
+          "loose-link"
+        ],
+        "visualFocus": "Relaxed shoulders beneath the steadily moving dial.",
+        "shotType": "medium",
+        "compositionIntent": "Gather the three children beside the repaired clock, with moving clock faces glowing behind them.",
+        "textPurpose": "Show that the repair holds and end with relief grounded in the restored sound.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "clockwork-room",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Understanding and release",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "clockwork-room",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "Understanding and release",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "clockwork-room",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Understanding and release",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "keeper-clock",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "Ticking again with its gears moving freely."
+            },
+            {
+              "entityId": "world-dial",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "Showing clocks throughout the world moving again."
+            },
+            {
+              "entityId": "tick-chain",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "A complete, correctly sized circle carrying ticks outward."
+            },
+            {
+              "entityId": "loose-link",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "Installed securely between the chain ends."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "clockwork-room",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Quiet relief",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "ravi",
+              "locationId": "clockwork-room",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "Quiet relief",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "mina",
+              "locationId": "clockwork-room",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Quiet relief",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "keeper-clock",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "Ticking steadily with its inspection door closed."
+            },
+            {
+              "entityId": "world-dial",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "Showing clocks throughout the world moving again."
+            },
+            {
+              "entityId": "tick-chain",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "A complete, correctly sized circle carrying ticks outward."
+            },
+            {
+              "entityId": "loose-link",
+              "ownerCharacterId": null,
+              "locationId": "clockwork-room",
+              "state": "Installed securely between the chain ends."
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "storyProblems": [],
+  "planProblems": [],
+  "textProblems": [
+    "age-amount:p1"
+  ],
+  "pages": [
+    {
+      "pageId": "p1",
+      "beatId": "b1",
+      "locationId": "clockwork-room",
+      "charactersPresent": [
+        "leo",
+        "ravi",
+        "mina"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": []
+      },
+      "action": "The world dial shows every clock stopped, but the keeper clock ticks beside it. Mina points out the difference and asks why.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Puzzlement",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "Puzzlement",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Puzzlement",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "keeper-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Ticking normally while its front inspection door stands open."
+          },
+          {
+            "entityId": "world-dial",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Showing motionless clocks throughout the world."
+          }
+        ]
+      },
+      "emotion": "Puzzlement",
+      "entitiesRequired": [
+        "keeper-clock",
+        "world-dial"
+      ],
+      "visualFocus": "The keeper clock's moving second hand.",
+      "shotType": "establishing",
+      "compositionIntent": "Contrast one moving clock with a broad circle of frozen clock faces.",
+      "textPurpose": "Establish the worldwide stoppage and plant the question the ending must answer.",
+      "pageTurnHook": "What makes this clock different?",
+      "needsFromPrevious": null,
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Puzzlement",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "Puzzlement",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Puzzlement",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "keeper-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Ticking normally while its front inspection door stands open."
+          },
+          {
+            "entityId": "world-dial",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Showing motionless clocks throughout the world."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Leo and Ravi watched the world dial: every clock in the world had stopped.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Beside it, the keeper clock ticked on, its front inspection door standing open as though nothing at all had changed.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Mina pointed from the dial to the clock.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"They're all stopped except this one. Why does this clock get to keep going?\"",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Leo and Ravi watched the world dial: every clock in the world had stopped. Beside it, the keeper clock ticked on, its front inspection door standing open as though nothing at all had changed. Mina pointed from the dial to the clock. \"They're all stopped except this one. Why does this clock get to keep going?\""
+    },
+    {
+      "pageId": "p2",
+      "beatId": "b2",
+      "locationId": "clockwork-room",
+      "charactersPresent": [
+        "leo",
+        "ravi",
+        "mina"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Puzzlement",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "Puzzlement",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Puzzlement",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "keeper-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Ticking normally while its front inspection door stands open."
+          },
+          {
+            "entityId": "world-dial",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Showing motionless clocks throughout the world."
+          }
+        ]
+      },
+      "action": "Following the ticking inside, Mina finds a broken circular chain beneath the inscription, 'A closed circle shares the beat.' Leo retrieves its fallen link.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [
+              "loose-link"
+            ],
+            "emotion": "Focused interest",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "Focused interest",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Focused interest",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "keeper-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Ticking normally while its front inspection door stands open."
+          },
+          {
+            "entityId": "world-dial",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Showing motionless clocks throughout the world."
+          },
+          {
+            "entityId": "tick-chain",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Moving around the clock's gears with one link missing; its separated ends cannot carry ticks outward."
+          },
+          {
+            "entityId": "loose-link",
+            "ownerCharacterId": "leo",
+            "locationId": "clockwork-room",
+            "state": "Retrieved from the clock's base and held clear of the gears."
+          }
+        ]
+      },
+      "emotion": "Focused interest",
+      "entitiesRequired": [
+        "keeper-clock",
+        "world-dial",
+        "tick-chain",
+        "loose-link"
+      ],
+      "visualFocus": "The missing space between two chain ends.",
+      "shotType": "close",
+      "compositionIntent": "Frame the chain's gap, inscription, and matching link together without explaining their full mechanism.",
+      "textPurpose": "Give the children a repair goal and plant the object needed for the solution.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Puzzlement",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "Puzzlement",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Puzzlement",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "keeper-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Ticking normally while its front inspection door stands open."
+          },
+          {
+            "entityId": "world-dial",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Showing motionless clocks throughout the world."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [
+              "loose-link"
+            ],
+            "emotion": "Focused interest",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "Focused interest",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Focused interest",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "keeper-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Ticking normally while its front inspection door stands open."
+          },
+          {
+            "entityId": "world-dial",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Showing motionless clocks throughout the world."
+          },
+          {
+            "entityId": "tick-chain",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Moving around the clock's gears with one link missing; its separated ends cannot carry ticks outward."
+          },
+          {
+            "entityId": "loose-link",
+            "ownerCharacterId": "leo",
+            "locationId": "clockwork-room",
+            "state": "Retrieved from the clock's base and held clear of the gears."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Mina followed the ticking inside the keeper clock.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Beneath the words \"A closed circle shares the beat,\" a chain moved with a gap between its ends.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "One link was missing.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Leo retrieved it from the clock's base and held it clear of the gears.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Mina followed the ticking inside the keeper clock. Beneath the words \"A closed circle shares the beat,\" a chain moved with a gap between its ends. One link was missing. Leo retrieved it from the clock's base and held it clear of the gears."
+    },
+    {
+      "pageId": "p3",
+      "beatId": "b3",
+      "locationId": "clockwork-room",
+      "charactersPresent": [
+        "leo",
+        "ravi",
+        "mina"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [
+              "loose-link"
+            ],
+            "emotion": "Focused interest",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "Focused interest",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Focused interest",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "keeper-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Ticking normally while its front inspection door stands open."
+          },
+          {
+            "entityId": "world-dial",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Showing motionless clocks throughout the world."
+          },
+          {
+            "entityId": "tick-chain",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Moving around the clock's gears with one link missing; its separated ends cannot carry ticks outward."
+          },
+          {
+            "entityId": "loose-link",
+            "ownerCharacterId": "leo",
+            "locationId": "clockwork-room",
+            "state": "Retrieved from the clock's base and held clear of the gears."
+          }
+        ]
+      },
+      "action": "Ravi joins the chain ends directly, and every clock on the dial advances once. Without the missing link, the shortened chain tightens.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [
+              "loose-link"
+            ],
+            "emotion": "Hope turning to concern",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "Hope turning to concern",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Hope turning to concern",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "keeper-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Ticking normally while its front inspection door stands open."
+          },
+          {
+            "entityId": "world-dial",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Every displayed clock has advanced by one tick."
+          },
+          {
+            "entityId": "tick-chain",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Joined without its missing link, making the circle too short and pulling it tight."
+          },
+          {
+            "entityId": "loose-link",
+            "ownerCharacterId": "leo",
+            "locationId": "clockwork-room",
+            "state": "Retrieved from the clock's base and held clear of the gears."
+          }
+        ]
+      },
+      "emotion": "Hope turning to concern",
+      "entitiesRequired": [
+        "keeper-clock",
+        "world-dial",
+        "tick-chain",
+        "loose-link"
+      ],
+      "visualFocus": "The chain pulling tight around its gears.",
+      "shotType": "action",
+      "compositionIntent": "Connect Ravi's intervention visually with the single movement across the dial.",
+      "textPurpose": "Test the connection and establish that closing the circle can transmit a tick.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [
+              "loose-link"
+            ],
+            "emotion": "Focused interest",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "Focused interest",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Focused interest",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "keeper-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Ticking normally while its front inspection door stands open."
+          },
+          {
+            "entityId": "world-dial",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Showing motionless clocks throughout the world."
+          },
+          {
+            "entityId": "tick-chain",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Moving around the clock's gears with one link missing; its separated ends cannot carry ticks outward."
+          },
+          {
+            "entityId": "loose-link",
+            "ownerCharacterId": "leo",
+            "locationId": "clockwork-room",
+            "state": "Retrieved from the clock's base and held clear of the gears."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [
+              "loose-link"
+            ],
+            "emotion": "Hope turning to concern",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "Hope turning to concern",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Hope turning to concern",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "keeper-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Ticking normally while its front inspection door stands open."
+          },
+          {
+            "entityId": "world-dial",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Every displayed clock has advanced by one tick."
+          },
+          {
+            "entityId": "tick-chain",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Joined without its missing link, making the circle too short and pulling it tight."
+          },
+          {
+            "entityId": "loose-link",
+            "ownerCharacterId": "leo",
+            "locationId": "clockwork-room",
+            "state": "Retrieved from the clock's base and held clear of the gears."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "\"We can join these ends,\" Ravi said.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "He pressed them together, and every clock on the world dial advanced one tick.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Then the shortened chain pulled tight.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Leo still held the missing link.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "\"We can join these ends,\" Ravi said. He pressed them together, and every clock on the world dial advanced one tick. Then the shortened chain pulled tight. Leo still held the missing link."
+    },
+    {
+      "pageId": "p4",
+      "beatId": "b4",
+      "locationId": "clockwork-room",
+      "charactersPresent": [
+        "leo",
+        "ravi",
+        "mina"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [
+              "loose-link"
+            ],
+            "emotion": "Hope turning to concern",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "Hope turning to concern",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Hope turning to concern",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "keeper-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Ticking normally while its front inspection door stands open."
+          },
+          {
+            "entityId": "world-dial",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Every displayed clock has advanced by one tick."
+          },
+          {
+            "entityId": "tick-chain",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Joined without its missing link, making the circle too short and pulling it tight."
+          },
+          {
+            "entityId": "loose-link",
+            "ownerCharacterId": "leo",
+            "locationId": "clockwork-room",
+            "state": "Retrieved from the clock's base and held clear of the gears."
+          }
+        ]
+      },
+      "action": "The tightened chain jams the keeper clock, stopping its ticking too. Mina points to the stretched join, and Leo offers the saved link.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Unease sharpened into understanding",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "loose-link"
+            ],
+            "emotion": "Unease sharpened into understanding",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Unease sharpened into understanding",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "keeper-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Stopped because the shortened chain has jammed its gears."
+          },
+          {
+            "entityId": "world-dial",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Every displayed clock has advanced by one tick."
+          },
+          {
+            "entityId": "tick-chain",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Stretched tight and jammed at the improvised join."
+          },
+          {
+            "entityId": "loose-link",
+            "ownerCharacterId": "ravi",
+            "locationId": "clockwork-room",
+            "state": "Passed from Leo to Ravi for the repair."
+          }
+        ]
+      },
+      "emotion": "Unease sharpened into understanding",
+      "entitiesRequired": [
+        "keeper-clock",
+        "world-dial",
+        "tick-chain",
+        "loose-link"
+      ],
+      "visualFocus": "The brass link resting in Ravi's palm.",
+      "shotType": "reaction",
+      "compositionIntent": "Show the children's attention moving from the silent clock to the useful link.",
+      "textPurpose": "Make the failed attempt cause a new mechanical problem while revealing why the saved piece matters.",
+      "pageTurnHook": "The circle needs its missing space back.",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [
+              "loose-link"
+            ],
+            "emotion": "Hope turning to concern",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "Hope turning to concern",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Hope turning to concern",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "keeper-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Ticking normally while its front inspection door stands open."
+          },
+          {
+            "entityId": "world-dial",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Every displayed clock has advanced by one tick."
+          },
+          {
+            "entityId": "tick-chain",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Joined without its missing link, making the circle too short and pulling it tight."
+          },
+          {
+            "entityId": "loose-link",
+            "ownerCharacterId": "leo",
+            "locationId": "clockwork-room",
+            "state": "Retrieved from the clock's base and held clear of the gears."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Unease sharpened into understanding",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "loose-link"
+            ],
+            "emotion": "Unease sharpened into understanding",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Unease sharpened into understanding",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "keeper-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Stopped because the shortened chain has jammed its gears."
+          },
+          {
+            "entityId": "world-dial",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Every displayed clock has advanced by one tick."
+          },
+          {
+            "entityId": "tick-chain",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Stretched tight and jammed at the improvised join."
+          },
+          {
+            "entityId": "loose-link",
+            "ownerCharacterId": "ravi",
+            "locationId": "clockwork-room",
+            "state": "Passed from Leo to Ravi for the repair."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "The chain jammed the keeper clock's gears.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Its ticking stopped too.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"There—it's stretched,\" Mina said, pointing at the join.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"Try this,\" Leo said, passing Ravi the saved link.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "The chain jammed the keeper clock's gears. Its ticking stopped too. \"There—it's stretched,\" Mina said, pointing at the join. \"Try this,\" Leo said, passing Ravi the saved link."
+    },
+    {
+      "pageId": "p5",
+      "beatId": "b5",
+      "locationId": "clockwork-room",
+      "charactersPresent": [
+        "leo",
+        "ravi",
+        "mina"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Unease sharpened into understanding",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "loose-link"
+            ],
+            "emotion": "Unease sharpened into understanding",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Unease sharpened into understanding",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "keeper-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Stopped because the shortened chain has jammed its gears."
+          },
+          {
+            "entityId": "world-dial",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Every displayed clock has advanced by one tick."
+          },
+          {
+            "entityId": "tick-chain",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Stretched tight and jammed at the improvised join."
+          },
+          {
+            "entityId": "loose-link",
+            "ownerCharacterId": "ravi",
+            "locationId": "clockwork-room",
+            "state": "Passed from Leo to Ravi for the repair."
+          }
+        ]
+      },
+      "action": "Ravi releases the strained join; Leo steadies the chain while Ravi inserts the saved link. Every clock restarts, proving the broken circle trapped the keeper's ticks.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Understanding and release",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "Understanding and release",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Understanding and release",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "keeper-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Ticking again with its gears moving freely."
+          },
+          {
+            "entityId": "world-dial",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Showing clocks throughout the world moving again."
+          },
+          {
+            "entityId": "tick-chain",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "A complete, correctly sized circle carrying ticks outward."
+          },
+          {
+            "entityId": "loose-link",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Installed securely between the chain ends."
+          }
+        ]
+      },
+      "emotion": "Understanding and release",
+      "entitiesRequired": [
+        "keeper-clock",
+        "world-dial",
+        "tick-chain",
+        "loose-link"
+      ],
+      "visualFocus": "The repaired link passing smoothly around a gear.",
+      "shotType": "reveal",
+      "compositionIntent": "Show the completed chain and the answering movement of the world dial in one view.",
+      "textPurpose": "Use the earlier clue, test, and saved object to solve the stoppage and answer the opening question.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Unease sharpened into understanding",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "loose-link"
+            ],
+            "emotion": "Unease sharpened into understanding",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Unease sharpened into understanding",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "keeper-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Stopped because the shortened chain has jammed its gears."
+          },
+          {
+            "entityId": "world-dial",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Every displayed clock has advanced by one tick."
+          },
+          {
+            "entityId": "tick-chain",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Stretched tight and jammed at the improvised join."
+          },
+          {
+            "entityId": "loose-link",
+            "ownerCharacterId": "ravi",
+            "locationId": "clockwork-room",
+            "state": "Passed from Leo to Ravi for the repair."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Understanding and release",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "Understanding and release",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Understanding and release",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "keeper-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Ticking again with its gears moving freely."
+          },
+          {
+            "entityId": "world-dial",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Showing clocks throughout the world moving again."
+          },
+          {
+            "entityId": "tick-chain",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "A complete, correctly sized circle carrying ticks outward."
+          },
+          {
+            "entityId": "loose-link",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Installed securely between the chain ends."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Ravi released the strained join.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Leo steadied the chain while Ravi fitted the saved link; the keeper clock began ticking again.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"Every clock in the world stops except this one when the circle breaks,\" Mina said.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The broken circle had trapped the keeper's ticks; now the complete chain carried them outward, and every clock restarted.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Ravi released the strained join. Leo steadied the chain while Ravi fitted the saved link; the keeper clock began ticking again. \"Every clock in the world stops except this one when the circle breaks,\" Mina said. The broken circle had trapped the keeper's ticks; now the complete chain carried them outward, and every clock restarted."
+    },
+    {
+      "pageId": "p6",
+      "beatId": "b6",
+      "locationId": "clockwork-room",
+      "charactersPresent": [
+        "leo",
+        "ravi",
+        "mina"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Understanding and release",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "Understanding and release",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Understanding and release",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "keeper-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Ticking again with its gears moving freely."
+          },
+          {
+            "entityId": "world-dial",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Showing clocks throughout the world moving again."
+          },
+          {
+            "entityId": "tick-chain",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "A complete, correctly sized circle carrying ticks outward."
+          },
+          {
+            "entityId": "loose-link",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Installed securely between the chain ends."
+          }
+        ]
+      },
+      "action": "Mina watches every clock complete the interrupted minute while Leo closes the inspection door. The shared ticking lets their shoulders settle.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Quiet relief",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "Quiet relief",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Quiet relief",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "keeper-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Ticking steadily with its inspection door closed."
+          },
+          {
+            "entityId": "world-dial",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Showing clocks throughout the world moving again."
+          },
+          {
+            "entityId": "tick-chain",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "A complete, correctly sized circle carrying ticks outward."
+          },
+          {
+            "entityId": "loose-link",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Installed securely between the chain ends."
+          }
+        ]
+      },
+      "emotion": "Quiet relief",
+      "entitiesRequired": [
+        "keeper-clock",
+        "world-dial",
+        "tick-chain",
+        "loose-link"
+      ],
+      "visualFocus": "Relaxed shoulders beneath the steadily moving dial.",
+      "shotType": "medium",
+      "compositionIntent": "Gather the three children beside the repaired clock, with moving clock faces glowing behind them.",
+      "textPurpose": "Show that the repair holds and end with relief grounded in the restored sound.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Understanding and release",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "Understanding and release",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Understanding and release",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "keeper-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Ticking again with its gears moving freely."
+          },
+          {
+            "entityId": "world-dial",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Showing clocks throughout the world moving again."
+          },
+          {
+            "entityId": "tick-chain",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "A complete, correctly sized circle carrying ticks outward."
+          },
+          {
+            "entityId": "loose-link",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Installed securely between the chain ends."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "clockwork-room",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Quiet relief",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "ravi",
+            "locationId": "clockwork-room",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "Quiet relief",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "mina",
+            "locationId": "clockwork-room",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Quiet relief",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "keeper-clock",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Ticking steadily with its inspection door closed."
+          },
+          {
+            "entityId": "world-dial",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Showing clocks throughout the world moving again."
+          },
+          {
+            "entityId": "tick-chain",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "A complete, correctly sized circle carrying ticks outward."
+          },
+          {
+            "entityId": "loose-link",
+            "ownerCharacterId": null,
+            "locationId": "clockwork-room",
+            "state": "Installed securely between the chain ends."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Mina watched every clock on the world dial complete the interrupted minute.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"So every clock in the world stops except the keeper clock if its circle breaks,\" she said.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Leo closed the inspection door.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The ticking went on, shared now, and all three let their shoulders settle.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Mina watched every clock on the world dial complete the interrupted minute. \"So every clock in the world stops except the keeper clock if its circle breaks,\" she said. Leo closed the inspection door. The ticking went on, shared now, and all three let their shoulders settle."
+    }
+  ],
+  "imageCalls": 0,
+  "imageDraws": 0,
+  "imageReason": "text_review",
+  "imageUsd": 0,
+  "id": "d",
+  "listedUsd": 0.051724,
+  "guardUsd": 0.103448
+}

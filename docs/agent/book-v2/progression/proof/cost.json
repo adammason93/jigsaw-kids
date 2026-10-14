@@ -1,0 +1,48 @@
+{
+  "estimate": {
+    "model": "gpt-6.1-sol",
+    "happyPath": [
+      "book-bible",
+      "book-prose"
+    ],
+    "worstExtraRepairs": 4,
+    "calls": [
+      {
+        "purpose": "book-bible",
+        "kind": "text",
+        "model": "gpt-6.1-sol",
+        "listedUsd": 0.08495,
+        "inTokens": 2475,
+        "outTokens": 8000
+      },
+      {
+        "purpose": "book-bible-repair",
+        "kind": "text",
+        "model": "gpt-6.1-sol",
+        "listedUsd": 0.09295,
+        "inTokens": 6475,
+        "outTokens": 8000
+      },
+      {
+        "purpose": "book-prose",
+        "kind": "text",
+        "model": "gpt-6.1-sol",
+        "listedUsd": 0.064668,
+        "inTokens": 2334,
+        "outTokens": 6000
+      },
+      {
+        "purpose": "book-prose-repair",
+        "kind": "text",
+        "model": "gpt-6.1-sol",
+        "listedUsd": 0.07,
+        "inTokens": 5000,
+        "outTokens": 6000
+      }
+    ],
+    "happyListedUsd": 0.1496,
+    "worstListedUsd": 0.4755
+  },
+  "listedUsd": 0.13941,
+  "imageCalls": 0
+}

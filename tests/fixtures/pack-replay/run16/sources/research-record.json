@@ -1,0 +1,304 @@
+{
+ "version": 1,
+ "startedAt": "2026-10-06T11:01:09.454Z",
+ "request": {
+  "lessonText": "Teach Year 3 about dinosaurs",
+  "topic": "Dinosaurs",
+  "yearGroup": "Year 3",
+  "learningGoal": "Pupils will understand how dinosaurs adapted to their environments.",
+  "focusConcepts": [
+   "adaptation",
+   "habitat",
+   "survival",
+   "features"
+  ]
+ },
+ "allowlist": [
+  "nhm.ac.uk",
+  "amnh.org",
+  "si.edu",
+  "fieldmuseum.org",
+  "australian.museum",
+  "ucmp.berkeley.edu",
+  "royalsociety.org",
+  "geolsoc.org.uk",
+  "bbc.co.uk/bitesize",
+  "thenational.academy",
+  "britannica.com",
+  "kids.nationalgeographic.com",
+  "simple.wikipedia.org",
+  "en.wikipedia.org",
+  "*.gov.uk",
+  "*.ac.uk"
+ ],
+ "queries": [
+  "Dinosaurs",
+  "Dinosaurs adaptation",
+  "Dinosaurs habitat"
+ ],
+ "providers": [
+  {
+   "id": "openai-web-search-replay",
+   "paid": false,
+   "calls": 0,
+   "searchCalls": 0,
+   "found": 80,
+   "error": "",
+   "usage": null
+  },
+  {
+   "id": "wikipedia-action-api",
+   "paid": false,
+   "calls": 6,
+   "searchCalls": 0,
+   "found": 12,
+   "error": "",
+   "usage": null
+  }
+ ],
+ "discovered": [],
+ "sources": [
+  {
+   "sourceId": "S4",
+   "url": "https://www.nhm.ac.uk/discover/what-are-dinosaurs.html",
+   "requestedUrl": "https://www.nhm.ac.uk/discover/what-are-dinosaurs.html",
+   "title": "What are dinosaurs? | Natural History Museum",
+   "domain": "nhm.ac.uk",
+   "rule": "nhm",
+   "tier": "evidence",
+   "kind": "museum",
+   "fetchMethod": "https-get-html-extract",
+   "fetchUrl": "https://www.nhm.ac.uk/discover/what-are-dinosaurs.html",
+   "retrievedAt": "2026-10-06T11:01:10.141Z",
+   "bytes": 259312,
+   "passageCount": 14
+  },
+  {
+   "sourceId": "S9",
+   "url": "https://kids.nationalgeographic.com/animals/prehistoric/facts/spinosaurus",
+   "requestedUrl": "https://kids.nationalgeographic.com/animals/prehistoric/facts/spinosaurus",
+   "title": "Spinosaurus",
+   "domain": "kids.nationalgeographic.com",
+   "rule": "natgeo-kids",
+   "tier": "evidence",
+   "kind": "publisher",
+   "fetchMethod": "https-get-html-extract",
+   "fetchUrl": "https://kids.nationalgeographic.com/animals/prehistoric/facts/spinosaurus",
+   "retrievedAt": "2026-10-06T11:01:10.147Z",
+   "bytes": 103806,
+   "passageCount": 3
+  }
+ ],
+ "refused": [],
+ "passages": [
+  {
+   "id": "S4-P01",
+   "sourceId": "S4",
+   "url": "https://www.nhm.ac.uk/discover/what-are-dinosaurs.html",
+   "title": "What are dinosaurs? | Natural History Museum",
+   "section": "What are dinosaurs?",
+   "text": "Our brief introduction to dinosaurs reveals a key feature that gave them an advantage over other prehistoric reptiles. Dinosaurs are a group of reptiles that dominated the land for over 140 million years (more than 160 million years in some parts of the world). They evolved diverse shapes and sizes, from the fearsome giant Spinosaurus to the chicken-sized Microraptor , and were able to survive in a variety of ecosystems. One of the reasons for dinosaurs' success is that they had straight back legs, perpendicular to their bodies. This allowed them to use less energy to move than other reptiles that had a sprawling stance like today's lizards and crocodiles. With their legs positioned under their bodies rather than sticking out to the side, dinosaurs' weight was also better supported.",
+   "retrievedAt": "2026-10-06T11:01:10.141Z",
+   "tier": "evidence"
+  },
+  {
+   "id": "S4-P02",
+   "sourceId": "S4",
+   "url": "https://www.nhm.ac.uk/discover/what-are-dinosaurs.html",
+   "title": "What are dinosaurs? | Natural History Museum",
+   "section": "What are dinosaurs?",
+   "text": "Many dinosaur species became extinct around 66 million years ago, but a group of living dinosaurs are still with us today: birds.",
+   "retrievedAt": "2026-10-06T11:01:10.141Z",
+   "tier": "evidence"
+  },
+  {
+   "id": "S4-P03",
+   "sourceId": "S4",
+   "url": "https://www.nhm.ac.uk/discover/what-are-dinosaurs.html",
+   "title": "What are dinosaurs? | Natural History Museum",
+   "section": "Other prehistoric reptiles",
+   "text": "Dinosaurs are archosaurs, a larger group of reptiles that first appeared about 251 million years ago, near the start of the Triassic Period . Some other non-dinosaur reptiles are also archosaurs, including pterosaurs (the now-extinct flying reptiles) and modern crocodiles and their ancestors. These and many other types of ancient reptiles are often wrongly called dinosaurs. Marine reptiles, such as ichthyosaurs , plesiosaurs and mosasaurs are not dinosaurs. Nor is Dimetrodon or other reptiles in the same group (previously called 'mammal-like reptiles' and now called synapsids) . None of these other extinct groups shared the characteristic upright stance of dinosaurs.",
+   "retrievedAt": "2026-10-06T11:01:10.141Z",
+   "tier": "evidence"
+  },
+  {
+   "id": "S4-P04",
+   "sourceId": "S4",
+   "url": "https://www.nhm.ac.uk/discover/what-are-dinosaurs.html",
+   "title": "What are dinosaurs? | Natural History Museum",
+   "section": "Main characteristics dinosaurs share:",
+   "text": "They had an upright stance, with legs perpendicular to their body. This is the main feature that sets dinosaurs apart from other reptiles. With the exception of some birds, for example penguins, dinosaurs lived on land, not in the sea. Their skull had a hole between the eye socket and nostril. This feature is shared by all archosaurs. Dinosaurs also had two holes behind the eye socket. Large, strong jaw muscles went through the holes to attach directly to the top of the skull. As a result, the jaws were able to open wide and clamp down with more force.",
+   "retrievedAt": "2026-10-06T11:01:10.141Z",
+   "tier": "evidence"
+  },
+  {
+   "id": "S4-P05",
+   "sourceId": "S4",
+   "url": "https://www.nhm.ac.uk/discover/what-are-dinosaurs.html",
+   "title": "What are dinosaurs? | Natural History Museum",
+   "section": "Ask our scientists",
+   "text": "Do you have a burning question about science or nature you want answered? Fill out the form below and we'll work with our scientists to answer some of them in our online magazine Discover or on our YouTube channel . This new feature is in beta. Find out more .",
+   "retrievedAt": "2026-10-06T11:01:10.141Z",
+   "tier": "evidence"
+  },
+  {
+   "id": "S4-P06",
+   "sourceId": "S4",
+   "url": "https://www.nhm.ac.uk/discover/what-are-dinosaurs.html",
+   "title": "What are dinosaurs? | Natural History Museum",
+   "section": "Dino Directory",
+   "text": "Explore more than 300 dinosaurs by name, shape or when and where they lived.",
+   "retrievedAt": "2026-10-06T11:01:10.141Z",
+   "tier": "evidence"
+  },
+  {
+   "id": "S4-P07",
+   "sourceId": "S4",
+   "url": "https://www.nhm.ac.uk/discover/what-are-dinosaurs.html",
+   "title": "What are dinosaurs? | Natural History Museum",
+   "section": "Discover dinosaurs",
+   "text": "Find out what Museum scientists are revealing about how dinosaurs looked, lived and behaved.",
+   "retrievedAt": "2026-10-06T11:01:10.141Z",
+   "tier": "evidence"
+  },
+  {
+   "id": "S4-P08",
+   "sourceId": "S4",
+   "url": "https://www.nhm.ac.uk/discover/what-are-dinosaurs.html",
+   "title": "What are dinosaurs? | Natural History Museum",
+   "section": "When did dinosaurs live?",
+   "text": "Explore the age of the dinosaurs, from the time they first appeared to the mass extinction 66 million years ago.",
+   "retrievedAt": "2026-10-06T11:01:10.141Z",
+   "tier": "evidence"
+  },
+  {
+   "id": "S4-P09",
+   "sourceId": "S4",
+   "url": "https://www.nhm.ac.uk/discover/what-are-dinosaurs.html",
+   "title": "What are dinosaurs? | Natural History Museum",
+   "section": "Beyond Jurassic World: What we really know about dinosaurs and how",
+   "text": "What's the next best thing to studying prehistoric dinosaurs in the flesh?",
+   "retrievedAt": "2026-10-06T11:01:10.141Z",
+   "tier": "evidence"
+  },
+  {
+   "id": "S4-P10",
+   "sourceId": "S4",
+   "url": "https://www.nhm.ac.uk/discover/what-are-dinosaurs.html",
+   "title": "What are dinosaurs? | Natural History Museum",
+   "section": "What's the coolest dinosaur?",
+   "text": "Watch four of our dinosaur experts battle it out for the top spot.",
+   "retrievedAt": "2026-10-06T11:01:10.141Z",
+   "tier": "evidence"
+  },
+  {
+   "id": "S4-P11",
+   "sourceId": "S4",
+   "url": "https://www.nhm.ac.uk/discover/what-are-dinosaurs.html",
+   "title": "What are dinosaurs? | Natural History Museum",
+   "section": "Watch a pterosaur fly",
+   "text": "This animal is Anhanguera , a flying reptile that lived with the dinosaurs. Have a look at how it might have flown.",
+   "retrievedAt": "2026-10-06T11:01:10.141Z",
+   "tier": "evidence"
+  },
+  {
+   "id": "S4-P12",
+   "sourceId": "S4",
+   "url": "https://www.nhm.ac.uk/discover/what-are-dinosaurs.html",
+   "title": "What are dinosaurs? | Natural History Museum",
+   "section": "Don't miss a thing",
+   "text": "Receive email updates about our news, science, exhibitions, events, products, services and fundraising activities. We may occasionally include third-party content from our corporate partners and other museums. We will not share your personal details with these third parties. You must be over the age of 13. Privacy notice .",
+   "retrievedAt": "2026-10-06T11:01:10.141Z",
+   "tier": "evidence"
+  },
+  {
+   "id": "S4-P13",
+   "sourceId": "S4",
+   "url": "https://www.nhm.ac.uk/discover/what-are-dinosaurs.html",
+   "title": "What are dinosaurs? | Natural History Museum",
+   "section": "Last chance to visit our Space exhibition!",
+   "text": "Don\u2019t miss your opportunity to snap a selfie with a piece of Mars, touch a fragment of the Moon and lay your hands on a meteorite older than our planet!",
+   "retrievedAt": "2026-10-06T11:01:10.141Z",
+   "tier": "evidence"
+  },
+  {
+   "id": "S4-P14",
+   "sourceId": "S4",
+   "url": "https://www.nhm.ac.uk/discover/what-are-dinosaurs.html",
+   "title": "What are dinosaurs? | Natural History Museum",
+   "section": "Last chance to visit our Space exhibition!",
+   "text": "Don\u2019t miss your opportunity to snap a selfie with a piece of Mars, touch a fragment of the Moon and lay your hands on a meteorite older than our planet!",
+   "retrievedAt": "2026-10-06T11:01:10.141Z",
+   "tier": "evidence"
+  },
+  {
+   "id": "S9-P01",
+   "sourceId": "S9",
+   "url": "https://kids.nationalgeographic.com/animals/prehistoric/facts/spinosaurus",
+   "title": "Spinosaurus",
+   "section": "",
+   "text": "In a murky river that cuts through North Africa, a 50-foot-long hunter swims after a fish the size of a car. It sports six-inch-long teeth and a sail on its back with spines the size of surfboards. The hungry stalker closes in on the fish, gobbling up the meal. Then it glides away in search of more snacks. The creature isn\u2019t some sort of enormous shark or a vicious crocodile . It\u2019s a dinosaur called Spinosaurus, and it\u2019s the only known dino that\u2019s thought to have dwelled in water.",
+   "retrievedAt": "2026-10-06T11:01:10.147Z",
+   "tier": "evidence"
+  },
+  {
+   "id": "S9-P02",
+   "sourceId": "S9",
+   "url": "https://kids.nationalgeographic.com/animals/prehistoric/facts/spinosaurus",
+   "title": "Spinosaurus",
+   "section": "Making waves",
+   "text": "Named for its seven-foot-long spines, Spinosaurus lived about a hundred million years ago during the Cretaceous period. It inhabited what is now North Africa\u2019s Sahara region, which at the time featured a large river system. Spinosaurus was well adapted for aquatic life. Its nostrils were further up on its snout than the nostrils of other dinosaurs. This would\u2019ve allowed the animal to breathe even with most of its snout submerged. Its crocodile-like teeth were ideal for catching fish. Researchers believe the reptile\u2019s dense bones\u2014which resemble those of modern-day aquatic creatures such as the manatee \u2014acted as a weight to help it easily dive into the water while hunting for fish. And its paddle-like webbed feet would\u2019ve allowed the animal to swim. Even the dinosaur's sail\u2014which likely stuck out of the water while Spinosaurus was swimming\u2014helped the animal survive in its river home.",
+   "retrievedAt": "2026-10-06T11:01:10.147Z",
+   "tier": "evidence"
+  },
+  {
+   "id": "S9-P03",
+   "sourceId": "S9",
+   "url": "https://kids.nationalgeographic.com/animals/prehistoric/facts/spinosaurus",
+   "title": "Spinosaurus",
+   "section": "Set sail",
+   "text": "Scientists believe that Spinosaurus may have used its sail as a warning signal to intruders. The sight of the sail jutting out of the water would tell others to back off\u2014unless they wanted a fight. You wouldn\u2019t want to mess with this splashy creature!",
+   "retrievedAt": "2026-10-06T11:01:10.147Z",
+   "tier": "evidence"
+  }
+ ],
+ "selectedPassageIds": [
+  "S9-P02",
+  "S4-P01",
+  "S4-P04"
+ ],
+ "evidencePolicy": "Search results and snippets only locate pages. Evidence is text fetched from the page itself, and only from evidence-tier sources (museums, universities, scientific organisations, government bodies, established educational publishers). Wikipedia and Simple English Wikipedia are discovery only.",
+ "discoverySources": [
+  {
+   "url": "https://simple.wikipedia.org/wiki/Dinosaur",
+   "title": "Dinosaur (Simple English Wikipedia)",
+   "tier": "discovery",
+   "ok": true,
+   "reason": "",
+   "passagesNotEvidence": 25,
+   "citedEvidenceLinks": 0,
+   "note": "Discovery only: this page's text is never evidence; its cited authoritative pages are followed."
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Dinosaur",
+   "title": "Dinosaur (Wikipedia)",
+   "tier": "discovery",
+   "ok": true,
+   "reason": "",
+   "passagesNotEvidence": 86,
+   "citedEvidenceLinks": 7,
+   "note": "Discovery only: this page's text is never evidence; its cited authoritative pages are followed."
+  },
+  {
+   "url": "https://simple.wikipedia.org/wiki/Dinosaur_Provincial_Park",
+   "title": "Dinosaur Provincial Park (Simple English Wikipedia)",
+   "tier": "discovery",
+   "ok": true,
+   "reason": "",
+   "passagesNotEvidence": 7,
+   "citedEvidenceLinks": 0,
+   "note": "Discovery only: this page's text is never evidence; its cited authoritative pages are followed."
+  }
+ ],
+ "finishedAt": "2026-10-06T11:01:10.763Z"
+}

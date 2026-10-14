@@ -1064,6 +1064,9 @@
   }
 
   function scenePlan(draft) {
+    // Story-led lessons (research mode, js/story-lesson.js) carry their own scene list: which beats
+    // form each story scene, in story order, and where each choose step sits. Others are unchanged.
+    if (draft && Array.isArray(draft.storyScenes) && draft.storyScenes.length) return draft.storyScenes;
     var brain = brainApi();
     if (!brain || !brain.planScenes) return null;
     var plan = draft.lessonPlan || {};
@@ -1115,7 +1118,13 @@
         delete slide.interactions;
         var beats = [];
         var steps = [];
-        scene.stageIds.forEach(function (id) {
+        if (Array.isArray(scene.interactions)) {
+          // Explicit story scene: beats in the scene's own order, choose steps at their own beat.
+          var all = {};
+          scene.stageIds.forEach(function (id) { ((byStage[id] && byStage[id].activity.beats) || []).forEach(function (beat) { all[beat.id] = beat; }); });
+          scene.beatIds.forEach(function (beatId) { if (all[beatId]) beats.push(JSON.parse(JSON.stringify(all[beatId]))); });
+          scene.interactions.forEach(function (step) { if (step && step.type) steps.push(sceneStep(step, step.beatIndex || 0)); });
+        } else scene.stageIds.forEach(function (id) {
           var source = byStage[id];
           var own = (source.activity.beats || []).filter(function (beat) { return scene.beatIds.indexOf(beat.id) !== -1; });
           if (!own.length) return;
@@ -1143,6 +1152,7 @@
         return { slotId: id, id: (byStage[id].activity && byStage[id].activity.id) || "" };
       });
       slide.visualAssetId = scene.visual.assetId || slide.visualAssetId || "";
+      if (scene.storySceneId) { slide.progressGroup = scene.storySceneId; slide.progressLabel = scene.progressLabel || scene.label; }
       return slide;
     });
   }
@@ -1323,6 +1333,7 @@
       adaptedFrom: draft.adaptedFrom || "",
       updatedAt: new Date().toISOString()
     };
+    if (draft.storyScenes && draft.storyScenes.length) copy.learningMap.storyScenes = JSON.parse(JSON.stringify(draft.storyScenes));
     return copy;
   }
 
@@ -1347,6 +1358,7 @@
     draft.storyPlan = map.storyPlan || null;
     draft.featuredCast = map.featuredCast || [];
     draft.visualAssets = map.visualAssets || null;
+    if (map.storyScenes && map.storyScenes.length) draft.storyScenes = JSON.parse(JSON.stringify(map.storyScenes));
     draft.targetMinutes = item.targetMinutes || 0;
     draft.source = { type: item.source && item.source.type || "", filename: item.source && item.source.filename || "", text: item.source && item.source.text || "", unsupported: false };
     draft.sourceKind = draft.source.type;

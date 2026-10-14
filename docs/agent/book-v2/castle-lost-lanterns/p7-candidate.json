@@ -1,0 +1,40 @@
+{
+  "stage": "page7-candidate",
+  "calls": {
+    "image": 2,
+    "vision": 2
+  },
+  "listedUsd": 0.081472,
+  "listedGbp": 0.06143,
+  "repairs": 1,
+  "reason": "first attempt was sunlit; the route had to stay dark",
+  "file": "docs/agent/book-v2/castle-lost-lanterns/images/p7-candidate.jpg",
+  "firstAttempt": "docs/agent/book-v2/castle-lost-lanterns/images/p7-candidate-first.jpg",
+  "originalUntouched": true,
+  "originalBytes": 262006,
+  "attempts": [
+    {
+      "file": "p7-candidate-first.jpg",
+      "imageUsd": 0.039036,
+      "visionUsd": 0.001477,
+      "checkerRouteDark": true,
+      "humanRouteDark": false,
+      "kept": false
+    },
+    {
+      "file": "p7-candidate.jpg",
+      "imageUsd": 0.039481,
+      "visionUsd": 0.001478,
+      "checkerRouteDark": true,
+      "humanRouteDark": true,
+      "kept": true
+    }
+  ],
+  "verdict": {
+    "ok": true,
+    "problems": [],
+    "humanApproved": false
+  },
+  "story": [],
+  "note": "The checker is not approval. The kept picture was read against the page 7 prose."
+}

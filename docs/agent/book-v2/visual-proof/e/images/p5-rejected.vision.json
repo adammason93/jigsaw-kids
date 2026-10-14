@@ -1,0 +1,16 @@
+{
+  "characters": [
+    {
+      "characterId": "maya",
+      "identityMatch": true
+    }
+  ],
+  "missingEntities": [],
+  "locationMatch": true,
+  "prematureResult": false,
+  "textDetected": false,
+  "anatomyOk": true,
+  "textSafeUsable": true,
+  "duplicateCharacter": true,
+  "notes": ""
+}

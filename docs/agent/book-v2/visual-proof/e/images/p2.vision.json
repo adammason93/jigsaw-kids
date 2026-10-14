@@ -1,0 +1,19 @@
+{
+  "characters": [
+    {
+      "characterId": "maya",
+      "identityMatch": true
+    }
+  ],
+  "missingEntities": [
+    "hidden-star",
+    "garden-wall"
+  ],
+  "locationMatch": true,
+  "prematureResult": false,
+  "textDetected": false,
+  "anatomyOk": true,
+  "textSafeUsable": true,
+  "duplicateCharacter": false,
+  "notes": ""
+}

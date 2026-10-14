@@ -1,0 +1,35 @@
+{
+  "observations": "",
+  "qualityNotes": [],
+  "characters": [
+    {
+      "characterId": "maya",
+      "identityMatch": true,
+      "outfitMatch": true,
+      "count": 1
+    }
+  ],
+  "entities": [
+    {
+      "entityId": "hidden-star",
+      "status": "confirmed",
+      "seen": ""
+    }
+  ],
+  "locationMatch": true,
+  "prematureResult": false,
+  "textDetected": false,
+  "anatomyOk": true,
+  "textSafeUsable": true,
+  "duplicateCharacter": false,
+  "momentMatch": true,
+  "montageShown": false,
+  "entityHasFace": false,
+  "spoilerShown": false,
+  "readsAsInteriorSpread": false,
+  "style": {
+    "rendering": "painted",
+    "proportions": "picture-book",
+    "finish": "picture-book"
+  }
+}

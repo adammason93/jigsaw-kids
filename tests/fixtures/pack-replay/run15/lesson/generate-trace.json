@@ -1,0 +1,789 @@
+{
+ "attempt": "run15",
+ "logs": [
+  {
+   "event": "learn-generate",
+   "stage": "TEACHER_INTENT",
+   "attemptId": "source-grounded-y3-source-grounded-y3-ru",
+   "model": "gpt-4o-mini",
+   "intentMs": 2094,
+   "teacherIntent": {
+    "ok": true,
+    "learningGoal": "Pupils will understand how dinosaurs adapted to their environments.",
+    "requiredEvidence": "Pupils can explain how a specific dinosaur's features helped it survive in its habitat.",
+    "focusConcepts": [
+     "adaptation",
+     "habitat",
+     "survival",
+     "features"
+    ],
+    "priorKnowledge": [],
+    "exclusions": [],
+    "preferences": [],
+    "subject": "Science",
+    "subjectConfidence": "explicit",
+    "durationMinutes": 15
+   }
+  },
+  {
+   "event": "learn-generate",
+   "stage": "SOURCE_ENTAILMENT",
+   "attemptId": "source-grounded-y3-source-grounded-y3-ru",
+   "model": "gpt-6-luna",
+   "pass": "first",
+   "entailMs": 6845,
+   "ran": true,
+   "counts": {
+    "supported": 10,
+    "partial": 0,
+    "unsupported": 0,
+    "unchecked": 0
+   },
+   "label": "quote-verified + automated entailment check",
+   "modelRows": [
+    {
+     "claimId": "c70tt8c",
+     "verdict": "supported",
+     "linkQuote": "",
+     "missing": ""
+    },
+    {
+     "claimId": "c1vau61s",
+     "verdict": "supported",
+     "linkQuote": "This would\u2019ve allowed the animal to breathe even with most of its snout submerged.",
+     "missing": ""
+    },
+    {
+     "claimId": "c4qgx9e",
+     "verdict": "supported",
+     "linkQuote": "",
+     "missing": ""
+    },
+    {
+     "claimId": "c17q8ygh",
+     "verdict": "supported",
+     "linkQuote": "would\u2019ve allowed the animal to swim.",
+     "missing": ""
+    },
+    {
+     "claimId": "c5dpc7w",
+     "verdict": "supported",
+     "linkQuote": "",
+     "missing": ""
+    },
+    {
+     "claimId": "c15fm216",
+     "verdict": "supported",
+     "linkQuote": "acted as a weight to help it easily dive into the water while hunting for fish.",
+     "missing": ""
+    },
+    {
+     "claimId": "c1xv5js",
+     "verdict": "supported",
+     "linkQuote": "",
+     "missing": ""
+    },
+    {
+     "claimId": "cwbp85o",
+     "verdict": "supported",
+     "linkQuote": "",
+     "missing": ""
+    },
+    {
+     "claimId": "cjsvb2q",
+     "verdict": "supported",
+     "linkQuote": "",
+     "missing": ""
+    },
+    {
+     "claimId": "c2jm9t5",
+     "verdict": "supported",
+     "linkQuote": "another adaption to help it reach high into the trees.",
+     "missing": ""
+    }
+   ],
+   "codeRows": [
+    {
+     "claimId": "c70tt8c",
+     "final": "supported",
+     "note": "",
+     "linkQuote": ""
+    },
+    {
+     "claimId": "c1vau61s",
+     "final": "supported",
+     "note": "",
+     "linkQuote": "This would\u2019ve allowed the animal to breathe even with most of its snout submerged."
+    },
+    {
+     "claimId": "c4qgx9e",
+     "final": "supported",
+     "note": "",
+     "linkQuote": ""
+    },
+    {
+     "claimId": "c17q8ygh",
+     "final": "supported",
+     "note": "",
+     "linkQuote": "would\u2019ve allowed the animal to swim."
+    },
+    {
+     "claimId": "c5dpc7w",
+     "final": "supported",
+     "note": "",
+     "linkQuote": ""
+    },
+    {
+     "claimId": "c15fm216",
+     "final": "supported",
+     "note": "",
+     "linkQuote": ""
+    },
+    {
+     "claimId": "c1xv5js",
+     "final": "supported",
+     "note": "",
+     "linkQuote": ""
+    },
+    {
+     "claimId": "cwbp85o",
+     "final": "supported",
+     "note": "",
+     "linkQuote": ""
+    },
+    {
+     "claimId": "cjsvb2q",
+     "final": "supported",
+     "note": "",
+     "linkQuote": ""
+    },
+    {
+     "claimId": "c2jm9t5",
+     "final": "supported",
+     "note": "",
+     "linkQuote": "another adaption to help it reach high into the trees."
+    }
+   ]
+  },
+  {
+   "event": "learn-generate",
+   "stage": "SOURCE_ENTAILMENT",
+   "attemptId": "source-grounded-y3-source-grounded-y3-ru",
+   "model": "gpt-6-luna",
+   "pass": "repair",
+   "entailMs": 7168,
+   "ran": true,
+   "counts": {
+    "supported": 9,
+    "partial": 0,
+    "unsupported": 1,
+    "unchecked": 0
+   },
+   "label": "quote-verified + automated entailment check",
+   "modelRows": [
+    {
+     "claimId": "c70tt8c",
+     "verdict": "supported",
+     "linkQuote": "",
+     "missing": ""
+    },
+    {
+     "claimId": "c1vau61s",
+     "verdict": "supported",
+     "linkQuote": "This would\u2019ve allowed the animal to breathe even with most of its snout submerged.",
+     "missing": ""
+    },
+    {
+     "claimId": "c4qgx9e",
+     "verdict": "supported",
+     "linkQuote": "",
+     "missing": ""
+    },
+    {
+     "claimId": "c1vv8t2k",
+     "verdict": "supported",
+     "linkQuote": "would\u2019ve allowed the animal to swim.",
+     "missing": ""
+    },
+    {
+     "claimId": "c5dpc7w",
+     "verdict": "unsupported",
+     "linkQuote": "",
+     "missing": "The source says researchers believe Spinosaurus had dense bones; the claim states this without that hedge."
+    },
+    {
+     "claimId": "coaldwm",
+     "verdict": "supported",
+     "linkQuote": "acted as a weight to help it easily dive into the water while hunting for fish.",
+     "missing": ""
+    },
+    {
+     "claimId": "c1xv5js",
+     "verdict": "supported",
+     "linkQuote": "",
+     "missing": ""
+    },
+    {
+     "claimId": "cwbp85o",
+     "verdict": "supported",
+     "linkQuote": "",
+     "missing": ""
+    },
+    {
+     "claimId": "cjsvb2q",
+     "verdict": "supported",
+     "linkQuote": "",
+     "missing": ""
+    },
+    {
+     "claimId": "c2jm9t5",
+     "verdict": "supported",
+     "linkQuote": "another adaption to help it reach high into the trees.",
+     "missing": ""
+    }
+   ],
+   "codeRows": [
+    {
+     "claimId": "c70tt8c",
+     "final": "supported",
+     "note": "",
+     "linkQuote": ""
+    },
+    {
+     "claimId": "c1vau61s",
+     "final": "supported",
+     "note": "",
+     "linkQuote": "This would\u2019ve allowed the animal to breathe even with most of its snout submerged."
+    },
+    {
+     "claimId": "c4qgx9e",
+     "final": "supported",
+     "note": "",
+     "linkQuote": ""
+    },
+    {
+     "claimId": "c1vv8t2k",
+     "final": "supported",
+     "note": "",
+     "linkQuote": "would\u2019ve allowed the animal to swim."
+    },
+    {
+     "claimId": "c5dpc7w",
+     "final": "unsupported",
+     "note": "The source says researchers believe Spinosaurus had dense bones; the claim states this without that hedge.",
+     "linkQuote": ""
+    },
+    {
+     "claimId": "coaldwm",
+     "final": "supported",
+     "note": "",
+     "linkQuote": "acted as a weight to help it easily dive into the water while hunting for fish."
+    },
+    {
+     "claimId": "c1xv5js",
+     "final": "supported",
+     "note": "",
+     "linkQuote": ""
+    },
+    {
+     "claimId": "cwbp85o",
+     "final": "supported",
+     "note": "",
+     "linkQuote": ""
+    },
+    {
+     "claimId": "cjsvb2q",
+     "final": "supported",
+     "note": "",
+     "linkQuote": ""
+    },
+    {
+     "claimId": "c2jm9t5",
+     "final": "supported",
+     "note": "",
+     "linkQuote": "another adaption to help it reach high into the trees."
+    }
+   ]
+  },
+  {
+   "event": "learn-generate",
+   "stage": "KNOWLEDGE_PACK",
+   "attemptId": "source-grounded-y3-source-grounded-y3-ru",
+   "model": "gpt-6-luna",
+   "packMs": 34339,
+   "packReadiness": {
+    "status": "ready",
+    "requiredPairs": 3,
+    "distinctReady": 3,
+    "factuallyVerified": false,
+    "readyPairs": [
+     {
+      "unitId": "u1",
+      "elementClaimId": "c70tt8c",
+      "explanationClaimId": "c1vau61s",
+      "mechanismClaimId": "c1vau61s",
+      "featureClaimId": "c70tt8c",
+      "feature": "nostrils further up",
+      "explanation": "Spinosaurus's nostrils further up let it breathe with most of its snout underwater."
+     },
+     {
+      "unitId": "u2",
+      "elementClaimId": "c4qgx9e",
+      "explanationClaimId": "c1vv8t2k",
+      "mechanismClaimId": "c1vv8t2k",
+      "featureClaimId": "c4qgx9e",
+      "feature": "webbed feet",
+      "explanation": "Spinosaurus's webbed feet allowed the dinosaur to swim."
+     },
+     {
+      "unitId": "u3",
+      "elementClaimId": "cjsvb2q",
+      "explanationClaimId": "c2jm9t5",
+      "mechanismClaimId": "c2jm9t5",
+      "featureClaimId": "cjsvb2q",
+      "feature": "forelegs",
+      "explanation": "Brachiosaurus's longer forelegs helped it reach high into the trees."
+     }
+    ],
+    "missing": [
+     "Not ready: \"Researchers believe Spinosaurus's dense bones acted as a weight, letting the dinosaur dive into water while hunting for fish.\". The feature claim is not selected for this lesson; the explanation does not state how or why."
+    ]
+   },
+   "packId": "kp_1oujbmd",
+   "status": "usable",
+   "statusReason": "Enough claims to select from. Every claim is still unverified.",
+   "modelStatus": "usable",
+   "modelNiche": false,
+   "localAdmission": "clear",
+   "needsSource": false,
+   "falsePremise": "",
+   "provenanceSummary": "Retrieved mode: every admitted claim cites a fetched passage and carries a quote that code found verbatim in that passage after whitespace, case, and typographic-quote normalisation. An automated entailment check then labels support; a claim without a supported verdict is held ou",
+   "verificationOverrides": 0,
+   "claimCount": 10,
+   "claims": [
+    {
+     "claimId": "c70tt8c",
+     "text": "Spinosaurus had nostrils further up on its snout than other dinosaurs.",
+     "kind": "fact",
+     "depth": "concrete",
+     "confidence": "high",
+     "provenance": "retrieved",
+     "provenanceNote": "retrieved; quote found verbatim in cited passage; automated entailment check: supported; not human-verified",
+     "teacherRequested": false,
+     "factuallyVerified": false,
+     "contested": false,
+     "uncertainty": "",
+     "ageFit": {
+      "from": 1,
+      "to": 6
+     },
+     "importance": "core",
+     "correctsPremise": false,
+     "supplied": false,
+     "support": "generic",
+     "placeBound": false,
+     "localHold": false,
+     "classificationHold": false,
+     "sourceRef": [
+      "S9-P02"
+     ],
+     "sourceQuote": "Its nostrils were further up on its snout than the nostrils of other dinosaurs.",
+     "sourceUrls": [
+      "https://kids.nationalgeographic.com/animals/prehistoric/facts/spinosaurus"
+     ],
+     "quoteVerified": true,
+     "entailment": "supported",
+     "sourceSupport": "quote-verified + automated entailment check",
+     "sourceHold": false
+    },
+    {
+     "claimId": "c1vau61s",
+     "text": "Spinosaurus's nostrils further up let it breathe with most of its snout underwater.",
+     "kind": "fact",
+     "depth": "mechanism",
+     "confidence": "high",
+     "provenance": "retrieved",
+     "provenanceNote": "retrieved; quote found verbatim in cited passage; automated entailment check: supported; not human-verified",
+     "teacherRequested": false,
+     "factuallyVerified": false,
+     "contested": false,
+     "uncertainty": "",
+     "ageFit": {
+      "from": 2,
+      "to": 6
+     },
+     "importance": "core",
+     "correctsPremise": false,
+     "supplied": false,
+     "support": "generic",
+     "placeBound": false,
+     "localHold": false,
+     "classificationHold": false,
+     "sourceRef": [
+      "S9-P02"
+     ],
+     "sourceQuote": "This would\u2019ve allowed the animal to breathe even with most of its snout submerged.",
+     "sourceUrls": [
+      "https://kids.nationalgeographic.com/animals/prehistoric/facts/spinosaurus"
+     ],
+     "quoteVerified": true,
+     "entailment": "supported",
+     "sourceSupport": "quote-verified + automated entailment check",
+     "sourceHold": false
+    },
+    {
+     "claimId": "c4qgx9e",
+     "text": "Spinosaurus had paddle-like webbed feet.",
+     "kind": "fact",
+     "depth": "concrete",
+     "confidence": "high",
+     "provenance": "retrieved",
+     "provenanceNote": "retrieved; quote found verbatim in cited passage; automated entailment check: supported; not human-verified",
+     "teacherRequested": false,
+     "factuallyVerified": false,
+     "contested": false,
+     "uncertainty": "",
+     "ageFit": {
+      "from": 1,
+      "to": 6
+     },
+     "importance": "core",
+     "correctsPremise": false,
+     "supplied": false,
+     "support": "generic",
+     "placeBound": false,
+     "localHold": false,
+     "classificationHold": false,
+     "sourceRef": [
+      "S9-P02"
+     ],
+     "sourceQuote": "And its paddle-like webbed feet would\u2019ve allowed the animal to swim.",
+     "sourceUrls": [
+      "https://kids.nationalgeographic.com/animals/prehistoric/facts/spinosaurus"
+     ],
+     "quoteVerified": true,
+     "entailment": "supported",
+     "sourceSupport": "quote-verified + automated entailment check",
+     "sourceHold": false
+    },
+    {
+     "claimId": "c1vv8t2k",
+     "text": "Spinosaurus's webbed feet allowed the dinosaur to swim.",
+     "kind": "fact",
+     "depth": "mechanism",
+     "confidence": "high",
+     "provenance": "retrieved",
+     "provenanceNote": "retrieved; quote found verbatim in cited passage; automated entailment check: supported; not human-verified",
+     "teacherRequested": false,
+     "factuallyVerified": false,
+     "contested": false,
+     "uncertainty": "",
+     "ageFit": {
+      "from": 2,
+      "to": 6
+     },
+     "importance": "core",
+     "correctsPremise": false,
+     "supplied": false,
+     "support": "generic",
+     "placeBound": false,
+     "localHold": false,
+     "classificationHold": false,
+     "sourceRef": [
+      "S9-P02"
+     ],
+     "sourceQuote": "And its paddle-like webbed feet would\u2019ve allowed the animal to swim.",
+     "sourceUrls": [
+      "https://kids.nationalgeographic.com/animals/prehistoric/facts/spinosaurus"
+     ],
+     "quoteVerified": true,
+     "entailment": "supported",
+     "sourceSupport": "quote-verified + automated entailment check",
+     "sourceHold": false
+    },
+    {
+     "claimId": "c5dpc7w",
+     "text": "Spinosaurus had dense bones.",
+     "kind": "fact",
+     "depth": "concrete",
+     "confidence": "high",
+     "provenance": "retrieved",
+     "provenanceNote": "retrieved; quote found verbatim; automated entailment check: unsupported; held out of the lesson",
+     "teacherRequested": false,
+     "factuallyVerified": false,
+     "contested": false,
+     "uncertainty": "",
+     "ageFit": {
+      "from": 1,
+      "to": 6
+     },
+     "importance": "core",
+     "correctsPremise": false,
+     "supplied": false,
+     "support": "generic",
+     "placeBound": false,
+     "localHold": false,
+     "classificationHold": false,
+     "sourceRef": [
+      "S9-P02"
+     ],
+     "sourceQuote": "Researchers believe the reptile\u2019s dense bones\u2014which resemble those of modern-day aquatic creatures such as the manatee",
+     "sourceUrls": [
+      "https://kids.nationalgeographic.com/animals/prehistoric/facts/spinosaurus"
+     ],
+     "quoteVerified": true,
+     "entailment": "unsupported",
+     "sourceSupport": "quote-verified; automated entailment check: unsupported",
+     "sourceHold": true
+    },
+    {
+     "claimId": "coaldwm",
+     "text": "Researchers believe Spinosaurus's dense bones acted as a weight, letting the dinosaur dive into water while hunting for fish.",
+     "kind": "fact",
+     "depth": "mechanism",
+     "confidence": "high",
+     "provenance": "retrieved",
+     "provenanceNote": "retrieved; quote found verbatim in cited passage; automated entailment check: supported; not human-verified",
+     "teacherRequested": false,
+     "factuallyVerified": false,
+     "contested": false,
+     "uncertainty": "",
+     "ageFit": {
+      "from": 3,
+      "to": 6
+     },
+     "importance": "core",
+     "correctsPremise": false,
+     "supplied": false,
+     "support": "generic",
+     "placeBound": false,
+     "localHold": false,
+     "classificationHold": false,
+     "sourceRef": [
+      "S9-P02"
+     ],
+     "sourceQuote": "acted as a weight to help it easily dive into the water while hunting for fish.",
+     "sourceUrls": [
+      "https://kids.nationalgeographic.com/animals/prehistoric/facts/spinosaurus"
+     ],
+     "quoteVerified": true,
+     "entailment": "supported",
+     "sourceSupport": "quote-verified + automated entailment check",
+     "sourceHold": false
+    },
+    {
+     "claimId": "c1xv5js",
+     "text": "Spinosaurus lived in what is now North Africa\u2019s Sahara region, which then had a large river system.",
+     "kind": "fact",
+     "depth": "concrete",
+     "confidence": "high",
+     "provenance": "retrieved",
+     "provenanceNote": "retrieved; quote found verbatim in cited passage; automated entailment check: supported; not human-verified",
+     "teacherRequested": false,
+     "factuallyVerified": false,
+     "contested": false,
+     "uncertainty": "",
+     "ageFit": {
+      "from": 1,
+      "to": 6
+     },
+     "importance": "core",
+     "correctsPremise": false,
+     "supplied": false,
+     "support": "generic",
+     "placeBound": false,
+     "localHold": false,
+     "classificationHold": false,
+     "sourceRef": [
+      "S9-P02"
+     ],
+     "sourceQuote": "It inhabited what is now North Africa\u2019s Sahara region, which at the time featured a large river system.",
+     "sourceUrls": [
+      "https://kids.nationalgeographic.com/animals/prehistoric/facts/spinosaurus"
+     ],
+     "quoteVerified": true,
+     "entailment": "supported",
+     "sourceSupport": "quote-verified + automated entailment check",
+     "sourceHold": false
+    },
+    {
+     "claimId": "cwbp85o",
+     "text": "Spinosaurus was well adapted for aquatic life.",
+     "kind": "fact",
+     "depth": "concrete",
+     "confidence": "high",
+     "provenance": "retrieved",
+     "provenanceNote": "retrieved; quote found verbatim in cited passage; automated entailment check: supported; not human-verified",
+     "teacherRequested": false,
+     "factuallyVerified": false,
+     "contested": false,
+     "uncertainty": "",
+     "ageFit": {
+      "from": 1,
+      "to": 6
+     },
+     "importance": "core",
+     "correctsPremise": false,
+     "supplied": false,
+     "support": "generic",
+     "placeBound": false,
+     "localHold": false,
+     "classificationHold": false,
+     "sourceRef": [
+      "S9-P02"
+     ],
+     "sourceQuote": "Spinosaurus was well adapted for aquatic life.",
+     "sourceUrls": [
+      "https://kids.nationalgeographic.com/animals/prehistoric/facts/spinosaurus"
+     ],
+     "quoteVerified": true,
+     "entailment": "supported",
+     "sourceSupport": "quote-verified + automated entailment check",
+     "sourceHold": false
+    },
+    {
+     "claimId": "cjsvb2q",
+     "text": "Brachiosaurus had forelegs longer than its hind legs.",
+     "kind": "fact",
+     "depth": "concrete",
+     "confidence": "high",
+     "provenance": "retrieved",
+     "provenanceNote": "retrieved; quote found verbatim in cited passage; automated entailment check: supported; not human-verified",
+     "teacherRequested": false,
+     "factuallyVerified": false,
+     "contested": false,
+     "uncertainty": "",
+     "ageFit": {
+      "from": 1,
+      "to": 6
+     },
+     "importance": "core",
+     "correctsPremise": false,
+     "supplied": false,
+     "support": "generic",
+     "placeBound": false,
+     "localHold": false,
+     "classificationHold": false,
+     "sourceRef": [
+      "S12-P02"
+     ],
+     "sourceQuote": "its forelegs were longer than its hind legs",
+     "sourceUrls": [
+      "https://kids.nationalgeographic.com/animals/prehistoric/facts/brachiosaurus"
+     ],
+     "quoteVerified": true,
+     "entailment": "supported",
+     "sourceSupport": "quote-verified + automated entailment check",
+     "sourceHold": false
+    },
+    {
+     "claimId": "c2jm9t5",
+     "text": "Brachiosaurus's longer forelegs helped it reach high into the trees.",
+     "kind": "fact",
+     "depth": "mechanism",
+     "confidence": "high",
+     "provenance": "retrieved",
+     "provenanceNote": "retrieved; quote found verbatim in cited passage; automated entailment check: supported; not human-verified",
+     "teacherRequested": false,
+     "factuallyVerified": false,
+     "contested": false,
+     "uncertainty": "",
+     "ageFit": {
+      "from": 2,
+      "to": 6
+     },
+     "importance": "core",
+     "correctsPremise": false,
+     "supplied": false,
+     "support": "generic",
+     "placeBound": false,
+     "localHold": false,
+     "classificationHold": false,
+     "sourceRef": [
+      "S12-P02"
+     ],
+     "sourceQuote": "because its forelegs were longer than its hind legs\u2014another adaption to help it reach high into the trees.",
+     "sourceUrls": [
+      "https://kids.nationalgeographic.com/animals/prehistoric/facts/brachiosaurus"
+     ],
+     "quoteVerified": true,
+     "entailment": "supported",
+     "sourceSupport": "quote-verified + automated entailment check",
+     "sourceHold": false
+    }
+   ],
+   "mechanisms": [
+    {
+     "claimId": "c1vau61s",
+     "text": "Spinosaurus's nostrils further up let it breathe with most of its snout underwater.",
+     "feature": "nostrils further up",
+     "featureClaimId": "c70tt8c"
+    },
+    {
+     "claimId": "c1vv8t2k",
+     "text": "Spinosaurus's webbed feet allowed the dinosaur to swim.",
+     "feature": "webbed feet",
+     "featureClaimId": "c4qgx9e"
+    },
+    {
+     "claimId": "coaldwm",
+     "text": "Researchers believe Spinosaurus's dense bones acted as a weight, letting the dinosaur dive into water while hunting for fish.",
+     "feature": "dense bones",
+     "featureClaimId": "c5dpc7w"
+    },
+    {
+     "claimId": "c2jm9t5",
+     "text": "Brachiosaurus's longer forelegs helped it reach high into the trees.",
+     "feature": "forelegs",
+     "featureClaimId": "cjsvb2q"
+    }
+   ],
+   "concepts": [],
+   "vocabulary": [],
+   "misconceptions": [],
+   "openQuestions": [],
+   "rejectedClaims": [],
+   "strippedFields": [],
+   "sourceMode": "retrieved",
+   "sourceAudit": {
+    "label": "quote-verified + automated entailment check",
+    "checked": 10,
+    "admitted": 10,
+    "rejectedByReason": {},
+    "rejected": [],
+    "entailment": {
+     "supported": 9,
+     "partial": 0,
+     "unsupported": 1,
+     "unchecked": 0
+    },
+    "entailmentRan": true,
+    "humanVerified": false
+   },
+   "selection": {
+    "status": "ready",
+    "reason": "Year 3 selects concrete claims and mechanisms. System claims stay in the pack.",
+    "depthMode": "mechanism",
+    "year": 3,
+    "claimIds": [
+     "c1xv5js",
+     "c4qgx9e",
+     "c70tt8c",
+     "cjsvb2q",
+     "cwbp85o",
+     "c1vau61s",
+     "c1vv8t2k",
+     "c2jm9t5",
+     "coaldwm"
+    ],
+    "heldBack": [
+     {
+      "claimId": "c5dpc7w",
+      "depth": "concrete",
+      "reason": "source support not confirmed (unsupported)"
+     }
+    ]
+   }
+  }
+ ]
+}

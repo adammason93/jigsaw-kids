@@ -1,0 +1,41 @@
+{
+  "observations": "Maya sits beside the flowerpot with one arm raised to the sky. The clay flowerpot is confirmed as a clay pot. The garden wall is confirmed as a pale wall. The hidden star is confirmed but should not have a face; it glows softly beside her. The upper-left corner features calmer open space without a drawn box.",
+  "characters": [
+    {
+      "characterId": "maya",
+      "identityMatch": true,
+      "outfitMatch": true,
+      "count": 1
+    }
+  ],
+  "entities": [
+    {
+      "entityId": "clay-flowerpot",
+      "status": "confirmed",
+      "seen": ""
+    },
+    {
+      "entityId": "garden-wall",
+      "status": "confirmed",
+      "seen": ""
+    },
+    {
+      "entityId": "hidden-star",
+      "status": "confirmed",
+      "seen": ""
+    }
+  ],
+  "locationMatch": true,
+  "prematureResult": false,
+  "textDetected": false,
+  "anatomyOk": true,
+  "textSafeUsable": true,
+  "duplicateCharacter": false,
+  "momentMatch": true,
+  "montageShown": false,
+  "style": {
+    "rendering": "painted",
+    "proportions": "picture-book",
+    "finish": "picture-book"
+  }
+}

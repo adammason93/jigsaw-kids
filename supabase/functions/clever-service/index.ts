@@ -2,12 +2,27 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
+import {
+  addressesArePublic,
+  assessProxyUrl,
+  generateAccessKey,
+  hashAccessKey,
+  publicHttpsUrl,
+  readJob,
+  SPEECH_BUSY_MESSAGE,
+  SPEECH_UNAVAILABLE_MESSAGE,
+  TTS_SHORT_CHARS,
+  speechPlaybackPlan,
+  ttsLengthAllowed,
+  verifiedSpeechAddress,
+} from "./job-access.mjs";
+import { claimDecision } from "./generation-allowance.mjs";
 
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-wondii-job-key",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 };
 
@@ -3506,8 +3521,8 @@ async function loadImageBytesForGptEdit(urlRaw: string): Promise<Uint8Array | nu
     if (/^data:image\/(?:png|jpeg|jpg|webp);base64,/i.test(url)) {
       return decodeB64ToBytes(url);
     }
-    if (/^https?:\/\//i.test(url)) {
-      const r = await fetch(url, { redirect: "follow" });
+    if (/^https:\/\//i.test(url)) {
+      const r = await fetchCheckedHttps(url, publicHttpsUrl);
       if (!r.ok) return null;
       return new Uint8Array(await r.arrayBuffer());
     }
@@ -3945,6 +3960,7 @@ async function insertPendingStorybookJob(
   client: SupabaseClient,
   id: string,
   payload: StorybookRequestBody,
+  accessKeyHash: string,
 ): Promise<string | null> {
   const { error } = await client.from("storybook_generation_jobs").insert({
     id,
@@ -3952,6 +3968,7 @@ async function insertPendingStorybookJob(
     progress: 0,
     progress_label: "Queued…",
     request_payload: payload,
+    access_key_hash: accessKeyHash,
     updated_at: new Date().toISOString(),
   });
   return error ? error.message : null;
@@ -5651,9 +5668,9 @@ async function executeStorybookPipeline(
 async function runStorybookGenerationJob(
   jobId: string,
   bodySnapshot: StorybookRequestBody,
-): Promise<void> {
+): Promise<boolean> {
   const client = serviceRoleSupabase();
-  if (!client) return;
+  if (!client) return false;
   await patchStorybookJob(client, jobId, {
     status: "running",
     progress: 4,
@@ -5669,7 +5686,7 @@ async function runStorybookGenerationJob(
       result_payload: { error: "server_missing_openai" },
       updated_at: new Date().toISOString(),
     });
-    return;
+    return false;
   }
   try {
     const reportProgress = async (pct: number, label: string) => {
@@ -5706,6 +5723,7 @@ async function runStorybookGenerationJob(
         : {}),
       updated_at: new Date().toISOString(),
     });
+    return res.ok;
   } catch (e) {
     const detail = e instanceof Error ? e.message : String(e);
     await patchStorybookJob(client, jobId, {
@@ -5715,6 +5733,7 @@ async function runStorybookGenerationJob(
       updated_at: new Date().toISOString(),
     });
     console.error("[clever-service] storybook job exception", jobId, e);
+    return false;
   }
 }
 
@@ -5885,6 +5904,179 @@ async function handleGenerateCharacter(
   }
 }
 
+function speechJson(status: number, message: string) {
+  return jsonResponse({
+    error: status === 429 ? "tts_busy" : "tts_unavailable",
+    message,
+  }, status);
+}
+
+function speechAudio(bytes: Uint8Array) {
+  return new Response(bytes, {
+    headers: {
+      ...corsHeaders,
+      "Content-Type": "audio/mpeg",
+      "Cache-Control": "public, max-age=31536000",
+    },
+  });
+}
+
+async function handleSpeech(req: Request, text: string): Promise<Response> {
+  if (!ttsLengthAllowed(text)) return jsonResponse({ error: "tts_too_long" }, 400);
+  if (!(Deno.env.get("SPEECH_QUOTA_SECRET") || "").trim()) {
+    return speechJson(503, SPEECH_UNAVAILABLE_MESSAGE);
+  }
+  const client = serviceRoleSupabase();
+  if (!client) return speechJson(503, SPEECH_UNAVAILABLE_MESSAGE);
+  const voice = coerceVoiceForTtsModel(
+    resolveOpenAiTtsVoice(new URL(req.url).searchParams.get("ttsVoice")),
+    resolveOpenAiTtsModel(),
+  );
+  const contentHash = await hashAccessKey(voice + "\n" + text);
+  const cached = await client.rpc("tts_audio_read", { p_hash: contentHash });
+  if (cached.error) {
+    console.warn("[tts cache]", cached.error.message);
+    return speechJson(503, speechPlaybackPlan({ dbError: true }).message);
+  }
+  if (cached.data) {
+    const hit = speechPlaybackPlan({ cacheHit: true, quotaAllow: false });
+    if (!hit.openai) {
+      try {
+        return speechAudio(decodeB64ToBytes(String(cached.data)));
+      } catch (error) {
+        console.warn("[tts cache decode]", error);
+        return speechJson(503, SPEECH_UNAVAILABLE_MESSAGE);
+      }
+    }
+  }
+  const address = await verifiedSpeechAddress(
+    req.headers,
+    Deno.env.get("SPEECH_QUOTA_SECRET") || "",
+    Date.now(),
+  );
+  const hour = new Date().toISOString().slice(0, 13);
+  const bucket = await hashAccessKey((address || "unsigned") + "|" + hour);
+  const taken = await client.rpc("tts_quota_take", {
+    p_bucket: bucket,
+    p_chars: text.length,
+    p_short: text.length <= TTS_SHORT_CHARS,
+  });
+  if (taken.error) {
+    console.warn("[tts quota]", taken.error.message);
+    return speechJson(503, speechPlaybackPlan({ dbError: true }).message);
+  }
+  const plan = speechPlaybackPlan({ cacheHit: false, quotaAllow: taken.data === true });
+  if (!plan.openai) return speechJson(plan.status, plan.message || SPEECH_BUSY_MESSAGE);
+
+  const apiKey = Deno.env.get("OPENAI_API_KEY");
+  if (!apiKey) return speechJson(503, SPEECH_UNAVAILABLE_MESSAGE);
+  const ttsModel = resolveOpenAiTtsModel();
+  const payload: Record<string, string> = { model: ttsModel, voice, input: text };
+  if (ttsModel === DEFAULT_TTS_MODEL) {
+    const ins = Deno.env.get("OPENAI_TTS_INSTRUCTIONS")?.trim();
+    payload.instructions = ins ||
+      "Speak in a warm, upbeat, clear tone suitable for reading a children's story aloud.";
+  }
+  try {
+    const upstream = await fetch("https://api.openai.com/v1/audio/speech", {
+      method: "POST",
+      headers: openAiJsonAuthHeaders(apiKey),
+      body: JSON.stringify(payload),
+    });
+    if (!upstream.ok) {
+      console.error("[tts error]", upstream.status, await upstream.text());
+      return jsonResponse({ error: "tts_failed" }, 502);
+    }
+    const bytes = new Uint8Array(await upstream.arrayBuffer());
+    const saved = await client.rpc("tts_audio_write", {
+      p_hash: contentHash,
+      p_audio: bytesToBase64(bytes),
+    });
+    if (saved.error) console.warn("[tts cache write]", saved.error.message);
+    return speechAudio(bytes);
+  } catch (e) {
+    console.error("[tts error]", e);
+    return jsonResponse({ error: "tts_failed", detail: String(e) }, 502);
+  }
+}
+
+async function hostResolvesPublic(hostname: string): Promise<boolean> {
+  try {
+    const lookedUp = await Promise.all([
+      Deno.resolveDns(hostname, "A").catch(() => [] as string[]),
+      Deno.resolveDns(hostname, "AAAA").catch(() => [] as string[]),
+    ]);
+    return addressesArePublic(lookedUp[0].concat(lookedUp[1]));
+  } catch (_e) {
+    return false;
+  }
+}
+
+async function fetchCheckedHttps(
+  raw: string,
+  inspect: (value: string) => { href: string; hostname: string } | null,
+): Promise<Response> {
+  let current = raw;
+  for (let hop = 0; hop < 3; hop++) {
+    const target = inspect(current);
+    if (!target) throw new Error("proxy_host_not_allowed");
+    if (!(await hostResolvesPublic(target.hostname))) {
+      throw new Error("proxy_address_not_allowed");
+    }
+    const res = await fetch(target.href, { redirect: "manual" });
+    if (res.status >= 300 && res.status < 400) {
+      const location = res.headers.get("location");
+      if (!location) throw new Error("proxy_redirect");
+      current = new URL(location, target.href).href;
+      continue;
+    }
+    return res;
+  }
+  throw new Error("proxy_redirect");
+}
+
+async function claimChildGeneration(
+  req: Request,
+  body: Record<string, unknown>,
+  kind: "book" | "character",
+): Promise<{ proceed: boolean; response?: Response; childId?: string; key?: string }> {
+  const token = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "").trim();
+  const url = storybookJobSupabaseUrl();
+  const anon = Deno.env.get("SUPABASE_ANON_KEY")?.trim();
+  if (!url || !anon || !token) return { proceed: true };
+  const userClient = createClient(url, anon, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+  });
+  let accountKind = "";
+  try {
+    const userRes = await userClient.auth.getUser(token);
+    accountKind = String(userRes.data.user?.app_metadata?.account_kind || "");
+  } catch (_error) {
+    accountKind = "";
+  }
+  if (accountKind !== "child") return { proceed: true };
+  const claimed = await userClient.rpc("claim_child_generation", {
+    p_kind: kind,
+    p_key: String(body.creationKey || ""),
+  });
+  const decision = claimDecision(accountKind, claimed.data);
+  if (!decision.proceed) {
+    return {
+      proceed: false,
+      response: jsonResponse({ error: "allowance", reason: decision.reason }, 403),
+    };
+  }
+  return { proceed: true, childId: decision.childId, key: decision.key };
+}
+
+async function refundChildGeneration(childId?: string, key?: string): Promise<void> {
+  if (!childId || !key) return;
+  const db = serviceRoleSupabase();
+  if (!db) return;
+  await db.rpc("service_refund_child_generation", { p_child: childId, p_key: key });
+}
+
 Deno.serve(async (req) => {
   console.info("[clever-service]", req.method);
 
@@ -5905,79 +6097,25 @@ Deno.serve(async (req) => {
       const { data, error } = await client
         .from("storybook_generation_jobs")
         .select(
-          "status,http_status,result_payload,updated_at,progress,progress_label",
+          "status,http_status,result_payload,updated_at,progress,progress_label,access_key_hash,created_at,owner_user_id",
         )
         .eq("id", storybookJobId)
         .maybeSingle();
-      if (error) {
-        console.warn("[storybook_job] select", error.message);
+      if (error || !data) {
+        if (error) console.warn("[storybook_job] select", error.message);
+        return jsonResponse({ error: "storybook_job_not_found" }, 404);
       }
-      if (!data) {
-        return jsonResponse(
-          { error: "storybook_job_not_found", id: storybookJobId },
-          404,
-        );
+      const gate = await readJob(data, req.headers.get("x-wondii-job-key"), Date.now());
+      if (gate.status !== 200) {
+        return jsonResponse({ error: "storybook_job_not_found" }, 404);
       }
-      return jsonResponse({
-        storybook_job_status: data.status,
-        http_status: data.http_status,
-        result: data.result_payload,
-        updated_at: data.updated_at,
-        storybook_job_progress:
-          typeof data.progress === "number" ? data.progress : 0,
-        storybook_job_label:
-          typeof data.progress_label === "string" && data.progress_label
-            ? data.progress_label
-            : "",
-      });
+      return jsonResponse(gate.body);
     }
 
     
     // 1. Text-to-Speech (TTS) Proxy
     const ttsText = searchParams.get("ttsText");
-    if (ttsText) {
-      const apiKey = Deno.env.get("OPENAI_API_KEY");
-      if (!apiKey) return jsonResponse({ error: "server_missing_openai" }, 500);
-      const ttsModel = resolveOpenAiTtsModel();
-      let ttsVoice = resolveOpenAiTtsVoice(searchParams.get("ttsVoice"));
-      ttsVoice = coerceVoiceForTtsModel(ttsVoice, ttsModel);
-
-      const payload: Record<string, string> = {
-        model: ttsModel,
-        voice: ttsVoice,
-        input: ttsText,
-      };
-      if (ttsModel === DEFAULT_TTS_MODEL) {
-        const ins = Deno.env.get("OPENAI_TTS_INSTRUCTIONS")?.trim();
-        payload.instructions =
-          ins ||
-          "Speak in a warm, upbeat, clear tone suitable for reading a children's story aloud.";
-      }
-
-      try {
-        const r = await fetch("https://api.openai.com/v1/audio/speech", {
-          method: "POST",
-          headers: openAiJsonAuthHeaders(apiKey),
-          body: JSON.stringify(payload),
-        });
-        
-        if (!r.ok) {
-          console.error("[tts error]", r.status, await r.text());
-          return jsonResponse({ error: "tts_failed" }, 502);
-        }
-        
-        return new Response(r.body, {
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "audio/mpeg",
-            "Cache-Control": "public, max-age=31536000",
-          },
-        });
-      } catch (e) {
-        console.error("[tts error]", e);
-        return jsonResponse({ error: "tts_failed", detail: String(e) }, 502);
-      }
-    }
+    if (ttsText) return await handleSpeech(req, ttsText);
 
     // 2. Image Proxy
     const urlStr = searchParams.get("url");
@@ -5986,8 +6124,14 @@ Deno.serve(async (req) => {
       // Decode the URL if it was encoded twice, or just use it as is
       const decodedUrl = decodeURIComponent(urlStr);
       const finalUrl = decodedUrl.startsWith("http") ? decodedUrl : urlStr;
-      
-      const res = await fetch(finalUrl);
+      if (!assessProxyUrl(finalUrl).ok) {
+        return jsonResponse({ error: "proxy_host_not_allowed" }, 400);
+      }
+
+      const res = await fetchCheckedHttps(finalUrl, (value) => {
+        const verdict = assessProxyUrl(value);
+        return verdict.ok ? { href: verdict.href, hostname: verdict.hostname } : null;
+      });
       if (!res.ok) {
         console.error("[proxy error] upstream returned", res.status, res.statusText, "for URL:", finalUrl);
         throw new Error(`proxy_upstream_error_${res.status}`);
@@ -6057,11 +6201,15 @@ Deno.serve(async (req) => {
     ? String((body as { action: string }).action)
     : "";
   if (action === "generate_character") {
-    return await handleGenerateCharacter(apiKey, body as unknown as {
+    const gate = await claimChildGeneration(req, body as Record<string, unknown>, "character");
+    if (!gate.proceed && gate.response) return gate.response;
+    const generated = await handleGenerateCharacter(apiKey, body as unknown as {
       characterName?: string;
       characterType?: string;
       referencePhoto?: string;
     });
+    if (!generated.ok) await refundChildGeneration(gate.childId, gate.key);
+    return generated;
   }
 
   if (wantsStorybookAsync(body)) {
@@ -6078,26 +6226,42 @@ Deno.serve(async (req) => {
         501,
       );
     }
+    const bookGate = await claimChildGeneration(req, body as Record<string, unknown>, "book");
+    if (!bookGate.proceed && bookGate.response) return bookGate.response;
     const jobId = crypto.randomUUID();
     const payload = stripStorybookAsyncFields(body);
-    const insErr = await insertPendingStorybookJob(db, jobId, payload);
+    const accessKey = generateAccessKey();
+    const insErr = await insertPendingStorybookJob(
+      db,
+      jobId,
+      payload,
+      await hashAccessKey(accessKey),
+    );
     if (insErr) {
+      await refundChildGeneration(bookGate.childId, bookGate.key);
       return jsonResponse(
         { error: "storybook_job_insert_failed", detail: insErr.slice(0, 220) },
         500,
       );
     }
-    EdgeRuntime.waitUntil(runStorybookGenerationJob(jobId, payload));
+    EdgeRuntime.waitUntil(runStorybookGenerationJob(jobId, payload).then(async (ok) => {
+      if (!ok) await refundChildGeneration(bookGate.childId, bookGate.key);
+    }));
     return jsonResponse(
       {
         storybook_job_id: jobId,
+        storybook_job_key: accessKey,
         status: "pending",
       },
       202,
     );
   }
 
-  return await executeStorybookPipeline(apiKey, body);
+  const bookGate = await claimChildGeneration(req, body as Record<string, unknown>, "book");
+  if (!bookGate.proceed && bookGate.response) return bookGate.response;
+  const syncBook = await executeStorybookPipeline(apiKey, body);
+  if (!syncBook.ok) await refundChildGeneration(bookGate.childId, bookGate.key);
+  return syncBook;
 
 });
    

@@ -1,0 +1,3234 @@
+{
+  "status": "REVIEWABLE",
+  "request": {
+    "castIds": [
+      "leo"
+    ],
+    "idea": "Leo finds a puddle that shows him yesterday.",
+    "yearGroup": "",
+    "ageBand": "5-6",
+    "length": "storybook",
+    "tone": "surprise",
+    "context": "family"
+  },
+  "modelCalls": 3,
+  "repairCalls": 1,
+  "repairs": [
+    {
+      "stage": "prose",
+      "problems": [
+        "reading-load:p2",
+        "reading-load:p11"
+      ]
+    }
+  ],
+  "stagesRepaired": [
+    "prose"
+  ],
+  "bible": {
+    "title": "The Puddle's Missing Snail",
+    "yearGroup": "",
+    "ageBand": "5-6",
+    "readerAge": "5–6",
+    "readerStage": "year1",
+    "narrativeComplexity": "a simple cause the reader can follow",
+    "tone": "surprise",
+    "targetLength": "storybook",
+    "userIdea": "Leo finds a puddle that shows him yesterday.",
+    "castIds": [
+      "leo"
+    ],
+    "visualStyle": "wondii-picture-book",
+    "premise": "On the garden path, Leo finds an unusual puddle. It shows yesterday, including a snail hidden beneath a pot.",
+    "hook": "A falling leaf appears in the water. Beside Leo, that same leaf already lies still.",
+    "goal": "Find the snail that disappeared beneath the pot.",
+    "centralProblem": "Leo cannot find the snail outside the puddle. Ripples hide the clue to its hiding place.",
+    "stakes": "The snail may still be trapped beneath the pot.",
+    "climaxBeatId": "b10",
+    "resolutionBeatId": "b11",
+    "emotionalArc": [
+      "Leo stops with one foot raised.",
+      "He bends closer to follow the snail.",
+      "He holds still when the picture breaks.",
+      "He lifts the pot with both hands.",
+      "He leaves room for the snail to pass."
+    ],
+    "motif": "A moving picture beside things that stay still.",
+    "locations": [
+      {
+        "locationId": "garden-path",
+        "name": "the garden path",
+        "connectedTo": [],
+        "visualIdentity": "Pale paving beside grass, a shallow puddle, and an overturned red flowerpot."
+      }
+    ],
+    "entities": [
+      {
+        "entityId": "yesterday-puddle",
+        "name": "the puddle",
+        "identity": "A shallow puddle showing yesterday at this same spot, rather than today's reflection.",
+        "ownerCharacterId": null,
+        "locationId": "garden-path",
+        "state": "Sheltered by Leo, with its yesterday picture clear again.",
+        "introducedAt": "b1"
+      },
+      {
+        "entityId": "broad-leaf",
+        "name": "the broad leaf",
+        "identity": "A broad green leaf with a yellow tip, now lying beside the puddle.",
+        "ownerCharacterId": null,
+        "locationId": "garden-path",
+        "state": "Laid damp-side up beside the pot's rim.",
+        "introducedAt": "b1"
+      },
+      {
+        "entityId": "striped-snail",
+        "name": "the snail",
+        "identity": "A small snail with a cream shell and one dark spiral stripe.",
+        "ownerCharacterId": null,
+        "locationId": "garden-path",
+        "state": "Freed from beneath the pot and crawling onto the damp leaf.",
+        "introducedAt": "b3"
+      },
+      {
+        "entityId": "red-flowerpot",
+        "name": "the red pot",
+        "identity": "An empty red flowerpot resting upside down on the paving.",
+        "ownerCharacterId": null,
+        "locationId": "garden-path",
+        "state": "Standing upright on paving Leo has checked.",
+        "introducedAt": "b1"
+      }
+    ],
+    "beats": [
+      {
+        "beatId": "b1",
+        "role": "hook",
+        "locationId": "garden-path",
+        "charactersPresent": [
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "leo",
+            "trait": "careful",
+            "shows": "He stops his raised foot before it touches the water."
+          }
+        ],
+        "problemFamily": "",
+        "because": "",
+        "resolvesProblem": false,
+        "action": "Leo stops beside a puddle. A leaf falls inside its picture, but not outside.",
+        "emotion": "Surprise",
+        "entitiesRequired": [
+          "yesterday-puddle",
+          "broad-leaf",
+          "red-flowerpot"
+        ],
+        "visualFocus": "The falling leaf in the water beside its motionless counterpart.",
+        "shotType": "establishing",
+        "compositionIntent": "Show Leo's raised foot, the puddle, and the still leaf together.",
+        "textPurpose": "Open with a visible mismatch.",
+        "pageTurnHook": "What else is moving inside the water?",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "garden-path",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": []
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "garden-path",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Surprise",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "yesterday-puddle",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Showing yesterday on the same garden path."
+            },
+            {
+              "entityId": "broad-leaf",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Lying still beside the puddle; its yesterday image is falling."
+            },
+            {
+              "entityId": "red-flowerpot",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Upside down near the puddle; upright in the yesterday picture."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b2",
+        "role": "discovery",
+        "locationId": "garden-path",
+        "charactersPresent": [
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [],
+        "problemFamily": "time-mismatch",
+        "because": "b1",
+        "resolvesProblem": false,
+        "action": "Leo remembers that leaf falling yesterday. The puddle shows the red pot standing upright, too.",
+        "emotion": "Surprise",
+        "entitiesRequired": [
+          "yesterday-puddle",
+          "broad-leaf",
+          "red-flowerpot"
+        ],
+        "visualFocus": "Two different positions of the same red pot.",
+        "shotType": "close",
+        "compositionIntent": "Pair the upright pot in the water with today's overturned pot.",
+        "textPurpose": "Establish the puddle's single impossible rule.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "garden-path",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Surprise",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "yesterday-puddle",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Showing yesterday on the same garden path."
+            },
+            {
+              "entityId": "broad-leaf",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Lying still beside the puddle; its yesterday image is falling."
+            },
+            {
+              "entityId": "red-flowerpot",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Upside down near the puddle; upright in the yesterday picture."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "garden-path",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Surprise",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "yesterday-puddle",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Showing yesterday on the same garden path."
+            },
+            {
+              "entityId": "broad-leaf",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Lying still beside the puddle; its yesterday image is falling."
+            },
+            {
+              "entityId": "red-flowerpot",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Upside down near the puddle; upright in the yesterday picture."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b3",
+        "role": "relationship",
+        "locationId": "garden-path",
+        "charactersPresent": [
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "leo",
+            "trait": "kind",
+            "shows": "He moves his shoe away from the snail's pictured path."
+          }
+        ],
+        "problemFamily": "tiny-traveller",
+        "because": "b2",
+        "resolvesProblem": false,
+        "action": "A striped snail crawls towards the pot inside the picture. Leo moves his shoe aside.",
+        "emotion": "Surprise",
+        "entitiesRequired": [
+          "yesterday-puddle",
+          "broad-leaf",
+          "red-flowerpot",
+          "striped-snail"
+        ],
+        "visualFocus": "The snail's dark shell stripe.",
+        "shotType": "overhead",
+        "compositionIntent": "Make the tiny snail readable between the pictured pot and Leo's shoe.",
+        "textPurpose": "Give Leo a small creature to follow and protect.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "garden-path",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Surprise",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "yesterday-puddle",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Showing yesterday on the same garden path."
+            },
+            {
+              "entityId": "broad-leaf",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Lying still beside the puddle; its yesterday image is falling."
+            },
+            {
+              "entityId": "red-flowerpot",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Upside down near the puddle; upright in the yesterday picture."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "garden-path",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Surprise",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "yesterday-puddle",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Showing yesterday on the same garden path."
+            },
+            {
+              "entityId": "broad-leaf",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Lying still beside the puddle; its yesterday image is falling."
+            },
+            {
+              "entityId": "red-flowerpot",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Upside down near the puddle; upright in the yesterday picture."
+            },
+            {
+              "entityId": "striped-snail",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b4",
+        "role": "goal",
+        "locationId": "garden-path",
+        "charactersPresent": [
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [],
+        "problemFamily": "missing-snail",
+        "because": "b3",
+        "resolvesProblem": false,
+        "action": "Leo checks the paving beside today's pot. No snail; he watches yesterday's snail for a clue.",
+        "emotion": "Surprise",
+        "entitiesRequired": [
+          "yesterday-puddle",
+          "broad-leaf",
+          "red-flowerpot",
+          "striped-snail"
+        ],
+        "visualFocus": "Leo comparing the pictured snail with its empty present-day spot.",
+        "shotType": "medium",
+        "compositionIntent": "Keep the empty paving and watched puddle in one frame.",
+        "textPurpose": "Turn the magical discovery into a search.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "garden-path",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Surprise",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "yesterday-puddle",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Showing yesterday on the same garden path."
+            },
+            {
+              "entityId": "broad-leaf",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Lying still beside the puddle; its yesterday image is falling."
+            },
+            {
+              "entityId": "red-flowerpot",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Upside down near the puddle; upright in the yesterday picture."
+            },
+            {
+              "entityId": "striped-snail",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "garden-path",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Surprise",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "yesterday-puddle",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Showing yesterday on the same garden path."
+            },
+            {
+              "entityId": "broad-leaf",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Lying still beside the puddle; its yesterday image is falling."
+            },
+            {
+              "entityId": "red-flowerpot",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Upside down near the puddle; upright in the yesterday picture."
+            },
+            {
+              "entityId": "striped-snail",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b5",
+        "role": "attempt",
+        "locationId": "garden-path",
+        "charactersPresent": [
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [],
+        "problemFamily": "disturbed-water",
+        "because": "b4",
+        "resolvesProblem": false,
+        "action": "Leo leans closer and touches the picture. Rings spread across the snail and pot.",
+        "emotion": "Surprise",
+        "entitiesRequired": [
+          "yesterday-puddle",
+          "broad-leaf",
+          "red-flowerpot",
+          "striped-snail"
+        ],
+        "visualFocus": "Leo's fingertip and the fractured snail image.",
+        "shotType": "action",
+        "compositionIntent": "Let expanding rings visibly break the useful picture.",
+        "textPurpose": "Make his first search method obscure the clue.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "garden-path",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Surprise",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "yesterday-puddle",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Showing yesterday on the same garden path."
+            },
+            {
+              "entityId": "broad-leaf",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Lying still beside the puddle; its yesterday image is falling."
+            },
+            {
+              "entityId": "red-flowerpot",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Upside down near the puddle; upright in the yesterday picture."
+            },
+            {
+              "entityId": "striped-snail",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "garden-path",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Surprise",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "yesterday-puddle",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Its yesterday picture is obscured by spreading ripples."
+            },
+            {
+              "entityId": "broad-leaf",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Lying still beside the puddle; its yesterday image is falling."
+            },
+            {
+              "entityId": "red-flowerpot",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Upside down near the puddle; upright in the yesterday picture."
+            },
+            {
+              "entityId": "striped-snail",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b6",
+        "role": "setback",
+        "locationId": "garden-path",
+        "charactersPresent": [
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "leo",
+            "trait": "careful",
+            "shows": "He lifts his hand clear and waits without touching again."
+          }
+        ],
+        "problemFamily": "wind-blurred-clue",
+        "because": "b5",
+        "resolvesProblem": false,
+        "action": "Leo pulls his hand away. Wind keeps the water wrinkled, hiding the snail.",
+        "emotion": "Surprise",
+        "entitiesRequired": [
+          "yesterday-puddle",
+          "broad-leaf",
+          "red-flowerpot",
+          "striped-snail"
+        ],
+        "visualFocus": "Fine wind ripples replacing the larger finger-made rings.",
+        "shotType": "reaction",
+        "compositionIntent": "Show his hovering hand above a picture that remains unreadable.",
+        "textPurpose": "Require a different way to see the clue.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "garden-path",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Surprise",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "yesterday-puddle",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Its yesterday picture is obscured by spreading ripples."
+            },
+            {
+              "entityId": "broad-leaf",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Lying still beside the puddle; its yesterday image is falling."
+            },
+            {
+              "entityId": "red-flowerpot",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Upside down near the puddle; upright in the yesterday picture."
+            },
+            {
+              "entityId": "striped-snail",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "garden-path",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Surprise",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "yesterday-puddle",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Its yesterday picture is obscured by spreading ripples."
+            },
+            {
+              "entityId": "broad-leaf",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Lying still beside the puddle; its yesterday image is falling."
+            },
+            {
+              "entityId": "red-flowerpot",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Upside down near the puddle; upright in the yesterday picture."
+            },
+            {
+              "entityId": "striped-snail",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b7",
+        "role": "exploration",
+        "locationId": "garden-path",
+        "charactersPresent": [
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "leo",
+            "trait": "careful",
+            "shows": "He crouches on the windy side and keeps his hands on his knees."
+          }
+        ],
+        "problemFamily": "sheltering-picture",
+        "because": "b6",
+        "resolvesProblem": false,
+        "action": "Leo crouches between the wind and the puddle. Behind his jumper, the picture grows smooth.",
+        "emotion": "Surprise",
+        "entitiesRequired": [
+          "yesterday-puddle",
+          "broad-leaf",
+          "red-flowerpot",
+          "striped-snail"
+        ],
+        "visualFocus": "The clear patch forming behind Leo.",
+        "shotType": "low",
+        "compositionIntent": "Use Leo's green jumper as a windbreak above the sheltered water.",
+        "textPurpose": "Let stillness and observation restore the search.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "garden-path",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Surprise",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "yesterday-puddle",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Its yesterday picture is obscured by spreading ripples."
+            },
+            {
+              "entityId": "broad-leaf",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Lying still beside the puddle; its yesterday image is falling."
+            },
+            {
+              "entityId": "red-flowerpot",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Upside down near the puddle; upright in the yesterday picture."
+            },
+            {
+              "entityId": "striped-snail",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "garden-path",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Surprise",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "yesterday-puddle",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Sheltered by Leo, with its yesterday picture clear again."
+            },
+            {
+              "entityId": "broad-leaf",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Lying still beside the puddle; its yesterday image is falling."
+            },
+            {
+              "entityId": "red-flowerpot",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Upside down near the puddle; upright in the yesterday picture."
+            },
+            {
+              "entityId": "striped-snail",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b8",
+        "role": "reveal",
+        "locationId": "garden-path",
+        "charactersPresent": [
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [],
+        "problemFamily": "hidden-by-pot",
+        "because": "b7",
+        "resolvesProblem": false,
+        "action": "Yesterday's Leo turns the pot over in the picture. Its rim covers the snail without him noticing.",
+        "emotion": "Surprise",
+        "entitiesRequired": [
+          "yesterday-puddle",
+          "broad-leaf",
+          "red-flowerpot",
+          "striped-snail"
+        ],
+        "visualFocus": "The small shell disappearing under the red pot.",
+        "shotType": "reveal",
+        "compositionIntent": "Reveal the snail beneath the descending rim in the puddle.",
+        "textPurpose": "Answer where the snail went and identify Leo's remedy.",
+        "pageTurnHook": "Is the snail still underneath?",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "garden-path",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Surprise",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "yesterday-puddle",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Sheltered by Leo, with its yesterday picture clear again."
+            },
+            {
+              "entityId": "broad-leaf",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Lying still beside the puddle; its yesterday image is falling."
+            },
+            {
+              "entityId": "red-flowerpot",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Upside down near the puddle; upright in the yesterday picture."
+            },
+            {
+              "entityId": "striped-snail",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "garden-path",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Surprise",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "yesterday-puddle",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Sheltered by Leo, with its yesterday picture clear again."
+            },
+            {
+              "entityId": "broad-leaf",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Lying still beside the puddle; its yesterday image is falling."
+            },
+            {
+              "entityId": "red-flowerpot",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Upside down near the puddle; upright in the yesterday picture."
+            },
+            {
+              "entityId": "striped-snail",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b9",
+        "role": "approach",
+        "locationId": "garden-path",
+        "charactersPresent": [
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "leo",
+            "trait": "kind",
+            "shows": "He places the damp leaf beside the pot's rim."
+          }
+        ],
+        "problemFamily": "ready-landing",
+        "because": "b8",
+        "resolvesProblem": false,
+        "action": "Leo carries the damp leaf to the pot. He lays it beside the rim for the snail.",
+        "emotion": "Surprise",
+        "entitiesRequired": [
+          "yesterday-puddle",
+          "broad-leaf",
+          "red-flowerpot",
+          "striped-snail"
+        ],
+        "visualFocus": "Leo's open hand lowering the familiar yellow-tipped leaf.",
+        "shotType": "medium",
+        "compositionIntent": "Show the leaf placed where the hidden snail can reach it.",
+        "textPurpose": "Prepare a gentle place for the snail to emerge.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "garden-path",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Surprise",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "yesterday-puddle",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Sheltered by Leo, with its yesterday picture clear again."
+            },
+            {
+              "entityId": "broad-leaf",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Lying still beside the puddle; its yesterday image is falling."
+            },
+            {
+              "entityId": "red-flowerpot",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Upside down near the puddle; upright in the yesterday picture."
+            },
+            {
+              "entityId": "striped-snail",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "garden-path",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Surprise",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "yesterday-puddle",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Sheltered by Leo, with its yesterday picture clear again."
+            },
+            {
+              "entityId": "broad-leaf",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Laid damp-side up beside the pot's rim."
+            },
+            {
+              "entityId": "red-flowerpot",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Upside down near the puddle; upright in the yesterday picture."
+            },
+            {
+              "entityId": "striped-snail",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b10",
+        "role": "climax",
+        "locationId": "garden-path",
+        "charactersPresent": [
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "leo",
+            "trait": "careful",
+            "shows": "He grips both sides of the pot and raises it slowly."
+          }
+        ],
+        "problemFamily": "freeing-snail",
+        "because": "b9",
+        "resolvesProblem": false,
+        "action": "Leo lifts the pot where yesterday's picture showed the snail. He finds it alive; it crawls onto the leaf.",
+        "emotion": "Surprise",
+        "entitiesRequired": [
+          "yesterday-puddle",
+          "broad-leaf",
+          "red-flowerpot",
+          "striped-snail"
+        ],
+        "visualFocus": "The real snail emerging into daylight.",
+        "shotType": "close",
+        "compositionIntent": "Frame the lifted rim, revealed shell, and waiting leaf together.",
+        "textPurpose": "Resolve the search using the puddle's earlier clue.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "garden-path",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Surprise",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "yesterday-puddle",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Sheltered by Leo, with its yesterday picture clear again."
+            },
+            {
+              "entityId": "broad-leaf",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Laid damp-side up beside the pot's rim."
+            },
+            {
+              "entityId": "red-flowerpot",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Upside down near the puddle; upright in the yesterday picture."
+            },
+            {
+              "entityId": "striped-snail",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "garden-path",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [
+                "red-flowerpot"
+              ],
+              "emotion": "Surprise",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "yesterday-puddle",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Sheltered by Leo, with its yesterday picture clear again."
+            },
+            {
+              "entityId": "broad-leaf",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Laid damp-side up beside the pot's rim."
+            },
+            {
+              "entityId": "red-flowerpot",
+              "ownerCharacterId": "leo",
+              "locationId": "garden-path",
+              "state": "Held clear of the paving with both hands."
+            },
+            {
+              "entityId": "striped-snail",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Freed from beneath the pot and crawling onto the damp leaf."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b11",
+        "role": "resolution",
+        "locationId": "garden-path",
+        "charactersPresent": [
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "leo",
+            "trait": "careful",
+            "shows": "He checks beneath the pot before setting it upright."
+          }
+        ],
+        "problemFamily": "",
+        "because": "b10",
+        "resolvesProblem": true,
+        "action": "Leo checks underneath before setting the pot upright. Beside the puddle, he leaves the snail plenty of room.",
+        "emotion": "Surprise",
+        "entitiesRequired": [
+          "yesterday-puddle",
+          "broad-leaf",
+          "red-flowerpot",
+          "striped-snail"
+        ],
+        "visualFocus": "Leo's shoes set well apart from the snail's path.",
+        "shotType": "vignette",
+        "compositionIntent": "End with open space around the snail and the safely upright pot.",
+        "textPurpose": "Show his changed habit without restating the rescue.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "garden-path",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [
+                "red-flowerpot"
+              ],
+              "emotion": "Surprise",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "yesterday-puddle",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Sheltered by Leo, with its yesterday picture clear again."
+            },
+            {
+              "entityId": "broad-leaf",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Laid damp-side up beside the pot's rim."
+            },
+            {
+              "entityId": "red-flowerpot",
+              "ownerCharacterId": "leo",
+              "locationId": "garden-path",
+              "state": "Held clear of the paving with both hands."
+            },
+            {
+              "entityId": "striped-snail",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Freed from beneath the pot and crawling onto the damp leaf."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "leo",
+              "locationId": "garden-path",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Surprise",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "yesterday-puddle",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Sheltered by Leo, with its yesterday picture clear again."
+            },
+            {
+              "entityId": "broad-leaf",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Laid damp-side up beside the pot's rim."
+            },
+            {
+              "entityId": "red-flowerpot",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Standing upright on paving Leo has checked."
+            },
+            {
+              "entityId": "striped-snail",
+              "ownerCharacterId": null,
+              "locationId": "garden-path",
+              "state": "Freed from beneath the pot and crawling onto the damp leaf."
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "storyProblems": [],
+  "planProblems": [],
+  "textProblems": [],
+  "pages": [
+    {
+      "pageId": "p1",
+      "beatId": "b1",
+      "locationId": "garden-path",
+      "charactersPresent": [
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": []
+      },
+      "action": "Leo stops beside a puddle. A leaf falls inside its picture, but not outside.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Showing yesterday on the same garden path."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Lying still beside the puddle; its yesterday image is falling."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          }
+        ]
+      },
+      "emotion": "Surprise",
+      "entitiesRequired": [
+        "yesterday-puddle",
+        "broad-leaf",
+        "red-flowerpot"
+      ],
+      "visualFocus": "The falling leaf in the water beside its motionless counterpart.",
+      "shotType": "establishing",
+      "compositionIntent": "Show Leo's raised foot, the puddle, and the still leaf together.",
+      "textPurpose": "Open with a visible mismatch.",
+      "pageTurnHook": "What else is moving inside the water?",
+      "needsFromPrevious": null,
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Showing yesterday on the same garden path."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Lying still beside the puddle; its yesterday image is falling."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Leo stopped beside the puddle.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "A leaf fell inside the water's picture.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Beside the water, that same leaf lay still.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Leo stopped beside the puddle. A leaf fell inside the water's picture. Beside the water, that same leaf lay still."
+    },
+    {
+      "pageId": "p2",
+      "beatId": "b2",
+      "locationId": "garden-path",
+      "charactersPresent": [
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Showing yesterday on the same garden path."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Lying still beside the puddle; its yesterday image is falling."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          }
+        ]
+      },
+      "action": "Leo remembers that leaf falling yesterday. The puddle shows the red pot standing upright, too.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Showing yesterday on the same garden path."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Lying still beside the puddle; its yesterday image is falling."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          }
+        ]
+      },
+      "emotion": "Surprise",
+      "entitiesRequired": [
+        "yesterday-puddle",
+        "broad-leaf",
+        "red-flowerpot"
+      ],
+      "visualFocus": "Two different positions of the same red pot.",
+      "shotType": "close",
+      "compositionIntent": "Pair the upright pot in the water with today's overturned pot.",
+      "textPurpose": "Establish the puddle's single impossible rule.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Showing yesterday on the same garden path."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Lying still beside the puddle; its yesterday image is falling."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Showing yesterday on the same garden path."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Lying still beside the puddle; its yesterday image is falling."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Leo looked again: that leaf had fallen yesterday.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "In the puddle, the red pot stood upright.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Leo looked again: that leaf had fallen yesterday. In the puddle, the red pot stood upright."
+    },
+    {
+      "pageId": "p3",
+      "beatId": "b3",
+      "locationId": "garden-path",
+      "charactersPresent": [
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Showing yesterday on the same garden path."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Lying still beside the puddle; its yesterday image is falling."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          }
+        ]
+      },
+      "action": "A striped snail crawls towards the pot inside the picture. Leo moves his shoe aside.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Showing yesterday on the same garden path."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Lying still beside the puddle; its yesterday image is falling."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+          }
+        ]
+      },
+      "emotion": "Surprise",
+      "entitiesRequired": [
+        "yesterday-puddle",
+        "broad-leaf",
+        "red-flowerpot",
+        "striped-snail"
+      ],
+      "visualFocus": "The snail's dark shell stripe.",
+      "shotType": "overhead",
+      "compositionIntent": "Make the tiny snail readable between the pictured pot and Leo's shoe.",
+      "textPurpose": "Give Leo a small creature to follow and protect.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Showing yesterday on the same garden path."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Lying still beside the puddle; its yesterday image is falling."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Showing yesterday on the same garden path."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Lying still beside the puddle; its yesterday image is falling."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "A striped snail crept towards the pot in the picture.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Leo slid his shoe aside.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "A striped snail crept towards the pot in the picture. Leo slid his shoe aside."
+    },
+    {
+      "pageId": "p4",
+      "beatId": "b4",
+      "locationId": "garden-path",
+      "charactersPresent": [
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Showing yesterday on the same garden path."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Lying still beside the puddle; its yesterday image is falling."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+          }
+        ]
+      },
+      "action": "Leo checks the paving beside today's pot. No snail; he watches yesterday's snail for a clue.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Showing yesterday on the same garden path."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Lying still beside the puddle; its yesterday image is falling."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+          }
+        ]
+      },
+      "emotion": "Surprise",
+      "entitiesRequired": [
+        "yesterday-puddle",
+        "broad-leaf",
+        "red-flowerpot",
+        "striped-snail"
+      ],
+      "visualFocus": "Leo comparing the pictured snail with its empty present-day spot.",
+      "shotType": "medium",
+      "compositionIntent": "Keep the empty paving and watched puddle in one frame.",
+      "textPurpose": "Turn the magical discovery into a search.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Showing yesterday on the same garden path."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Lying still beside the puddle; its yesterday image is falling."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Showing yesterday on the same garden path."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Lying still beside the puddle; its yesterday image is falling."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Leo bent down beside the upside-down pot.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "No snail on the paving.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "He watched the snail in the water instead.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Leo bent down beside the upside-down pot. No snail on the paving. He watched the snail in the water instead."
+    },
+    {
+      "pageId": "p5",
+      "beatId": "b5",
+      "locationId": "garden-path",
+      "charactersPresent": [
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Showing yesterday on the same garden path."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Lying still beside the puddle; its yesterday image is falling."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+          }
+        ]
+      },
+      "action": "Leo leans closer and touches the picture. Rings spread across the snail and pot.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Its yesterday picture is obscured by spreading ripples."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Lying still beside the puddle; its yesterday image is falling."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+          }
+        ]
+      },
+      "emotion": "Surprise",
+      "entitiesRequired": [
+        "yesterday-puddle",
+        "broad-leaf",
+        "red-flowerpot",
+        "striped-snail"
+      ],
+      "visualFocus": "Leo's fingertip and the fractured snail image.",
+      "shotType": "action",
+      "compositionIntent": "Let expanding rings visibly break the useful picture.",
+      "textPurpose": "Make his first search method obscure the clue.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Showing yesterday on the same garden path."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Lying still beside the puddle; its yesterday image is falling."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Its yesterday picture is obscured by spreading ripples."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Lying still beside the puddle; its yesterday image is falling."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Leo leaned closer and touched the picture.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Rings spread over the snail, then over the pot.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Leo leaned closer and touched the picture. Rings spread over the snail, then over the pot."
+    },
+    {
+      "pageId": "p6",
+      "beatId": "b6",
+      "locationId": "garden-path",
+      "charactersPresent": [
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Its yesterday picture is obscured by spreading ripples."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Lying still beside the puddle; its yesterday image is falling."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+          }
+        ]
+      },
+      "action": "Leo pulls his hand away. Wind keeps the water wrinkled, hiding the snail.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Its yesterday picture is obscured by spreading ripples."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Lying still beside the puddle; its yesterday image is falling."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+          }
+        ]
+      },
+      "emotion": "Surprise",
+      "entitiesRequired": [
+        "yesterday-puddle",
+        "broad-leaf",
+        "red-flowerpot",
+        "striped-snail"
+      ],
+      "visualFocus": "Fine wind ripples replacing the larger finger-made rings.",
+      "shotType": "reaction",
+      "compositionIntent": "Show his hovering hand above a picture that remains unreadable.",
+      "textPurpose": "Require a different way to see the clue.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Its yesterday picture is obscured by spreading ripples."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Lying still beside the puddle; its yesterday image is falling."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Its yesterday picture is obscured by spreading ripples."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Lying still beside the puddle; its yesterday image is falling."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Leo snatched his hand back.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "But the wind kept wrinkling the water.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "He leaned sideways, searching for the snail.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Leo snatched his hand back. But the wind kept wrinkling the water. He leaned sideways, searching for the snail."
+    },
+    {
+      "pageId": "p7",
+      "beatId": "b7",
+      "locationId": "garden-path",
+      "charactersPresent": [
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Its yesterday picture is obscured by spreading ripples."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Lying still beside the puddle; its yesterday image is falling."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+          }
+        ]
+      },
+      "action": "Leo crouches between the wind and the puddle. Behind his jumper, the picture grows smooth.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Sheltered by Leo, with its yesterday picture clear again."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Lying still beside the puddle; its yesterday image is falling."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+          }
+        ]
+      },
+      "emotion": "Surprise",
+      "entitiesRequired": [
+        "yesterday-puddle",
+        "broad-leaf",
+        "red-flowerpot",
+        "striped-snail"
+      ],
+      "visualFocus": "The clear patch forming behind Leo.",
+      "shotType": "low",
+      "compositionIntent": "Use Leo's green jumper as a windbreak above the sheltered water.",
+      "textPurpose": "Let stillness and observation restore the search.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Its yesterday picture is obscured by spreading ripples."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Lying still beside the puddle; its yesterday image is falling."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Sheltered by Leo, with its yesterday picture clear again."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Lying still beside the puddle; its yesterday image is falling."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Leo crouched with his back to the wind.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Behind his jumper, the water smoothed.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "There was the snail again.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Leo crouched with his back to the wind. Behind his jumper, the water smoothed. There was the snail again."
+    },
+    {
+      "pageId": "p8",
+      "beatId": "b8",
+      "locationId": "garden-path",
+      "charactersPresent": [
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Sheltered by Leo, with its yesterday picture clear again."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Lying still beside the puddle; its yesterday image is falling."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+          }
+        ]
+      },
+      "action": "Yesterday's Leo turns the pot over in the picture. Its rim covers the snail without him noticing.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Sheltered by Leo, with its yesterday picture clear again."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Lying still beside the puddle; its yesterday image is falling."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+          }
+        ]
+      },
+      "emotion": "Surprise",
+      "entitiesRequired": [
+        "yesterday-puddle",
+        "broad-leaf",
+        "red-flowerpot",
+        "striped-snail"
+      ],
+      "visualFocus": "The small shell disappearing under the red pot.",
+      "shotType": "reveal",
+      "compositionIntent": "Reveal the snail beneath the descending rim in the puddle.",
+      "textPurpose": "Answer where the snail went and identify Leo's remedy.",
+      "pageTurnHook": "Is the snail still underneath?",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Sheltered by Leo, with its yesterday picture clear again."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Lying still beside the puddle; its yesterday image is falling."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Sheltered by Leo, with its yesterday picture clear again."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Lying still beside the puddle; its yesterday image is falling."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "In the picture, yesterday's Leo turned the pot upside down.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The rim came down over the snail.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "That Leo never looked underneath.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "In the picture, yesterday's Leo turned the pot upside down. The rim came down over the snail. That Leo never looked underneath."
+    },
+    {
+      "pageId": "p9",
+      "beatId": "b9",
+      "locationId": "garden-path",
+      "charactersPresent": [
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Sheltered by Leo, with its yesterday picture clear again."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Lying still beside the puddle; its yesterday image is falling."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+          }
+        ]
+      },
+      "action": "Leo carries the damp leaf to the pot. He lays it beside the rim for the snail.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Sheltered by Leo, with its yesterday picture clear again."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Laid damp-side up beside the pot's rim."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+          }
+        ]
+      },
+      "emotion": "Surprise",
+      "entitiesRequired": [
+        "yesterday-puddle",
+        "broad-leaf",
+        "red-flowerpot",
+        "striped-snail"
+      ],
+      "visualFocus": "Leo's open hand lowering the familiar yellow-tipped leaf.",
+      "shotType": "medium",
+      "compositionIntent": "Show the leaf placed where the hidden snail can reach it.",
+      "textPurpose": "Prepare a gentle place for the snail to emerge.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Sheltered by Leo, with its yesterday picture clear again."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Lying still beside the puddle; its yesterday image is falling."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Sheltered by Leo, with its yesterday picture clear again."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Laid damp-side up beside the pot's rim."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Leo carried the leaf to the pot.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "He laid it damp-side up beside the rim.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Leo carried the leaf to the pot. He laid it damp-side up beside the rim."
+    },
+    {
+      "pageId": "p10",
+      "beatId": "b10",
+      "locationId": "garden-path",
+      "charactersPresent": [
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Sheltered by Leo, with its yesterday picture clear again."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Laid damp-side up beside the pot's rim."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+          }
+        ]
+      },
+      "action": "Leo lifts the pot where yesterday's picture showed the snail. He finds it alive; it crawls onto the leaf.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [
+              "red-flowerpot"
+            ],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Sheltered by Leo, with its yesterday picture clear again."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Laid damp-side up beside the pot's rim."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": "leo",
+            "locationId": "garden-path",
+            "state": "Held clear of the paving with both hands."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Freed from beneath the pot and crawling onto the damp leaf."
+          }
+        ]
+      },
+      "emotion": "Surprise",
+      "entitiesRequired": [
+        "yesterday-puddle",
+        "broad-leaf",
+        "red-flowerpot",
+        "striped-snail"
+      ],
+      "visualFocus": "The real snail emerging into daylight.",
+      "shotType": "close",
+      "compositionIntent": "Frame the lifted rim, revealed shell, and waiting leaf together.",
+      "textPurpose": "Resolve the search using the puddle's earlier clue.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Sheltered by Leo, with its yesterday picture clear again."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Laid damp-side up beside the pot's rim."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Upside down near the puddle; upright in the yesterday picture."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Visible in yesterday's picture, approaching the upright pot; currently hidden beneath that pot."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [
+              "red-flowerpot"
+            ],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Sheltered by Leo, with its yesterday picture clear again."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Laid damp-side up beside the pot's rim."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": "leo",
+            "locationId": "garden-path",
+            "state": "Held clear of the paving with both hands."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Freed from beneath the pot and crawling onto the damp leaf."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Leo lifted the pot with both hands.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Underneath, the striped snail stretched out.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Slowly, it crawled onto the damp leaf.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Leo lifted the pot with both hands. Underneath, the striped snail stretched out. Slowly, it crawled onto the damp leaf."
+    },
+    {
+      "pageId": "p11",
+      "beatId": "b11",
+      "locationId": "garden-path",
+      "charactersPresent": [
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [
+              "red-flowerpot"
+            ],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Sheltered by Leo, with its yesterday picture clear again."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Laid damp-side up beside the pot's rim."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": "leo",
+            "locationId": "garden-path",
+            "state": "Held clear of the paving with both hands."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Freed from beneath the pot and crawling onto the damp leaf."
+          }
+        ]
+      },
+      "action": "Leo checks underneath before setting the pot upright. Beside the puddle, he leaves the snail plenty of room.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Sheltered by Leo, with its yesterday picture clear again."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Laid damp-side up beside the pot's rim."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Standing upright on paving Leo has checked."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Freed from beneath the pot and crawling onto the damp leaf."
+          }
+        ]
+      },
+      "emotion": "Surprise",
+      "entitiesRequired": [
+        "yesterday-puddle",
+        "broad-leaf",
+        "red-flowerpot",
+        "striped-snail"
+      ],
+      "visualFocus": "Leo's shoes set well apart from the snail's path.",
+      "shotType": "vignette",
+      "compositionIntent": "End with open space around the snail and the safely upright pot.",
+      "textPurpose": "Show his changed habit without restating the rescue.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [
+              "red-flowerpot"
+            ],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Sheltered by Leo, with its yesterday picture clear again."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Laid damp-side up beside the pot's rim."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": "leo",
+            "locationId": "garden-path",
+            "state": "Held clear of the paving with both hands."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Freed from beneath the pot and crawling onto the damp leaf."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "leo",
+            "locationId": "garden-path",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "yesterday-puddle",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Sheltered by Leo, with its yesterday picture clear again."
+          },
+          {
+            "entityId": "broad-leaf",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Laid damp-side up beside the pot's rim."
+          },
+          {
+            "entityId": "red-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Standing upright on paving Leo has checked."
+          },
+          {
+            "entityId": "striped-snail",
+            "ownerCharacterId": null,
+            "locationId": "garden-path",
+            "state": "Freed from beneath the pot and crawling onto the damp leaf."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Leo checked underneath, then set the pot upright.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "He stepped back from the puddle.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The snail crept across the damp leaf.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Leo checked underneath, then set the pot upright. He stepped back from the puddle. The snail crept across the damp leaf."
+    }
+  ],
+  "imageCalls": 0,
+  "imageDraws": 0,
+  "imageReason": "images_disabled",
+  "imageUsd": 0,
+  "id": "f",
+  "listedUsd": 0.053436,
+  "guardUsd": 0.106872
+}

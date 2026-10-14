@@ -1,5 +1,5 @@
-/* Visual story-making journey. Writes into the existing storybook draft.
-   Surprise me does not start generation. Creation is not a book. */
+/* Visual story-making journey. Create sends the choices to Book V2.
+   Surprise me does not start generation. A local preview is not a finished book. */
 (function () {
   var CREW = [
     ["wondii-maya", "Maya"],
@@ -80,10 +80,12 @@
     place: "library",
     idea: "",
     length: "medium",
+    ageBand: knownAge(),
     notice: "",
     sceneKind: "place",
     justJoined: "",
-    moreIdeas: false
+    moreIdeas: false,
+    pendingStar: ""
   };
   var library = { mine: [], shared: [], mineState: "idle", sharedState: "idle" };
   var portraits = {};
@@ -148,6 +150,34 @@
       if (match) return match[0];
     }
     return "wondii-maya";
+  }
+
+  function knownAge() {
+    var bands = { "4-6": 1, "7-9": 1, "10-12": 1 };
+    var found = "";
+    function take(value) {
+      if (found) return;
+      var band = String(value || "");
+      if (bands[band]) found = band;
+    }
+    try {
+      var account = window.WondiiAccount;
+      var profile = account && (account.profile || account.child || null);
+      if (profile) {
+        take(profile.ageBand);
+        take(profile.age_band);
+      }
+    } catch (eAge) {}
+    try {
+      var core = window.KidsCore;
+      var kid = core && core.profile;
+      if (typeof kid === "function") kid = kid();
+      if (kid) {
+        take(kid.ageBand);
+        take(kid.age_band);
+      }
+    } catch (eKid) {}
+    return found;
   }
 
   function applyLinkedStar() {
@@ -358,7 +388,8 @@
     if (state.justJoined === who[0]) fig.classList.add("is-join");
     var img = document.createElement("img");
     img.alt = "";
-    img.src = portraitSrc(who[0]) || "images/characters/crew/wondii-maya.jpg";
+    var picture = portraitSrc(who[0]);
+    if (picture) img.src = picture;
     img.setAttribute("data-art", who[0]);
     fig.appendChild(img);
     var cap = document.createElement("figcaption");
@@ -461,6 +492,7 @@
         });
         rememberRows(library.mine);
         library.mineState = "ready";
+        applyPendingStar();
         if (step === "cast") paint();
       });
       return;
@@ -490,40 +522,85 @@
       });
       rememberRows(library.mine);
       library.mineState = "ready";
+      applyPendingStar();
       if (step === "cast") paint();
     });
+  }
+
+  function shareRowId(value) {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(value || ""));
   }
 
   function requestShared() {
     if (library.sharedState === "loading" || library.sharedState === "ready" || library.sharedState === "signed-out") return;
     var lib = window.ChildLibrary;
-    if (!lib || !lib.postboxList || !lib.giftArt) {
+    if (!lib || !lib.isChildSession || !lib.isChildSession() || !lib.listSharedCharacters) {
       library.sharedState = "signed-out";
+      if (state.pendingStar && shareRowId(state.pendingStar) && step === "cast") paint();
       return;
     }
     library.sharedState = "loading";
-    lib.postboxList(function (data) {
-      if (!data || data.allowed === false) {
+    lib.listSharedCharacters(function (err, rows) {
+      if (err) {
         library.shared = [];
-        library.sharedState = "signed-out";
+        library.sharedState = String(err && err.message) === "not_child" ? "signed-out" : "error";
         if (step === "cast") paint();
         return;
       }
       library.shared = [];
-      (data.received || []).forEach(function (row) {
-        if (!row || row.kind !== "character" || row.status !== "accepted") return;
-        if (!/^[0-9a-f-]{36}$/i.test(String(row.senderId || "")) || !/^[A-Za-z0-9_-]{1,80}$/.test(String(row.sourceId || ""))) return;
-        var token = "shared:" + row.senderId + ":" + row.sourceId;
-        var name = String(row.title || "Friend").trim().slice(0, 40) || "Friend";
-        library.shared.push([token, name]);
-        lib.giftArt(row.senderId, row.sourceId, function (err, url) {
-          if (!err) storePortrait(token, url);
-        });
+      (rows || []).forEach(function (row) {
+        if (!row || !shareRowId(row.id)) return;
+        var id = String(row.id);
+        var name = String(row.title || "").trim().slice(0, 40);
+        if (!name) return;
+        library.shared.push([id, name]);
+        if (lib.localArtUrl) {
+          lib.localArtUrl("shared/" + id + "/character.png", function (artErr, url) {
+            if (!artErr) storePortrait(id, url);
+          });
+        }
       });
       rememberRows(library.shared);
       library.sharedState = "ready";
+      applyPendingStar();
       if (step === "cast") paint();
     });
+  }
+
+  function takePendingStar() {
+    var raw = "";
+    try {
+      raw = sessionStorage.getItem("wondii-journey-star") || "";
+      if (raw) sessionStorage.removeItem("wondii-journey-star");
+    } catch (ePending) {
+      return;
+    }
+    raw = String(raw).trim();
+    if (!raw) return;
+    if (raw.indexOf("builtin:") === 0) raw = raw.slice(8);
+    castTouched = true;
+    var crew = CREW.filter(function (item) {
+      return item[0] === raw || item[0] === "wondii-" + raw;
+    })[0];
+    if (crew) {
+      state.ids = [crew[0]];
+      state.pendingStar = "";
+      return;
+    }
+    state.pendingStar = raw;
+    state.ids = [];
+  }
+
+  function applyPendingStar() {
+    if (!state.pendingStar) return;
+    var raw = state.pendingStar;
+    var lists = library.mine.concat(library.shared);
+    var row = lists.filter(function (item) { return item[0] === raw; })[0];
+    if (!row) return;
+    state.ids = [row[0]];
+    state.pendingStar = "";
+    castTouched = true;
+    if (step === "cast") paint();
   }
 
   function libraryNote(which) {
@@ -633,7 +710,13 @@
     root.appendChild(meadow);
     root.appendChild(picker);
     stage.appendChild(root);
-    setStatus(state.notice || (nextBtn.disabled ? "Choose a star before you continue." : ""));
+    var pendingNote = "";
+    if (state.pendingStar && !state.ids.length) {
+      pendingNote = library.mineState === "loading" || library.sharedState === "loading"
+        ? "That character is still opening. Choose someone here if they do not appear."
+        : "That character could not be opened here. Choose someone from the crew or your characters.";
+    }
+    setStatus(pendingNote || state.notice || (nextBtn.disabled ? "Choose a star before you continue." : ""));
     state.justJoined = "";
   }
 
@@ -848,7 +931,7 @@
     crumbs("Your book");
     backBtn.textContent = "Edit";
     nextBtn.textContent = "Create my story";
-    nextBtn.disabled = false;
+    nextBtn.disabled = !state.ageBand;
     var dock = document.createElement("div");
     dock.className = "sj-dock sj-preview";
     dock.appendChild(Object.assign(document.createElement("p"), {
@@ -900,13 +983,33 @@
     var lengthLabel = state.length === "short" ? "Short" : state.length === "long" ? "Longer" : "Storybook";
     page.appendChild(Object.assign(document.createElement("p"), {
       className: "sj-ready__length",
-      textContent: lengthLabel + " · 12 pages"
+      textContent: lengthLabel
     }));
+    var ages = document.createElement("div");
+    ages.className = "sj-lengths";
+    [
+      ["4-6", "Ages 4–6", "Year 1 writing"],
+      ["7-9", "Ages 7–9", "Ages 7–9 writing"],
+      ["10-12", "Ages 10–12", "Year 6 writing"]
+    ].forEach(function (row) {
+      var button = document.createElement("button");
+      button.type = "button";
+      button.className = "sj-length" + (state.ageBand === row[0] ? " is-on" : "");
+      button.setAttribute("aria-pressed", state.ageBand === row[0] ? "true" : "false");
+      button.appendChild(document.createElement("strong")).textContent = row[1];
+      button.appendChild(document.createElement("span")).textContent = row[2];
+      button.addEventListener("click", function () {
+        state.ageBand = row[0];
+        paint();
+      });
+      ages.appendChild(button);
+    });
+    page.appendChild(ages);
     book.appendChild(page);
     dock.appendChild(book);
     dock.appendChild(Object.assign(document.createElement("p"), {
       className: "sj-whisper",
-      textContent: "The real book appears after it is made. Create my story uses your story allowance. Nothing is sent until you press it."
+      textContent: "Create my story checks the plan. It does not use a story allowance, and it does not draw pictures."
     }));
     stage.appendChild(stageShell(dock));
     setStatus("Nothing has been created yet.");
@@ -957,57 +1060,125 @@
       go("summary");
       return;
     }
-    if (!window.WondiiStoryDraft || !window.WondiiStoryDraft.apply) {
-      setStatus("This page cannot start a book yet. Your choices are still here.");
+    if (!state.ageBand) {
+      setStatus("Choose an age band before the story can be planned.");
+      return;
+    }
+    var members = [];
+    state.ids.forEach(function (id) {
+      var row = person(id);
+      if (!row) return;
+      members.push({ id: id, name: row[1], source: memberSource(id) });
+    });
+    if (!members.length || members.length !== state.ids.length) {
+      setStatus("Choose each person again so nobody is left out of the story.");
       return;
     }
     nextBtn.disabled = true;
-    setStatus("Starting your book…");
-    var idea = state.idea.trim();
-    if (!idea) state.idea = "Maybe they discover a secret door in a magical forest.";
-    window.WondiiStoryDraft.apply({
-      name: star()[1],
-      plot: plotText(),
-      place: state.place,
-      length: state.length,
-      portrait: "images/characters/crew/" + star()[0] + ".jpg"
-    }).then(function () {
-      if (!idea) state.idea = "";
-      window.WondiiStoryDraft.create();
-      watchGeneration();
-    }).catch(function () {
-      if (!idea) state.idea = "";
+    setStatus("Checking the story plan…");
+    var endpoint = bookV2Url();
+    if (!endpoint) {
       nextBtn.disabled = false;
-      setStatus("The book was not started. Your choices are still here.");
+      setStatus("Book V2 is not set up on this site yet. Nothing was saved.");
+      return;
+    }
+    fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        members: members,
+        savedReferences: savedArt(members),
+        sharedCharacters: sharedArt(members),
+        idea: state.idea.trim(),
+        place: state.place,
+        length: state.length,
+        theme: state.theme,
+        familyAgeBand: state.ageBand,
+        creationKey: creationKey()
+      })
+    }).then(function (response) {
+      return response.json().then(function (body) {
+        return { ok: response.ok, body: body || {} };
+      });
+    }).then(function (result) {
+      var body = result.body || {};
+      if (!result.ok || !body.ok) {
+        nextBtn.disabled = false;
+        setStatus(body.message || "The story plan could not start. Nothing was saved.");
+        return;
+      }
+      if (body.saved && body.book && body.book.id) {
+        window.location.assign("book-prototype/?book=" + encodeURIComponent(body.book.id));
+        return;
+      }
+      if (!body.simulated || !body.preview || body.generated) {
+        nextBtn.disabled = false;
+        setStatus("Book V2 did not return a local preview. Nothing was saved.");
+        return;
+      }
+      try {
+        sessionStorage.setItem("wondii-reader-fixture", JSON.stringify({
+          userId: "local-fixture",
+          books: [body.preview]
+        }));
+      } catch (eStore) {
+        nextBtn.disabled = false;
+        setStatus("The preview could not be opened on this device. Nothing was saved.");
+        return;
+      }
+      setStatus(body.message || "Opening the local preview.");
+      window.location.assign("book-prototype/?book=" + encodeURIComponent(body.preview.id || "book-v2-local-preview"));
+    }).catch(function () {
+      nextBtn.disabled = false;
+      var local = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+      setStatus(local
+        ? "Book V2 is not running on this computer. Nothing was saved."
+        : "Book V2 is not set up on this site yet. Nothing was saved.");
     });
   });
 
-  function watchGeneration() {
-    var errorNode = document.getElementById("sbError");
-    var book = document.getElementById("sbBook");
-    var busy = document.getElementById("sbBusy");
-    var waits = 0;
-    var timer = window.setInterval(function () {
-      waits += 1;
-      var failed = errorNode && !errorNode.hidden && errorNode.textContent.trim();
-      var opened = book && !book.hidden && !book.classList.contains("is-hidden");
-      var stillBusy = busy && !busy.hidden && !busy.classList.contains("is-hidden");
-      if (opened) {
-        window.clearInterval(timer);
-        return;
-      }
-      if (failed && !stillBusy) {
-        window.clearInterval(timer);
-        nextBtn.disabled = false;
-        setStatus(errorNode.textContent.trim());
-        return;
-      }
-      if (waits > 240) {
-        window.clearInterval(timer);
-        nextBtn.disabled = false;
-        setStatus("The book was not started. Your choices are still here.");
-      }
-    }, 250);
+  function memberSource(id) {
+    if (CREW.some(function (row) { return row[0] === id; })) return "wondii-crew";
+    if (library.shared.some(function (row) { return row[0] === id; })) return "shared";
+    if (library.mine.some(function (row) { return row[0] === id; })) return "saved";
+    return "";
+  }
+
+  function privateArt(id) {
+    var picture = portraits[id] || "";
+    if (!picture || /^https?:/i.test(picture) || picture.indexOf("data:") === 0) return "";
+    return picture;
+  }
+
+  function savedArt(members) {
+    return members.filter(function (member) { return member.source === "saved" && privateArt(member.id); }).map(function (member) {
+      return { id: member.id, name: member.name, ownerType: "family", ownerId: "session", reference: privateArt(member.id) };
+    });
+  }
+
+  function sharedArt(members) {
+    return members.filter(function (member) { return member.source === "shared" && privateArt(member.id); }).map(function (member) {
+      return { id: member.id, name: member.name, shareId: member.id, reference: privateArt(member.id) };
+    });
+  }
+
+  function creationKey() {
+    if (state.creationKey) return state.creationKey;
+    var alphabet = "abcdefghijklmnopqrstuvwxyz0123456789";
+    var out = "book";
+    var i;
+    for (i = 0; i < 16; i++) out += alphabet.charAt((Math.random() * alphabet.length) | 0);
+    state.creationKey = out;
+    return out;
+  }
+
+  function bookV2Url() {
+    var host = window.location.hostname;
+    if (host === "localhost" || host === "127.0.0.1") return "http://127.0.0.1:8796/v1/book";
+    var config = window.SCORE_CONFIG || window.SCORE_SYNC || null;
+    var base = config && config.supabaseUrl ? String(config.supabaseUrl).replace(/\/$/, "") : "";
+    if (!base) return "";
+    return base + "/functions/v1/book-v2";
   }
 
   var tomeBtn = document.getElementById("sjTome");
@@ -1080,6 +1251,23 @@
     });
   }
 
+  takePendingStar();
+  try {
+    var orgSeed = sessionStorage.getItem("wondii-org-starter");
+    if (orgSeed) {
+      state.idea = String(orgSeed).slice(0, 500);
+      sessionStorage.removeItem("wondii-org-starter");
+    }
+  } catch (eSeed) {}
+  if (state.pendingStar && shareRowId(state.pendingStar)) {
+    state.tab = "shared";
+    requestShared();
+    openTheBook();
+  } else if (state.pendingStar) {
+    state.tab = "mine";
+    requestMine();
+    requestShared();
+  }
   applyScene(PLACE_ART.library);
   dressWelcome();
 

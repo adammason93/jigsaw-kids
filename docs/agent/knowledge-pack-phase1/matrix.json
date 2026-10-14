@@ -1,0 +1,3580 @@
+{
+  "generatedAt": "2026-10-05T14:32:57.222Z",
+  "liveModel": false,
+  "results": [
+    {
+      "id": "y3-dinosaurs",
+      "source": "production-equivalent",
+      "liveModel": false,
+      "liveModelReason": "OPENAI_API_KEY is not set. No model call was made. teacherIntent and rawPack are scripted inputs to the real admission code.",
+      "request": "Year 3 science. Teach the class about dinosaurs.",
+      "teacherIntent": {
+        "ok": true,
+        "yearGroup": "Year 3",
+        "subject": "Science",
+        "subjectConfidence": "explicit",
+        "learningGoal": "Pupils understand that fossils show what dinosaurs were like.",
+        "requiredEvidence": "A pupil says what a fossil can show about a dinosaur, including what it ate.",
+        "focusConcepts": [
+          "fossils",
+          "dinosaurs"
+        ],
+        "priorKnowledge": [],
+        "exclusions": [],
+        "preferences": [],
+        "durationMinutes": 15
+      },
+      "rawPack": {
+        "status": "usable",
+        "claims": [
+          {
+            "text": "Dinosaurs were animals that lived a very long time ago.",
+            "depth": "concrete",
+            "confidence": "high",
+            "provenance": "model",
+            "factuallyVerified": false,
+            "ageFit": {
+              "from": 1,
+              "to": 6
+            }
+          },
+          {
+            "text": "A fossil is a trace of a living thing kept in rock.",
+            "depth": "concrete",
+            "kind": "definition",
+            "confidence": "high",
+            "provenance": "model",
+            "factuallyVerified": false,
+            "ageFit": {
+              "from": 1,
+              "to": 6
+            }
+          },
+          {
+            "text": "Sharp fossil teeth cut meat, so that the fossil shows a meat-eating dinosaur.",
+            "depth": "mechanism",
+            "kind": "mechanism",
+            "confidence": "high",
+            "provenance": "model",
+            "factuallyVerified": false,
+            "ageFit": {
+              "from": 3,
+              "to": 6
+            }
+          },
+          {
+            "text": "A dinosaur egg is a round fossil with a shell.",
+            "depth": "concrete",
+            "confidence": "high",
+            "provenance": "model",
+            "factuallyVerified": false,
+            "ageFit": {
+              "from": 1,
+              "to": 6
+            }
+          },
+          {
+            "text": "The shell kept the baby inside, because a thin shell would have broken.",
+            "depth": "mechanism",
+            "kind": "mechanism",
+            "confidence": "high",
+            "provenance": "model",
+            "factuallyVerified": false,
+            "ageFit": {
+              "from": 3,
+              "to": 6
+            }
+          },
+          {
+            "text": "Some dinosaur bones are hollow.",
+            "depth": "concrete",
+            "confidence": "medium",
+            "provenance": "model",
+            "factuallyVerified": false,
+            "ageFit": {
+              "from": 2,
+              "to": 6
+            }
+          },
+          {
+            "text": "Hollow bones made the body lighter, so that a large dinosaur could still move.",
+            "depth": "mechanism",
+            "kind": "mechanism",
+            "confidence": "medium",
+            "provenance": "model",
+            "factuallyVerified": false,
+            "ageFit": {
+              "from": 3,
+              "to": 6
+            }
+          },
+          {
+            "text": "Fossils, tooth shape and the rock layer together show how a dinosaur lived.",
+            "depth": "system",
+            "confidence": "medium",
+            "provenance": "model",
+            "factuallyVerified": false,
+            "ageFit": {
+              "from": 5,
+              "to": 6
+            }
+          },
+          {
+            "text": "Some dinosaurs could breathe fire when they were angry.",
+            "depth": "concrete",
+            "confidence": "low",
+            "provenance": "retrieved",
+            "factuallyVerified": true,
+            "ageFit": {
+              "from": 1,
+              "to": 6
+            }
+          }
+        ]
+      },
+      "admittedPack": {
+        "packId": "kp_1ii45lt",
+        "status": "usable",
+        "statusReason": "Enough claims to select from. Every claim is still unverified.",
+        "modelStatus": "usable",
+        "falsePremise": "",
+        "provenanceSummary": "Phase 1: no claim is factually verified. Model-originated claims are unverified. Teacher material is not treated as truth. Retrieved, curated, and curriculum origins are not available in this phase.",
+        "verificationOverrides": 1,
+        "claimCount": 9,
+        "claims": [
+          {
+            "claimId": "c304157",
+            "text": "Dinosaurs were animals that lived a very long time ago.",
+            "kind": "fact",
+            "depth": "concrete",
+            "confidence": "high",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 1,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          },
+          {
+            "claimId": "cwbnalp",
+            "text": "A fossil is a trace of a living thing kept in rock.",
+            "kind": "definition",
+            "depth": "concrete",
+            "confidence": "high",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 1,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          },
+          {
+            "claimId": "c6y8s2r",
+            "text": "Sharp fossil teeth cut meat, so that the fossil shows a meat-eating dinosaur.",
+            "kind": "mechanism",
+            "depth": "mechanism",
+            "confidence": "high",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 3,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          },
+          {
+            "claimId": "c1ruxdu8",
+            "text": "A dinosaur egg is a round fossil with a shell.",
+            "kind": "fact",
+            "depth": "concrete",
+            "confidence": "high",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 1,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          },
+          {
+            "claimId": "chgfz4n",
+            "text": "The shell kept the baby inside, because a thin shell would have broken.",
+            "kind": "mechanism",
+            "depth": "mechanism",
+            "confidence": "high",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 3,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          },
+          {
+            "claimId": "cuh45ro",
+            "text": "Some dinosaur bones are hollow.",
+            "kind": "fact",
+            "depth": "concrete",
+            "confidence": "medium",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 2,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          },
+          {
+            "claimId": "c1aqrfa4",
+            "text": "Hollow bones made the body lighter, so that a large dinosaur could still move.",
+            "kind": "mechanism",
+            "depth": "mechanism",
+            "confidence": "medium",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 3,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          },
+          {
+            "claimId": "cljd3le",
+            "text": "Fossils, tooth shape and the rock layer together show how a dinosaur lived.",
+            "kind": "fact",
+            "depth": "system",
+            "confidence": "medium",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 5,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          },
+          {
+            "claimId": "c1a7mx0t",
+            "text": "Some dinosaurs could breathe fire when they were angry.",
+            "kind": "fact",
+            "depth": "concrete",
+            "confidence": "low",
+            "provenance": "model",
+            "provenanceNote": "downgraded from retrieved: phase 1 has no external source; model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 1,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          }
+        ],
+        "mechanisms": [
+          {
+            "claimId": "c6y8s2r",
+            "text": "Sharp fossil teeth cut meat, so that the fossil shows a meat-eating dinosaur."
+          },
+          {
+            "claimId": "chgfz4n",
+            "text": "The shell kept the baby inside, because a thin shell would have broken."
+          },
+          {
+            "claimId": "c1aqrfa4",
+            "text": "Hollow bones made the body lighter, so that a large dinosaur could still move."
+          }
+        ],
+        "concepts": [],
+        "vocabulary": [],
+        "misconceptions": [],
+        "openQuestions": [],
+        "rejectedClaims": [],
+        "strippedFields": [],
+        "selection": {
+          "status": "ready",
+          "reason": "Year 3 selects concrete claims and mechanisms. System claims stay in the pack.",
+          "depthMode": "mechanism",
+          "year": 3,
+          "claimIds": [
+            "c1ruxdu8",
+            "c304157",
+            "cuh45ro",
+            "cwbnalp",
+            "c1aqrfa4",
+            "c6y8s2r",
+            "chgfz4n"
+          ],
+          "heldBack": [
+            {
+              "claimId": "cljd3le",
+              "depth": "system",
+              "reason": "outside age fit"
+            },
+            {
+              "claimId": "c1a7mx0t",
+              "depth": "concrete",
+              "reason": "low confidence"
+            }
+          ]
+        }
+      },
+      "claimIds": [
+        "c304157",
+        "cwbnalp",
+        "c6y8s2r",
+        "c1ruxdu8",
+        "chgfz4n",
+        "cuh45ro",
+        "c1aqrfa4",
+        "cljd3le",
+        "c1a7mx0t"
+      ],
+      "selectedClaimIds": [
+        "c1ruxdu8",
+        "c304157",
+        "cuh45ro",
+        "cwbnalp",
+        "c1aqrfa4",
+        "c6y8s2r",
+        "chgfz4n"
+      ],
+      "yearDepth": {
+        "year": 3,
+        "depthMode": "mechanism",
+        "status": "ready",
+        "reason": "Year 3 selects concrete claims and mechanisms. System claims stay in the pack.",
+        "heldBack": [
+          {
+            "claimId": "cljd3le",
+            "depth": "system",
+            "reason": "outside age fit"
+          },
+          {
+            "claimId": "c1a7mx0t",
+            "depth": "concrete",
+            "reason": "low confidence"
+          }
+        ]
+      },
+      "samePackYears": null,
+      "learningMap": [
+        {
+          "id": "k1",
+          "knowledge": "Dinosaurs were animals that lived a very long time ago.",
+          "role": "foundation",
+          "claimIds": [
+            "c304157"
+          ],
+          "dependsOn": []
+        },
+        {
+          "id": "k2",
+          "knowledge": "A fossil is a trace of a living thing kept in rock.",
+          "role": "definition",
+          "claimIds": [
+            "cwbnalp"
+          ],
+          "dependsOn": [
+            "k1"
+          ]
+        },
+        {
+          "id": "k3",
+          "knowledge": "Sharp fossil teeth cut meat, so that the fossil shows a meat-eating dinosaur.",
+          "role": "mechanism",
+          "claimIds": [
+            "c6y8s2r"
+          ],
+          "dependsOn": [
+            "k2"
+          ]
+        },
+        {
+          "id": "k4",
+          "knowledge": "A dinosaur egg is a round fossil with a shell.",
+          "role": "feature",
+          "claimIds": [
+            "c1ruxdu8"
+          ],
+          "dependsOn": [
+            "k1"
+          ]
+        },
+        {
+          "id": "k5",
+          "knowledge": "The shell kept the baby inside, because a thin shell would have broken.",
+          "role": "mechanism",
+          "claimIds": [
+            "chgfz4n"
+          ],
+          "dependsOn": [
+            "k4"
+          ]
+        },
+        {
+          "id": "k6",
+          "knowledge": "Some dinosaur bones are hollow.",
+          "role": "feature",
+          "claimIds": [
+            "cuh45ro"
+          ],
+          "dependsOn": [
+            "k1"
+          ]
+        }
+      ],
+      "boundRejections": [
+        {
+          "knowledge": "Hollow bones made the body lighter, so that a large dinosaur could still move.",
+          "reason": "restates p3"
+        },
+        {
+          "knowledge": "Some dinosaurs could breathe fire when they were angry.",
+          "reason": "invented fact outside the knowledge pack"
+        }
+      ],
+      "planOk": true,
+      "planIssues": [],
+      "mapRejected": [
+        {
+          "knowledge": "Hollow bones made the body lighter, so that a large dinosaur could still move.",
+          "reason": "restates p3"
+        },
+        {
+          "knowledge": "Some dinosaurs could breathe fire when they were angry.",
+          "reason": "invented fact outside the knowledge pack"
+        }
+      ],
+      "knowledgeGrounding": {
+        "packId": "kp_1ii45lt",
+        "status": "usable",
+        "provenanceSummary": "Phase 1: no claim is factually verified. Model-originated claims are unverified. Teacher material is not treated as truth. Retrieved, curated, and curriculum origins are not available in this phase.",
+        "premiseCorrected": false,
+        "depthMode": "mechanism",
+        "depthReason": "Year 3 selects concrete claims and mechanisms. System claims stay in the pack.",
+        "selectedClaimIds": [
+          "c1ruxdu8",
+          "c304157",
+          "cuh45ro",
+          "cwbnalp",
+          "c1aqrfa4",
+          "c6y8s2r",
+          "chgfz4n"
+        ],
+        "points": [
+          {
+            "mapId": "k1",
+            "claimIds": [
+              "c304157"
+            ],
+            "provenance": [
+              "model"
+            ]
+          },
+          {
+            "mapId": "k2",
+            "claimIds": [
+              "cwbnalp"
+            ],
+            "provenance": [
+              "model"
+            ]
+          },
+          {
+            "mapId": "k3",
+            "claimIds": [
+              "c6y8s2r"
+            ],
+            "provenance": [
+              "model"
+            ]
+          },
+          {
+            "mapId": "k4",
+            "claimIds": [
+              "c1ruxdu8"
+            ],
+            "provenance": [
+              "model"
+            ]
+          },
+          {
+            "mapId": "k5",
+            "claimIds": [
+              "chgfz4n"
+            ],
+            "provenance": [
+              "model"
+            ]
+          },
+          {
+            "mapId": "k6",
+            "claimIds": [
+              "cuh45ro"
+            ],
+            "provenance": [
+              "model"
+            ]
+          }
+        ]
+      },
+      "trace": {
+        "packId": "kp_1ii45lt",
+        "packStatus": "usable",
+        "provenanceSummary": "Phase 1: no claim is factually verified. Model-originated claims are unverified. Teacher material is not treated as truth. Retrieved, curated, and curriculum origins are not available in this phase.",
+        "depthMode": "mechanism",
+        "depthReason": "Year 3 selects concrete claims and mechanisms. System claims stay in the pack.",
+        "map": [
+          {
+            "mapId": "k1",
+            "knowledge": "Dinosaurs were animals that lived a very long time ago.",
+            "claimIds": [
+              "c304157"
+            ],
+            "provenance": [
+              "model"
+            ],
+            "factuallyVerified": false
+          },
+          {
+            "mapId": "k2",
+            "knowledge": "A fossil is a trace of a living thing kept in rock.",
+            "claimIds": [
+              "cwbnalp"
+            ],
+            "provenance": [
+              "model"
+            ],
+            "factuallyVerified": false
+          },
+          {
+            "mapId": "k3",
+            "knowledge": "Sharp fossil teeth cut meat, so that the fossil shows a meat-eating dinosaur.",
+            "claimIds": [
+              "c6y8s2r"
+            ],
+            "provenance": [
+              "model"
+            ],
+            "factuallyVerified": false
+          },
+          {
+            "mapId": "k4",
+            "knowledge": "A dinosaur egg is a round fossil with a shell.",
+            "claimIds": [
+              "c1ruxdu8"
+            ],
+            "provenance": [
+              "model"
+            ],
+            "factuallyVerified": false
+          },
+          {
+            "mapId": "k5",
+            "knowledge": "The shell kept the baby inside, because a thin shell would have broken.",
+            "claimIds": [
+              "chgfz4n"
+            ],
+            "provenance": [
+              "model"
+            ],
+            "factuallyVerified": false
+          },
+          {
+            "mapId": "k6",
+            "knowledge": "Some dinosaur bones are hollow.",
+            "claimIds": [
+              "cuh45ro"
+            ],
+            "provenance": [
+              "model"
+            ],
+            "factuallyVerified": false
+          }
+        ],
+        "teach": [
+          {
+            "stage": "teach",
+            "beatId": "teach:0",
+            "move": "name",
+            "mapIds": [
+              "k1"
+            ],
+            "claimIds": [
+              "c304157"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:1",
+            "move": "name",
+            "mapIds": [
+              "k2"
+            ],
+            "claimIds": [
+              "cwbnalp"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:2",
+            "move": "exemplify",
+            "mapIds": [
+              "k2"
+            ],
+            "claimIds": [
+              "cwbnalp"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:3",
+            "move": "explain",
+            "mapIds": [
+              "k3"
+            ],
+            "claimIds": [
+              "c6y8s2r"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:4",
+            "move": "name",
+            "mapIds": [
+              "k4"
+            ],
+            "claimIds": [
+              "c1ruxdu8"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:5",
+            "move": "explain",
+            "mapIds": [
+              "k5"
+            ],
+            "claimIds": [
+              "chgfz4n"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:6",
+            "move": "name",
+            "mapIds": [
+              "k6"
+            ],
+            "claimIds": [
+              "cuh45ro"
+            ]
+          }
+        ],
+        "apply": [
+          {
+            "stage": "apply",
+            "beatId": "apply:0",
+            "move": "practise",
+            "mapIds": [
+              "k3"
+            ],
+            "claimIds": [
+              "c6y8s2r"
+            ]
+          }
+        ],
+        "check": [
+          {
+            "stage": "check",
+            "beatId": "check:0",
+            "move": "retrieve",
+            "mapIds": [
+              "k3"
+            ],
+            "claimIds": [
+              "c6y8s2r"
+            ]
+          },
+          {
+            "stage": "check",
+            "beatId": "check:1",
+            "move": "retrieve",
+            "mapIds": [
+              "k5"
+            ],
+            "claimIds": [
+              "chgfz4n"
+            ]
+          },
+          {
+            "stage": "check",
+            "beatId": "check:2",
+            "move": "retrieve",
+            "mapIds": [
+              "k6"
+            ],
+            "claimIds": [
+              "cuh45ro"
+            ]
+          }
+        ]
+      },
+      "blocked": false,
+      "packStatus": "usable",
+      "packStatusReason": "Enough claims to select from. Every claim is still unverified."
+    },
+    {
+      "id": "y4-shark-adaptations",
+      "source": "production-equivalent",
+      "liveModel": false,
+      "liveModelReason": "OPENAI_API_KEY is not set. No model call was made. teacherIntent and rawPack are scripted inputs to the real admission code.",
+      "request": "Year 4 science. Teach how sharks' adaptations help them live and hunt in the sea.",
+      "teacherIntent": {
+        "ok": true,
+        "yearGroup": "Year 4",
+        "subject": "Science",
+        "subjectConfidence": "explicit",
+        "learningGoal": "Pupils explain how a shark's body helps it live and hunt in the sea.",
+        "requiredEvidence": "A pupil explains how gills, the tail, or the body shape helps a shark in the water.",
+        "focusConcepts": [
+          "shark adaptations",
+          "gills",
+          "tail"
+        ],
+        "priorKnowledge": [],
+        "exclusions": [],
+        "preferences": [],
+        "durationMinutes": 15
+      },
+      "rawPack": {
+        "status": "usable",
+        "claims": [
+          {
+            "text": "A shark is a fish with fins, gills and a tail.",
+            "depth": "concrete",
+            "kind": "definition",
+            "confidence": "high",
+            "provenance": "model",
+            "factuallyVerified": false,
+            "ageFit": {
+              "from": 1,
+              "to": 6
+            }
+          },
+          {
+            "text": "A shark has gills on the side of its head.",
+            "depth": "concrete",
+            "kind": "fact",
+            "confidence": "high",
+            "provenance": "model",
+            "factuallyVerified": false,
+            "ageFit": {
+              "from": 1,
+              "to": 6
+            }
+          },
+          {
+            "text": "Gills take oxygen from the water so that a shark can breathe.",
+            "depth": "mechanism",
+            "kind": "mechanism",
+            "confidence": "high",
+            "provenance": "model",
+            "factuallyVerified": false,
+            "ageFit": {
+              "from": 3,
+              "to": 6
+            }
+          },
+          {
+            "text": "A shark has a strong tail.",
+            "depth": "concrete",
+            "kind": "fact",
+            "confidence": "high",
+            "provenance": "model",
+            "factuallyVerified": false,
+            "ageFit": {
+              "from": 1,
+              "to": 6
+            }
+          },
+          {
+            "text": "The tail pushes water backwards so that the shark moves forward.",
+            "depth": "mechanism",
+            "kind": "mechanism",
+            "confidence": "high",
+            "provenance": "model",
+            "factuallyVerified": false,
+            "ageFit": {
+              "from": 3,
+              "to": 6
+            }
+          },
+          {
+            "text": "A shark has a pointed body shape.",
+            "depth": "concrete",
+            "kind": "fact",
+            "confidence": "high",
+            "provenance": "model",
+            "factuallyVerified": false,
+            "ageFit": {
+              "from": 1,
+              "to": 6
+            }
+          },
+          {
+            "text": "The pointed shape lets water slide past the body so that the shark slows down less.",
+            "depth": "mechanism",
+            "kind": "mechanism",
+            "confidence": "high",
+            "provenance": "model",
+            "factuallyVerified": false,
+            "ageFit": {
+              "from": 3,
+              "to": 6
+            }
+          },
+          {
+            "text": "Fins, tail and gills work together as one system that lets a shark hunt in open water.",
+            "depth": "system",
+            "kind": "mechanism",
+            "confidence": "medium",
+            "provenance": "model",
+            "factuallyVerified": false,
+            "ageFit": {
+              "from": 5,
+              "to": 6
+            }
+          },
+          {
+            "text": "Sharks keep fish numbers in balance, so the ocean stays healthy.",
+            "depth": "system",
+            "kind": "caveat",
+            "confidence": "low",
+            "provenance": "model",
+            "factuallyVerified": false,
+            "importance": "optional",
+            "ageFit": {
+              "from": 5,
+              "to": 6
+            },
+            "uncertainty": "This is a broad food-web claim, not a mechanism of the body."
+          }
+        ],
+        "concepts": [
+          "adaptation",
+          "gills"
+        ],
+        "vocabulary": [
+          {
+            "term": "gill",
+            "gloss": "a body part that takes oxygen from water"
+          }
+        ],
+        "misconceptions": [
+          {
+            "text": "Sharks are mammals.",
+            "corrects": "A shark is a fish with fins, gills and a tail."
+          }
+        ]
+      },
+      "admittedPack": {
+        "packId": "kp_10odpbz",
+        "status": "usable",
+        "statusReason": "Enough claims to select from. Every claim is still unverified.",
+        "modelStatus": "usable",
+        "falsePremise": "",
+        "provenanceSummary": "Phase 1: no claim is factually verified. Model-originated claims are unverified. Teacher material is not treated as truth. Retrieved, curated, and curriculum origins are not available in this phase.",
+        "verificationOverrides": 0,
+        "claimCount": 9,
+        "claims": [
+          {
+            "claimId": "c1uwmm8v",
+            "text": "A shark is a fish with fins, gills and a tail.",
+            "kind": "definition",
+            "depth": "concrete",
+            "confidence": "high",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 1,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          },
+          {
+            "claimId": "c66lxbg",
+            "text": "A shark has gills on the side of its head.",
+            "kind": "fact",
+            "depth": "concrete",
+            "confidence": "high",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 1,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          },
+          {
+            "claimId": "cmqr5m5",
+            "text": "Gills take oxygen from the water so that a shark can breathe.",
+            "kind": "mechanism",
+            "depth": "mechanism",
+            "confidence": "high",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 3,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          },
+          {
+            "claimId": "c1mnmv6n",
+            "text": "A shark has a strong tail.",
+            "kind": "fact",
+            "depth": "concrete",
+            "confidence": "high",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 1,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          },
+          {
+            "claimId": "c6uqz6n",
+            "text": "The tail pushes water backwards so that the shark moves forward.",
+            "kind": "mechanism",
+            "depth": "mechanism",
+            "confidence": "high",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 3,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          },
+          {
+            "claimId": "c1226kz2",
+            "text": "A shark has a pointed body shape.",
+            "kind": "fact",
+            "depth": "concrete",
+            "confidence": "high",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 1,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          },
+          {
+            "claimId": "c1mop7pp",
+            "text": "The pointed shape lets water slide past the body so that the shark slows down less.",
+            "kind": "mechanism",
+            "depth": "mechanism",
+            "confidence": "high",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 3,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          },
+          {
+            "claimId": "c66eto5",
+            "text": "Fins, tail and gills work together as one system that lets a shark hunt in open water.",
+            "kind": "mechanism",
+            "depth": "system",
+            "confidence": "medium",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 5,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          },
+          {
+            "claimId": "cibzkg1",
+            "text": "Sharks keep fish numbers in balance, so the ocean stays healthy.",
+            "kind": "caveat",
+            "depth": "system",
+            "confidence": "low",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "This is a broad food-web claim, not a mechanism of the body.",
+            "ageFit": {
+              "from": 5,
+              "to": 6
+            },
+            "importance": "optional",
+            "correctsPremise": false
+          }
+        ],
+        "mechanisms": [
+          {
+            "claimId": "cmqr5m5",
+            "text": "Gills take oxygen from the water so that a shark can breathe."
+          },
+          {
+            "claimId": "c6uqz6n",
+            "text": "The tail pushes water backwards so that the shark moves forward."
+          },
+          {
+            "claimId": "c1mop7pp",
+            "text": "The pointed shape lets water slide past the body so that the shark slows down less."
+          },
+          {
+            "claimId": "c66eto5",
+            "text": "Fins, tail and gills work together as one system that lets a shark hunt in open water."
+          }
+        ],
+        "concepts": [
+          "adaptation",
+          "gills"
+        ],
+        "vocabulary": [
+          {
+            "term": "gill",
+            "gloss": "a body part that takes oxygen from water"
+          }
+        ],
+        "misconceptions": [
+          {
+            "id": "m1",
+            "text": "Sharks are mammals.",
+            "correctsClaimId": "c1uwmm8v"
+          }
+        ],
+        "openQuestions": [],
+        "rejectedClaims": [],
+        "strippedFields": [],
+        "selection": {
+          "status": "ready",
+          "reason": "Year 4 selects concrete claims and mechanisms. System claims stay in the pack.",
+          "depthMode": "mechanism",
+          "year": 4,
+          "claimIds": [
+            "c1226kz2",
+            "c1mnmv6n",
+            "c1uwmm8v",
+            "c66lxbg",
+            "c1mop7pp",
+            "c6uqz6n",
+            "cmqr5m5"
+          ],
+          "heldBack": [
+            {
+              "claimId": "c66eto5",
+              "depth": "system",
+              "reason": "outside age fit"
+            },
+            {
+              "claimId": "cibzkg1",
+              "depth": "system",
+              "reason": "outside age fit"
+            }
+          ]
+        }
+      },
+      "claimIds": [
+        "c1uwmm8v",
+        "c66lxbg",
+        "cmqr5m5",
+        "c1mnmv6n",
+        "c6uqz6n",
+        "c1226kz2",
+        "c1mop7pp",
+        "c66eto5",
+        "cibzkg1"
+      ],
+      "selectedClaimIds": [
+        "c1226kz2",
+        "c1mnmv6n",
+        "c1uwmm8v",
+        "c66lxbg",
+        "c1mop7pp",
+        "c6uqz6n",
+        "cmqr5m5"
+      ],
+      "yearDepth": {
+        "year": 4,
+        "depthMode": "mechanism",
+        "status": "ready",
+        "reason": "Year 4 selects concrete claims and mechanisms. System claims stay in the pack.",
+        "heldBack": [
+          {
+            "claimId": "c66eto5",
+            "depth": "system",
+            "reason": "outside age fit"
+          },
+          {
+            "claimId": "cibzkg1",
+            "depth": "system",
+            "reason": "outside age fit"
+          }
+        ]
+      },
+      "samePackYears": [
+        {
+          "year": "Year 2",
+          "depthMode": "concrete",
+          "status": "ready",
+          "reason": "Year 2 selects concrete claims, and a mechanism only when its age fit starts at Year 2 or earlier. System claims stay in the pack.",
+          "claimIds": [
+            "c1226kz2",
+            "c1mnmv6n",
+            "c1uwmm8v",
+            "c66lxbg"
+          ],
+          "claims": [
+            {
+              "claimId": "c1226kz2",
+              "depth": "concrete",
+              "text": "A shark has a pointed body shape."
+            },
+            {
+              "claimId": "c1mnmv6n",
+              "depth": "concrete",
+              "text": "A shark has a strong tail."
+            },
+            {
+              "claimId": "c1uwmm8v",
+              "depth": "concrete",
+              "text": "A shark is a fish with fins, gills and a tail."
+            },
+            {
+              "claimId": "c66lxbg",
+              "depth": "concrete",
+              "text": "A shark has gills on the side of its head."
+            }
+          ]
+        },
+        {
+          "year": "Year 4",
+          "depthMode": "mechanism",
+          "status": "ready",
+          "reason": "Year 4 selects concrete claims and mechanisms. System claims stay in the pack.",
+          "claimIds": [
+            "c1226kz2",
+            "c1mnmv6n",
+            "c1uwmm8v",
+            "c66lxbg",
+            "c1mop7pp",
+            "c6uqz6n",
+            "cmqr5m5"
+          ],
+          "claims": [
+            {
+              "claimId": "c1226kz2",
+              "depth": "concrete",
+              "text": "A shark has a pointed body shape."
+            },
+            {
+              "claimId": "c1mnmv6n",
+              "depth": "concrete",
+              "text": "A shark has a strong tail."
+            },
+            {
+              "claimId": "c1uwmm8v",
+              "depth": "concrete",
+              "text": "A shark is a fish with fins, gills and a tail."
+            },
+            {
+              "claimId": "c66lxbg",
+              "depth": "concrete",
+              "text": "A shark has gills on the side of its head."
+            },
+            {
+              "claimId": "c1mop7pp",
+              "depth": "mechanism",
+              "text": "The pointed shape lets water slide past the body so that the shark slows down less."
+            },
+            {
+              "claimId": "c6uqz6n",
+              "depth": "mechanism",
+              "text": "The tail pushes water backwards so that the shark moves forward."
+            },
+            {
+              "claimId": "cmqr5m5",
+              "depth": "mechanism",
+              "text": "Gills take oxygen from the water so that a shark can breathe."
+            }
+          ]
+        },
+        {
+          "year": "Year 6",
+          "depthMode": "system",
+          "status": "ready",
+          "reason": "Year 6 selects concrete claims, mechanisms, and system claims. Younger years do not receive the system claims.",
+          "claimIds": [
+            "c1226kz2",
+            "c1mnmv6n",
+            "c1uwmm8v",
+            "c66lxbg",
+            "c1mop7pp",
+            "c6uqz6n",
+            "cmqr5m5",
+            "c66eto5"
+          ],
+          "claims": [
+            {
+              "claimId": "c1226kz2",
+              "depth": "concrete",
+              "text": "A shark has a pointed body shape."
+            },
+            {
+              "claimId": "c1mnmv6n",
+              "depth": "concrete",
+              "text": "A shark has a strong tail."
+            },
+            {
+              "claimId": "c1uwmm8v",
+              "depth": "concrete",
+              "text": "A shark is a fish with fins, gills and a tail."
+            },
+            {
+              "claimId": "c66lxbg",
+              "depth": "concrete",
+              "text": "A shark has gills on the side of its head."
+            },
+            {
+              "claimId": "c1mop7pp",
+              "depth": "mechanism",
+              "text": "The pointed shape lets water slide past the body so that the shark slows down less."
+            },
+            {
+              "claimId": "c6uqz6n",
+              "depth": "mechanism",
+              "text": "The tail pushes water backwards so that the shark moves forward."
+            },
+            {
+              "claimId": "cmqr5m5",
+              "depth": "mechanism",
+              "text": "Gills take oxygen from the water so that a shark can breathe."
+            },
+            {
+              "claimId": "c66eto5",
+              "depth": "system",
+              "text": "Fins, tail and gills work together as one system that lets a shark hunt in open water."
+            }
+          ]
+        }
+      ],
+      "learningMap": [
+        {
+          "id": "k1",
+          "knowledge": "A shark is a fish with fins, gills and a tail.",
+          "role": "foundation",
+          "claimIds": [
+            "c1uwmm8v"
+          ],
+          "dependsOn": []
+        },
+        {
+          "id": "k2",
+          "knowledge": "A shark has gills on the side of its head.",
+          "role": "feature",
+          "claimIds": [
+            "c66lxbg"
+          ],
+          "dependsOn": [
+            "k1"
+          ]
+        },
+        {
+          "id": "k3",
+          "knowledge": "Gills take oxygen from the water so that a shark can breathe.",
+          "role": "mechanism",
+          "claimIds": [
+            "cmqr5m5"
+          ],
+          "dependsOn": [
+            "k2"
+          ]
+        },
+        {
+          "id": "k4",
+          "knowledge": "A shark has a strong tail.",
+          "role": "feature",
+          "claimIds": [
+            "c1mnmv6n"
+          ],
+          "dependsOn": [
+            "k1"
+          ]
+        },
+        {
+          "id": "k5",
+          "knowledge": "The tail pushes water backwards so that the shark moves forward.",
+          "role": "mechanism",
+          "claimIds": [
+            "c6uqz6n"
+          ],
+          "dependsOn": [
+            "k4"
+          ]
+        },
+        {
+          "id": "k6",
+          "knowledge": "A shark has a pointed body shape.",
+          "role": "feature",
+          "claimIds": [
+            "c1226kz2"
+          ],
+          "dependsOn": [
+            "k1"
+          ]
+        },
+        {
+          "id": "k7",
+          "knowledge": "The pointed shape lets water slide past the body so that the shark slows down less.",
+          "role": "mechanism",
+          "claimIds": [
+            "c1mop7pp"
+          ],
+          "dependsOn": [
+            "k6"
+          ]
+        }
+      ],
+      "boundRejections": [
+        {
+          "knowledge": "Sharks keep the ocean healthy by being important predators.",
+          "reason": "invented fact outside the knowledge pack"
+        }
+      ],
+      "planOk": true,
+      "planIssues": [],
+      "mapRejected": [
+        {
+          "knowledge": "Sharks keep the ocean healthy by being important predators.",
+          "reason": "invented fact outside the knowledge pack"
+        }
+      ],
+      "knowledgeGrounding": {
+        "packId": "kp_10odpbz",
+        "status": "usable",
+        "provenanceSummary": "Phase 1: no claim is factually verified. Model-originated claims are unverified. Teacher material is not treated as truth. Retrieved, curated, and curriculum origins are not available in this phase.",
+        "premiseCorrected": false,
+        "depthMode": "mechanism",
+        "depthReason": "Year 4 selects concrete claims and mechanisms. System claims stay in the pack.",
+        "selectedClaimIds": [
+          "c1226kz2",
+          "c1mnmv6n",
+          "c1uwmm8v",
+          "c66lxbg",
+          "c1mop7pp",
+          "c6uqz6n",
+          "cmqr5m5"
+        ],
+        "points": [
+          {
+            "mapId": "k1",
+            "claimIds": [
+              "c1uwmm8v"
+            ],
+            "provenance": [
+              "model"
+            ]
+          },
+          {
+            "mapId": "k2",
+            "claimIds": [
+              "c66lxbg"
+            ],
+            "provenance": [
+              "model"
+            ]
+          },
+          {
+            "mapId": "k3",
+            "claimIds": [
+              "cmqr5m5"
+            ],
+            "provenance": [
+              "model"
+            ]
+          },
+          {
+            "mapId": "k4",
+            "claimIds": [
+              "c1mnmv6n"
+            ],
+            "provenance": [
+              "model"
+            ]
+          },
+          {
+            "mapId": "k5",
+            "claimIds": [
+              "c6uqz6n"
+            ],
+            "provenance": [
+              "model"
+            ]
+          },
+          {
+            "mapId": "k6",
+            "claimIds": [
+              "c1226kz2"
+            ],
+            "provenance": [
+              "model"
+            ]
+          },
+          {
+            "mapId": "k7",
+            "claimIds": [
+              "c1mop7pp"
+            ],
+            "provenance": [
+              "model"
+            ]
+          }
+        ]
+      },
+      "trace": {
+        "packId": "kp_10odpbz",
+        "packStatus": "usable",
+        "provenanceSummary": "Phase 1: no claim is factually verified. Model-originated claims are unverified. Teacher material is not treated as truth. Retrieved, curated, and curriculum origins are not available in this phase.",
+        "depthMode": "mechanism",
+        "depthReason": "Year 4 selects concrete claims and mechanisms. System claims stay in the pack.",
+        "map": [
+          {
+            "mapId": "k1",
+            "knowledge": "A shark is a fish with fins, gills and a tail.",
+            "claimIds": [
+              "c1uwmm8v"
+            ],
+            "provenance": [
+              "model"
+            ],
+            "factuallyVerified": false
+          },
+          {
+            "mapId": "k2",
+            "knowledge": "A shark has gills on the side of its head.",
+            "claimIds": [
+              "c66lxbg"
+            ],
+            "provenance": [
+              "model"
+            ],
+            "factuallyVerified": false
+          },
+          {
+            "mapId": "k3",
+            "knowledge": "Gills take oxygen from the water so that a shark can breathe.",
+            "claimIds": [
+              "cmqr5m5"
+            ],
+            "provenance": [
+              "model"
+            ],
+            "factuallyVerified": false
+          },
+          {
+            "mapId": "k4",
+            "knowledge": "A shark has a strong tail.",
+            "claimIds": [
+              "c1mnmv6n"
+            ],
+            "provenance": [
+              "model"
+            ],
+            "factuallyVerified": false
+          },
+          {
+            "mapId": "k5",
+            "knowledge": "The tail pushes water backwards so that the shark moves forward.",
+            "claimIds": [
+              "c6uqz6n"
+            ],
+            "provenance": [
+              "model"
+            ],
+            "factuallyVerified": false
+          },
+          {
+            "mapId": "k6",
+            "knowledge": "A shark has a pointed body shape.",
+            "claimIds": [
+              "c1226kz2"
+            ],
+            "provenance": [
+              "model"
+            ],
+            "factuallyVerified": false
+          },
+          {
+            "mapId": "k7",
+            "knowledge": "The pointed shape lets water slide past the body so that the shark slows down less.",
+            "claimIds": [
+              "c1mop7pp"
+            ],
+            "provenance": [
+              "model"
+            ],
+            "factuallyVerified": false
+          }
+        ],
+        "teach": [
+          {
+            "stage": "teach",
+            "beatId": "teach:0",
+            "move": "name",
+            "mapIds": [
+              "k1"
+            ],
+            "claimIds": [
+              "c1uwmm8v"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:1",
+            "move": "exemplify",
+            "mapIds": [
+              "k1"
+            ],
+            "claimIds": [
+              "c1uwmm8v"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:2",
+            "move": "name",
+            "mapIds": [
+              "k2"
+            ],
+            "claimIds": [
+              "c66lxbg"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:3",
+            "move": "explain",
+            "mapIds": [
+              "k3"
+            ],
+            "claimIds": [
+              "cmqr5m5"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:4",
+            "move": "name",
+            "mapIds": [
+              "k4"
+            ],
+            "claimIds": [
+              "c1mnmv6n"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:5",
+            "move": "explain",
+            "mapIds": [
+              "k5"
+            ],
+            "claimIds": [
+              "c6uqz6n"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:6",
+            "move": "name",
+            "mapIds": [
+              "k6"
+            ],
+            "claimIds": [
+              "c1226kz2"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:7",
+            "move": "explain",
+            "mapIds": [
+              "k7"
+            ],
+            "claimIds": [
+              "c1mop7pp"
+            ]
+          }
+        ],
+        "apply": [
+          {
+            "stage": "apply",
+            "beatId": "apply:0",
+            "move": "apply",
+            "mapIds": [
+              "k3"
+            ],
+            "claimIds": [
+              "cmqr5m5"
+            ]
+          }
+        ],
+        "check": [
+          {
+            "stage": "check",
+            "beatId": "check:0",
+            "move": "retrieve",
+            "mapIds": [
+              "k3"
+            ],
+            "claimIds": [
+              "cmqr5m5"
+            ]
+          },
+          {
+            "stage": "check",
+            "beatId": "check:1",
+            "move": "retrieve",
+            "mapIds": [
+              "k5"
+            ],
+            "claimIds": [
+              "c6uqz6n"
+            ]
+          },
+          {
+            "stage": "check",
+            "beatId": "check:2",
+            "move": "retrieve",
+            "mapIds": [
+              "k7"
+            ],
+            "claimIds": [
+              "c1mop7pp"
+            ]
+          }
+        ]
+      },
+      "blocked": false,
+      "packStatus": "usable",
+      "packStatusReason": "Enough claims to select from. Every claim is still unverified."
+    },
+    {
+      "id": "y5-henry-rome",
+      "source": "production-equivalent",
+      "liveModel": false,
+      "liveModelReason": "OPENAI_API_KEY is not set. No model call was made. teacherIntent and rawPack are scripted inputs to the real admission code.",
+      "request": "Year 5 history. Teach how Henry VIII's break with Rome changed England.",
+      "teacherIntent": {
+        "ok": true,
+        "yearGroup": "Year 5",
+        "subject": "History",
+        "subjectConfidence": "explicit",
+        "learningGoal": "Pupils explain how Henry VIII's break with Rome changed the church in England.",
+        "requiredEvidence": "A pupil names the break with Rome and one change that followed for the church in England.",
+        "focusConcepts": [
+          "Henry VIII",
+          "break with Rome"
+        ],
+        "priorKnowledge": [],
+        "exclusions": [],
+        "preferences": [],
+        "durationMinutes": 20
+      },
+      "rawPack": {
+        "status": "qualified",
+        "niche": false,
+        "claims": [
+          {
+            "text": "Henry VIII was king of England from 1509 to 1547.",
+            "depth": "concrete",
+            "kind": "fact",
+            "confidence": "high",
+            "provenance": "model",
+            "factuallyVerified": false,
+            "ageFit": {
+              "from": 3,
+              "to": 6
+            }
+          },
+          {
+            "text": "In 1534 the Act of Supremacy said Henry, not the Pope, was head of the Church in England.",
+            "depth": "concrete",
+            "kind": "fact",
+            "confidence": "high",
+            "provenance": "model",
+            "factuallyVerified": false,
+            "ageFit": {
+              "from": 4,
+              "to": 6
+            }
+          },
+          {
+            "text": "Henry wanted a male heir, so he asked Rome to end his marriage to Catherine of Aragon.",
+            "depth": "mechanism",
+            "kind": "mechanism",
+            "confidence": "high",
+            "provenance": "model",
+            "factuallyVerified": false,
+            "ageFit": {
+              "from": 4,
+              "to": 6
+            }
+          },
+          {
+            "text": "When Rome refused, Henry's break with Rome let him control the English church.",
+            "depth": "mechanism",
+            "kind": "mechanism",
+            "confidence": "medium",
+            "provenance": "model",
+            "factuallyVerified": false,
+            "ageFit": {
+              "from": 5,
+              "to": 6
+            }
+          },
+          {
+            "text": "Catherine of Aragon was Henry's first wife.",
+            "depth": "concrete",
+            "confidence": "high",
+            "provenance": "model",
+            "factuallyVerified": false,
+            "ageFit": {
+              "from": 4,
+              "to": 6
+            }
+          },
+          {
+            "text": "A monastery was a religious house that owned land.",
+            "depth": "concrete",
+            "kind": "definition",
+            "confidence": "high",
+            "provenance": "model",
+            "factuallyVerified": false,
+            "ageFit": {
+              "from": 4,
+              "to": 6
+            }
+          },
+          {
+            "text": "The break closed many monasteries, so that their land and wealth went to the crown and new owners.",
+            "depth": "system",
+            "kind": "process",
+            "confidence": "medium",
+            "provenance": "model",
+            "factuallyVerified": false,
+            "ageFit": {
+              "from": 5,
+              "to": 6
+            }
+          },
+          {
+            "text": "Historians still disagree about whether Henry cared more about religion or about power.",
+            "depth": "system",
+            "contested": true,
+            "uncertainty": "Motive is interpreted, not a single settled fact.",
+            "confidence": "medium",
+            "provenance": "model",
+            "factuallyVerified": false,
+            "ageFit": {
+              "from": 5,
+              "to": 6
+            }
+          },
+          {
+            "text": "Henry said the exact words 'I am the only church' in 1534.",
+            "depth": "concrete",
+            "confidence": "low",
+            "provenance": "model",
+            "factuallyVerified": true,
+            "ageFit": {
+              "from": 5,
+              "to": 6
+            }
+          }
+        ]
+      },
+      "admittedPack": {
+        "packId": "kp_nwrfsy",
+        "status": "qualified",
+        "statusReason": "contested claims stay in the pack and out of the lesson",
+        "modelStatus": "qualified",
+        "falsePremise": "",
+        "provenanceSummary": "Phase 1: no claim is factually verified. Model-originated claims are unverified. Teacher material is not treated as truth. Retrieved, curated, and curriculum origins are not available in this phase.",
+        "verificationOverrides": 1,
+        "claimCount": 9,
+        "claims": [
+          {
+            "claimId": "c1booj6h",
+            "text": "Henry VIII was king of England from 1509 to 1547.",
+            "kind": "fact",
+            "depth": "concrete",
+            "confidence": "high",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 3,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          },
+          {
+            "claimId": "c1feagon",
+            "text": "In 1534 the Act of Supremacy said Henry, not the Pope, was head of the Church in England.",
+            "kind": "fact",
+            "depth": "concrete",
+            "confidence": "high",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 4,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          },
+          {
+            "claimId": "c17zw4mb",
+            "text": "Henry wanted a male heir, so he asked Rome to end his marriage to Catherine of Aragon.",
+            "kind": "mechanism",
+            "depth": "mechanism",
+            "confidence": "high",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 4,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          },
+          {
+            "claimId": "c12scby3",
+            "text": "When Rome refused, Henry's break with Rome let him control the English church.",
+            "kind": "mechanism",
+            "depth": "mechanism",
+            "confidence": "medium",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 5,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          },
+          {
+            "claimId": "c1usgzhm",
+            "text": "Catherine of Aragon was Henry's first wife.",
+            "kind": "fact",
+            "depth": "concrete",
+            "confidence": "high",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 4,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          },
+          {
+            "claimId": "c1l4w9sc",
+            "text": "A monastery was a religious house that owned land.",
+            "kind": "definition",
+            "depth": "concrete",
+            "confidence": "high",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 4,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          },
+          {
+            "claimId": "csqopaw",
+            "text": "The break closed many monasteries, so that their land and wealth went to the crown and new owners.",
+            "kind": "process",
+            "depth": "system",
+            "confidence": "medium",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 5,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          },
+          {
+            "claimId": "c41n7q8",
+            "text": "Historians still disagree about whether Henry cared more about religion or about power.",
+            "kind": "fact",
+            "depth": "system",
+            "confidence": "medium",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": true,
+            "uncertainty": "Motive is interpreted, not a single settled fact.",
+            "ageFit": {
+              "from": 5,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          },
+          {
+            "claimId": "ci1inqu",
+            "text": "Henry said the exact words 'I am the only church' in 1534.",
+            "kind": "fact",
+            "depth": "concrete",
+            "confidence": "low",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 5,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          }
+        ],
+        "mechanisms": [
+          {
+            "claimId": "c17zw4mb",
+            "text": "Henry wanted a male heir, so he asked Rome to end his marriage to Catherine of Aragon."
+          },
+          {
+            "claimId": "c12scby3",
+            "text": "When Rome refused, Henry's break with Rome let him control the English church."
+          },
+          {
+            "claimId": "csqopaw",
+            "text": "The break closed many monasteries, so that their land and wealth went to the crown and new owners."
+          }
+        ],
+        "concepts": [],
+        "vocabulary": [],
+        "misconceptions": [],
+        "openQuestions": [],
+        "rejectedClaims": [],
+        "strippedFields": [],
+        "selection": {
+          "status": "qualified",
+          "reason": "Year 5 selects concrete claims, mechanisms, and system claims. Younger years do not receive the system claims.",
+          "depthMode": "system",
+          "year": 5,
+          "claimIds": [
+            "c1booj6h",
+            "c1feagon",
+            "c1l4w9sc",
+            "c1usgzhm",
+            "c12scby3",
+            "c17zw4mb",
+            "csqopaw"
+          ],
+          "heldBack": [
+            {
+              "claimId": "c41n7q8",
+              "depth": "system",
+              "reason": "contested"
+            },
+            {
+              "claimId": "ci1inqu",
+              "depth": "concrete",
+              "reason": "low confidence"
+            }
+          ]
+        }
+      },
+      "claimIds": [
+        "c1booj6h",
+        "c1feagon",
+        "c17zw4mb",
+        "c12scby3",
+        "c1usgzhm",
+        "c1l4w9sc",
+        "csqopaw",
+        "c41n7q8",
+        "ci1inqu"
+      ],
+      "selectedClaimIds": [
+        "c1booj6h",
+        "c1feagon",
+        "c1l4w9sc",
+        "c1usgzhm",
+        "c12scby3",
+        "c17zw4mb",
+        "csqopaw"
+      ],
+      "yearDepth": {
+        "year": 5,
+        "depthMode": "system",
+        "status": "qualified",
+        "reason": "Year 5 selects concrete claims, mechanisms, and system claims. Younger years do not receive the system claims.",
+        "heldBack": [
+          {
+            "claimId": "c41n7q8",
+            "depth": "system",
+            "reason": "contested"
+          },
+          {
+            "claimId": "ci1inqu",
+            "depth": "concrete",
+            "reason": "low confidence"
+          }
+        ]
+      },
+      "samePackYears": null,
+      "learningMap": [
+        {
+          "id": "k1",
+          "knowledge": "Henry VIII was king of England from 1509 to 1547.",
+          "role": "foundation",
+          "claimIds": [
+            "c1booj6h"
+          ],
+          "dependsOn": []
+        },
+        {
+          "id": "k2",
+          "knowledge": "Henry wanted a male heir, so he asked Rome to end his marriage to Catherine of Aragon.",
+          "role": "mechanism",
+          "claimIds": [
+            "c17zw4mb"
+          ],
+          "dependsOn": [
+            "k1"
+          ]
+        },
+        {
+          "id": "k3",
+          "knowledge": "When Rome refused, Henry's break with Rome let him control the English church.",
+          "role": "mechanism",
+          "claimIds": [
+            "c12scby3"
+          ],
+          "dependsOn": [
+            "k2"
+          ]
+        },
+        {
+          "id": "k4",
+          "knowledge": "In 1534 the Act of Supremacy said Henry, not the Pope, was head of the Church in England.",
+          "role": "fact",
+          "claimIds": [
+            "c1feagon"
+          ],
+          "dependsOn": [
+            "k3"
+          ]
+        },
+        {
+          "id": "k5",
+          "knowledge": "A monastery was a religious house that owned land.",
+          "role": "definition",
+          "claimIds": [
+            "c1l4w9sc"
+          ],
+          "dependsOn": [
+            "k1"
+          ]
+        },
+        {
+          "id": "k6",
+          "knowledge": "The break closed many monasteries, so that their land and wealth went to the crown and new owners.",
+          "role": "effect",
+          "claimIds": [
+            "csqopaw"
+          ],
+          "dependsOn": [
+            "k5"
+          ]
+        },
+        {
+          "id": "k7",
+          "knowledge": "Catherine of Aragon was Henry's first wife.",
+          "role": "fact",
+          "claimIds": [
+            "c1usgzhm"
+          ],
+          "dependsOn": [
+            "k1"
+          ]
+        }
+      ],
+      "boundRejections": [
+        {
+          "knowledge": "Henry said the exact words 'I am the only church' in 1534.",
+          "reason": "invented fact outside the knowledge pack"
+        },
+        {
+          "knowledge": "Historians still disagree about whether Henry cared more about religion or about power.",
+          "reason": "invented fact outside the knowledge pack"
+        }
+      ],
+      "planOk": true,
+      "planIssues": [],
+      "mapRejected": [
+        {
+          "knowledge": "Henry said the exact words 'I am the only church' in 1534.",
+          "reason": "invented fact outside the knowledge pack"
+        },
+        {
+          "knowledge": "Historians still disagree about whether Henry cared more about religion or about power.",
+          "reason": "invented fact outside the knowledge pack"
+        }
+      ],
+      "knowledgeGrounding": {
+        "packId": "kp_nwrfsy",
+        "status": "qualified",
+        "provenanceSummary": "Phase 1: no claim is factually verified. Model-originated claims are unverified. Teacher material is not treated as truth. Retrieved, curated, and curriculum origins are not available in this phase.",
+        "premiseCorrected": false,
+        "depthMode": "system",
+        "depthReason": "Year 5 selects concrete claims, mechanisms, and system claims. Younger years do not receive the system claims.",
+        "selectedClaimIds": [
+          "c1booj6h",
+          "c1feagon",
+          "c1l4w9sc",
+          "c1usgzhm",
+          "c12scby3",
+          "c17zw4mb",
+          "csqopaw"
+        ],
+        "points": [
+          {
+            "mapId": "k1",
+            "claimIds": [
+              "c1booj6h"
+            ],
+            "provenance": [
+              "model"
+            ]
+          },
+          {
+            "mapId": "k2",
+            "claimIds": [
+              "c17zw4mb"
+            ],
+            "provenance": [
+              "model"
+            ]
+          },
+          {
+            "mapId": "k3",
+            "claimIds": [
+              "c12scby3"
+            ],
+            "provenance": [
+              "model"
+            ]
+          },
+          {
+            "mapId": "k4",
+            "claimIds": [
+              "c1feagon"
+            ],
+            "provenance": [
+              "model"
+            ]
+          },
+          {
+            "mapId": "k5",
+            "claimIds": [
+              "c1l4w9sc"
+            ],
+            "provenance": [
+              "model"
+            ]
+          },
+          {
+            "mapId": "k6",
+            "claimIds": [
+              "csqopaw"
+            ],
+            "provenance": [
+              "model"
+            ]
+          },
+          {
+            "mapId": "k7",
+            "claimIds": [
+              "c1usgzhm"
+            ],
+            "provenance": [
+              "model"
+            ]
+          }
+        ]
+      },
+      "trace": {
+        "packId": "kp_nwrfsy",
+        "packStatus": "qualified",
+        "provenanceSummary": "Phase 1: no claim is factually verified. Model-originated claims are unverified. Teacher material is not treated as truth. Retrieved, curated, and curriculum origins are not available in this phase.",
+        "depthMode": "system",
+        "depthReason": "Year 5 selects concrete claims, mechanisms, and system claims. Younger years do not receive the system claims.",
+        "map": [
+          {
+            "mapId": "k1",
+            "knowledge": "Henry VIII was king of England from 1509 to 1547.",
+            "claimIds": [
+              "c1booj6h"
+            ],
+            "provenance": [
+              "model"
+            ],
+            "factuallyVerified": false
+          },
+          {
+            "mapId": "k2",
+            "knowledge": "Henry wanted a male heir, so he asked Rome to end his marriage to Catherine of Aragon.",
+            "claimIds": [
+              "c17zw4mb"
+            ],
+            "provenance": [
+              "model"
+            ],
+            "factuallyVerified": false
+          },
+          {
+            "mapId": "k3",
+            "knowledge": "When Rome refused, Henry's break with Rome let him control the English church.",
+            "claimIds": [
+              "c12scby3"
+            ],
+            "provenance": [
+              "model"
+            ],
+            "factuallyVerified": false
+          },
+          {
+            "mapId": "k4",
+            "knowledge": "In 1534 the Act of Supremacy said Henry, not the Pope, was head of the Church in England.",
+            "claimIds": [
+              "c1feagon"
+            ],
+            "provenance": [
+              "model"
+            ],
+            "factuallyVerified": false
+          },
+          {
+            "mapId": "k5",
+            "knowledge": "A monastery was a religious house that owned land.",
+            "claimIds": [
+              "c1l4w9sc"
+            ],
+            "provenance": [
+              "model"
+            ],
+            "factuallyVerified": false
+          },
+          {
+            "mapId": "k6",
+            "knowledge": "The break closed many monasteries, so that their land and wealth went to the crown and new owners.",
+            "claimIds": [
+              "csqopaw"
+            ],
+            "provenance": [
+              "model"
+            ],
+            "factuallyVerified": false
+          },
+          {
+            "mapId": "k7",
+            "knowledge": "Catherine of Aragon was Henry's first wife.",
+            "claimIds": [
+              "c1usgzhm"
+            ],
+            "provenance": [
+              "model"
+            ],
+            "factuallyVerified": false
+          }
+        ],
+        "teach": [
+          {
+            "stage": "teach",
+            "beatId": "teach:0",
+            "move": "name",
+            "mapIds": [
+              "k1"
+            ],
+            "claimIds": [
+              "c1booj6h"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:1",
+            "move": "explain",
+            "mapIds": [
+              "k2"
+            ],
+            "claimIds": [
+              "c17zw4mb"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:2",
+            "move": "explain",
+            "mapIds": [
+              "k3"
+            ],
+            "claimIds": [
+              "c12scby3"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:3",
+            "move": "name",
+            "mapIds": [
+              "k4"
+            ],
+            "claimIds": [
+              "c1feagon"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:4",
+            "move": "name",
+            "mapIds": [
+              "k5"
+            ],
+            "claimIds": [
+              "c1l4w9sc"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:5",
+            "move": "exemplify",
+            "mapIds": [
+              "k5"
+            ],
+            "claimIds": [
+              "c1l4w9sc"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:6",
+            "move": "explain",
+            "mapIds": [
+              "k6"
+            ],
+            "claimIds": [
+              "csqopaw"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:7",
+            "move": "name",
+            "mapIds": [
+              "k7"
+            ],
+            "claimIds": [
+              "c1usgzhm"
+            ]
+          }
+        ],
+        "apply": [
+          {
+            "stage": "apply",
+            "beatId": "apply:0",
+            "move": "apply",
+            "mapIds": [
+              "k3"
+            ],
+            "claimIds": [
+              "c12scby3"
+            ]
+          }
+        ],
+        "check": [
+          {
+            "stage": "check",
+            "beatId": "check:0",
+            "move": "retrieve",
+            "mapIds": [
+              "k2"
+            ],
+            "claimIds": [
+              "c17zw4mb"
+            ]
+          },
+          {
+            "stage": "check",
+            "beatId": "check:1",
+            "move": "retrieve",
+            "mapIds": [
+              "k3"
+            ],
+            "claimIds": [
+              "c12scby3"
+            ]
+          },
+          {
+            "stage": "check",
+            "beatId": "check:2",
+            "move": "retrieve",
+            "mapIds": [
+              "k5"
+            ],
+            "claimIds": [
+              "c1l4w9sc"
+            ]
+          },
+          {
+            "stage": "check",
+            "beatId": "check:3",
+            "move": "retrieve",
+            "mapIds": [
+              "k6"
+            ],
+            "claimIds": [
+              "csqopaw"
+            ]
+          }
+        ]
+      },
+      "blocked": false,
+      "packStatus": "qualified",
+      "packStatusReason": "contested claims stay in the pack and out of the lesson"
+    },
+    {
+      "id": "y6-mam-tor",
+      "source": "production-equivalent",
+      "liveModel": false,
+      "liveModelReason": "OPENAI_API_KEY is not set. No model call was made. teacherIntent and rawPack are scripted inputs to the real admission code.",
+      "request": "Year 6 geography. Teach how the geology of Mam Tor caused the landslip.",
+      "teacherIntent": {
+        "ok": true,
+        "yearGroup": "Year 6",
+        "subject": "Geography",
+        "subjectConfidence": "explicit",
+        "learningGoal": "Pupils explain how Mam Tor's geology caused the landslip.",
+        "requiredEvidence": "A pupil explains how the rock and water made the hillside slip.",
+        "focusConcepts": [
+          "Mam Tor",
+          "landslip"
+        ],
+        "priorKnowledge": [],
+        "exclusions": [],
+        "preferences": [],
+        "durationMinutes": 20
+      },
+      "rawPack": {
+        "status": "blocked",
+        "blockReason": "Specific strata, dates and measurements for this hillside are not secure enough to teach without inventing them.",
+        "niche": true,
+        "claims": [
+          {
+            "text": "Mam Tor is a hill in the Peak District.",
+            "depth": "concrete",
+            "confidence": "medium",
+            "provenance": "model",
+            "factuallyVerified": false,
+            "ageFit": {
+              "from": 3,
+              "to": 6
+            }
+          },
+          {
+            "text": "The road below Mam Tor has cracked and been closed.",
+            "depth": "concrete",
+            "confidence": "low",
+            "provenance": "model",
+            "factuallyVerified": false,
+            "ageFit": {
+              "from": 3,
+              "to": 6
+            }
+          }
+        ]
+      },
+      "admittedPack": {
+        "packId": "kp_1gu2dww",
+        "status": "blocked",
+        "statusReason": "Specific strata, dates and measurements for this hillside are not secure enough to teach without inventing them.",
+        "modelStatus": "blocked",
+        "falsePremise": "",
+        "provenanceSummary": "Phase 1: no claim is factually verified. Model-originated claims are unverified. Teacher material is not treated as truth. Retrieved, curated, and curriculum origins are not available in this phase.",
+        "verificationOverrides": 0,
+        "claimCount": 2,
+        "claims": [
+          {
+            "claimId": "ck2kmnk",
+            "text": "Mam Tor is a hill in the Peak District.",
+            "kind": "fact",
+            "depth": "concrete",
+            "confidence": "medium",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 3,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          },
+          {
+            "claimId": "ck96and",
+            "text": "The road below Mam Tor has cracked and been closed.",
+            "kind": "fact",
+            "depth": "concrete",
+            "confidence": "low",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 3,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          }
+        ],
+        "mechanisms": [],
+        "concepts": [],
+        "vocabulary": [],
+        "misconceptions": [],
+        "openQuestions": [],
+        "rejectedClaims": [],
+        "strippedFields": [],
+        "selection": {
+          "status": "blocked",
+          "reason": "Specific strata, dates and measurements for this hillside are not secure enough to teach without inventing them.",
+          "depthMode": "system",
+          "year": 6,
+          "claimIds": [],
+          "heldBack": [
+            {
+              "claimId": "ck2kmnk",
+              "reason": "pack blocked"
+            },
+            {
+              "claimId": "ck96and",
+              "reason": "pack blocked"
+            }
+          ]
+        }
+      },
+      "claimIds": [
+        "ck2kmnk",
+        "ck96and"
+      ],
+      "selectedClaimIds": [],
+      "yearDepth": {
+        "year": 6,
+        "depthMode": "system",
+        "status": "blocked",
+        "reason": "Specific strata, dates and measurements for this hillside are not secure enough to teach without inventing them.",
+        "heldBack": [
+          {
+            "claimId": "ck2kmnk",
+            "reason": "pack blocked"
+          },
+          {
+            "claimId": "ck96and",
+            "reason": "pack blocked"
+          }
+        ]
+      },
+      "samePackYears": null,
+      "learningMap": null,
+      "boundRejections": [],
+      "planOk": false,
+      "planIssues": [],
+      "mapRejected": null,
+      "knowledgeGrounding": null,
+      "trace": null,
+      "blocked": true,
+      "packStatus": "blocked",
+      "packStatusReason": "Specific strata, dates and measurements for this hillside are not secure enough to teach without inventing them."
+    },
+    {
+      "id": "y4-false-premise-sharks-mammals",
+      "source": "production-equivalent",
+      "liveModel": false,
+      "liveModelReason": "OPENAI_API_KEY is not set. No model call was made. teacherIntent and rawPack are scripted inputs to the real admission code.",
+      "request": "Year 4 science. Explain why sharks are mammals.",
+      "teacherIntent": {
+        "ok": true,
+        "yearGroup": "Year 4",
+        "subject": "Science",
+        "subjectConfidence": "explicit",
+        "learningGoal": "Pupils explain why sharks are mammals.",
+        "requiredEvidence": "A pupil gives the reason sharks are mammals.",
+        "focusConcepts": [
+          "sharks",
+          "mammals"
+        ],
+        "priorKnowledge": [],
+        "exclusions": [],
+        "preferences": [],
+        "durationMinutes": 15
+      },
+      "rawPack": {
+        "status": "qualified",
+        "falsePremise": "sharks are mammals",
+        "claims": [
+          {
+            "text": "Sharks are mammals.",
+            "accepted": false,
+            "provenance": "model",
+            "teacherRequested": true,
+            "factuallyVerified": true,
+            "confidence": "high",
+            "depth": "concrete",
+            "ageFit": {
+              "from": 1,
+              "to": 6
+            }
+          },
+          {
+            "text": "Sharks are fish, not mammals.",
+            "provenance": "teacher_material",
+            "teacherRequested": true,
+            "factuallyVerified": true,
+            "correctsPremise": true,
+            "confidence": "high",
+            "depth": "concrete",
+            "kind": "definition",
+            "ageFit": {
+              "from": 1,
+              "to": 6
+            }
+          },
+          {
+            "text": "Gills take oxygen from the water so that a shark can breathe.",
+            "provenance": "retrieved",
+            "factuallyVerified": true,
+            "confidence": "high",
+            "depth": "mechanism",
+            "kind": "mechanism",
+            "ageFit": {
+              "from": 3,
+              "to": 6
+            }
+          },
+          {
+            "text": "Mammals feed milk to their young and breathe air with lungs.",
+            "depth": "mechanism",
+            "kind": "definition",
+            "confidence": "high",
+            "provenance": "model",
+            "factuallyVerified": false,
+            "ageFit": {
+              "from": 3,
+              "to": 6
+            }
+          },
+          {
+            "text": "A shark does not feed its young on milk, because a shark is a fish.",
+            "depth": "mechanism",
+            "kind": "mechanism",
+            "confidence": "high",
+            "provenance": "model",
+            "factuallyVerified": false,
+            "correctsPremise": true,
+            "ageFit": {
+              "from": 3,
+              "to": 6
+            }
+          },
+          {
+            "text": "Sharks have scales rather than hair, so that they are not classed as mammals.",
+            "depth": "mechanism",
+            "kind": "mechanism",
+            "confidence": "high",
+            "provenance": "model",
+            "factuallyVerified": false,
+            "correctsPremise": true,
+            "ageFit": {
+              "from": 3,
+              "to": 6
+            }
+          },
+          {
+            "text": "Whales and dolphins are mammals, because they breathe air and feed milk.",
+            "depth": "mechanism",
+            "kind": "comparison",
+            "confidence": "high",
+            "provenance": "model",
+            "factuallyVerified": false,
+            "ageFit": {
+              "from": 3,
+              "to": 6
+            }
+          },
+          {
+            "text": "A shark's skin is covered in tiny scales called denticles.",
+            "depth": "concrete",
+            "confidence": "high",
+            "provenance": "model",
+            "factuallyVerified": false,
+            "ageFit": {
+              "from": 3,
+              "to": 6
+            }
+          },
+          {
+            "text": "Denticles let water flow smoothly over the skin, so that the shark wastes less effort.",
+            "depth": "mechanism",
+            "kind": "mechanism",
+            "confidence": "medium",
+            "provenance": "model",
+            "factuallyVerified": false,
+            "ageFit": {
+              "from": 4,
+              "to": 6
+            }
+          },
+          {
+            "text": "Lungs and gills are different systems for getting oxygen.",
+            "depth": "system",
+            "confidence": "medium",
+            "provenance": "curriculum_planning",
+            "factuallyVerified": true,
+            "ageFit": {
+              "from": 5,
+              "to": 6
+            }
+          }
+        ]
+      },
+      "admittedPack": {
+        "packId": "kp_q5vzh3",
+        "status": "qualified",
+        "statusReason": "false premise removed from the claims",
+        "modelStatus": "qualified",
+        "falsePremise": "sharks are mammals",
+        "provenanceSummary": "Phase 1: no claim is factually verified. Model-originated claims are unverified. Teacher material is not treated as truth. Retrieved, curated, and curriculum origins are not available in this phase.",
+        "verificationOverrides": 3,
+        "claimCount": 9,
+        "claims": [
+          {
+            "claimId": "c1nx7x9s",
+            "text": "Sharks are fish, not mammals.",
+            "kind": "definition",
+            "depth": "concrete",
+            "confidence": "high",
+            "provenance": "teacher_material",
+            "provenanceNote": "teacher-material/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 1,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": true
+          },
+          {
+            "claimId": "cmqr5m5",
+            "text": "Gills take oxygen from the water so that a shark can breathe.",
+            "kind": "mechanism",
+            "depth": "mechanism",
+            "confidence": "high",
+            "provenance": "teacher_material",
+            "provenanceNote": "teacher-material/unverified; ignored retrieved label",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 3,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          },
+          {
+            "claimId": "c8o5zvc",
+            "text": "Mammals feed milk to their young and breathe air with lungs.",
+            "kind": "definition",
+            "depth": "mechanism",
+            "confidence": "high",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 3,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          },
+          {
+            "claimId": "c7srvfk",
+            "text": "A shark does not feed its young on milk, because a shark is a fish.",
+            "kind": "mechanism",
+            "depth": "mechanism",
+            "confidence": "high",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 3,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": true
+          },
+          {
+            "claimId": "c1fr83t0",
+            "text": "Sharks have scales rather than hair, so that they are not classed as mammals.",
+            "kind": "mechanism",
+            "depth": "mechanism",
+            "confidence": "high",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 3,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": true
+          },
+          {
+            "claimId": "c13qh5jy",
+            "text": "Whales and dolphins are mammals, because they breathe air and feed milk.",
+            "kind": "fact",
+            "depth": "mechanism",
+            "confidence": "high",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 3,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          },
+          {
+            "claimId": "cu2t7yr",
+            "text": "A shark's skin is covered in tiny scales called denticles.",
+            "kind": "fact",
+            "depth": "concrete",
+            "confidence": "high",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 3,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          },
+          {
+            "claimId": "c1lankyu",
+            "text": "Denticles let water flow smoothly over the skin, so that the shark wastes less effort.",
+            "kind": "mechanism",
+            "depth": "mechanism",
+            "confidence": "medium",
+            "provenance": "model",
+            "provenanceNote": "model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 4,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          },
+          {
+            "claimId": "c5k98ge",
+            "text": "Lungs and gills are different systems for getting oxygen.",
+            "kind": "fact",
+            "depth": "system",
+            "confidence": "medium",
+            "provenance": "model",
+            "provenanceNote": "downgraded from curriculum_planning: phase 1 has no external source; model-originated/unverified",
+            "teacherRequested": false,
+            "factuallyVerified": false,
+            "contested": false,
+            "uncertainty": "",
+            "ageFit": {
+              "from": 5,
+              "to": 6
+            },
+            "importance": "core",
+            "correctsPremise": false
+          }
+        ],
+        "mechanisms": [
+          {
+            "claimId": "cmqr5m5",
+            "text": "Gills take oxygen from the water so that a shark can breathe."
+          },
+          {
+            "claimId": "c8o5zvc",
+            "text": "Mammals feed milk to their young and breathe air with lungs."
+          },
+          {
+            "claimId": "c7srvfk",
+            "text": "A shark does not feed its young on milk, because a shark is a fish."
+          },
+          {
+            "claimId": "c1fr83t0",
+            "text": "Sharks have scales rather than hair, so that they are not classed as mammals."
+          },
+          {
+            "claimId": "c13qh5jy",
+            "text": "Whales and dolphins are mammals, because they breathe air and feed milk."
+          },
+          {
+            "claimId": "c1lankyu",
+            "text": "Denticles let water flow smoothly over the skin, so that the shark wastes less effort."
+          }
+        ],
+        "concepts": [],
+        "vocabulary": [],
+        "misconceptions": [],
+        "openQuestions": [],
+        "rejectedClaims": [
+          {
+            "text": "Sharks are mammals.",
+            "reason": "not accepted"
+          }
+        ],
+        "strippedFields": [],
+        "selection": {
+          "status": "qualified",
+          "reason": "Year 4 selects concrete claims and mechanisms. System claims stay in the pack.",
+          "depthMode": "mechanism",
+          "year": 4,
+          "claimIds": [
+            "c1nx7x9s",
+            "cu2t7yr",
+            "c13qh5jy",
+            "c1fr83t0",
+            "c1lankyu",
+            "c7srvfk",
+            "c8o5zvc",
+            "cmqr5m5"
+          ],
+          "heldBack": [
+            {
+              "claimId": "c5k98ge",
+              "depth": "system",
+              "reason": "outside age fit"
+            }
+          ]
+        }
+      },
+      "claimIds": [
+        "c1nx7x9s",
+        "cmqr5m5",
+        "c8o5zvc",
+        "c7srvfk",
+        "c1fr83t0",
+        "c13qh5jy",
+        "cu2t7yr",
+        "c1lankyu",
+        "c5k98ge"
+      ],
+      "selectedClaimIds": [
+        "c1nx7x9s",
+        "cu2t7yr",
+        "c13qh5jy",
+        "c1fr83t0",
+        "c1lankyu",
+        "c7srvfk",
+        "c8o5zvc",
+        "cmqr5m5"
+      ],
+      "yearDepth": {
+        "year": 4,
+        "depthMode": "mechanism",
+        "status": "qualified",
+        "reason": "Year 4 selects concrete claims and mechanisms. System claims stay in the pack.",
+        "heldBack": [
+          {
+            "claimId": "c5k98ge",
+            "depth": "system",
+            "reason": "outside age fit"
+          }
+        ]
+      },
+      "samePackYears": null,
+      "learningMap": [
+        {
+          "id": "k1",
+          "knowledge": "Sharks are fish, not mammals.",
+          "role": "definition",
+          "claimIds": [
+            "c1nx7x9s"
+          ],
+          "dependsOn": []
+        },
+        {
+          "id": "k2",
+          "knowledge": "Gills take oxygen from the water so that a shark can breathe.",
+          "role": "mechanism",
+          "claimIds": [
+            "cmqr5m5"
+          ],
+          "dependsOn": [
+            "k1"
+          ]
+        },
+        {
+          "id": "k3",
+          "knowledge": "Mammals feed milk to their young and breathe air with lungs.",
+          "role": "comparison",
+          "claimIds": [
+            "c8o5zvc"
+          ],
+          "dependsOn": [
+            "k1"
+          ]
+        },
+        {
+          "id": "k4",
+          "knowledge": "Whales and dolphins are mammals, because they breathe air and feed milk.",
+          "role": "comparison",
+          "claimIds": [
+            "c13qh5jy"
+          ],
+          "dependsOn": [
+            "k3"
+          ]
+        },
+        {
+          "id": "k5",
+          "knowledge": "Sharks have scales rather than hair, so that they are not classed as mammals.",
+          "role": "mechanism",
+          "claimIds": [
+            "c1fr83t0"
+          ],
+          "dependsOn": [
+            "k1"
+          ]
+        },
+        {
+          "id": "k6",
+          "knowledge": "A shark's skin is covered in tiny scales called denticles.",
+          "role": "feature",
+          "claimIds": [
+            "cu2t7yr"
+          ],
+          "dependsOn": [
+            "k1"
+          ]
+        },
+        {
+          "id": "k7",
+          "knowledge": "Denticles let water flow smoothly over the skin, so that the shark wastes less effort.",
+          "role": "mechanism",
+          "claimIds": [
+            "c1lankyu"
+          ],
+          "dependsOn": [
+            "k6"
+          ]
+        }
+      ],
+      "boundRejections": [
+        {
+          "knowledge": "Sharks are mammals.",
+          "reason": "rejected claim is not a fact"
+        },
+        {
+          "knowledge": "A shark does not feed its young on milk, because a shark is a fish.",
+          "reason": "repetition"
+        }
+      ],
+      "planOk": true,
+      "planIssues": [],
+      "mapRejected": [
+        {
+          "knowledge": "Sharks are mammals.",
+          "reason": "rejected claim is not a fact"
+        },
+        {
+          "knowledge": "A shark does not feed its young on milk, because a shark is a fish.",
+          "reason": "repetition"
+        }
+      ],
+      "knowledgeGrounding": {
+        "packId": "kp_q5vzh3",
+        "status": "qualified",
+        "provenanceSummary": "Phase 1: no claim is factually verified. Model-originated claims are unverified. Teacher material is not treated as truth. Retrieved, curated, and curriculum origins are not available in this phase.",
+        "premiseCorrected": true,
+        "depthMode": "mechanism",
+        "depthReason": "Year 4 selects concrete claims and mechanisms. System claims stay in the pack.",
+        "selectedClaimIds": [
+          "c1nx7x9s",
+          "cu2t7yr",
+          "c13qh5jy",
+          "c1fr83t0",
+          "c1lankyu",
+          "c7srvfk",
+          "c8o5zvc",
+          "cmqr5m5"
+        ],
+        "points": [
+          {
+            "mapId": "k1",
+            "claimIds": [
+              "c1nx7x9s"
+            ],
+            "provenance": [
+              "teacher_material"
+            ]
+          },
+          {
+            "mapId": "k2",
+            "claimIds": [
+              "cmqr5m5"
+            ],
+            "provenance": [
+              "teacher_material"
+            ]
+          },
+          {
+            "mapId": "k3",
+            "claimIds": [
+              "c8o5zvc"
+            ],
+            "provenance": [
+              "model"
+            ]
+          },
+          {
+            "mapId": "k4",
+            "claimIds": [
+              "c13qh5jy"
+            ],
+            "provenance": [
+              "model"
+            ]
+          },
+          {
+            "mapId": "k5",
+            "claimIds": [
+              "c1fr83t0"
+            ],
+            "provenance": [
+              "model"
+            ]
+          },
+          {
+            "mapId": "k6",
+            "claimIds": [
+              "cu2t7yr"
+            ],
+            "provenance": [
+              "model"
+            ]
+          },
+          {
+            "mapId": "k7",
+            "claimIds": [
+              "c1lankyu"
+            ],
+            "provenance": [
+              "model"
+            ]
+          }
+        ]
+      },
+      "trace": {
+        "packId": "kp_q5vzh3",
+        "packStatus": "qualified",
+        "provenanceSummary": "Phase 1: no claim is factually verified. Model-originated claims are unverified. Teacher material is not treated as truth. Retrieved, curated, and curriculum origins are not available in this phase.",
+        "depthMode": "mechanism",
+        "depthReason": "Year 4 selects concrete claims and mechanisms. System claims stay in the pack.",
+        "map": [
+          {
+            "mapId": "k1",
+            "knowledge": "Sharks are fish, not mammals.",
+            "claimIds": [
+              "c1nx7x9s"
+            ],
+            "provenance": [
+              "teacher_material"
+            ],
+            "factuallyVerified": false
+          },
+          {
+            "mapId": "k2",
+            "knowledge": "Gills take oxygen from the water so that a shark can breathe.",
+            "claimIds": [
+              "cmqr5m5"
+            ],
+            "provenance": [
+              "teacher_material"
+            ],
+            "factuallyVerified": false
+          },
+          {
+            "mapId": "k3",
+            "knowledge": "Mammals feed milk to their young and breathe air with lungs.",
+            "claimIds": [
+              "c8o5zvc"
+            ],
+            "provenance": [
+              "model"
+            ],
+            "factuallyVerified": false
+          },
+          {
+            "mapId": "k4",
+            "knowledge": "Whales and dolphins are mammals, because they breathe air and feed milk.",
+            "claimIds": [
+              "c13qh5jy"
+            ],
+            "provenance": [
+              "model"
+            ],
+            "factuallyVerified": false
+          },
+          {
+            "mapId": "k5",
+            "knowledge": "Sharks have scales rather than hair, so that they are not classed as mammals.",
+            "claimIds": [
+              "c1fr83t0"
+            ],
+            "provenance": [
+              "model"
+            ],
+            "factuallyVerified": false
+          },
+          {
+            "mapId": "k6",
+            "knowledge": "A shark's skin is covered in tiny scales called denticles.",
+            "claimIds": [
+              "cu2t7yr"
+            ],
+            "provenance": [
+              "model"
+            ],
+            "factuallyVerified": false
+          },
+          {
+            "mapId": "k7",
+            "knowledge": "Denticles let water flow smoothly over the skin, so that the shark wastes less effort.",
+            "claimIds": [
+              "c1lankyu"
+            ],
+            "provenance": [
+              "model"
+            ],
+            "factuallyVerified": false
+          }
+        ],
+        "teach": [
+          {
+            "stage": "teach",
+            "beatId": "teach:0",
+            "move": "name",
+            "mapIds": [
+              "k1"
+            ],
+            "claimIds": [
+              "c1nx7x9s"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:1",
+            "move": "exemplify",
+            "mapIds": [
+              "k1"
+            ],
+            "claimIds": [
+              "c1nx7x9s"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:2",
+            "move": "explain",
+            "mapIds": [
+              "k2"
+            ],
+            "claimIds": [
+              "cmqr5m5"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:3",
+            "move": "explain",
+            "mapIds": [
+              "k3"
+            ],
+            "claimIds": [
+              "c8o5zvc"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:4",
+            "move": "explain",
+            "mapIds": [
+              "k4"
+            ],
+            "claimIds": [
+              "c13qh5jy"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:5",
+            "move": "explain",
+            "mapIds": [
+              "k5"
+            ],
+            "claimIds": [
+              "c1fr83t0"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:6",
+            "move": "name",
+            "mapIds": [
+              "k6"
+            ],
+            "claimIds": [
+              "cu2t7yr"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:7",
+            "move": "explain",
+            "mapIds": [
+              "k7"
+            ],
+            "claimIds": [
+              "c1lankyu"
+            ]
+          }
+        ],
+        "apply": [
+          {
+            "stage": "apply",
+            "beatId": "apply:0",
+            "move": "apply",
+            "mapIds": [
+              "k4"
+            ],
+            "claimIds": [
+              "c13qh5jy"
+            ]
+          }
+        ],
+        "check": [
+          {
+            "stage": "check",
+            "beatId": "check:0",
+            "move": "retrieve",
+            "mapIds": [
+              "k2"
+            ],
+            "claimIds": [
+              "cmqr5m5"
+            ]
+          },
+          {
+            "stage": "check",
+            "beatId": "check:1",
+            "move": "retrieve",
+            "mapIds": [
+              "k4"
+            ],
+            "claimIds": [
+              "c13qh5jy"
+            ]
+          },
+          {
+            "stage": "check",
+            "beatId": "check:2",
+            "move": "retrieve",
+            "mapIds": [
+              "k5"
+            ],
+            "claimIds": [
+              "c1fr83t0"
+            ]
+          }
+        ]
+      },
+      "blocked": false,
+      "packStatus": "qualified",
+      "packStatusReason": "false premise removed from the claims"
+    }
+  ]
+}

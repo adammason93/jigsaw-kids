@@ -70,10 +70,32 @@
   <script src="../../js/score-config.js"></script>
   <script src="../../js/storybook-shelf-store.js?v=3"></script>
   <script src="../../js/wondii-session.js?v=1"></script>
+  <script src="../../js/child-library.js?v=1"></script>
   <script src="../../js/score-cloud.js?v=12"></script>
   <script src="../../js/story-atmosphere.js?v=1"></script>
   <script src="story.js?v=3"></script>
   <script src="atmosphere-view.js?v=3"></script>
-  <script type="module" src="book.js?v=54"></script>
+  <script src="../../js/book-showcase.js?v=2"></script>
+  <script src="book-data.js?v=7"></script>
+  <script>
+    (function () {
+      if (window.WondiiBookData && window.WondiiBookData.prepareReader) {
+        window.WondiiBookData.prepareReader();
+      }
+      var params;
+      try { params = new URLSearchParams(window.location.search); } catch (e) { return; }
+      if (!params.has("book")) return;
+      document.title = "Opening this book — Wondii";
+      var brand = document.querySelector(".brand span");
+      if (!brand) return;
+      var watch = new MutationObserver(function () {
+        if (brand.textContent !== "Book unavailable") return;
+        document.title = "Book unavailable — Wondii";
+        watch.disconnect();
+      });
+      watch.observe(brand, { childList: true, characterData: true, subtree: true });
+    })();
+  </script>
+  <script type="module" src="book.js?v=61"></script>
 </body>
 </html>

@@ -243,14 +243,14 @@ function sentenceFor(beat) {
     predict: "Say what you think will happen to the ball.",
     name: beat.knowledgeRefs && beat.knowledgeRefs[0] === "k1" ? "Gravity pulls things down towards the Earth." : "The class gives this pull its own name.",
     explain: "The pull acts on objects even when nobody is holding them.",
-    model: "Watch the ball drop and say what changes.",
+    model: "First watch the ball drop, then say how gravity pulls it down.",
     connect: "These two ideas about the pull belong together.",
-    exemplify: "A book is one clear example of the same pull.",
-    practise: "Use the pull of gravity when you predict the next drop.",
+    exemplify: "A dropped book is one example of gravity pulling an object down.",
+    practise: "Show where gravity pulls the next dropped ball.",
     apply: "Show what happens to an object when nobody is holding it.",
     retrieve: "Which sentence matches the pull you just learned?",
-    reveal: "The class can now say why the ball came down.",
-    consolidate: "The class can now use the idea about gravity."
+    reveal: "Gravity pulled the ball down, so the playground mystery is settled.",
+    consolidate: "So gravity pulls objects down towards the Earth."
   };
   return lines[beat.move] || "The class keeps hold of the idea they just learned.";
 }

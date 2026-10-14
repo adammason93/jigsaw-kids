@@ -42,7 +42,10 @@
     var adventure = globalThis.WondiiVisualAdventure;
     if (asset.characterRegions && adventure && adventure.reliableRegions) regions = adventure.reliableRegions(asset.characterRegions);
     if (asset.status === "ready" && asset.publicUrl) {
-      return { url: asset.publicUrl, fallback: false, safe: asset.uiSafeArea || "", characterRegions: regions };
+      var shown = { url: asset.publicUrl, fallback: false, safe: asset.uiSafeArea || "", characterRegions: regions };
+      // Patch 6: a frame label ("Story picture: ...", "Teaching picture: ...") travels with the asset.
+      if (asset.frameLabel) shown.tag = String(asset.frameLabel);
+      return shown;
     }
     return { url: "", fallback: true, safe: asset.uiSafeArea || "", characterRegions: regions };
   }

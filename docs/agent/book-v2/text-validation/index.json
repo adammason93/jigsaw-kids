@@ -1,0 +1,79 @@
+{
+  "at": "2026-10-07T08:38:15.535Z",
+  "imageUsd": 0,
+  "books": [
+    {
+      "id": "a",
+      "status": "REVIEWABLE",
+      "title": "A Quiet Place Below",
+      "modelCalls": 4,
+      "repairCalls": 2,
+      "stagesRepaired": [
+        "bible"
+      ],
+      "listedUsd": 0.094738,
+      "guardUsd": 0.189476,
+      "imageUsd": 0,
+      "storyProblems": [],
+      "textProblems": []
+    },
+    {
+      "id": "b",
+      "status": "REVIEWABLE",
+      "title": "Shade for a Shadow",
+      "modelCalls": 2,
+      "repairCalls": 0,
+      "stagesRepaired": [],
+      "listedUsd": 0.032622,
+      "guardUsd": 0.065244,
+      "imageUsd": 0,
+      "storyProblems": [],
+      "textProblems": []
+    },
+    {
+      "id": "c",
+      "status": "REVIEWABLE",
+      "title": "Footsteps Above the Clouds",
+      "modelCalls": 3,
+      "repairCalls": 1,
+      "stagesRepaired": [
+        "prose"
+      ],
+      "listedUsd": 0.049394,
+      "guardUsd": 0.098788,
+      "imageUsd": 0,
+      "storyProblems": [],
+      "textProblems": []
+    },
+    {
+      "id": "d",
+      "status": "NOT_REVIEWABLE",
+      "title": "The Clock with the Broken Circle",
+      "modelCalls": 4,
+      "repairCalls": 2,
+      "stagesRepaired": [
+        "prose"
+      ],
+      "listedUsd": 0.051724,
+      "guardUsd": 0.103448,
+      "imageUsd": 0,
+      "storyProblems": [],
+      "textProblems": [
+        "age-amount:p1"
+      ]
+    },
+    {
+      "id": "e",
+      "status": "REVIEWABLE",
+      "title": "Maya and the Humming Star",
+      "modelCalls": 2,
+      "repairCalls": 0,
+      "stagesRepaired": [],
+      "listedUsd": 0.032798,
+      "guardUsd": 0.065596,
+      "imageUsd": 0,
+      "storyProblems": [],
+      "textProblems": []
+    }
+  ]
+}

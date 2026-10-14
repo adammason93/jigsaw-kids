@@ -171,11 +171,11 @@ function sharkSentence(beat) {
     notice: "Look at the scene and say what you can see.",
     name: item.kind === "relationship" ? "The class gives this idea its own name." : item.text,
     explain: item.kind === "relationship" ? known + " in the ocean." : "This is how that idea works for a shark.",
-    exemplify: "Here is one clear example of the idea in use.",
-    practise: "Use the idea about sharks in what you make.",
+    exemplify: "For example, you can see it when " + known.charAt(0).toLowerCase() + known.slice(1) + ".",
+    practise: "Show a new case where " + known.charAt(0).toLowerCase() + known.slice(1) + ".",
     retrieve: "Which sentence matches the idea you just learned?",
-    reveal: "The class can now use the idea from this lesson.",
-    consolidate: "The class can now use the idea about sharks."
+    reveal: "So, " + known.charAt(0).toLowerCase() + known.slice(1) + ".",
+    consolidate: "So, " + known.charAt(0).toLowerCase() + known.slice(1) + "."
   }[beat.move];
   return { id: beat.id, cue: "", text: text };
 }

@@ -103,29 +103,53 @@
 
   function stage(row, kind) {
     var box = el("div", "crew-card__stage");
+    var portrait = kind === "workspace" ? "" : (crew() && crew().cardArt ? (crew().cardArt(row) || "") : "");
+    var savedArt = kind === "workspace" && row.artwork ? row.artwork : "";
+    var realArt = portrait || savedArt;
     var idle = document.createElement("img");
-    idle.className = "crew-card__art crew-card__art--idle";
+    idle.className = "crew-card__art crew-card__art--idle" + (realArt ? " crew-card__art--portrait" : "");
     idle.alt = "";
-    idle.src = row.assets ? row.assets.idle : (row.artwork || "");
-    var hover = document.createElement("img");
-    hover.className = "crew-card__art crew-card__art--hover";
-    hover.alt = "";
-    hover.src = row.assets ? row.assets.hover : (row.artwork || "");
+    idle.src = realArt || (row.assets ? row.assets.idle : "");
+    /* Placeholder figures can crossfade. A real portrait stays put and does not uncover a second picture. */
+    var hoverSrc = realArt ? "" : (row.assets && row.assets.hover && row.assets.hover !== idle.src ? row.assets.hover : "");
     var stand = figure(row.placeholder ? row : { placeholder: { skin: "#e0ac69", hair: "#3b2414", hairStyle: "short", top: "#7d5caf", bottom: "#2c3338" }, gesture: "wave" });
-    function hideMissing(img) {
+    if (realArt) stand.hidden = true;
+    function revealWhenReady(img) {
+      img.hidden = true;
+      function show() { if (img.naturalWidth > 0) img.hidden = false; }
+      img.addEventListener("load", show);
       img.addEventListener("error", function () { img.hidden = true; });
+      if (img.complete) show();
     }
-    hideMissing(idle);
-    hideMissing(hover);
-    if (kind === "workspace" && row.artwork) {
-      idle.src = row.artwork;
-      hover.src = row.artwork;
+    function showArtwork() {
+      if (idle.naturalWidth > 0 && realArt) {
+        box.setAttribute("data-portrait", "true");
+        stand.hidden = true;
+      }
     }
+    idle.addEventListener("load", showArtwork);
+    idle.addEventListener("error", function () {
+      box.removeAttribute("data-portrait");
+      if (!realArt) return;
+      idle.remove();
+      stand.hidden = true;
+      box.classList.add("is-missing");
+      if (!box.querySelector(".crew-await")) box.appendChild(el("p", "crew-await", "Portrait coming"));
+    });
+    revealWhenReady(idle);
     box.appendChild(idle);
-    box.appendChild(hover);
+    if (hoverSrc) {
+      var hover = document.createElement("img");
+      hover.className = "crew-card__art crew-card__art--hover";
+      hover.alt = "";
+      hover.src = hoverSrc;
+      revealWhenReady(hover);
+      box.appendChild(hover);
+      box.setAttribute("data-hover", hoverSrc);
+    }
     box.appendChild(stand);
-    box.appendChild(el("span", "crew-card__spark"));
-    box.setAttribute("data-hover", hover.src || "");
+    if (!realArt) box.appendChild(el("span", "crew-card__spark"));
+    if (idle.complete) showArtwork();
     return box;
   }
 
@@ -188,8 +212,25 @@
     return card;
   }
 
-  function mineCard(row, selected) {
-    var card = el("article", "crew-card");
+  function characterBlurb(row) {
+    var description = row && row.description ? String(row.description) : "";
+    var personality = row && row.personality ? String(row.personality) : "";
+    if (description && personality && personality !== description) return description + " " + personality;
+    return personality || description || "Ready for your stories.";
+  }
+
+  function inviteButton(title, detail, onClick) {
+    var button = el("button", "crew-feature__invite");
+    button.type = "button";
+    button.appendChild(el("strong", "", title));
+    button.appendChild(el("span", "", detail));
+    button.addEventListener("click", onClick);
+    return button;
+  }
+
+  function mineCard(row, selected, featured) {
+    var card = el("article", featured ? "crew-card crew-card--feature" : "crew-card");
+    var name = row.name || "Character";
     card.tabIndex = 0;
     card.setAttribute("data-pose", "idle");
     card.setAttribute("data-character", row.id);
@@ -201,14 +242,16 @@
       placeholder: { skin: "#e0ac69", hair: "#3b2414", hairStyle: "short", top: "#7d5caf", bottom: "#2c3338" },
       gesture: "wave"
     }, "workspace"));
-    card.appendChild(el("h3", "", row.name || "Character"));
-    card.appendChild(el("span", "crew-pill", "SAVED"));
-    card.appendChild(el("p", "", "Ready for your stories."));
-    var use = useControl("Use " + (row.name || "character"), function () {
+    var copy = featured ? el("div", "crew-card__copy") : card;
+    copy.appendChild(el("h3", "", name));
+    copy.appendChild(el("span", "crew-pill", "SAVED"));
+    copy.appendChild(el("p", "", characterBlurb(row)));
+    var use = useControl(featured ? "Use in a Story" : "Use " + name, function () {
       choose(crew().workspaceCast(row));
     });
-    use.setAttribute("aria-label", "Use " + (row.name || "character"));
-    card.appendChild(use);
+    use.setAttribute("aria-label", "Use " + name);
+    copy.appendChild(use);
+    if (featured) card.appendChild(copy);
     if (!showTools) {
       bindPose(card);
       return card;
@@ -216,15 +259,23 @@
     var tools = el("div", "crew-card__tools");
     var edit = el("button", "w-btn w-btn--quiet", "Edit");
     edit.type = "button";
-    edit.setAttribute("aria-label", "Edit " + (row.name || "character"));
+    edit.setAttribute("aria-label", "Edit " + name);
     edit.addEventListener("click", function () { openRename(row); });
     var remove = el("button", "w-btn w-btn--quiet", "Delete");
     remove.type = "button";
-    remove.setAttribute("aria-label", "Delete " + (row.name || "character"));
+    remove.setAttribute("aria-label", "Delete " + name);
     remove.addEventListener("click", function () { removeCharacter(row); });
     tools.appendChild(edit);
     tools.appendChild(remove);
-    card.appendChild(tools);
+    copy.appendChild(tools);
+    if (featured) {
+      var next = el("div", "crew-feature__next");
+      next.appendChild(inviteButton("Create another character", "Add someone new to your stories.", openMaker));
+      next.appendChild(inviteButton("Start a story", "Open the story maker with " + name + ".", function () {
+        choose(crew().workspaceCast(row));
+      }));
+      card.appendChild(next);
+    }
     bindPose(card);
     return card;
   }
@@ -243,19 +294,41 @@
     if (source) {
       list.setAttribute("data-cast-source", source);
       list.setAttribute("aria-label", source === "saved" ? "My characters" : "Wondii Crew");
+      if (source === "saved" && nodes.length === 1) list.classList.add("crew-grid--one");
+      else if (source === "saved" && nodes.length > 1 && nodes.length < 4) list.classList.add("crew-grid--few");
+      else if (source === "saved" && nodes.length === 6) list.classList.add("crew-grid--six");
+      else if (source === "saved") list.classList.add("crew-grid--many");
     }
     nodes.forEach(function (node) { list.appendChild(node); });
     return list;
   }
 
-  function emptyMine() {
+  function failedMine() {
     var box = el("div", "crew-empty");
-    box.appendChild(el("h3", "", "Create someone special"));
-    box.appendChild(el("p", "", "Make your own character once, then bring them into every story."));
-    var button = el("button", "w-btn w-btn--primary", "Create a character");
+    box.appendChild(el("h3", "", "Characters are not open just now"));
+    box.appendChild(el("p", "", loadError || "Wondii could not open your characters just now. Try again in a moment."));
+    var retry = el("button", "w-btn w-btn--primary", "Try again");
+    retry.type = "button";
+    retry.addEventListener("click", function () { loadSaved(); });
+    box.appendChild(retry);
+    return box;
+  }
+
+  function emptyMine() {
+    var box = el("div", "crew-welcome");
+    var mark = document.createElement("img");
+    mark.className = "crew-welcome__mark";
+    mark.alt = "";
+    mark.src = "games/images/brand/wondi-mark.svg";
+    var copy = el("div", "crew-welcome__copy");
+    copy.appendChild(el("h3", "", "Create someone special"));
+    copy.appendChild(el("p", "", "Make your own character once, then bring them into every story."));
+    var button = el("button", "w-btn w-btn--primary", "Create Your First Character");
     button.type = "button";
     button.addEventListener("click", openMaker);
-    box.appendChild(button);
+    copy.appendChild(button);
+    box.appendChild(mark);
+    box.appendChild(copy);
     return box;
   }
 
@@ -265,25 +338,29 @@
     hero.appendChild(el("h1", "", "Characters"));
     hero.appendChild(el("p", "w-lead", "Bring your stories to life"));
     hero.appendChild(el("p", "", "Create someone of your own, or choose a friend from the Wondii Crew."));
-    var add = el("button", "w-btn w-btn--primary", "+ Create a character");
-    add.type = "button";
-    add.addEventListener("click", openMaker);
-    hero.appendChild(add);
+    var showHeroAdd = status === "loading" || status === "error" || saved.length > 0;
+    if (showHeroAdd) {
+      var add = el("button", "w-btn w-btn--primary", "+ Create a character");
+      add.type = "button";
+      add.addEventListener("click", openMaker);
+      hero.appendChild(add);
+    }
     root.appendChild(hero);
-    if (loadError) root.appendChild(el("p", "crew-note", loadError));
+    if (loadError && status !== "error") root.appendChild(el("p", "crew-note", loadError));
 
-    var mine = el("section", "crew-section");
+    var mine = el("section", "crew-section crew-section--mine");
     mine.appendChild(el("h2", "", "My characters"));
     if (status === "loading") mine.appendChild(el("p", "crew-lead", "Opening your characters."));
+    else if (status === "error") mine.appendChild(failedMine());
     else if (!saved.length) mine.appendChild(emptyMine());
-    else mine.appendChild(grid(saved.map(function (row) { return mineCard(row, false); })));
+    else mine.appendChild(grid(saved.map(function (row) { return mineCard(row, false, saved.length === 1); }), "saved"));
     root.appendChild(mine);
 
-    var meet = el("section", "crew-section");
+    var meet = el("section", "crew-section crew-section--crew");
     meet.appendChild(el("h2", "", "Meet the Wondii Crew"));
     meet.appendChild(el("p", "crew-lead", "Every character brings a different spark to your story."));
     var people = crew() ? crew().list() : [];
-    meet.appendChild(grid(people.map(function (row) { return crewCard(row, false); })));
+    meet.appendChild(grid(people.map(function (row) { return crewCard(row, false); }), "system"));
     root.appendChild(meet);
     if (making) root.appendChild(makerDialog());
     if (renaming) root.appendChild(renameDialog(renaming));
@@ -336,6 +413,10 @@
     return base ? base + "/functions/v1/clever-service" : "";
   }
 
+  function childMaker() {
+    return !!(window.ChildLibrary && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession());
+  }
+
   function generate(name) {
     var url = functionUrl();
     if (!url) {
@@ -348,11 +429,28 @@
     var key = config.supabaseAnonKey || "";
     var payload = { action: "generate_character", characterName: name, characterType: maker.type };
     if (maker.photo) payload.referencePhoto = maker.photo;
-    fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: "Bearer " + key, apikey: key },
-      body: JSON.stringify(payload)
-    }).then(function (response) {
+    var start = childMaker() ? window.ChildLibrary.reserve("character") : Promise.resolve({ allowed: true, reason: "adult" });
+    start.then(function (gate) {
+      if (childMaker() && (!gate || gate.allowed !== true)) {
+        maker.busy = false;
+        maker.error = "Today’s characters are used up. You can make another one tomorrow.";
+        render();
+        return;
+      }
+      if (gate && gate.key) {
+        payload.creationKey = gate.key;
+        try { sessionStorage.setItem("wondii-child-character-key", gate.key); } catch (e) {}
+      }
+      var bearer = key;
+      if (childMaker() && window.WondiiSession && window.WondiiSession.get) {
+        var auth = window.WondiiSession.get();
+        if (auth && auth.session && auth.session.access_token) bearer = auth.session.access_token;
+      }
+      fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + bearer, apikey: key },
+        body: JSON.stringify(payload)
+      }).then(function (response) {
       return response.text().then(function (text) {
         var json = null;
         try { json = text ? JSON.parse(text) : null; } catch (e) { json = null; }
@@ -365,10 +463,12 @@
       maker.error = "";
       render();
     }).catch(function (err) {
+      if (gate && gate.key && childMaker()) window.ChildLibrary.refund(gate.key);
       console.error("character generate failed", err);
       maker.busy = false;
       maker.error = err.message || "Could not generate the character.";
       render();
+    });
     });
   }
 
@@ -376,6 +476,27 @@
     var store = window.CharacterStore;
     var space = workspace();
     var blob = store && store.dataUrlToBlob(maker.image);
+    if (childMaker()) {
+      if (!store || !store.saveCharacter || !blob) {
+        maker.busy = false;
+        maker.error = "Generate the character before saving.";
+        render();
+        return;
+      }
+      store.saveCharacter({ name: name, type: maker.type, createdAt: new Date().toISOString() }, blob, function (err, record) {
+        maker.busy = false;
+        if (err || !record) {
+          maker.error = (err && err.message) || "The character was not saved.";
+          render();
+          return;
+        }
+        making = false;
+        saved = [Object.assign({ artwork: maker.image }, record)].concat(saved.filter(function (row) { return row.id !== record.id; }));
+        status = "ready";
+        render();
+      });
+      return;
+    }
     if (!space || !space.ownerId) {
       maker.busy = false;
       maker.error = account() ? account().authNotice(space).text : "Log in to Wondii to save a character.";
@@ -588,14 +709,60 @@
     });
   }
 
+  var watching = false;
+
+  function watchAccount() {
+    if (watching) return;
+    watching = true;
+    document.addEventListener("wondii-org", function () {
+      if (host) loadSaved();
+    });
+  }
+
   function loadSaved() {
+    watchAccount();
+    if (childMaker()) {
+      var childStore = window.CharacterStore;
+      if (!childStore || !childStore.loadCharacters) {
+        saved = [];
+        status = "error";
+        loadError = "This character library is not open yet.";
+        render();
+        return;
+      }
+      status = "loading";
+      render();
+      childStore.loadCharacters(function (err, list) {
+        if (err || !Array.isArray(list)) {
+          saved = [];
+          status = "error";
+          loadError = (err && err.message && err.message.indexOf(" ") >= 0)
+            ? err.message
+            : "Wondii could not open your characters just now. Try again in a moment.";
+          render();
+          return;
+        }
+        finishSaved(list);
+      });
+      return;
+    }
     var store = window.CharacterStore;
+    var view = window.WondiiOrg && window.WondiiOrg.get && window.WondiiOrg.get();
+    if (!view || (view.status !== "ready" && view.status !== "error")) {
+      saved = [];
+      status = "loading";
+      loadError = "";
+      render();
+      return;
+    }
     var mine = ++token;
     var space = workspace();
     if (!space || !space.ownerId || !store || !store.loadCharacters) {
       saved = [];
       status = "ready";
-      if (space && space.kind === "signed-out" && account()) loadError = account().authNotice(space).text;
+      loadError = space && space.kind === "signed-out" && account()
+        ? account().authNotice(space).text
+        : (view.status === "error" ? "Could not open characters. Try again." : "");
       render();
       return;
     }
@@ -663,6 +830,12 @@
     if (options && options.onChoose) host._onChoose = options.onChoose;
     if (options && options.selected) host._selected = options.selected;
     try { coarse = window.matchMedia("(pointer: coarse)").matches; } catch (e) { coarse = false; }
+    if (options && Array.isArray(options.previewCharacters)) {
+      saved = options.previewCharacters.filter(function (row) { return row && row.id; });
+      status = "ready";
+      render();
+      return;
+    }
     render();
     loadSaved();
   }

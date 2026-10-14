@@ -1,0 +1,171 @@
+{
+  "stage": "story-and-plans",
+  "pictures": "not-run",
+  "title": "The Water That Made Steps",
+  "status": "REVIEWABLE",
+  "calls": {
+    "text": 5,
+    "image": 0
+  },
+  "listedUsd": 0.249884,
+  "listedGbp": 0.188413,
+  "proseRepairs": 1,
+  "textProblems": [],
+  "adventure": {
+    "kind": "adventure",
+    "blockProblems": [],
+    "reviewProblems": [],
+    "distinctSettings": [
+      "a rock ledge beside falling water",
+      "a narrow water-lit rock passage",
+      "an open stone terrace beneath a pearly sky"
+    ],
+    "sectionCount": 4
+  },
+  "progression": {
+    "verdict": "PASS",
+    "blockProblems": [],
+    "reviewProblems": []
+  },
+  "visualJourney": {
+    "problems": [],
+    "repetition": []
+  },
+  "journey": [
+    {
+      "section": "Finding the concealed entrance",
+      "locationId": "waterfall-ledge",
+      "purpose": "Let the children's different choices uncover the entrance.",
+      "objective": "Find the source of the golden flash.",
+      "discoveryOrObstacle": "Falling water conceals a foothold and an opening.",
+      "change": "Maya reaches through the spray while Leo secures her footing.",
+      "leadsTo": "shining-passage",
+      "knownPlace": true
+    },
+    {
+      "section": "Learning the shining rule",
+      "locationId": "shining-passage",
+      "purpose": "Establish the rule that their return will depend upon.",
+      "objective": "Find safe steps through the rock.",
+      "discoveryOrObstacle": "Wet stone shines, but dry steps blend into the walls.",
+      "change": "Leo tests the rule, and they follow the water toward its source.",
+      "leadsTo": "water-terrace",
+      "knownPlace": true
+    },
+    {
+      "section": "Exploration becomes responsibility",
+      "locationId": "water-terrace",
+      "purpose": "Turn Maya's investigation into a costly repair requiring both children.",
+      "objective": "Explore the divider, then restore the interrupted stream.",
+      "discoveryOrObstacle": "Removing its stone floods the crossing; their shell carrier breaks and silt blocks the socket.",
+      "change": "They reuse the broken shell's scooping edges to clear the socket and restore the water.",
+      "leadsTo": "shining-passage",
+      "knownPlace": true
+    },
+    {
+      "section": "Leaving a different trace",
+      "locationId": "shining-passage",
+      "purpose": "Show Maya choosing a harmless way to mark their discovery.",
+      "objective": "Follow the restored steps toward the exit.",
+      "discoveryOrObstacle": "Wet palms can make the wall shine without removing anything.",
+      "change": "They leave paired handprints rather than taking stones.",
+      "leadsTo": "waterfall-ledge",
+      "knownPlace": true
+    }
+  ],
+  "locations": [
+    {
+      "locationId": "waterfall-ledge",
+      "name": "Waterfall Ledge",
+      "connectedTo": [
+        "shining-passage"
+      ],
+      "visualIdentity": "White spray briefly exposes a golden foothold in dark rock.",
+      "setting": "a rock ledge beside falling water",
+      "zones": [
+        "spray edge"
+      ],
+      "persistentObjects": []
+    },
+    {
+      "locationId": "shining-passage",
+      "name": "Shining Passage",
+      "connectedTo": [
+        "waterfall-ledge",
+        "water-terrace"
+      ],
+      "visualIdentity": "A shallow stream illuminates golden steps beneath a curved ceiling.",
+      "setting": "a narrow water-lit rock passage",
+      "zones": [
+        "wet steps"
+      ],
+      "persistentObjects": []
+    },
+    {
+      "locationId": "water-terrace",
+      "name": "Water Terrace",
+      "connectedTo": [
+        "shining-passage"
+      ],
+      "visualIdentity": "Branching channels surround a low bridge and a triangular water divider.",
+      "setting": "an open stone terrace beneath a pearly sky",
+      "zones": [
+        "channel rim",
+        "low bridge",
+        "socket ledge"
+      ],
+      "persistentObjects": []
+    }
+  ],
+  "writing": {
+    "ageBand": "7-9",
+    "yearGroup": "",
+    "readerStage": "ages-7-9"
+  },
+  "traitLabelNote": "The plan used character ids as trait labels. Those labels were mapped to each child's catalogue traits from the behaviour already written. The events were not rewritten.",
+  "castleUntouched": true,
+  "ledger": [
+    {
+      "purpose": "book-prose",
+      "http": 200,
+      "usd": 0.015922,
+      "usage": {
+        "prompt_tokens": 3156,
+        "completion_tokens": 961,
+        "total_tokens": 4117,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 3153,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 31,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    },
+    {
+      "purpose": "book-prose-repair",
+      "http": 200,
+      "usd": 0.007838,
+      "usage": {
+        "prompt_tokens": 1639,
+        "completion_tokens": 456,
+        "total_tokens": 2095,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 1636,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 171,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    }
+  ]
+}

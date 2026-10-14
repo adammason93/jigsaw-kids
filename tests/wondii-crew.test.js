@@ -5,8 +5,7 @@ var fs = require("fs");
 var path = require("path");
 var Crew = require("../js/wondii-crew.js");
 var Account = require("../js/account-context.js");
-var Book = {};
-try { Book = require("../js/book-brain.js"); } catch (e) {}
+var Book = require("../js/book-brain.js");
 
 var root = path.join(__dirname, "..");
 function read(file) {
@@ -17,8 +16,7 @@ var portal = read("portal.html");
 var portalJs = read("portal.js");
 var page = read("schools/learn/character-portal.js");
 var css = read("css/character-crew.css");
-var bookPath = path.join(root, "games/book-create.js");
-var book = fs.existsSync(bookPath) ? fs.readFileSync(bookPath, "utf8") : "";
+var book = read("games/book-create.js");
 var home = read("schools/learn/home.js");
 
 var EXPECTED = [
@@ -115,7 +113,6 @@ assert.strictEqual(maya.characterId, "wondii-maya");
 assert.strictEqual(maya.bibleId, "maya");
 assert.ok(!maya.ownerId);
 var index = [];
-if (Book.acceptCreation) {
 var mayaBook = story(["wondii-maya"]);
 assert.strictEqual(mayaBook.ok, true, mayaBook.problems.join(", "));
 assert.strictEqual(mayaBook.cast.length, 1);
@@ -125,7 +122,6 @@ assert.ok(mayaBook.cast[0].reference.indexOf("maya-v1.jpg") >= 0);
 assert.ok(!mayaBook.cast[0].ownerId);
 assert.strictEqual(index.length, 0);
 assert.ok(mayaBook.cast.every(function (row) { return row.characterId !== "maya"; }));
-}
 var chooseFn = page.slice(page.indexOf("function choose"), page.indexOf("function grid"));
 assert.ok(chooseFn.indexOf("saveCharacter") < 0);
 
@@ -139,7 +135,6 @@ var custom = Crew.workspaceCast({
 });
 assert.strictEqual(custom.characterType, "workspace");
 assert.strictEqual(custom.characterId, "char_pip");
-if (Book.acceptCreation) {
 var mixed = story(["wondii-maya", "char_pip"], [custom]);
 assert.strictEqual(mixed.ok, true, mixed.problems.join(", "));
 assert.strictEqual(mixed.request.characterReferences.length, 2);
@@ -148,24 +143,19 @@ assert.strictEqual(mixed.request.characterReferences[0].characterType, "system")
 assert.strictEqual(mixed.request.characterReferences[1].characterId, "char_pip");
 assert.strictEqual(mixed.request.characterReferences[1].characterType, "workspace");
 assert.strictEqual(mixed.request.characterReferences[1].ownerId, "family-1");
-}
-if (book) {
 assert.ok(book.indexOf("renderPicker") >= 0);
 assert.ok(book.indexOf("workspaceCast") >= 0);
 assert.ok(book.indexOf("bookCast") >= 0);
-}
 assert.ok(page.indexOf("Wondii Crew") >= 0);
 assert.ok(page.indexOf('data-cast-source", source') >= 0);
 
 /* Leo stays a new system character and is not the bible's Leo. */
-if (Book.acceptCreation) {
 var leo = story(["wondii-leo"]);
 assert.strictEqual(leo.ok, true, leo.problems.join(", "));
 assert.strictEqual(leo.cast[0].characterId, "wondii-leo");
 assert.strictEqual(leo.cast[0].bibleId, "");
 assert.ok(leo.cast[0].reference.indexOf("leo-idle.webp") >= 0);
 assert.ok(leo.cast.every(function (row) { return row.characterId !== "leo"; }));
-}
 
 /* 15. A saved character is still there when the same workspace reads the index again. */
 var reloaded = Account.visibleRecords(familySave.index, family);
@@ -212,5 +202,17 @@ manifest.forEach(function (row) {
   assert.ok(row.idle.indexOf("assets/characters/wondii/") === 0);
   assert.ok(row.hover.indexOf("assets/characters/wondii/") === 0);
 });
+
+assert.ok(page.indexOf('}), "saved")') >= 0);
+assert.ok(page.indexOf("crew-card--feature") >= 0);
+assert.ok(page.indexOf("Start a story") >= 0);
+assert.ok(page.indexOf("Create Your First Character") >= 0);
+assert.ok(css.indexOf("crew-grid--one") >= 0);
+assert.ok(css.indexOf("crew-grid--few") >= 0);
+assert.ok(css.indexOf("crew-grid--many") >= 0);
+assert.ok(css.indexOf("crew-grid--six") >= 0);
+assert.ok(css.indexOf("object-fit: contain") >= 0);
+assert.ok(css.indexOf("crew-card__art--portrait") >= 0);
+assert.ok(page.indexOf("crew-card__art--portrait") >= 0);
 
 console.log("wondii crew tests ok");

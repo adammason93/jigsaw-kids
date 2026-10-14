@@ -49,14 +49,14 @@ function speak(beat, items) {
     predict: "Say what you think is happening before the explanation.",
     name: "The class gives this idea its own name now.",
     explain: item.text,
-    exemplify: "Here is one clear example of the idea in use.",
-    model: "Watch this worked step and say what changes.",
+    exemplify: "For example, you can see it when " + known.charAt(0).toLowerCase() + known.slice(1) + ".",
+    model: "First follow this step: " + known.charAt(0).toLowerCase() + known.slice(1) + ", then check what changed.",
     compare: "Look at both sides and say what is different.",
     connect: "These two ideas belong together in this lesson.",
-    practise: "Use " + known + " in what you make.",
-    apply: "Use " + known + " in what you make.",
-    reveal: "The class can now use the idea from this lesson.",
-    consolidate: "The class can now use the idea about " + known.split(/\s+/).filter(function (word) { return word.length >= 5; }).slice(-1)[0].toLowerCase().replace(/[^a-z0-9']/g, "") + "."
+    practise: "Show a new case where " + known.charAt(0).toLowerCase() + known.slice(1) + ".",
+    apply: "Show a new case where " + known.charAt(0).toLowerCase() + known.slice(1) + ".",
+    reveal: "So, " + known.charAt(0).toLowerCase() + known.slice(1) + ".",
+    consolidate: "So, " + known.charAt(0).toLowerCase() + known.slice(1) + "."
   }[beat.move];
   return { id: beat.id, cue: "", text: text };
 }

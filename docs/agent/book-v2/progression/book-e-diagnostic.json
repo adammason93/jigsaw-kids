@@ -1,0 +1,402 @@
+{
+  "title": "A Blink for the Sky",
+  "note": "Diagnostic only. Book E was not rewritten.",
+  "verdict": "BLOCK",
+  "blockProblems": [
+    "static-run:p3"
+  ],
+  "reviewProblems": [
+    "setup-open:clay-flowerpot",
+    "setup-open:garden-wall",
+    "setup-open:sky-stars"
+  ],
+  "staticRuns": [
+    {
+      "code": "STATIC_RUN",
+      "spreadIds": [
+        "p3",
+        "p4",
+        "p5",
+        "p6",
+        "p7"
+      ],
+      "beatIds": [
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7"
+      ],
+      "repeatedLocation": "flowerpot-corner",
+      "repeatedZone": "",
+      "repeatedGoal": "",
+      "repeatedObstacle": "",
+      "repeatedInteraction": "hidden-star@maya@flowerpot-corner",
+      "changedDimensions": [
+        "EMOTION"
+      ],
+      "unchangedDimensions": [
+        "LOCATION",
+        "GOAL",
+        "OBSTACLE",
+        "ACTION",
+        "CONSEQUENCE",
+        "DISCOVERY",
+        "WORLD_STATE",
+        "ENTITY_STATE",
+        "RELATIONSHIP",
+        "STAKES",
+        "INFORMATION"
+      ]
+    }
+  ],
+  "setupPayoff": {
+    "paid": true,
+    "unused": [
+      "clay-flowerpot",
+      "garden-wall",
+      "sky-stars"
+    ]
+  },
+  "map": [
+    {
+      "spreadId": "p1",
+      "phase": "SETUP",
+      "locationId": "flowerpot-corner",
+      "action": "setup",
+      "reason": "opening",
+      "earned": true,
+      "turn": "CONTINUE",
+      "layout": "SINGLE_PAGE_SCENE",
+      "changed": [
+        "opening"
+      ]
+    },
+    {
+      "spreadId": "p2",
+      "phase": "DISCOVERY",
+      "locationId": "flowerpot-corner",
+      "action": "discover",
+      "reason": "action, consequence, discovery, entity_state, information",
+      "earned": true,
+      "turn": "CONTINUE",
+      "layout": "PAGE_PAIR",
+      "changed": [
+        "ACTION",
+        "CONSEQUENCE",
+        "DISCOVERY",
+        "EMOTION",
+        "ENTITY_STATE",
+        "INFORMATION"
+      ]
+    },
+    {
+      "spreadId": "p3",
+      "phase": "DISCOVERY",
+      "locationId": "flowerpot-corner",
+      "action": "dwell",
+      "reason": "action, consequence, entity_state",
+      "earned": false,
+      "turn": "PAUSE",
+      "layout": "QUIET_PAGE",
+      "changed": [
+        "ACTION",
+        "CONSEQUENCE",
+        "EMOTION",
+        "ENTITY_STATE"
+      ]
+    },
+    {
+      "spreadId": "p4",
+      "phase": "COMMITMENT",
+      "locationId": "flowerpot-corner",
+      "action": "connect",
+      "reason": "same situation",
+      "earned": false,
+      "turn": "CONTINUE",
+      "layout": "PAGE_PAIR",
+      "changed": [
+        "EMOTION"
+      ]
+    },
+    {
+      "spreadId": "p5",
+      "phase": "ATTEMPT",
+      "locationId": "flowerpot-corner",
+      "action": "dwell",
+      "reason": "same situation",
+      "earned": false,
+      "turn": "CONTINUE",
+      "layout": "PAGE_PAIR",
+      "changed": [
+        "EMOTION"
+      ]
+    },
+    {
+      "spreadId": "p6",
+      "phase": "ATTEMPT",
+      "locationId": "flowerpot-corner",
+      "action": "try",
+      "reason": "same situation",
+      "earned": false,
+      "turn": "CONTINUE",
+      "layout": "PAGE_PAIR",
+      "changed": [
+        "EMOTION"
+      ]
+    },
+    {
+      "spreadId": "p7",
+      "phase": "SETBACK",
+      "locationId": "flowerpot-corner",
+      "action": "pressure",
+      "reason": "same situation",
+      "earned": false,
+      "turn": "CONTINUE",
+      "layout": "PAGE_PAIR",
+      "changed": [
+        "EMOTION"
+      ]
+    },
+    {
+      "spreadId": "p8",
+      "phase": "ESCALATION",
+      "locationId": "open-garden",
+      "action": "move",
+      "reason": "location, action, consequence, discovery, entity_state, information",
+      "earned": true,
+      "turn": "CONTINUE",
+      "layout": "PAGE_PAIR",
+      "changed": [
+        "LOCATION",
+        "ACTION",
+        "CONSEQUENCE",
+        "DISCOVERY",
+        "EMOTION",
+        "ENTITY_STATE",
+        "INFORMATION"
+      ]
+    },
+    {
+      "spreadId": "p9",
+      "phase": "ESCALATION",
+      "locationId": "open-garden",
+      "action": "dwell",
+      "reason": "quiet beat",
+      "earned": true,
+      "turn": "PAUSE",
+      "layout": "QUIET_PAGE",
+      "changed": [
+        "EMOTION"
+      ]
+    },
+    {
+      "spreadId": "p10",
+      "phase": "CLIMAX",
+      "locationId": "open-garden",
+      "action": "peak",
+      "reason": "action, consequence, entity_state",
+      "earned": true,
+      "turn": "CONTINUE",
+      "layout": "DOUBLE_PAGE_SPREAD",
+      "changed": [
+        "ACTION",
+        "CONSEQUENCE",
+        "EMOTION",
+        "ENTITY_STATE"
+      ]
+    },
+    {
+      "spreadId": "p11",
+      "phase": "RESOLUTION",
+      "locationId": "open-garden",
+      "action": "close",
+      "reason": "same situation",
+      "earned": false,
+      "turn": "RESOLVE",
+      "layout": "SINGLE_PAGE_SCENE",
+      "changed": [
+        "EMOTION"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "from": "p1",
+      "to": "p2",
+      "changed": [
+        "ACTION",
+        "CONSEQUENCE",
+        "DISCOVERY",
+        "EMOTION",
+        "ENTITY_STATE",
+        "INFORMATION"
+      ]
+    },
+    {
+      "from": "p2",
+      "to": "p3",
+      "changed": [
+        "ACTION",
+        "CONSEQUENCE",
+        "EMOTION",
+        "ENTITY_STATE"
+      ]
+    },
+    {
+      "from": "p3",
+      "to": "p4",
+      "changed": [
+        "EMOTION"
+      ]
+    },
+    {
+      "from": "p4",
+      "to": "p5",
+      "changed": [
+        "EMOTION"
+      ]
+    },
+    {
+      "from": "p5",
+      "to": "p6",
+      "changed": [
+        "EMOTION"
+      ]
+    },
+    {
+      "from": "p6",
+      "to": "p7",
+      "changed": [
+        "EMOTION"
+      ]
+    },
+    {
+      "from": "p7",
+      "to": "p8",
+      "changed": [
+        "LOCATION",
+        "ACTION",
+        "CONSEQUENCE",
+        "DISCOVERY",
+        "EMOTION",
+        "ENTITY_STATE",
+        "INFORMATION"
+      ]
+    },
+    {
+      "from": "p8",
+      "to": "p9",
+      "changed": [
+        "EMOTION"
+      ]
+    },
+    {
+      "from": "p9",
+      "to": "p10",
+      "changed": [
+        "ACTION",
+        "CONSEQUENCE",
+        "EMOTION",
+        "ENTITY_STATE"
+      ]
+    },
+    {
+      "from": "p10",
+      "to": "p11",
+      "changed": [
+        "EMOTION"
+      ]
+    }
+  ],
+  "visual": [
+    {
+      "spreadId": "p1",
+      "locationId": "flowerpot-corner",
+      "scale": "wide",
+      "energy": "quiet",
+      "novelty": "opening",
+      "dominant": ""
+    },
+    {
+      "spreadId": "p2",
+      "locationId": "flowerpot-corner",
+      "scale": "close",
+      "energy": "steady",
+      "novelty": "action, consequence, discovery, entity_state, information",
+      "dominant": "hidden-star"
+    },
+    {
+      "spreadId": "p3",
+      "locationId": "flowerpot-corner",
+      "scale": "medium",
+      "energy": "quiet",
+      "novelty": "action, consequence, entity_state",
+      "dominant": "hidden-star"
+    },
+    {
+      "spreadId": "p4",
+      "locationId": "flowerpot-corner",
+      "scale": "medium",
+      "energy": "steady",
+      "novelty": "framing-only",
+      "dominant": "hidden-star"
+    },
+    {
+      "spreadId": "p5",
+      "locationId": "flowerpot-corner",
+      "scale": "close",
+      "energy": "steady",
+      "novelty": "framing-only",
+      "dominant": "hidden-star"
+    },
+    {
+      "spreadId": "p6",
+      "locationId": "flowerpot-corner",
+      "scale": "medium",
+      "energy": "steady",
+      "novelty": "framing-only",
+      "dominant": "hidden-star"
+    },
+    {
+      "spreadId": "p7",
+      "locationId": "flowerpot-corner",
+      "scale": "wide",
+      "energy": "rising",
+      "novelty": "framing-only",
+      "dominant": "hidden-star"
+    },
+    {
+      "spreadId": "p8",
+      "locationId": "open-garden",
+      "scale": "medium",
+      "energy": "rising",
+      "novelty": "location, action, consequence, discovery, entity_state, information",
+      "dominant": "clay-flowerpot"
+    },
+    {
+      "spreadId": "p9",
+      "locationId": "open-garden",
+      "scale": "wide",
+      "energy": "quiet",
+      "novelty": "framing-only",
+      "dominant": "clay-flowerpot"
+    },
+    {
+      "spreadId": "p10",
+      "locationId": "open-garden",
+      "scale": "wide",
+      "energy": "peak",
+      "novelty": "action, consequence, entity_state",
+      "dominant": "clay-flowerpot"
+    },
+    {
+      "spreadId": "p11",
+      "locationId": "open-garden",
+      "scale": "close",
+      "energy": "quiet",
+      "novelty": "framing-only",
+      "dominant": "clay-flowerpot"
+    }
+  ]
+}

@@ -66,7 +66,8 @@ var FIXTURES = {
       { id: "p2", knowledge: "On 2 September 1666 the Great Fire began in a baker's shop on Pudding Lane.", role: "concept", importance: "core", dependsOn: ["p1"] },
       { id: "p3", knowledge: "The fire spread quickly because the wooden houses were packed close together and a strong wind blew the flames.", role: "cause", importance: "core", dependsOn: ["p2"] },
       { id: "p4", knowledge: "The fire destroyed about 13,000 homes, so thousands of people had nowhere to live.", role: "effect", importance: "core", dependsOn: ["p3"] },
-      { id: "p5", knowledge: "London was rebuilt with brick and stone and wider streets so that fire could not spread as easily.", role: "effect", importance: "core", dependsOn: ["p4"] },
+      { id: "p5", knowledge: "London was rebuilt with brick and stone and wider streets so that fire could not spread as easily.", role: "effect", importance: "core", dependsOn: ["p1"] },
+      { id: "p5b", knowledge: "Stone churches replaced the burned ones, which changed London's skyline.", role: "effect", importance: "core", dependsOn: ["p5"] },
       { id: "p6", knowledge: "People tried to stop the fire with leather buckets and by pulling houses down.", role: "concept", importance: "core", dependsOn: ["p1"] },
       { id: "p7", knowledge: "Blowing up houses made gaps called firebreaks, which stopped the fire because the flames had nothing left to burn.", role: "cause", importance: "core", dependsOn: ["p6"] },
       { id: "p8", knowledge: "Crowded wooden streets explain why the fire spread so far, and the brick rebuilding shows how London learned from it.", role: "connection", importance: "core", dependsOn: ["p3", "p5", "p7"] }
@@ -136,6 +137,8 @@ var FIXTURES = {
       { id: "p4", knowledge: "A mirror reflects light in one clear direction, but a rough surface scatters it in many directions.", role: "comparison", importance: "core", dependsOn: ["p3"] },
       { id: "p5", knowledge: "Light enters the eye through the pupil.", role: "feature", importance: "core", dependsOn: ["p1"] },
       { id: "p6", knowledge: "The eye detects the light, and the brain turns the signal into the image we see.", role: "mechanism", importance: "core", dependsOn: ["p5"] },
+      { id: "p10", knowledge: "Some materials block light.", role: "feature", importance: "core", dependsOn: ["p1"] },
+      { id: "p11", knowledge: "A shadow forms behind the object because light travels in straight lines and cannot bend around it.", role: "mechanism", importance: "core", dependsOn: ["p10"] },
       { id: "p7", knowledge: "Light allows us to see an object when it reflects off the object and travels in a straight line into our eyes.", role: "connection", importance: "core", dependsOn: ["p3", "p6"] },
       { id: "p8", knowledge: "We can read a book in a lit room because light reflects off the page into our eyes.", role: "example", importance: "supporting", dependsOn: ["p7"] },
       { id: "p9", knowledge: "Light from the Sun takes about eight minutes to reach Earth.", role: "concept", importance: "supporting", dependsOn: [] }
@@ -180,14 +183,14 @@ function speak(beat, items) {
     predict: "Say what you think is happening before the explanation.",
     name: known + ".",
     explain: "This matters because " + known.charAt(0).toLowerCase() + known.slice(1) + ".",
-    exemplify: "Here is one clear example of the idea in use.",
-    model: "Watch this worked step and say what changes.",
+    exemplify: "For example, " + lastLongWord(known) + " shows the idea.",
+    model: "First watch " + lastLongWord(known) + ", then check it.",
     compare: "Look at both sides and say what is different.",
     connect: known + ".",
-    practise: "Use " + known + " in what you make.",
-    apply: "Use " + known + " in what you make.",
-    reveal: "The class can now use the idea from this lesson.",
-    consolidate: "The class can now use the idea about " + lastLongWord(known) + "."
+    practise: "Show a new case with " + lastLongWord(known) + ".",
+    apply: "You will use " + lastLongWord(known) + " on the new case.",
+    reveal: "So " + lastLongWord(known) + " settles the mission.",
+    consolidate: "So " + lastLongWord(known) + " is the idea to keep."
   }[beat.move];
   return { id: beat.id, cue: "", text: text };
 }
@@ -392,8 +395,9 @@ assert.ok(canary.issues.indexOf("The learning map needs two or more developed st
 var canaryRepair = JSON.parse(Brain.planRepairBrief(canaryCtx, canary.issues, canary.previous).user);
 assert.ok(canaryRepair.relationshipRequired.some(function (line) { return line.indexOf("strands:") === 0; }), "the plan repair is told what a strand is");
 var canarySettled = Brain.normalisePlan(canaryRaw, Object.assign({}, canaryCtx, { breadthSettled: true }));
-assert.strictEqual(canarySettled.ok, true, "after one repair the depth gate is a recorded warning, not a blocker");
-assert.strictEqual(canarySettled.plan.teachingPlan.substantiveDepth.met, false, "the settled shallow plan is recorded as not meeting depth");
+assert.strictEqual(canarySettled.ok, false, "after one repair a flat map is still blocked");
+assert.ok(canarySettled.issues.indexOf("The learning map needs two or more developed strands for this broad topic.") !== -1, (canarySettled.issues || []).join("; "));
+assert.strictEqual(canarySettled.depth.met, false, "the settled shallow plan is recorded as not meeting depth");
 
 var metaMap = [
   { id: "k1", knowledge: "Sharks have a unique body structure with fins and sharp teeth.", role: "feature", importance: "core", dependsOn: [] },
@@ -403,7 +407,7 @@ var metaMap = [
   { id: "k5", knowledge: "Sharks play an important role in ocean health.", role: "effect", importance: "core", dependsOn: ["k3"] },
   { id: "k6", knowledge: "Learning about sharks helps us protect them and their habitats.", role: "function", importance: "core", dependsOn: ["k5"] }
 ];
-var meta = Brain.normalisePlan(Object.assign({}, canaryRaw, { learningMap: metaMap }), Object.assign({}, canaryCtx, { breadthSettled: true }));
+var meta = Brain.normalisePlan(Object.assign({}, canaryRaw, { learningMap: metaMap }), Object.assign({}, canaryCtx, { depthRequired: false }));
 assert.strictEqual(meta.plan.keyKnowledge.indexOf(metaMap[5].knowledge), -1, "a point about learning the topic is not lesson knowledge");
 assert.ok(meta.plan.teachingPlan.rejectedAsDepth.some(function (row) { return row.reason === "generic-connection" && /Learning about sharks/.test(row.knowledge); }));
 var conservationCtx = ctxFor({ year: "Year 1", subject: "Science", minutes: 15, intent: "explain", ask: "Teach children why learning about sharks helps us protect them.", goal: "Understand why we should protect sharks." });
@@ -419,7 +423,7 @@ var paraphraseMap = [
   { id: "p4", knowledge: "A shark's tail pushes water backwards to move it forward.", role: "mechanism", importance: "core", dependsOn: ["p1"] }
 ];
 var para = Brain.normalisePlan(Object.assign({}, canaryRaw, { learningMap: paraphraseMap }), canaryCtx);
-var paraPlan = Brain.normalisePlan(Object.assign({}, canaryRaw, { learningMap: paraphraseMap }), Object.assign({}, canaryCtx, { breadthSettled: true })).plan;
+var paraPlan = Brain.normalisePlan(Object.assign({}, canaryRaw, { learningMap: paraphraseMap }), Object.assign({}, canaryCtx, { depthRequired: false })).plan;
 assert.strictEqual(paraPlan.keyKnowledge.indexOf("Sharks swim well."), -1, "a repetition is dropped");
 assert.ok(paraPlan.mapRejected.some(function (row) { return row.reason === "repetition"; }));
 assert.strictEqual(paraPlan.droppedKnowledge.indexOf("Sharks swim well."), -1, "a dropped repetition does not count as a leaked idea");
@@ -439,7 +443,7 @@ var genericMap = [
 var generic = Brain.normalisePlan(Object.assign({}, canaryRaw, { learningMap: genericMap }), canaryCtx);
 assert.strictEqual(generic.ok, false, "generic connections do not satisfy the depth floor");
 assert.ok(generic.issues.indexOf("The learning map needs more connected learning points.") !== -1);
-var genericPlan = Brain.normalisePlan(Object.assign({}, canaryRaw, { learningMap: genericMap }), Object.assign({}, canaryCtx, { breadthSettled: true })).plan;
+var genericPlan = Brain.normalisePlan(Object.assign({}, canaryRaw, { learningMap: genericMap }), Object.assign({}, canaryCtx, { depthRequired: false })).plan;
 assert.ok(genericPlan.teachingPlan.substantiveDepth.achieved <= 4, "connections add at most one place: " + genericPlan.teachingPlan.substantiveDepth.achieved);
 
 var exampleMap = [
@@ -453,7 +457,7 @@ var exampleMap = [
 var plantsCtx = ctxFor(FIXTURES.C);
 var examples = Brain.normalisePlan(rawFor(FIXTURES.C, exampleMap), plantsCtx);
 assert.strictEqual(examples.ok, false, "examples do not satisfy the whole depth floor");
-var examplePlan = Brain.normalisePlan(rawFor(FIXTURES.C, exampleMap), Object.assign({}, plantsCtx, { breadthSettled: true })).plan;
+var examplePlan = Brain.normalisePlan(rawFor(FIXTURES.C, exampleMap), Object.assign({}, plantsCtx, { depthRequired: false })).plan;
 assert.strictEqual(examplePlan.teachingPlan.substantiveDepth.achieved, 3, "four examples add one place");
 
 // ---- older plans without a teaching plan keep the earlier planner ----

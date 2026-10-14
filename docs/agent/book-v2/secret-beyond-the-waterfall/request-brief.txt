@@ -1,0 +1,69 @@
+You plan a Wondii children's picture book. Return one JSON object and nothing else. You invent the events. You do not invent the output shape, the cast, the year, the length, or the tone. Do not write the finished page prose. The action field is the event, in one or two plain sentences. The teacher's idea is the premise. The story must be about it. Do not paste that sentence into the premise, the hook, or any action. If that premise were removed, the hook, the problem, the middle, the climax, and the resolution should stop making sense. Build a causal chain. Each beat happens because of the one before it. Do not write an 'and then' list. Give the story a sense of wonder and discovery. The problem should matter, with stakes these children can feel. Let their personalities show as different choices, risks, and ways of speaking. A feeling belongs in an action or a line of dialogue. A later turn may surprise the reader when it follows from something already planted. The ending should leave a change or an image worth remembering. Do not reuse one plot shape for every idea, and do not insert a fixed number of feeling beats. The story state must change across the book. A new shot of the same moment is not a new beat. The place may stay the same when the world state, the obstacle, the goal, or a consequence changes. Do not change place only to make the pictures different. Do not repeat the same interaction in the same state for several beats. An attempt is followed by its consequence, not by another interchangeable attempt. A quiet beat is allowed when it has a job: a reaction, a pause, or anticipation. It still has to belong to the chain. A recurring creature who is not one of the selected children belongs in storyCast, with one locked look, and then in charactersPresent. Do not invent an extra person. If the story needs no recurring creature, storyCast is an empty array. The climax settles the central problem by using something that happened earlier. It is not a new obstacle. The resolution shows what changed: a behaviour, a final image, or a callback. It must not explain the climax again, name the feeling, or say that everyone was happy. Selected children must change what happens. Give every selected child at least one expresses note. expresses.shows is a behaviour, such as kneeling to listen. It must not be the personality word, and it must not say 'was curious' or 'felt brave'. Do not add a person who is not in the cast. A creature, object, place, or force is an entity. If an object matters later, introduce it with introduce:true on the beat it first appears. Leave it out of later entityState arrays unless its owner or state changes. A character can change place only along connectedTo. If they carry an object, set that object's ownerCharacterId. Give a pageTurnHook only where a turn helps. Leave it empty on most beats, and always on the resolution. Do not repeat the same kind of turn. problemFamily is a short slug. It must change every beat. The hook and the resolution may use an empty string. shotType must be one of the allowed shots and must not match the previous beat. Do not use: suddenly, little did they know, couldn't believe their eyes, the adventure had only just begun. Do not copy any sample story. Invent this idea only.
+
+Cast, and the only people allowed:
+wondii-maya (Maya) Show these through what they do, and never name the words: curious, brave. They stay this person: about seven, school age; long dark curls; yellow cardigan, white shirt, blue skirt, white socks.
+wondii-leo (Leo) Show these through what they do, and never name the words: careful, kind. Visual reference is this character's own portrait. Do not invent a different face, hair, or outfit.
+
+SOURCE PREMISE — SEMANTIC CONSTRAINT ONLY. NEVER COPY AS PROSE:
+Maya and Leo discover a mysterious pathway behind a waterfall that leads them into a hidden world.
+Plan check only, not reader wording. These words must remain somewhere in the premise, and at least one must sit in the climax action and in the resolution action: maya, discover, mysterious, pathway, behind, waterfall, leads, into, hidden, world
+Reader: 7-9 (Ages 7–9). a problem with a consequence the reader can connect, with a feeling allowed under the action
+How this reader should feel: Clear sentences a seven-year-old can follow. Dialogue can carry a decision. A feeling can sit under the action. The page stays a picture book.
+Later reading load, so keep each event sayable inside it: about 4 sentences on a page, under 64 words, no sentence longer than 18 words, at most 2 spoken turns. One extra short sentence is acceptable. A page of long sentences is not.
+Length: storybook. Exactly 12 pages.
+This book is exactly 12 pages. One beat is one page. Return exactly 12 beats. Do not return fewer, do not return more, and do not add an empty page to reach the count. The first role is hook. The last role is resolution. One beat is climax, and it comes before the resolution.
+Allowed roles: hook, world, discovery, reaction, goal, exploration, attempt, consequence, complication, relationship, setback, reveal, setup, payoff, approach, climax, resolution, breath, turn, wonder, humour, anticipation.
+Each beat must add something: new information, a decision, a consequence, a relationship, a setup, a payoff, or an earned quiet moment (wonder, reaction, humour, anticipation). A quiet beat is allowed. A repeated event is not.
+Do not split one moment across two beats. Do not add a walk that changes nothing.
+Reader level decides the language. Length decides how much story there is. A young reader can have a long simple story. An older reader can have a short subtle one.
+Write exactly 12 pages. Do not aim for a nearby count. This is a full picture book. Use a reaction, a relationship, a setback, or a quiet beat only where this story needs them. Do not spend two pages on one event.
+Tone: adventure
+The problem gets harder because of what the characters do. There is movement and a real cost before the ending.
+A bedtime book is quiet. A funny book is a mismatch in what someone does. A mystery answers the question it opened. A magical book keeps one impossible rule. An adventure has a cost. Do not tell every tone as a chase.
+Before the beats, plan the journey as major sections, not as one section per page. Each section names the place, why the characters are there, what they are trying to do, the discovery or obstacle, how that changes what they do next, and how it connects to the following section. A new place needs a narrative reason. Do not move the characters only to change the background. One place can hold the whole book when the events, stakes, and discoveries keep changing. Do not spend most of the book inspecting variations of one object in lookalike surroundings, unless that single search is the idea itself. Invent the places this idea needs. A forest, cave, garden, cellar, mountain, library, ocean, temple, station, or island is not a default, and none of them is required. setting is the kind of place, in a few original words. Reuse the same setting when two rooms are the same kind of place. A new setting is a different environment, not another corner of the same room. The selected children keep the same faces, hair, and clothes in every place. They may run, climb, look, and react. A new place does not give them a new outfit. The illustration planner may draw only places the beats visit. Do not mention a place the beats never enter. This is an adventure. Let discoveries and obstacles change what the characters try next. Travel when a new environment creates a new situation. Staying in one place is fine when the situation itself develops. If a check says journey-missing, add the journey. If it says journey-gap, name the discovery and the change it causes. If it says journey-unlinked, connect the section to the next one. If it says narrow-world, the goal is stuck on one investigation in one kind of place. If it says clue-stuck, each mystery section needs a different clue. If it says setting-missing, say what kind of place each location is.
+
+Return this JSON shape. The ids below are field examples, not a plot and not extra characters:
+{
+  "title": "",
+  "premise": "",
+  "hook": "",
+  "goal": "",
+  "centralProblem": "",
+  "stakes": "",
+  "motif": "",
+  "emotionalArc": [],
+  "storyCast": [],
+  "locations": [{ "locationId": "place-a", "name": "first place", "connectedTo": ["place-b"], "zones": [], "setting": "", "visualIdentity": "" }],
+  "journey": [{ "section": "opening", "locationId": "place-a", "purpose": "", "objective": "", "discoveryOrObstacle": "", "change": "", "leadsTo": "place-b" }],
+  "entities": [{ "entityId": "story-thing", "name": "story thing", "identity": "" }],
+  "beats": [{
+    "role": "hook",
+    "locationId": "place-a",
+    "locationZone": "",
+    "worldState": "",
+    "goalNow": "",
+    "obstacleNow": "",
+    "consequenceNow": "",
+    "pageTurnIntent": "",
+    "entryFrom": "",
+    "exitToward": "",
+    "charactersPresent": ["child"],
+    "absent": {},
+    "expresses": [{ "characterId": "child", "trait": "kind", "shows": "A behaviour, never the trait word." }],
+    "problemFamily": "",
+    "action": "",
+    "emotion": "",
+    "shotType": "establishing",
+    "compositionIntent": "",
+    "visualFocus": "",
+    "textPurpose": "",
+    "pageTurnHook": "",
+    "entityState": [{ "entityId": "story-thing", "introduce": true, "ownerCharacterId": null, "locationId": "place-a", "state": "here" }]
+  }]
+}
+Do not reuse story-thing, place-a, or the sample behaviour. Invent this idea only.
+locationId and entityId are lowercase slugs. A location name should be the phrase spoken on pages set there, and should not be a short word that other pages will need.
+Allowed shotType values: establishing, medium, close, action, overhead, low, high, reveal, reaction, vignette.
+charactersPresent may contain only: wondii-maya, wondii-leo.
+If a selected child is off a beat, charactersPresent omits them and absent explains why, for example { "leo": "waiting upstairs" }.
+traits allowed: wondii-maya ; wondii-leo .

@@ -1,0 +1,388 @@
+{
+  "style": {
+    "styleId": "wondii-picture-book",
+    "status": "approved",
+    "scope": "book",
+    "illustrator": {
+      "rendering": "soft painted picture-book",
+      "characterRendering": "the same painted construction for every person and creature",
+      "shapeLanguage": "clear rounded shapes",
+      "edge": "soft painted edges",
+      "texture": "light painted texture",
+      "material": "painted surfaces",
+      "detail": "readable picture-book detail",
+      "depth": "gentle painted depth",
+      "facialRendering": "expressive painted faces with one construction",
+      "proportions": "storybook proportions",
+      "environmentRendering": "painted places, whatever the place contains",
+      "lightingPhilosophy": "painted light that follows the scene",
+      "colourTreatment": "harmonised painted colour",
+      "finish": "one picture-book finish"
+    },
+    "atmosphere": {
+      "tone": "bedtime",
+      "mood": "evening light, quiet contrast, warm points of light"
+    }
+  },
+  "cast": [
+    {
+      "characterId": "maya",
+      "name": "Maya",
+      "face": "round face, warm brown eyes, soft eyebrows",
+      "skinTone": "medium brown",
+      "hair": "long dark curls",
+      "ageAppearance": "about seven, school age",
+      "body": "school-age child, not a toddler and not a teen",
+      "defaultClothing": "yellow cardigan, white shirt, blue skirt, white socks",
+      "footwear": "navy shoes",
+      "accessories": [
+        "green hair clip"
+      ],
+      "relativeHeight": "average for about seven, a little shorter than Leo",
+      "visualIdentifiers": [
+        "long dark curls",
+        "yellow cardigan",
+        "green hair clip",
+        "white socks"
+      ],
+      "referenceAssetIds": [
+        "maya-v1"
+      ],
+      "referenceVersionId": "maya-v1",
+      "referenceFile": "games/images/characters/maya-v1.jpg",
+      "referenceStatus": "approved"
+    }
+  ],
+  "locations": [
+    {
+      "locationId": "flowerpot-corner",
+      "name": "the flowerpot corner",
+      "visualIdentity": "A sheltered corner beneath a tall garden wall, with one clay flowerpot and soft evening shadows.",
+      "connectedTo": [
+        "open-garden"
+      ],
+      "persistentObjects": [
+        "clay-flowerpot",
+        "garden-wall"
+      ]
+    },
+    {
+      "locationId": "open-garden",
+      "name": "the open garden",
+      "visualIdentity": "A small grassy clearing beyond the wall's shadow, with an unobstructed view overhead.",
+      "connectedTo": [
+        "flowerpot-corner",
+        "night-sky"
+      ],
+      "persistentObjects": []
+    },
+    {
+      "locationId": "night-sky",
+      "name": "the wide night sky",
+      "visualIdentity": "Deep blue space with scattered warm points of light and generous quiet gaps.",
+      "connectedTo": [
+        "open-garden"
+      ],
+      "persistentObjects": [
+        "hidden-star",
+        "sky-stars"
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "entityId": "hidden-star",
+      "name": "the hidden star",
+      "visualIdentity": "A small warm-white star whose points fold inward when it hides; it communicates by blinking.",
+      "ownerCharacterId": null,
+      "locationId": "night-sky",
+      "state": "Returned to the sky, blinking among answering lights.",
+      "introducedOnSpread": "b2"
+    },
+    {
+      "entityId": "clay-flowerpot",
+      "name": "the flowerpot",
+      "visualIdentity": "A round clay pot with a dark gap beneath its rim.",
+      "ownerCharacterId": null,
+      "locationId": "flowerpot-corner",
+      "state": "Standing beside the wall, with a sheltered gap beneath its rim.",
+      "introducedOnSpread": "b1"
+    },
+    {
+      "entityId": "garden-wall",
+      "name": "the garden wall",
+      "visualIdentity": "A tall pale wall that blocks the sky from the sheltered corner.",
+      "ownerCharacterId": null,
+      "locationId": "flowerpot-corner",
+      "state": "Blocking most of the sky above the corner.",
+      "introducedOnSpread": "b1"
+    },
+    {
+      "entityId": "sky-stars",
+      "name": "the sky stars",
+      "visualIdentity": "Distant stars that can answer another star's blinking light.",
+      "ownerCharacterId": null,
+      "locationId": "night-sky",
+      "state": "Continuing to answer as the returning star joins them.",
+      "introducedOnSpread": "b8"
+    }
+  ],
+  "bookCast": {
+    "ok": true,
+    "ready": true,
+    "problems": [],
+    "members": [
+      {
+        "characterId": "maya",
+        "name": "Maya",
+        "origin": "canonical",
+        "relationship": "selected",
+        "identity": {
+          "characterId": "maya",
+          "name": "Maya",
+          "origin": "canonical",
+          "type": "human",
+          "species": "human",
+          "face": "round face, warm brown eyes, soft eyebrows",
+          "head": "",
+          "body": "school-age child, not a toddler and not a teen",
+          "relativeSize": "average for about seven, a little shorter than Leo",
+          "covering": "",
+          "colouring": "medium brown",
+          "markings": "",
+          "eyes": "",
+          "ears": "",
+          "horns": "",
+          "tail": "",
+          "distinctiveFeatures": [
+            "long dark curls",
+            "yellow cardigan",
+            "green hair clip",
+            "white socks"
+          ],
+          "accessories": [
+            "green hair clip"
+          ],
+          "visualIdentifiers": [
+            "long dark curls",
+            "yellow cardigan",
+            "green hair clip",
+            "white socks"
+          ],
+          "ageAppearance": "about seven, school age",
+          "skinTone": "medium brown",
+          "hair": "long dark curls",
+          "defaultClothing": "yellow cardigan, white shirt, blue skirt, white socks",
+          "footwear": "navy shoes"
+        },
+        "spreadsPresent": [
+          "p1",
+          "p2",
+          "p3",
+          "p4",
+          "p5",
+          "p6",
+          "p7",
+          "p8",
+          "p9",
+          "p10",
+          "p11"
+        ],
+        "firstAppearance": "p1",
+        "finalAppearance": "p11",
+        "recurring": true,
+        "visualImportance": "recurring",
+        "referenceAssetIds": [
+          "maya-v1"
+        ],
+        "referenceVersionId": "maya-v1",
+        "reference": {
+          "strength": "canonical-sheet",
+          "required": true,
+          "expensive": false,
+          "ready": true
+        }
+      }
+    ],
+    "byId": {
+      "maya": {
+        "characterId": "maya",
+        "name": "Maya",
+        "origin": "canonical",
+        "relationship": "selected",
+        "identity": {
+          "characterId": "maya",
+          "name": "Maya",
+          "origin": "canonical",
+          "type": "human",
+          "species": "human",
+          "face": "round face, warm brown eyes, soft eyebrows",
+          "head": "",
+          "body": "school-age child, not a toddler and not a teen",
+          "relativeSize": "average for about seven, a little shorter than Leo",
+          "covering": "",
+          "colouring": "medium brown",
+          "markings": "",
+          "eyes": "",
+          "ears": "",
+          "horns": "",
+          "tail": "",
+          "distinctiveFeatures": [
+            "long dark curls",
+            "yellow cardigan",
+            "green hair clip",
+            "white socks"
+          ],
+          "accessories": [
+            "green hair clip"
+          ],
+          "visualIdentifiers": [
+            "long dark curls",
+            "yellow cardigan",
+            "green hair clip",
+            "white socks"
+          ],
+          "ageAppearance": "about seven, school age",
+          "skinTone": "medium brown",
+          "hair": "long dark curls",
+          "defaultClothing": "yellow cardigan, white shirt, blue skirt, white socks",
+          "footwear": "navy shoes"
+        },
+        "spreadsPresent": [
+          "p1",
+          "p2",
+          "p3",
+          "p4",
+          "p5",
+          "p6",
+          "p7",
+          "p8",
+          "p9",
+          "p10",
+          "p11"
+        ],
+        "firstAppearance": "p1",
+        "finalAppearance": "p11",
+        "recurring": true,
+        "visualImportance": "recurring",
+        "referenceAssetIds": [
+          "maya-v1"
+        ],
+        "referenceVersionId": "maya-v1",
+        "reference": {
+          "strength": "canonical-sheet",
+          "required": true,
+          "expensive": false,
+          "ready": true
+        }
+      }
+    }
+  },
+  "visualArc": [
+    {
+      "beatId": "b1",
+      "role": "hook",
+      "locationId": "flowerpot-corner",
+      "emotion": "Quiet interest",
+      "event": "Maya spots a flicker beneath the flowerpot. It vanishes when she looks towards the sky."
+    },
+    {
+      "beatId": "b2",
+      "role": "discovery",
+      "locationId": "flowerpot-corner",
+      "emotion": "Tender attention",
+      "event": "Maya finds a star with its points tucked inward. She holds out one open hand."
+    },
+    {
+      "beatId": "b3",
+      "role": "reaction",
+      "locationId": "flowerpot-corner",
+      "emotion": "Hesitation",
+      "event": "The star climbs onto Maya's palm. When she points upward, it folds shut again."
+    },
+    {
+      "beatId": "b4",
+      "role": "relationship",
+      "locationId": "flowerpot-corner",
+      "emotion": "Growing trust",
+      "event": "Maya cups her hands around the star. It unfolds and blinks once against her fingers."
+    },
+    {
+      "beatId": "b5",
+      "role": "exploration",
+      "locationId": "flowerpot-corner",
+      "emotion": "Gentle discovery",
+      "event": "Maya opens her hands, closes them, and opens them again. The star answers with two small blinks."
+    },
+    {
+      "beatId": "b6",
+      "role": "attempt",
+      "locationId": "flowerpot-corner",
+      "emotion": "Waiting",
+      "event": "Maya lifts the star towards the narrow patch overhead. It blinks twice, but no light answers."
+    },
+    {
+      "beatId": "b7",
+      "role": "setback",
+      "locationId": "flowerpot-corner",
+      "emotion": "Quiet concern",
+      "event": "The star tucks its points against Maya's thumb. She notices the wall hides the wider sky."
+    },
+    {
+      "beatId": "b8",
+      "role": "approach",
+      "locationId": "open-garden",
+      "emotion": "Supported hesitation",
+      "event": "Maya carries the star into the open garden. She keeps one hand beside it beneath the wider sky."
+    },
+    {
+      "beatId": "b9",
+      "role": "wonder",
+      "locationId": "open-garden",
+      "emotion": "Quiet recognition",
+      "event": "The star tries two blinks from Maya's palm. Above them, two distant lights blink in reply."
+    },
+    {
+      "beatId": "b10",
+      "role": "climax",
+      "locationId": "open-garden",
+      "emotion": "Release",
+      "event": "Maya opens her hands; the star rises into the sky. It keeps blinking, and the distant lights keep answering."
+    },
+    {
+      "beatId": "b11",
+      "role": "resolution",
+      "locationId": "open-garden",
+      "emotion": "Bedtime stillness",
+      "event": "Maya opens and closes her empty hands once more. One star blinks back above her yellow sleeves."
+    }
+  ],
+  "compositionLanguage": {
+    "shots": [
+      "establishing",
+      "close",
+      "reaction",
+      "medium",
+      "vignette",
+      "low",
+      "overhead",
+      "medium",
+      "reveal",
+      "high",
+      "vignette"
+    ],
+    "layouts": [
+      "large-reveal",
+      "caption-bleed",
+      "text-left",
+      "image-left",
+      "caption-bleed",
+      "image-left",
+      "text-left",
+      "image-left",
+      "large-reveal",
+      "large-reveal",
+      "caption-bleed"
+    ]
+  }
+}

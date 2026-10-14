@@ -1,0 +1,36 @@
+{
+  "observations": "The illustration shows a child with long dark curls, medium brown skin, and a round face. She is wearing a yellow cardigan, white shirt, and blue skirt, with white socks and navy shoes. The scene is set in a sheltered corner beneath a tall garden wall, with a clay flowerpot present. There is soft evening lighting and shadows. The child is depicted holding the hidden star with two small blinks, matching the selected instant.",
+  "characters": [
+    {
+      "characterId": "maya",
+      "identityMatch": true,
+      "outfitMatch": true,
+      "count": 1
+    }
+  ],
+  "entities": [
+    {
+      "entityId": "clay-flowerpot",
+      "status": "confirmed",
+      "seen": "A round clay pot is present in the scene."
+    },
+    {
+      "entityId": "garden-wall",
+      "status": "confirmed",
+      "seen": "A tall, pale wall is present, blocking the sky."
+    },
+    {
+      "entityId": "hidden-star",
+      "status": "confirmed",
+      "seen": "The hidden star is depicted in the child's hands, blinking."
+    }
+  ],
+  "locationMatch": true,
+  "prematureResult": false,
+  "textDetected": false,
+  "anatomyOk": true,
+  "textSafeUsable": true,
+  "duplicateCharacter": false,
+  "momentMatch": true,
+  "montageShown": false
+}

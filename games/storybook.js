@@ -424,6 +424,7 @@
 
   function readWordOutLoud(word, element) {
     stopStepGuideAudio();
+    hideSpeechNote();
     if (currentAudio) {
       stopReading();
     }
@@ -474,6 +475,7 @@
       if (element) {
         element.classList.remove("sb-word-reading");
       }
+      showSpeechNote();
       stopReading();
     };
   }
@@ -485,6 +487,18 @@
       currentAudio = null;
     }
     setReadToMeState("idle");
+  }
+
+  function showSpeechNote() {
+    var note = document.getElementById("sbReadNote");
+    if (!note) return;
+    note.hidden = false;
+    note.textContent = "Wondii needs a short rest before reading again. Try once more in a little while.";
+  }
+
+  function hideSpeechNote() {
+    var note = document.getElementById("sbReadNote");
+    if (note) note.hidden = true;
   }
 
   function setReadToMeState(state) {
@@ -523,6 +537,7 @@
       if (!fUrl) return;
       
       setReadToMeState("wait");
+      hideSpeechNote();
       
       var audioUrl = cleverServiceTtsUrl(readText);
       if (!audioUrl) {
@@ -546,7 +561,10 @@
       }
       
       currentAudio.onended = stopReading;
-      currentAudio.onerror = stopReading;
+      currentAudio.onerror = function () {
+        showSpeechNote();
+        stopReading();
+      };
     });
   }
   var spreadArtImg = document.getElementById("sbSpreadArtImg");
@@ -574,6 +592,8 @@
   var storyLengthFieldset = document.getElementById("sbStoryLength");
   var K_READER_ART_LAYOUT = "sbReaderArtLayout";
   var K_ILLUSTRATION_STYLE = "sbIllustrationStyle";
+  var journeyIllustrationHold = false;
+  var journeyFamilyPeople = [];
   var K_STORY_TEXT_MODE = "sbStoryTextMode";
   var K_STORY_LENGTH = "sbStoryLength";
 
@@ -735,6 +755,7 @@
   }
 
   function setIllustrationStyle(mode) {
+    if (journeyIllustrationHold) return;
     try {
       localStorage.setItem(K_ILLUSTRATION_STYLE, coerceIllustrationStyleKey(mode));
     } catch (eSetSt) {}
@@ -3711,6 +3732,21 @@
     return window.WondiiStoryAtmosphere.resolve(extra || {});
   }
 
+  function pendingChildShelfId() {
+    var key = "";
+    try {
+      key = sessionStorage.getItem("wondii-child-book-key") || "";
+    } catch (eKey) {
+      return "";
+    }
+    if (!key) return "";
+    var auth = window.WondiiSession && window.WondiiSession.get && window.WondiiSession.get();
+    var meta = auth && auth.session && auth.session.user && auth.session.user.app_metadata;
+    if (!meta || meta.account_kind !== "child") return "";
+    var existing = loadShelf();
+    return existing[0] && existing[0].id ? String(existing[0].id) : "";
+  }
+
   function addStoryToShelfFromData(
     title,
     author,
@@ -3727,7 +3763,11 @@
     onWritten
   ) {
     var list = loadShelf();
-    var id = "b" + Date.now() + "-" + ((Math.random() * 1e6) | 0);
+    var retryId = pendingChildShelfId();
+    var id = retryId || ("b" + Date.now() + "-" + ((Math.random() * 1e6) | 0));
+    if (retryId) {
+      list = list.filter(function (book) { return !book || book.id !== retryId; });
+    }
     var storedPages = pages.map(function (p, i) {
       var fb = String(p.imageUrl || "").trim();
       var inline = dataUrls[i] || null;
@@ -3777,44 +3817,8 @@
   }
 
   function openShelfBook(bookId) {
-    var list = loadShelf();
-    var item = null;
-    for (var i = 0; i < list.length; i++) {
-      if (list[i].id === bookId) {
-        item = list[i];
-        break;
-      }
-    }
-    if (!item || !item.pages || !item.pages.length) return;
-    story = window.WondiiBookBrain
-      ? window.WondiiBookBrain.readerStoryFromShelfItem(item)
-      : {
-      title: item.title,
-      author: item.author || "",
-      bookColor: item.bookColor || null,
-      readerFont: item.readerFont || null,
-      readerArtLayout:
-        item.readerArtLayout === "facing" ? "facing" : "duplex",
-      storyTextMode: storyTextModeFromShelfItem(
-        item,
-        item.readerArtLayout === "facing" ? "facing" : "duplex"
-      ),
-      storyLength: storyLengthFromShelfItem(item),
-      sceneImageUrl: item.sceneUrlFallback || item.sceneDataUrl || null,
-      pages: item.pages.map(function (p) {
-        var page = {
-          text: p.text,
-          imageUrl: p.imageUrlFallback || p.imageDataUrl || null,
-        };
-        if (p.textSafeZones) page.textSafeZones = p.textSafeZones;
-        if (p.impactWords) page.impactWords = p.impactWords;
-        if (p.textBlocks) page.textBlocks = p.textBlocks;
-        return page;
-      }),
-    };
-    if (item.atmosphere) story.atmosphere = item.atmosphere;
-    spreadIndex = 0;
-    showBook();
+    if (!bookId) return;
+    window.location.assign("book-prototype/?book=" + encodeURIComponent(bookId));
   }
 
   /**
@@ -4052,6 +4056,7 @@
   }
 
   function saveBookToShelf() {
+    if (parentReadingChild) return;
     if (!story || !story.pages.length || !btnShelf) return;
     if (shelfAlreadyHasStory()) {
       btnShelf.textContent = "On my bookshelf";
@@ -4089,6 +4094,8 @@
               ? story.storyLength
               : "medium",
             function (cloudErr) {
+              btnShelf.disabled = false;
+              btnShelf.textContent = label;
               if (
                 !window.KidsScoreCloud ||
                 !window.KidsScoreCloud.isConfigured ||
@@ -4104,9 +4111,12 @@
                 hintEl.setAttribute("data-default-hint", hintEl.textContent.trim() || defaultHint);
               }
               if (!cloudErr) {
+                var childSaved = window.ChildLibrary && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession();
+                if (childSaved) renderShelf();
                 if (hintEl) {
-                  hintEl.textContent =
-                    "Saved on this device and backed up to the cloud. Use the same family password on other devices, then “Get latest books from cloud”.";
+                  hintEl.textContent = childSaved
+                    ? "Saved to your Wondii. It will still be here when you come back."
+                    : "Saved on this device and backed up to this Wondii account. Sign in at home on another device to open the same shelf.";
                   window.setTimeout(function () {
                     if (hintEl) {
                       hintEl.textContent =
@@ -4114,6 +4124,7 @@
                     }
                   }, 12000);
                 }
+                if (childSaved) btnShelf.textContent = "Saved";
                 return;
               }
               var msg = cloudErr && cloudErr.message ? String(cloudErr.message) : String(cloudErr);
@@ -4126,10 +4137,14 @@
               ) {
                 return;
               }
-              if (msg === "no_session") {
+              if (msg === "no_session" || msg === "no_client") {
                 window.alert(
-                  "This tablet saved the book only on itself — it did not reach the cloud.\n\nOpen ⚙️ (bottom corner) → Sign in with your family password → tap “Put on my shelf” again.\n\n(Deploying edge functions does not update shelf sync — the website’s JavaScript does.)",
+                  window.ChildLibrary && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession()
+                    ? "This book is still on this device, but it is not saved to your Wondii yet. Tap “Put on my shelf” again."
+                    : "This tablet saved the book only on itself — it did not reach the cloud.\n\nSign in from the Wondii home, then tap “Put on my shelf” again.",
                 );
+              } else if (window.ChildLibrary && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession()) {
+                window.alert("This book is still open, but it is not saved to your Wondii yet. Tap “Put on my shelf” again.");
               } else {
                 window.alert(
                   "Saved on this device, but cloud backup failed:\n\n" +
@@ -4138,8 +4153,9 @@
                 );
               }
               if (hintEl) {
-                hintEl.textContent =
-                  "Cloud backup failed — see the message above. Books are still on this device.";
+                hintEl.textContent = window.ChildLibrary && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession()
+                  ? "Not saved yet. Tap “Put on my shelf” to try again."
+                  : "Cloud backup failed — see the message above. Books are still on this device.";
                 window.setTimeout(function () {
                   if (hintEl) {
                     hintEl.textContent =
@@ -4149,17 +4165,19 @@
               }
             },
             function () {
-          renderShelf();
+              if (!(window.ChildLibrary && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession())) {
+                renderShelf();
+              }
             },
           );
         } catch (e) {
+          btnShelf.disabled = false;
+          btnShelf.textContent = label;
           window.alert("Couldn’t save — storage might be full. Try downloading instead.");
         }
       })
       .catch(function () {
         window.alert("Couldn’t prepare pictures for the shelf. Try again.");
-      })
-      .finally(function () {
         btnShelf.disabled = false;
         btnShelf.textContent = label;
       });
@@ -4728,37 +4746,83 @@
       });
   }
 
+  function showStoredBook(item) {
+    if (!item || !item.pages || !item.pages.length) return false;
+    story = {
+      title: item.title,
+      author: item.author || "",
+      bookColor: item.bookColor || null,
+      readerFont: item.readerFont || null,
+      readerArtLayout: item.readerArtLayout === "facing" ? "facing" : "duplex",
+      storyTextMode: storyTextModeFromShelfItem(item, item.readerArtLayout === "facing" ? "facing" : "duplex"),
+      storyLength: storyLengthFromShelfItem(item),
+      sceneImageUrl: item.sceneUrlFallback || item.sceneDataUrl || null,
+      pages: item.pages.map(function (p) {
+        var page = { text: p.text, imageUrl: p.imageUrlFallback || p.imageDataUrl || null };
+        if (p.textSafeZones) page.textSafeZones = p.textSafeZones;
+        if (p.impactWords) page.impactWords = p.impactWords;
+        if (p.textBlocks) page.textBlocks = p.textBlocks;
+        return page;
+      }),
+    };
+    spreadIndex = 0;
+    showBook();
+    return true;
+  }
+
+  var parentReadingChild = false;
+
+  function openPrivateFromUrl() {
+    var params;
+    try { params = new URLSearchParams(window.location.search || ""); } catch (e) { return; }
+    var shared = String(params.get("shared") || "").trim();
+    var sharedChar = String(params.get("sharedChar") || "").trim();
+    var child = String(params.get("child") || "").trim();
+    var book = String(params.get("book") || "").trim();
+    if (sharedChar && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession()) {
+      if (document.getElementById("sbStoryJourney")) {
+        try { sessionStorage.setItem("wondii-journey-star", sharedChar); } catch (eShare) {}
+      } else {
+        window.ChildLibrary.localArtUrl("shared/" + sharedChar + "/character.png", function (err, url) {
+          if (err || !url || typeof savedCharUrlToDataUrl !== "function") return;
+          savedCharUrlToDataUrl(url).then(function (dataUrl) {
+            if (!dataUrl) return;
+            heroPhotoItems.push({ dataUrl: dataUrl, who: "hero", charId: sharedChar });
+            if (typeof renderHeroPhotoThumbs === "function") renderHeroPhotoThumbs();
+            if (typeof openJourney === "function") openJourney();
+          }).catch(function () {});
+        });
+      }
+    }
+    if (shared) {
+      window.location.replace("book-prototype/?book=" + encodeURIComponent(shared) + "&shared=1");
+      return;
+    }
+    if (!window.ChildLibrary) return;
+    if (child && book) {
+      parentReadingChild = true;
+      window.location.replace(
+        "book-prototype/?book=" + encodeURIComponent(book) + "&child=" + encodeURIComponent(child)
+      );
+    }
+  }
+
   /** `?book=<shelf id>` (homepage shelf) — open that book in the reader once the library has loaded. */
   function openBookFromUrl() {
-    var id = "";
+    var params;
     try {
-      id = String(new URLSearchParams(window.location.search || "").get("book") || "").trim();
+      params = new URLSearchParams(window.location.search || "");
     } catch (eP) {
       return;
     }
-    if (!id) return;
-    try {
-      var u = new URL(window.location.href);
-      u.searchParams.delete("book");
-      window.history.replaceState({}, "", u.pathname + (u.search || "") + (u.hash || ""));
-    } catch (eU) {}
-
-    var opened = false;
-    function tryOpen() {
-      if (opened) return;
-      var found = loadShelf().some(function (b) {
-        return b && b.id === id;
-      });
-      if (!found) return;
-      opened = true;
-      window.removeEventListener("kids-scorecard-refresh", onRefresh);
-      openShelfBook(id);
-    }
-    function onRefresh() {
-      reloadShelfCacheFromStore(tryOpen);
-    }
-    window.addEventListener("kids-scorecard-refresh", onRefresh);
-    reloadShelfCacheFromStore(tryOpen);
+    if (!params.has("book")) return;
+    var id = String(params.get("book") || "").trim();
+    var child = String(params.get("child") || "").trim();
+    var shared = String(params.get("shared") || "").trim();
+    var url = "book-prototype/?book=" + encodeURIComponent(id);
+    if (child) url += "&child=" + encodeURIComponent(child);
+    if (shared === "1" || shared === "true") url += "&shared=1";
+    window.location.replace(url);
   }
 
   /** `?char=<saved id>` or `?char=builtin:<KidsGameCharacters id>` — open the maker with that character added. */
@@ -4775,6 +4839,11 @@
       u.searchParams.delete("char");
       window.history.replaceState({}, "", u.pathname + (u.search || "") + (u.hash || ""));
     } catch (eU) {}
+
+    if (document.getElementById("sbStoryJourney")) {
+      try { sessionStorage.setItem("wondii-journey-star", raw); } catch (eStar) {}
+      return;
+    }
 
     openJourney();
     goToStep(0);
@@ -5027,13 +5096,18 @@
 
   /** GET clever-service MP3: `?ttsText=` and optional `&ttsVoice=` (manual or inferred). */
   function cleverServiceTtsUrl(plainText) {
-    var base = functionUrl();
-    if (!base || plainText == null || plainText === "") return "";
+    if (plainText == null || plainText === "") return "";
     var q = "?ttsText=" + encodeURIComponent(String(plainText));
     var v = inferStorybookTtsVoiceId();
     if (v) {
       q += "&ttsVoice=" + encodeURIComponent(v);
     }
+    var host = window.location && window.location.hostname ? window.location.hostname : "";
+    if (/(^|\.)wondii\.co\.uk$/i.test(host) && window.location.origin) {
+      return window.location.origin + "/api/speech" + q;
+    }
+    var base = functionUrl();
+    if (!base) return "";
     return base + q;
   }
 
@@ -5104,14 +5178,16 @@
    * @param {(info: { progress: number | null, label: string }) => void} [onProgress]
    * @returns {Promise<{ ok: boolean, status: number, body: Record<string, unknown> }>}
    */
-  function pollStorybookJob(baseUrl, key, jobId, deadlineTs, onProgress) {
+  function pollStorybookJob(baseUrl, key, jobId, deadlineTs, onProgress, accessKey) {
     var pollMs = 2500;
+    var headers = {
+      Authorization: "Bearer " + key,
+      apikey: key,
+    };
+    if (accessKey) headers["X-Wondii-Job-Key"] = String(accessKey);
     return fetch(storybookJobPollUrl(baseUrl, jobId), {
       method: "GET",
-      headers: {
-        Authorization: "Bearer " + key,
-        apikey: key,
-      },
+      headers: headers,
     })
       .then(function (r) {
         return envelopeFromResponse(r);
@@ -5174,7 +5250,8 @@
                 key,
                 jobId,
                 deadlineTs,
-                onProgress
+                onProgress,
+                accessKey
               ).then(resolve);
             }, pollMs);
           });
@@ -5188,7 +5265,7 @@
   }
 
   function getSelectedFamilyPeople() {
-    return [];
+    return journeyFamilyPeople.slice();
   }
 
   function buildBookColorUI() {
@@ -5694,6 +5771,15 @@
         book.style.removeProperty("--sb-cover-inside-art");
       }
     }
+    var actionsDock = document.getElementById("sbBookActionsDock");
+    if (actionsDock) actionsDock.hidden = !!parentReadingChild;
+    var fave = document.getElementById("sbFaveBook");
+    if (fave) fave.hidden = !!parentReadingChild;
+    var readNote = document.getElementById("sbReadNote");
+    if (readNote && parentReadingChild) {
+      readNote.hidden = false;
+      readNote.textContent = "You can read this book. Only the child can change it.";
+    }
     applyBookThemingFromStory();
     renderSpread();
     updateReadChrome();
@@ -5792,7 +5878,7 @@
     } catch (e) {
       return;
     }
-    if (document.documentElement.classList.contains("book-v2")) return;
+    if (document.getElementById("sbStartJourney")) return;
     if (String(params.get("from") || "") !== "portal" && String(params.get("create") || "") !== "1") return;
     try {
       var u = new URL(window.location.href);
@@ -5847,7 +5933,7 @@
       return (
         "Could not save your library — this phone or tablet ran out of browser storage for this site.\n\n" +
         "None of your stories were removed automatically. The new save did not replace anything.\n\n" +
-        "Remove books yourself (tap × on a shelf cover), or clear site data for this website in Safari/Chrome settings to free space — then try again. Use ⚙️ Sync & ☁️ when you can so backups can upload."
+        "Remove books yourself (tap × on a shelf cover), or clear site data for this website in Safari/Chrome settings to free space — then try again. Sign in at the Wondii home so this account can keep a backup."
       );
     }
     return s;
@@ -5860,13 +5946,23 @@
     var shelfPullTimer = null;
     function pullShelfFromCloudNow() {
       window.KidsScoreCloud.mergeStorybookShelfFromCloud(function (err) {
+        if (err && !pullShelfFromCloudNow.retried && (err.message === "no_client" || err.message === "no_session")) {
+          pullShelfFromCloudNow.retried = true;
+          window.setTimeout(pullShelfFromCloudNow, 500);
+          return;
+        }
         if (err) {
+          var child = window.ChildLibrary && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession();
           var msg = err && err.message ? err.message : String(err);
-          window.alert(
-            "Could not load your library from the cloud.\n\n" +
-              mergeFailedMessage(msg) +
-              "\n\nAlso check you are signed in under ⚙️ on this device.",
-          );
+          var missed = msg === "no_session" || msg === "no_client" || msg === "no_account" || /not signed in/i.test(msg);
+          if (child) {
+            window.alert("Wondii could not open your books just now. Try again in a moment.");
+          } else if (!missed) {
+            window.alert(
+              "Could not load your library from the cloud.\n\n" +
+                mergeFailedMessage(msg)
+            );
+          }
         }
         reloadShelfCacheFromStore(function () {
           renderShelf();
@@ -5978,6 +6074,7 @@
           return;
         }
         if (e.target.closest("#sbStartJourney")) {
+          if (document.getElementById("sbStoryJourney")) return;
           e.preventDefault();
           openJourney();
         }
@@ -6362,7 +6459,6 @@
       if (sbGenerateInFlight) return;
       setError("");
       setReaderArtLayout(readBookSpreadLayoutFromWizard());
-      setIllustrationStyle(readIllustrationStyleFromWizard());
       setStoryTextMode(readStoryTextModeFromWizard());
       setStoryLength(readStoryLengthFromWizard());
       var url = functionUrl();
@@ -6402,6 +6498,8 @@
         startStorybookBuildProgressGuessing();
       }
       var familyPeople = getSelectedFamilyPeople();
+      var chosenIllustrationStyle = readIllustrationStyleFromWizard();
+      if (!journeyIllustrationHold) setIllustrationStyle(chosenIllustrationStyle);
       var requestBody = {
         childName: childName || "Friend",
         character: normalizeWizardPresetKey(selectedChar),
@@ -6416,7 +6514,7 @@
             ? trimCustomWizardText(placeCustomInput) || undefined
             : undefined,
         pictureBookQuality: selectedPictureBookQuality(),
-        illustrationStyle: readIllustrationStyleFromWizard(),
+        illustrationStyle: chosenIllustrationStyle,
         readerArtLayout: readBookSpreadLayoutFromWizard(),
         storyTextMode: readStoryTextModeFromWizard(),
         storyLength: readStoryLengthFromWizard(),
@@ -6432,14 +6530,21 @@
             })
           : undefined,
       };
+      if (journeyIllustrationHold) {
+        journeyIllustrationHold = false;
+        syncIllustrationStyleRadios();
+      }
+      journeyFamilyPeople = [];
+      var childBearer = "";
       function postStorybook(asyncFlag) {
         var body = Object.assign({}, requestBody);
         if (asyncFlag) body.storybook_async = true;
+        var bearer = childBearer || key;
         return fetch(url, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: "Bearer " + key,
+            Authorization: "Bearer " + bearer,
             apikey: key,
           },
           body: JSON.stringify(body),
@@ -6479,15 +6584,53 @@
                 setStorybookBuildProgressUi(pr, info.label || "Working…", {
                   skipDefaultMsg: true,
                 });
-              }
+              },
+              b.storybook_job_key
             );
           }
           return out;
         });
       }
-      runStorybookOnce(useAsync)
-        .then(function (out) {
+      var childBookKey = "";
+      function releaseChildBook() {
+        if (childBookKey && window.ChildLibrary) window.ChildLibrary.refund(childBookKey);
+        childBookKey = "";
+      }
+      var storyStart = (window.ChildLibrary && ChildLibrary.isChildSession && ChildLibrary.isChildSession())
+        ? ChildLibrary.reserve("book")
+        : Promise.resolve({ allowed: true, reason: "adult" });
+      storyStart.then(function (gate) {
+        if (gate && gate.reason !== "adult" && gate.allowed !== true) {
+          setError("Today’s books are used up. You can make another one tomorrow.");
+          sbGenerateInFlight = false;
+          btnGen.disabled = false;
+          btnGen.removeAttribute("aria-busy");
+          setBusy(false);
+          return null;
+        }
+        if (gate && gate.key) {
+          childBookKey = gate.key;
+          requestBody.creationKey = gate.key;
+          try { sessionStorage.setItem("wondii-child-book-key", gate.key); } catch (e) {}
+          try {
+            var childAuth = window.WondiiSession && window.WondiiSession.get && window.WondiiSession.get();
+            childBearer = childAuth && childAuth.session && childAuth.session.access_token || "";
+          } catch (e2) { childBearer = ""; }
+          if (!childBearer) {
+            releaseChildBook();
+            setError("Sign in again to make a book.");
+            sbGenerateInFlight = false;
+            btnGen.disabled = false;
+            btnGen.removeAttribute("aria-busy");
+            setBusy(false);
+            return null;
+          }
+        }
+        return runStorybookOnce(useAsync);
+      }).then(function (out) {
+          if (!out) return;
           if (!out.ok) {
+            releaseChildBook();
             var b =
               out.body && typeof out.body === "object" ? out.body : {};
             /** Supabase WORKER_LIMIT or Gateway Timeout — story + six images often exceeds Edge budget */
@@ -6598,8 +6741,13 @@
           story.atmosphere = storyAtmosphereFor(story);
           spreadIndex = 0;
           showBook();
+          if (window.ChildLibrary && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession()) {
+            saveBookToShelf();
+          }
         })
         .catch(function (err) {
+          releaseChildBook();
+          if (err && err.code === "allowance") return;
           console.error("[storybook] Make my book", err);
           var u = functionUrl();
           var tech =
@@ -6678,23 +6826,24 @@
     stayOnStorybook = !!(
       bootParams.get("book") ||
       bootParams.get("char") ||
+      bootParams.get("shared") ||
+      bootParams.get("sharedChar") ||
       bootParams.get("sample") === "1" ||
       bootParams.get("demo") === "1" ||
       bootParams.get("create") === "1" ||
       bootParams.get("journey") === "1" ||
-      bootParams.get("fixture") ||
-      document.documentElement.classList.contains("book-v2") ||
       document.getElementById("sbStartJourney")
     );
-    if (bootParams.get("sample") === "1" || bootParams.get("demo") === "1") {
-      openSampleBook();
+    if ((bootParams.get("sample") === "1" || bootParams.get("demo") === "1") && !bootParams.get("book")) {
+      window.location.replace("book-prototype/?" + (bootParams.get("demo") === "1" ? "demo=1" : "sample=1"));
     }
   } catch (err) {}
 
   preselectCharacterFromUrl();
   openBookFromUrl();
+  openPrivateFromUrl();
   try {
-    if (!document.documentElement.classList.contains("book-v2") && sessionStorage.getItem("wondii-org-starter")) openJourney();
+    if (sessionStorage.getItem("wondii-org-starter") && !document.getElementById("sbStoryJourney")) openJourney();
   } catch (eOrgSeed) {}
 
   var makerNow = document.getElementById("sbModal");
@@ -6766,9 +6915,24 @@
         reader.readAsDataURL(blob);
       });
     }).then(function (dataUrl) {
-      heroPhotoItems = [{ dataUrl: dataUrl, who: who || "hero" }];
+      heroPhotoItems.push({ dataUrl: dataUrl, who: who || "hero" });
       renderHeroPhotoThumbs();
     });
+  }
+
+  function friendToken(name) {
+    var token = String(name || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (token.length < 2 || token.length > 24) return "";
+    return token;
+  }
+
+  function referenceForPerson(person) {
+    var src = person && person.src ? String(person.src) : "";
+    if (!src) return "";
+    var crew = /(?:^|\/)images\/characters\/crew\/([a-z0-9-]+)\.jpg(?:[?#].*)?$/i.exec(src);
+    if (!crew) return src;
+    if (person.id && crew[1] === String(person.id)) return src;
+    return "";
   }
 
   window.WondiiStoryDraft = {
@@ -6786,14 +6950,35 @@
         );
         if (lengthRadio) lengthRadio.checked = true;
       }
-      var portrait = next.portrait ? String(next.portrait) : "";
-      if (!portrait) {
-        heroPhotoItems = [];
-        return Promise.resolve();
+      if (next.style === "soft_3d") {
+        var styleRadio = document.querySelector('input[name="sbIllustrationStyle"][value="soft_3d"]');
+        if (styleRadio) {
+          journeyIllustrationHold = true;
+          styleRadio.checked = true;
+        }
       }
-      return portraitToReference(portrait, next.name || "hero").catch(function () {
-        heroPhotoItems = [];
+      var cast = Array.isArray(next.cast) ? next.cast : [];
+      heroPhotoItems = [];
+      journeyFamilyPeople = [];
+      var seenFriend = {};
+      var jobs = [];
+      cast.forEach(function (person, index) {
+        if (!person || !person.name) return;
+        if (index > 0) {
+          var token = friendToken(person.name);
+          if (token && !seenFriend[token]) {
+            seenFriend[token] = true;
+            journeyFamilyPeople.push({ id: token, label: String(person.name).slice(0, 40) });
+          }
+        }
+        var src = referenceForPerson(person);
+        if (!src || jobs.length >= 3) return;
+        var who = index === 0 ? String(person.name) : (friendToken(person.name) || "");
+        if (!who) return;
+        jobs.push(portraitToReference(src, who).catch(function () {}));
       });
+      if (typeof renderHeroPhotoThumbs === "function") renderHeroPhotoThumbs();
+      return Promise.all(jobs);
     },
     create: function () {
       if (btnGen) btnGen.click();
@@ -6842,4 +7027,5 @@
       });
     }
   };
+
 })();

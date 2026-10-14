@@ -92,7 +92,10 @@
   }
 
   function booksNow() {
-    return books.map(function (book) {
+    var Showcase = window.WondiiBookShowcase;
+    return books.filter(function (book) {
+      return book && !(Showcase && Showcase.isShowcase(book.id));
+    }).map(function (book) {
       return { id: book.id, title: book.title || "Story", pages: book.pages || [], cover: coverOf(book) };
     });
   }
@@ -291,6 +294,10 @@
     page.appendChild(split);
 
     page.appendChild(section("Your creations", made.length ? shelf(made) : empty("Your next adventure starts here.", "Stories, games and puzzles you make will gather here.", "Create a story", "games/storybook.html?create=1"), ""));
+
+    var Showcase = window.WondiiBookShowcase;
+    var examples = Showcase ? Showcase.publicList(ability) : [];
+    if (examples.length) page.appendChild(section("Explore Wondii", shelf(examples), ""));
 
     var picks = el("div", "home-discover");
     Model.discovery(ability, crewList()).forEach(function (pick) {

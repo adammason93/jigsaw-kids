@@ -2,9 +2,12 @@
  * Thin runtime so `wrangler deploy` has an entry-point. Static files are served
  * from repo root (`assets.directory: "."`) via the ASSETS binding.
  */
+import { canonicalPublicAddress, speechSignature } from "../supabase/functions/clever-service/job-access.mjs";
+
 interface Env {
   ASSETS: Fetcher;
   SUPABASE_URL?: string;
+  SPEECH_QUOTA_SECRET?: string;
 }
 
 export default {
@@ -32,6 +35,7 @@ export default {
     }
     if (url.pathname === "/api/learn/generate") return generateLesson(request, env);
     if (url.pathname === "/api/learn/visuals") return learnVisuals(request, env);
+    if (url.pathname === "/api/speech") return proxySpeech(request, env);
     const learnPage = learnDocument(url.pathname);
     if (learnPage) return serveDocument(request, learnPage, env);
     return env.ASSETS.fetch(request);
@@ -109,6 +113,55 @@ async function learnVisuals(request: Request, env: Env): Promise<Response> {
   } catch (_error) {
     return Response.json({ ok: true, enabledGlobally: false, generated: false, reason: "visual_request_failed" }, { headers: { "Cache-Control": "no-store" } });
   }
+}
+
+async function proxySpeech(request: Request, env: Env): Promise<Response> {
+  if (request.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: { "Access-Control-Allow-Origin": "*" } });
+  }
+  if (request.method !== "GET") {
+    return Response.json({ error: "method_not_allowed", message: "Wondii could not read that just now. Try again in a moment." }, { status: 405 });
+  }
+  const url = new URL(request.url);
+  const text = url.searchParams.get("ttsText") || "";
+  const voice = url.searchParams.get("ttsVoice") || "";
+  if (!text) {
+    return Response.json({ error: "tts_missing", message: "Wondii could not read that just now. Try again in a moment." }, { status: 400 });
+  }
+  const cacheUrl = url.origin + "/api/speech?ttsText=" + encodeURIComponent(text) + "&ttsVoice=" + encodeURIComponent(voice);
+  const cacheKey = new Request(cacheUrl, { method: "GET" });
+  const hit = await caches.default.match(cacheKey);
+  if (hit) return hit;
+  const address = canonicalPublicAddress(request.headers.get("cf-connecting-ip"));
+  const secret = env.SPEECH_QUOTA_SECRET || "";
+  if (!address || !secret) {
+    return Response.json({ error: "tts_unavailable", message: "Wondii could not read that just now. Try again in a moment." }, { status: 503 });
+  }
+  const signature = await speechSignature(secret, address, Math.floor(Date.now() / 60000));
+  const base = (env.SUPABASE_URL || "https://enuzrcjnrxwglacivlnu.supabase.co").replace(/\/$/, "");
+  const upstreamUrl = base + "/functions/v1/clever-service?ttsText=" + encodeURIComponent(text) +
+    (voice ? "&ttsVoice=" + encodeURIComponent(voice) : "");
+  let upstream: Response;
+  try {
+    upstream = await fetch(upstreamUrl, {
+      method: "GET",
+      headers: {
+        "x-wondii-speech-ip": address,
+        "x-wondii-speech-sig": signature,
+      },
+    });
+  } catch (_error) {
+    return Response.json({ error: "tts_unavailable", message: "Wondii could not read that just now. Try again in a moment." }, { status: 503 });
+  }
+  if (upstream.ok && (upstream.headers.get("content-type") || "").indexOf("audio") !== -1) {
+    const response = new Response(upstream.body, {
+      status: 200,
+      headers: { "Content-Type": "audio/mpeg", "Cache-Control": "public, max-age=31536000" },
+    });
+    await caches.default.put(cacheKey, response.clone());
+    return response;
+  }
+  return upstream;
 }
 
 async function serveDocument(request: Request, assetPath: string, env: Env): Promise<Response> {

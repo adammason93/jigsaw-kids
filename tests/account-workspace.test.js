@@ -6,8 +6,7 @@ var path = require("path");
 var Account = require("../js/account-context.js");
 var Lib = require("../js/character-library.js");
 var Bible = require("../js/character-bible.js");
-var Book = {};
-try { Book = require("../js/book-brain.js"); } catch (e) { Book = {}; }
+var Book = require("../js/book-brain.js");
 
 var schoolA = { id: "11111111-1111-4111-8111-111111111111", name: "North School" };
 var schoolB = { id: "22222222-2222-4222-8222-222222222222", name: "South School" };
@@ -86,7 +85,6 @@ var catalogue = Lib.availableCharacters({
 });
 var choice = Lib.bookSelection(catalogue, ["char_pip", "pupil-1"]);
 assert.deepStrictEqual(choice, [{ characterId: "char_pip" }]);
-if (typeof Book.acceptCreation === "function") {
 var accepted = Book.acceptCreation({
   castIds: ["char_pip"],
   idea: "Pip finds a door that was not there yesterday.",
@@ -105,7 +103,6 @@ assert.strictEqual(accepted.cast[0].characterId, "char_pip");
 assert.strictEqual(accepted.cast[0].origin, "saved");
 assert.strictEqual(accepted.cast[0].reference, "characters/char_pip.png");
 assert.ok(JSON.stringify(accepted.cast[0]).indexOf("Pip") < 0);
-}
 
 /* 9. A family workspace cannot see the school record. */
 var family = Account.workspaceFrom({ userId: familyUser });
@@ -133,7 +130,7 @@ assert.strictEqual(refused.index.length, 1);
 var portalMaker = fs.readFileSync(path.join(__dirname, "../schools/learn/character-portal.js"), "utf8");
 assert.ok(portalMaker.indexOf("The character was not saved.") >= 0);
 assert.ok(portalMaker.indexOf("console.error") >= 0);
-assert.ok(charactersPage.indexOf("portal.html#characters") >= 0);
+assert.ok(charactersJs.indexOf("Generate the character before saving.") >= 0);
 
 /* 12. /characters sends a school session back into the portal, and a signed-out visit to the login. */
 assert.strictEqual(Account.legacyRoute({

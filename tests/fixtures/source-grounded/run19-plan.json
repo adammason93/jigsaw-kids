@@ -1,0 +1,142 @@
+{
+ "note": "Saved first raw plan of live run 19 (6 Oct 2026, 12:35 BST); test fixture, not lesson content.",
+ "raw": {
+  "title": "Dinosaurs and Their Adaptations",
+  "subject": "Science",
+  "topic": "Dinosaurs",
+  "yearGroup": "Year 3",
+  "durationMinutes": 15,
+  "learningObjective": "Pupils will understand how dinosaurs adapted to their environments.",
+  "successCriteria": [
+   "Pupils can explain how a specific dinosaur's features helped it survive in its habitat.",
+   "Pupils can identify different adaptations of dinosaurs."
+  ],
+  "priorKnowledge": [],
+  "learningMap": [
+   {
+    "id": "p1",
+    "knowledge": "Spinosaurus lived in what is now North Africa’s Sahara region, which then had a large river system.",
+    "role": "fact",
+    "importance": "core",
+    "dependsOn": "",
+    "explains": "",
+    "claimIds": [
+     "c1xv5js"
+    ]
+   },
+   {
+    "id": "p2",
+    "knowledge": "Spinosaurus was well adapted for aquatic life.",
+    "role": "fact",
+    "importance": "core",
+    "dependsOn": "p1",
+    "explains": "",
+    "claimIds": [
+     "cwbp85o"
+    ]
+   },
+   {
+    "id": "p3",
+    "knowledge": "Spinosaurus had nostrils further up on its snout than other dinosaurs.",
+    "role": "feature",
+    "importance": "core",
+    "dependsOn": "",
+    "explains": "p2",
+    "claimIds": [
+     "c70tt8c"
+    ]
+   },
+   {
+    "id": "p4",
+    "knowledge": "Spinosaurus's nostrils further up let it breathe with most of its snout underwater.",
+    "role": "mechanism",
+    "importance": "core",
+    "dependsOn": "p3",
+    "explains": "p3",
+    "claimIds": [
+     "c1vau61s"
+    ]
+   },
+   {
+    "id": "p5",
+    "knowledge": "Spinosaurus had paddle-like webbed feet.",
+    "role": "feature",
+    "importance": "core",
+    "dependsOn": "",
+    "explains": "p2",
+    "claimIds": [
+     "c4qgx9e"
+    ]
+   },
+   {
+    "id": "p6",
+    "knowledge": "Spinosaurus's webbed feet allowed the dinosaur to swim.",
+    "role": "mechanism",
+    "importance": "core",
+    "dependsOn": "p5",
+    "explains": "p5",
+    "claimIds": [
+     "c1vv8t2k"
+    ]
+   },
+   {
+    "id": "p7",
+    "knowledge": "Brachiosaurus had forelegs longer than its hind legs.",
+    "role": "feature",
+    "importance": "core",
+    "dependsOn": "",
+    "explains": "",
+    "claimIds": [
+     "cjsvb2q"
+    ]
+   },
+   {
+    "id": "p8",
+    "knowledge": "Brachiosaurus's longer forelegs helped it reach high into the trees.",
+    "role": "mechanism",
+    "importance": "core",
+    "dependsOn": "p7",
+    "explains": "p7",
+    "claimIds": [
+     "c2jm9t5"
+    ]
+   }
+  ],
+  "vocabulary": [
+   "adaptation",
+   "habitat",
+   "survival",
+   "features"
+  ],
+  "misconceptions": [],
+  "teachingApproach": "Use engaging visuals of dinosaurs and their habitats to illustrate adaptations. Discuss real-life examples of how specific features help animals survive in their environments.",
+  "narrativeTheme": "",
+  "lessonArc": [
+   {
+    "purpose": "hook",
+    "learningRole": "explore",
+    "concept": "dinosaurs"
+   },
+   {
+    "purpose": "teach",
+    "learningRole": "explain",
+    "concept": "adaptations"
+   },
+   {
+    "purpose": "apply",
+    "learningRole": "demonstrate",
+    "concept": "survival"
+   },
+   {
+    "purpose": "check",
+    "learningRole": "assess",
+    "concept": "features"
+   },
+   {
+    "purpose": "recap",
+    "learningRole": "summarize",
+    "concept": "learning"
+   }
+  ]
+ }
+}

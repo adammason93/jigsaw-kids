@@ -1,0 +1,49 @@
+{
+  "observations": "The illustration features a child named Maya in an open garden. She has long dark curls, medium brown skin, a round face, warm brown eyes, and soft eyebrows. Maya is wearing a yellow cardigan over a white shirt, a blue skirt, white socks, and navy shoes. She is depicted opening and closing her empty hands while looking at a star that is blinking above her yellow sleeves. The setting includes a small grassy clearing with a tall pale wall and unobstructed view of the sky, where distant stars can be seen.",
+  "characters": [
+    {
+      "characterId": "maya",
+      "identityMatch": true,
+      "outfitMatch": true,
+      "count": 1
+    }
+  ],
+  "entities": [
+    {
+      "entityId": "hidden-star",
+      "status": "confirmed",
+      "seen": "Maya is looking up at a small, warm, white star that is blinking."
+    },
+    {
+      "entityId": "clay-flowerpot",
+      "status": "confirmed",
+      "seen": "A round clay pot with a dark gap beneath its rim is visible."
+    },
+    {
+      "entityId": "garden-wall",
+      "status": "confirmed",
+      "seen": "A tall pale wall that blocks the sky from the sheltered corner is present."
+    },
+    {
+      "entityId": "sky-stars",
+      "status": "confirmed",
+      "seen": "Distant stars are visible in the sky, including the one that is blinking."
+    }
+  ],
+  "locationMatch": true,
+  "prematureResult": false,
+  "textDetected": false,
+  "anatomyOk": true,
+  "textSafeUsable": true,
+  "duplicateCharacter": false,
+  "momentMatch": true,
+  "montageShown": false,
+  "style": {
+    "rendering": "painted",
+    "characterRendering": "painted",
+    "proportions": "picture-book",
+    "edge": "soft",
+    "texture": "painted",
+    "finish": "picture-book"
+  }
+}

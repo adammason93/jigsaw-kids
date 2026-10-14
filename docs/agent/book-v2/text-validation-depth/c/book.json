@@ -1,0 +1,4854 @@
+{
+  "status": "REVIEWABLE",
+  "request": {
+    "castIds": [
+      "mina",
+      "maya"
+    ],
+    "idea": "They wake up and discover their town is floating in the clouds.",
+    "yearGroup": "Year 3",
+    "ageBand": "",
+    "length": "storybook",
+    "tone": "adventure",
+    "context": "school"
+  },
+  "modelCalls": 2,
+  "repairCalls": 0,
+  "repairs": [],
+  "stagesRepaired": [],
+  "bible": {
+    "title": "A Patch Above the Clouds",
+    "yearGroup": "Year 3",
+    "ageBand": "",
+    "readerAge": "7–8",
+    "readerStage": "year3",
+    "narrativeComplexity": "a problem with a consequence the reader can connect",
+    "tone": "adventure",
+    "targetLength": "storybook",
+    "userIdea": "They wake up and discover their town is floating in the clouds.",
+    "castIds": [
+      "mina",
+      "maya"
+    ],
+    "visualStyle": "wondii-picture-book",
+    "premise": "When Mina and Maya wake, they discover their town floating on clouds. A rooftop sail can steer it, but learning to use it puts their home and rooftop garden at risk.",
+    "hook": "Beyond their bedroom window, the street ends in open sky.",
+    "goal": "Steer their drifting home through a clear gap before it reaches the storm.",
+    "centralProblem": "The town is drifting towards storm clouds, and the children do not yet know how its rooftop sail works.",
+    "stakes": "The storm could damage their home. Their first steering mistake already costs them most of their rooftop seedlings.",
+    "climaxBeatId": "b10",
+    "resolutionBeatId": "b11",
+    "emotionalArc": [
+      "Astonishment",
+      "Concern",
+      "Determination",
+      "Confidence",
+      "Alarm",
+      "Regret",
+      "Trust",
+      "Concentration",
+      "Suspense",
+      "Relief",
+      "Attentive calm"
+    ],
+    "motif": "Two edges held together: quilt corners, sail ropes, and helping hands.",
+    "locations": [
+      {
+        "locationId": "shared-bedroom",
+        "name": "their bedroom",
+        "connectedTo": [
+          "roof-garden"
+        ],
+        "visualIdentity": "Two beds, a round window, and a stair door; warm colours contrast with the sky outside."
+      },
+      {
+        "locationId": "roof-garden",
+        "name": "the roof garden",
+        "connectedTo": [
+          "shared-bedroom",
+          "sail-deck"
+        ],
+        "visualIdentity": "A low-walled rooftop with seedling trays and cloud-filled views beyond the surrounding houses."
+      },
+      {
+        "locationId": "sail-deck",
+        "name": "the sail deck",
+        "connectedTo": [
+          "roof-garden"
+        ],
+        "visualIdentity": "A raised wooden platform with a broad cloth sail, two control ropes, and rope cleats."
+      }
+    ],
+    "entities": [
+      {
+        "entityId": "cloudborne-town",
+        "name": "the town",
+        "identity": "A cluster of houses and streets resting on one thick cloud; wind moves the whole cloud together.",
+        "ownerCharacterId": null,
+        "locationId": "shared-bedroom",
+        "state": "Level and safely beyond the storm, travelling through clear sky.",
+        "introducedAt": "b1"
+      },
+      {
+        "entityId": "patchwork-quilt",
+        "name": "the quilt",
+        "identity": "Mina's purple-and-yellow patchwork quilt, with sturdy corners and a broad central panel.",
+        "ownerCharacterId": null,
+        "locationId": "sail-deck",
+        "state": "Tied across the sail's tear.",
+        "introducedAt": "b1"
+      },
+      {
+        "entityId": "roof-sail",
+        "name": "the roof sail",
+        "identity": "A broad cloth sail that catches wind and changes the direction of the cloud beneath the town.",
+        "ownerCharacterId": null,
+        "locationId": "sail-deck",
+        "state": "Holding wind evenly with the quilt patch intact.",
+        "introducedAt": "b3"
+      },
+      {
+        "entityId": "steering-ropes",
+        "name": "the two ropes",
+        "identity": "Two ropes controlling opposite edges of the sail.",
+        "ownerCharacterId": null,
+        "locationId": "sail-deck",
+        "state": "Freed from the cleats and controlled together by the children.",
+        "introducedAt": "b3"
+      },
+      {
+        "entityId": "rope-cleats",
+        "name": "the rope cleats",
+        "identity": "Two wooden fittings that hold the steering ropes in position.",
+        "ownerCharacterId": null,
+        "locationId": "sail-deck",
+        "state": "Available to secure either control rope.",
+        "introducedAt": "b4"
+      },
+      {
+        "entityId": "seedling-tray",
+        "name": "the seedling tray",
+        "identity": "A shallow tray containing six small bean plants in loose soil.",
+        "ownerCharacterId": null,
+        "locationId": "roof-garden",
+        "state": "Set securely beside the inner wall, with the surviving seedling replanted.",
+        "introducedAt": "b2"
+      },
+      {
+        "entityId": "storm-bank",
+        "name": "the storm clouds",
+        "identity": "A dark bank of clouds with a narrow clear gap along one edge.",
+        "ownerCharacterId": null,
+        "locationId": "roof-garden",
+        "state": "Ahead of the drifting town, with a clear gap along its edge.",
+        "introducedAt": "b2"
+      }
+    ],
+    "beats": [
+      {
+        "beatId": "b1",
+        "role": "hook",
+        "locationId": "shared-bedroom",
+        "charactersPresent": [
+          "mina",
+          "maya"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "mina",
+            "trait": "observant",
+            "shows": "She checks the window ledge before looking down for the missing ground."
+          },
+          {
+            "characterId": "maya",
+            "trait": "curious",
+            "shows": "She presses close to the window and looks beneath the neighbouring rooftops."
+          }
+        ],
+        "problemFamily": "",
+        "because": "",
+        "resolvesProblem": false,
+        "action": "Mina and Maya wake to find clouds beneath the streets outside their window. Mina takes her quilt as they head up to investigate.",
+        "emotion": "Astonishment",
+        "entitiesRequired": [
+          "cloudborne-town",
+          "patchwork-quilt"
+        ],
+        "visualFocus": "Rooftops above an unbroken cloud floor.",
+        "shotType": "reveal",
+        "compositionIntent": "Frame the children inside the familiar bedroom while the impossible view fills the window.",
+        "textPurpose": "Establish the impossible change through a concrete discovery.",
+        "pageTurnHook": "Where has the ground gone?",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "shared-bedroom",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "shared-bedroom",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": []
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "shared-bedroom",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [
+                "patchwork-quilt"
+              ],
+              "emotion": "Astonishment",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "shared-bedroom",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Astonishment",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "cloudborne-town",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Floating on a broad cloud and drifting with the wind."
+            },
+            {
+              "entityId": "patchwork-quilt",
+              "ownerCharacterId": "mina",
+              "locationId": "shared-bedroom",
+              "state": "Gathered around Mina's shoulders."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b2",
+        "role": "discovery",
+        "locationId": "roof-garden",
+        "charactersPresent": [
+          "mina",
+          "maya"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "mina",
+            "trait": "gentle",
+            "shows": "She moves a seedling tray away from the roof edge."
+          }
+        ],
+        "problemFamily": "storm-drift",
+        "because": "b1",
+        "resolvesProblem": false,
+        "action": "From the roof garden, they see their home drifting towards dark storm clouds. A narrow gap beside the storm is sliding out of reach.",
+        "emotion": "Concern",
+        "entitiesRequired": [
+          "cloudborne-town",
+          "patchwork-quilt",
+          "seedling-tray",
+          "storm-bank"
+        ],
+        "visualFocus": "The clear gap beside the storm bank.",
+        "shotType": "establishing",
+        "compositionIntent": "Show the small roof against a wide sky and the threatening route ahead.",
+        "textPurpose": "Give the floating discovery an immediate, understandable consequence.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "shared-bedroom",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [
+                "patchwork-quilt"
+              ],
+              "emotion": "Astonishment",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "shared-bedroom",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Astonishment",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "cloudborne-town",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Floating on a broad cloud and drifting with the wind."
+            },
+            {
+              "entityId": "patchwork-quilt",
+              "ownerCharacterId": "mina",
+              "locationId": "shared-bedroom",
+              "state": "Gathered around Mina's shoulders."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "roof-garden",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [
+                "patchwork-quilt"
+              ],
+              "emotion": "Concern",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "roof-garden",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Concern",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "cloudborne-town",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Floating on a broad cloud and drifting with the wind."
+            },
+            {
+              "entityId": "patchwork-quilt",
+              "ownerCharacterId": "mina",
+              "locationId": "roof-garden",
+              "state": "Still around Mina's shoulders."
+            },
+            {
+              "entityId": "seedling-tray",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Moved inward from the low wall."
+            },
+            {
+              "entityId": "storm-bank",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Ahead of the drifting town, with a clear gap along its edge."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b3",
+        "role": "goal",
+        "locationId": "roof-garden",
+        "charactersPresent": [
+          "mina",
+          "maya"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "maya",
+            "trait": "curious",
+            "shows": "She follows the moving sail edge with her finger, tracing its pull on the roof."
+          }
+        ],
+        "problemFamily": "finding-steering",
+        "because": "b2",
+        "resolvesProblem": false,
+        "action": "A gust fills the roof sail, turning the whole town slightly. Maya points to its ropes and proposes steering towards the gap.",
+        "emotion": "Determination",
+        "entitiesRequired": [
+          "cloudborne-town",
+          "patchwork-quilt",
+          "seedling-tray",
+          "storm-bank",
+          "roof-sail",
+          "steering-ropes"
+        ],
+        "visualFocus": "The sail pulling the rooftops sideways.",
+        "shotType": "medium",
+        "compositionIntent": "Connect Maya's pointing hand, the sail, and the distant gap in one diagonal.",
+        "textPurpose": "Reveal a usable rule and turn observation into a goal.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "roof-garden",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [
+                "patchwork-quilt"
+              ],
+              "emotion": "Concern",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "roof-garden",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Concern",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "cloudborne-town",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Floating on a broad cloud and drifting with the wind."
+            },
+            {
+              "entityId": "patchwork-quilt",
+              "ownerCharacterId": "mina",
+              "locationId": "roof-garden",
+              "state": "Still around Mina's shoulders."
+            },
+            {
+              "entityId": "seedling-tray",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Moved inward from the low wall."
+            },
+            {
+              "entityId": "storm-bank",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Ahead of the drifting town, with a clear gap along its edge."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "roof-garden",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [
+                "patchwork-quilt"
+              ],
+              "emotion": "Determination",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "roof-garden",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Determination",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "cloudborne-town",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Floating on a broad cloud and drifting with the wind."
+            },
+            {
+              "entityId": "patchwork-quilt",
+              "ownerCharacterId": "mina",
+              "locationId": "roof-garden",
+              "state": "Still around Mina's shoulders."
+            },
+            {
+              "entityId": "seedling-tray",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Moved inward from the low wall."
+            },
+            {
+              "entityId": "storm-bank",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Ahead of the drifting town, with a clear gap along its edge."
+            },
+            {
+              "entityId": "roof-sail",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Intact and billowing; its angle changes the town's course."
+            },
+            {
+              "entityId": "steering-ropes",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Hanging from opposite edges of the sail."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b4",
+        "role": "exploration",
+        "locationId": "sail-deck",
+        "charactersPresent": [
+          "mina",
+          "maya"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "mina",
+            "trait": "observant",
+            "shows": "She watches the roofline while Maya makes small changes to the ropes."
+          }
+        ],
+        "problemFamily": "paired-controls",
+        "because": "b3",
+        "resolvesProblem": false,
+        "action": "On the sail deck, they test small pulls and find that opposite adjustments turn without tipping. Mina places her quilt beside the rope cleats.",
+        "emotion": "Confidence",
+        "entitiesRequired": [
+          "cloudborne-town",
+          "patchwork-quilt",
+          "seedling-tray",
+          "storm-bank",
+          "roof-sail",
+          "steering-ropes",
+          "rope-cleats"
+        ],
+        "visualFocus": "One rope shortening while the other lengthens.",
+        "shotType": "overhead",
+        "compositionIntent": "Make the two rope paths and balanced positions easy to read.",
+        "textPurpose": "Plant the steering method and the available repair material.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "roof-garden",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [
+                "patchwork-quilt"
+              ],
+              "emotion": "Determination",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "roof-garden",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Determination",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "cloudborne-town",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Floating on a broad cloud and drifting with the wind."
+            },
+            {
+              "entityId": "patchwork-quilt",
+              "ownerCharacterId": "mina",
+              "locationId": "roof-garden",
+              "state": "Still around Mina's shoulders."
+            },
+            {
+              "entityId": "seedling-tray",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Moved inward from the low wall."
+            },
+            {
+              "entityId": "storm-bank",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Ahead of the drifting town, with a clear gap along its edge."
+            },
+            {
+              "entityId": "roof-sail",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Intact and billowing; its angle changes the town's course."
+            },
+            {
+              "entityId": "steering-ropes",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Hanging from opposite edges of the sail."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "sail-deck",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Confidence",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "sail-deck",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Confidence",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "cloudborne-town",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Floating on a broad cloud and drifting with the wind."
+            },
+            {
+              "entityId": "patchwork-quilt",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Folded beside the cleats."
+            },
+            {
+              "entityId": "seedling-tray",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Moved inward from the low wall."
+            },
+            {
+              "entityId": "storm-bank",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Ahead of the drifting town, with a clear gap along its edge."
+            },
+            {
+              "entityId": "roof-sail",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Intact and billowing; its angle changes the town's course."
+            },
+            {
+              "entityId": "steering-ropes",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Hanging from opposite edges of the sail."
+            },
+            {
+              "entityId": "rope-cleats",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Available to secure either control rope."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b5",
+        "role": "attempt",
+        "locationId": "sail-deck",
+        "charactersPresent": [
+          "mina",
+          "maya"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "maya",
+            "trait": "brave",
+            "shows": "She plants her feet and takes the strain as the storm draws nearer."
+          }
+        ],
+        "problemFamily": "overcorrection",
+        "because": "b4",
+        "resolvesProblem": false,
+        "action": "As the gap narrows, Maya pulls her rope hard before Mina releases the other. The trapped sail tears, and the town tips towards the storm.",
+        "emotion": "Alarm",
+        "entitiesRequired": [
+          "cloudborne-town",
+          "patchwork-quilt",
+          "seedling-tray",
+          "storm-bank",
+          "roof-sail",
+          "steering-ropes",
+          "rope-cleats"
+        ],
+        "visualFocus": "A tear opening between the strained sail edges.",
+        "shotType": "action",
+        "compositionIntent": "Use opposing rope diagonals and a tilted horizon to show the mistake.",
+        "textPurpose": "Make urgency cause a costly error rather than introduce an unrelated obstacle.",
+        "pageTurnHook": "What will slide off the tilted roof?",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "sail-deck",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Confidence",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "sail-deck",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Confidence",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "cloudborne-town",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Floating on a broad cloud and drifting with the wind."
+            },
+            {
+              "entityId": "patchwork-quilt",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Folded beside the cleats."
+            },
+            {
+              "entityId": "seedling-tray",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Moved inward from the low wall."
+            },
+            {
+              "entityId": "storm-bank",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Ahead of the drifting town, with a clear gap along its edge."
+            },
+            {
+              "entityId": "roof-sail",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Intact and billowing; its angle changes the town's course."
+            },
+            {
+              "entityId": "steering-ropes",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Hanging from opposite edges of the sail."
+            },
+            {
+              "entityId": "rope-cleats",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Available to secure either control rope."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "sail-deck",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Alarm",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "sail-deck",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Alarm",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "cloudborne-town",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Tilted and drifting closer to the storm."
+            },
+            {
+              "entityId": "patchwork-quilt",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Folded beside the cleats."
+            },
+            {
+              "entityId": "seedling-tray",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Moved inward from the low wall."
+            },
+            {
+              "entityId": "storm-bank",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Ahead of the drifting town, with a clear gap along its edge."
+            },
+            {
+              "entityId": "roof-sail",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Torn through its centre and unable to hold wind evenly."
+            },
+            {
+              "entityId": "steering-ropes",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Hanging from opposite edges of the sail."
+            },
+            {
+              "entityId": "rope-cleats",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Available to secure either control rope."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b6",
+        "role": "consequence",
+        "locationId": "roof-garden",
+        "charactersPresent": [
+          "mina",
+          "maya"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "mina",
+            "trait": "gentle",
+            "shows": "She cups the remaining bean plant with both hands rather than grabbing its stem."
+          }
+        ],
+        "problemFamily": "garden-loss",
+        "because": "b5",
+        "resolvesProblem": false,
+        "action": "The tipping roof sends the seedling tray sliding, drawing both children down to catch it. Mina saves one plant, but the others spill over the wall.",
+        "emotion": "Regret",
+        "entitiesRequired": [
+          "cloudborne-town",
+          "patchwork-quilt",
+          "seedling-tray",
+          "storm-bank",
+          "roof-sail",
+          "steering-ropes",
+          "rope-cleats"
+        ],
+        "visualFocus": "One bean plant held above the nearly empty tray.",
+        "shotType": "close",
+        "compositionIntent": "Keep the saved plant prominent while falling soil marks the loss beyond the wall.",
+        "textPurpose": "Give their steering mistake a visible personal cost.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "sail-deck",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Alarm",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "sail-deck",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Alarm",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "cloudborne-town",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Tilted and drifting closer to the storm."
+            },
+            {
+              "entityId": "patchwork-quilt",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Folded beside the cleats."
+            },
+            {
+              "entityId": "seedling-tray",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Moved inward from the low wall."
+            },
+            {
+              "entityId": "storm-bank",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Ahead of the drifting town, with a clear gap along its edge."
+            },
+            {
+              "entityId": "roof-sail",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Torn through its centre and unable to hold wind evenly."
+            },
+            {
+              "entityId": "steering-ropes",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Hanging from opposite edges of the sail."
+            },
+            {
+              "entityId": "rope-cleats",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Available to secure either control rope."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "roof-garden",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Regret",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "roof-garden",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Regret",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "cloudborne-town",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Tilted and drifting closer to the storm."
+            },
+            {
+              "entityId": "patchwork-quilt",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Folded beside the cleats."
+            },
+            {
+              "entityId": "seedling-tray",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Caught against the wall; only one seedling remains."
+            },
+            {
+              "entityId": "storm-bank",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Ahead of the drifting town, with a clear gap along its edge."
+            },
+            {
+              "entityId": "roof-sail",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Torn through its centre and unable to hold wind evenly."
+            },
+            {
+              "entityId": "steering-ropes",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Hanging from opposite edges of the sail."
+            },
+            {
+              "entityId": "rope-cleats",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Available to secure either control rope."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b7",
+        "role": "relationship",
+        "locationId": "sail-deck",
+        "charactersPresent": [
+          "mina",
+          "maya"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "mina",
+            "trait": "gentle",
+            "shows": "She places a quilt corner in Maya's hand and takes the opposite corner herself."
+          },
+          {
+            "characterId": "maya",
+            "trait": "brave",
+            "shows": "She returns to the damaged sail and helps despite the deck's slope."
+          }
+        ],
+        "problemFamily": "repair-sacrifice",
+        "because": "b6",
+        "resolvesProblem": false,
+        "action": "They return to the torn sail, where Mina offers her quilt as a patch. Maya accepts a corner, and they agree to move the ropes together.",
+        "emotion": "Trust",
+        "entitiesRequired": [
+          "cloudborne-town",
+          "patchwork-quilt",
+          "seedling-tray",
+          "storm-bank",
+          "roof-sail",
+          "steering-ropes",
+          "rope-cleats"
+        ],
+        "visualFocus": "Their hands holding opposite quilt corners.",
+        "shotType": "medium",
+        "compositionIntent": "Place the quilt between the children as a shared task rather than a barrier.",
+        "textPurpose": "Turn the setback into cooperation and a meaningful sacrifice.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "roof-garden",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Regret",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "roof-garden",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Regret",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "cloudborne-town",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Tilted and drifting closer to the storm."
+            },
+            {
+              "entityId": "patchwork-quilt",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Folded beside the cleats."
+            },
+            {
+              "entityId": "seedling-tray",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Caught against the wall; only one seedling remains."
+            },
+            {
+              "entityId": "storm-bank",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Ahead of the drifting town, with a clear gap along its edge."
+            },
+            {
+              "entityId": "roof-sail",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Torn through its centre and unable to hold wind evenly."
+            },
+            {
+              "entityId": "steering-ropes",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Hanging from opposite edges of the sail."
+            },
+            {
+              "entityId": "rope-cleats",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Available to secure either control rope."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "sail-deck",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [
+                "patchwork-quilt"
+              ],
+              "emotion": "Trust",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "sail-deck",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Trust",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "cloudborne-town",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Tilted and drifting closer to the storm."
+            },
+            {
+              "entityId": "patchwork-quilt",
+              "ownerCharacterId": "mina",
+              "locationId": "sail-deck",
+              "state": "Lifted for use as a sail patch, with Maya helping hold it."
+            },
+            {
+              "entityId": "seedling-tray",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Caught against the wall; only one seedling remains."
+            },
+            {
+              "entityId": "storm-bank",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Ahead of the drifting town, with a clear gap along its edge."
+            },
+            {
+              "entityId": "roof-sail",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Torn through its centre and unable to hold wind evenly."
+            },
+            {
+              "entityId": "steering-ropes",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Hanging from opposite edges of the sail."
+            },
+            {
+              "entityId": "rope-cleats",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Available to secure either control rope."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b8",
+        "role": "setup",
+        "locationId": "sail-deck",
+        "charactersPresent": [
+          "mina",
+          "maya"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "mina",
+            "trait": "observant",
+            "shows": "She checks each knot by pulling the quilt corner before moving to the next."
+          }
+        ],
+        "problemFamily": "holding-for-repair",
+        "because": "b7",
+        "resolvesProblem": false,
+        "action": "They loosen both ropes and secure them on the cleats, letting the sail hang flat. Together, they tie the quilt across the tear.",
+        "emotion": "Concentration",
+        "entitiesRequired": [
+          "cloudborne-town",
+          "patchwork-quilt",
+          "seedling-tray",
+          "storm-bank",
+          "roof-sail",
+          "steering-ropes",
+          "rope-cleats"
+        ],
+        "visualFocus": "The patch covering the torn centre.",
+        "shotType": "close",
+        "compositionIntent": "Show cleated slack ropes beside the newly secured quilt corners.",
+        "textPurpose": "Use established equipment to make the repair physically possible.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "sail-deck",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [
+                "patchwork-quilt"
+              ],
+              "emotion": "Trust",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "sail-deck",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Trust",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "cloudborne-town",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Tilted and drifting closer to the storm."
+            },
+            {
+              "entityId": "patchwork-quilt",
+              "ownerCharacterId": "mina",
+              "locationId": "sail-deck",
+              "state": "Lifted for use as a sail patch, with Maya helping hold it."
+            },
+            {
+              "entityId": "seedling-tray",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Caught against the wall; only one seedling remains."
+            },
+            {
+              "entityId": "storm-bank",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Ahead of the drifting town, with a clear gap along its edge."
+            },
+            {
+              "entityId": "roof-sail",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Torn through its centre and unable to hold wind evenly."
+            },
+            {
+              "entityId": "steering-ropes",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Hanging from opposite edges of the sail."
+            },
+            {
+              "entityId": "rope-cleats",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Available to secure either control rope."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "sail-deck",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Concentration",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "sail-deck",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Concentration",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "cloudborne-town",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Tilted and drifting closer to the storm."
+            },
+            {
+              "entityId": "patchwork-quilt",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Tied across the sail's tear."
+            },
+            {
+              "entityId": "seedling-tray",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Caught against the wall; only one seedling remains."
+            },
+            {
+              "entityId": "storm-bank",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Ahead of the drifting town, with a clear gap along its edge."
+            },
+            {
+              "entityId": "roof-sail",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Patched and hanging slack."
+            },
+            {
+              "entityId": "steering-ropes",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Loosened and secured on the cleats."
+            },
+            {
+              "entityId": "rope-cleats",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Available to secure either control rope."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b9",
+        "role": "approach",
+        "locationId": "sail-deck",
+        "charactersPresent": [
+          "mina",
+          "maya"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "maya",
+            "trait": "brave",
+            "shows": "She keeps her hand still on the rope until Mina gives their agreed signal."
+          }
+        ],
+        "problemFamily": "timing-the-gust",
+        "because": "b8",
+        "resolvesProblem": false,
+        "action": "They free the ropes and raise the patched sail together. Mina watches its edges, waiting for wind before signalling their turn.",
+        "emotion": "Suspense",
+        "entitiesRequired": [
+          "cloudborne-town",
+          "patchwork-quilt",
+          "seedling-tray",
+          "storm-bank",
+          "roof-sail",
+          "steering-ropes",
+          "rope-cleats"
+        ],
+        "visualFocus": "The quilt lifting as wind reaches the sail.",
+        "shotType": "low",
+        "compositionIntent": "Let the patched sail dominate while the storm closes behind it.",
+        "textPurpose": "Show changed behaviour under the same pressure that caused their mistake.",
+        "pageTurnHook": "Will the quilt hold when the wind fills it?",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "sail-deck",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Concentration",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "sail-deck",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Concentration",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "cloudborne-town",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Tilted and drifting closer to the storm."
+            },
+            {
+              "entityId": "patchwork-quilt",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Tied across the sail's tear."
+            },
+            {
+              "entityId": "seedling-tray",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Caught against the wall; only one seedling remains."
+            },
+            {
+              "entityId": "storm-bank",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Ahead of the drifting town, with a clear gap along its edge."
+            },
+            {
+              "entityId": "roof-sail",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Patched and hanging slack."
+            },
+            {
+              "entityId": "steering-ropes",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Loosened and secured on the cleats."
+            },
+            {
+              "entityId": "rope-cleats",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Available to secure either control rope."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "sail-deck",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Suspense",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "sail-deck",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Suspense",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "cloudborne-town",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Tilted and drifting closer to the storm."
+            },
+            {
+              "entityId": "patchwork-quilt",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Tied across the sail's tear."
+            },
+            {
+              "entityId": "seedling-tray",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Caught against the wall; only one seedling remains."
+            },
+            {
+              "entityId": "storm-bank",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Ahead of the drifting town, with a clear gap along its edge."
+            },
+            {
+              "entityId": "roof-sail",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Raised, with wind beginning to fill the patch."
+            },
+            {
+              "entityId": "steering-ropes",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Freed from the cleats and controlled together by the children."
+            },
+            {
+              "entityId": "rope-cleats",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Available to secure either control rope."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b10",
+        "role": "climax",
+        "locationId": "sail-deck",
+        "charactersPresent": [
+          "mina",
+          "maya"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "mina",
+            "trait": "observant",
+            "shows": "She signals only when both sail edges fill evenly."
+          },
+          {
+            "characterId": "maya",
+            "trait": "brave",
+            "shows": "She makes the smaller pull they practised instead of hauling harder."
+          }
+        ],
+        "problemFamily": "balanced-steering",
+        "because": "b9",
+        "resolvesProblem": false,
+        "action": "At Mina's signal, Maya pulls a little while Mina releases the opposite rope. The quilt holds, steering the floating town through the clear gap.",
+        "emotion": "Relief",
+        "entitiesRequired": [
+          "cloudborne-town",
+          "patchwork-quilt",
+          "seedling-tray",
+          "storm-bank",
+          "roof-sail",
+          "steering-ropes",
+          "rope-cleats"
+        ],
+        "visualFocus": "The cloud-supported streets passing into clear sky.",
+        "shotType": "high",
+        "compositionIntent": "Show the town's curved course clearing the storm, with the patched sail visible below.",
+        "textPurpose": "Resolve the central danger through the earlier test, repair, and changed teamwork.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "sail-deck",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Suspense",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "sail-deck",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Suspense",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "cloudborne-town",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Tilted and drifting closer to the storm."
+            },
+            {
+              "entityId": "patchwork-quilt",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Tied across the sail's tear."
+            },
+            {
+              "entityId": "seedling-tray",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Caught against the wall; only one seedling remains."
+            },
+            {
+              "entityId": "storm-bank",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Ahead of the drifting town, with a clear gap along its edge."
+            },
+            {
+              "entityId": "roof-sail",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Raised, with wind beginning to fill the patch."
+            },
+            {
+              "entityId": "steering-ropes",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Freed from the cleats and controlled together by the children."
+            },
+            {
+              "entityId": "rope-cleats",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Available to secure either control rope."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "sail-deck",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Relief",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "sail-deck",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Relief",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "cloudborne-town",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Level and safely beyond the storm, travelling through clear sky."
+            },
+            {
+              "entityId": "patchwork-quilt",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Tied across the sail's tear."
+            },
+            {
+              "entityId": "seedling-tray",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Caught against the wall; only one seedling remains."
+            },
+            {
+              "entityId": "storm-bank",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Ahead of the drifting town, with a clear gap along its edge."
+            },
+            {
+              "entityId": "roof-sail",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Holding wind evenly with the quilt patch intact."
+            },
+            {
+              "entityId": "steering-ropes",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Freed from the cleats and controlled together by the children."
+            },
+            {
+              "entityId": "rope-cleats",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Available to secure either control rope."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b11",
+        "role": "resolution",
+        "locationId": "roof-garden",
+        "charactersPresent": [
+          "mina",
+          "maya"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "mina",
+            "trait": "gentle",
+            "shows": "She presses loose soil around the surviving plant with two fingertips."
+          },
+          {
+            "characterId": "maya",
+            "trait": "curious",
+            "shows": "She checks the sail between handfuls of soil, watching how its edges move."
+          }
+        ],
+        "problemFamily": "",
+        "because": "b10",
+        "resolvesProblem": true,
+        "action": "Above the clouds, Mina and Maya settle the surviving seedling into its tray. Between handfuls of soil, they check the purple-and-yellow sail together.",
+        "emotion": "Attentive calm",
+        "entitiesRequired": [
+          "cloudborne-town",
+          "patchwork-quilt",
+          "seedling-tray",
+          "storm-bank",
+          "roof-sail",
+          "steering-ropes",
+          "rope-cleats"
+        ],
+        "visualFocus": "One surviving plant beneath the repurposed quilt.",
+        "shotType": "vignette",
+        "compositionIntent": "Pair the small green shoot in the foreground with the quilt patch overhead.",
+        "textPurpose": "End with care, shared watchfulness, and visible reminders of the adventure's cost.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "sail-deck",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Relief",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "sail-deck",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Relief",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "cloudborne-town",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Level and safely beyond the storm, travelling through clear sky."
+            },
+            {
+              "entityId": "patchwork-quilt",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Tied across the sail's tear."
+            },
+            {
+              "entityId": "seedling-tray",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Caught against the wall; only one seedling remains."
+            },
+            {
+              "entityId": "storm-bank",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Ahead of the drifting town, with a clear gap along its edge."
+            },
+            {
+              "entityId": "roof-sail",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Holding wind evenly with the quilt patch intact."
+            },
+            {
+              "entityId": "steering-ropes",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Freed from the cleats and controlled together by the children."
+            },
+            {
+              "entityId": "rope-cleats",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Available to secure either control rope."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "roof-garden",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Attentive calm",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "roof-garden",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Attentive calm",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "cloudborne-town",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Level and safely beyond the storm, travelling through clear sky."
+            },
+            {
+              "entityId": "patchwork-quilt",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Tied across the sail's tear."
+            },
+            {
+              "entityId": "seedling-tray",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Set securely beside the inner wall, with the surviving seedling replanted."
+            },
+            {
+              "entityId": "storm-bank",
+              "ownerCharacterId": null,
+              "locationId": "roof-garden",
+              "state": "Ahead of the drifting town, with a clear gap along its edge."
+            },
+            {
+              "entityId": "roof-sail",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Holding wind evenly with the quilt patch intact."
+            },
+            {
+              "entityId": "steering-ropes",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Freed from the cleats and controlled together by the children."
+            },
+            {
+              "entityId": "rope-cleats",
+              "ownerCharacterId": null,
+              "locationId": "sail-deck",
+              "state": "Available to secure either control rope."
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "storyProblems": [],
+  "planProblems": [],
+  "textProblems": [],
+  "pages": [
+    {
+      "pageId": "p1",
+      "beatId": "b1",
+      "locationId": "shared-bedroom",
+      "charactersPresent": [
+        "mina",
+        "maya"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "shared-bedroom",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "shared-bedroom",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": []
+      },
+      "action": "Mina and Maya wake to find clouds beneath the streets outside their window. Mina takes her quilt as they head up to investigate.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "shared-bedroom",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [
+              "patchwork-quilt"
+            ],
+            "emotion": "Astonishment",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "shared-bedroom",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Astonishment",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Floating on a broad cloud and drifting with the wind."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": "mina",
+            "locationId": "shared-bedroom",
+            "state": "Gathered around Mina's shoulders."
+          }
+        ]
+      },
+      "emotion": "Astonishment",
+      "entitiesRequired": [
+        "cloudborne-town",
+        "patchwork-quilt"
+      ],
+      "visualFocus": "Rooftops above an unbroken cloud floor.",
+      "shotType": "reveal",
+      "compositionIntent": "Frame the children inside the familiar bedroom while the impossible view fills the window.",
+      "textPurpose": "Establish the impossible change through a concrete discovery.",
+      "pageTurnHook": "Where has the ground gone?",
+      "needsFromPrevious": null,
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "shared-bedroom",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [
+              "patchwork-quilt"
+            ],
+            "emotion": "Astonishment",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "shared-bedroom",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Astonishment",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Floating on a broad cloud and drifting with the wind."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": "mina",
+            "locationId": "shared-bedroom",
+            "state": "Gathered around Mina's shoulders."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Maya woke first and pressed her nose to the bedroom window.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"Mina, there's nothing under the streets but clouds!\"",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Mina scrambled up, gathered her quilt around her shoulders, and followed Maya to investigate.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Maya woke first and pressed her nose to the bedroom window. \"Mina, there's nothing under the streets but clouds!\" Mina scrambled up, gathered her quilt around her shoulders, and followed Maya to investigate."
+    },
+    {
+      "pageId": "p2",
+      "beatId": "b2",
+      "locationId": "roof-garden",
+      "charactersPresent": [
+        "mina",
+        "maya"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "shared-bedroom",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [
+              "patchwork-quilt"
+            ],
+            "emotion": "Astonishment",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "shared-bedroom",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Astonishment",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Floating on a broad cloud and drifting with the wind."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": "mina",
+            "locationId": "shared-bedroom",
+            "state": "Gathered around Mina's shoulders."
+          }
+        ]
+      },
+      "action": "From the roof garden, they see their home drifting towards dark storm clouds. A narrow gap beside the storm is sliding out of reach.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "roof-garden",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [
+              "patchwork-quilt"
+            ],
+            "emotion": "Concern",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "roof-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Concern",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Floating on a broad cloud and drifting with the wind."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": "mina",
+            "locationId": "roof-garden",
+            "state": "Still around Mina's shoulders."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Moved inward from the low wall."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          }
+        ]
+      },
+      "emotion": "Concern",
+      "entitiesRequired": [
+        "cloudborne-town",
+        "patchwork-quilt",
+        "seedling-tray",
+        "storm-bank"
+      ],
+      "visualFocus": "The clear gap beside the storm bank.",
+      "shotType": "establishing",
+      "compositionIntent": "Show the small roof against a wide sky and the threatening route ahead.",
+      "textPurpose": "Give the floating discovery an immediate, understandable consequence.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "shared-bedroom",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [
+              "patchwork-quilt"
+            ],
+            "emotion": "Astonishment",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "shared-bedroom",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Astonishment",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Floating on a broad cloud and drifting with the wind."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": "mina",
+            "locationId": "shared-bedroom",
+            "state": "Gathered around Mina's shoulders."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "roof-garden",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [
+              "patchwork-quilt"
+            ],
+            "emotion": "Concern",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "roof-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Concern",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Floating on a broad cloud and drifting with the wind."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": "mina",
+            "locationId": "roof-garden",
+            "state": "Still around Mina's shoulders."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Moved inward from the low wall."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Wind tugged Mina's quilt as Maya hurried across the roof garden.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Dark storm clouds loomed ahead, and their whole town drifted towards them.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Mina spotted a narrow gap along the storm's edge, sliding farther away.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Wind tugged Mina's quilt as Maya hurried across the roof garden. Dark storm clouds loomed ahead, and their whole town drifted towards them. Mina spotted a narrow gap along the storm's edge, sliding farther away."
+    },
+    {
+      "pageId": "p3",
+      "beatId": "b3",
+      "locationId": "roof-garden",
+      "charactersPresent": [
+        "mina",
+        "maya"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "roof-garden",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [
+              "patchwork-quilt"
+            ],
+            "emotion": "Concern",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "roof-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Concern",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Floating on a broad cloud and drifting with the wind."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": "mina",
+            "locationId": "roof-garden",
+            "state": "Still around Mina's shoulders."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Moved inward from the low wall."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          }
+        ]
+      },
+      "action": "A gust fills the roof sail, turning the whole town slightly. Maya points to its ropes and proposes steering towards the gap.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "roof-garden",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [
+              "patchwork-quilt"
+            ],
+            "emotion": "Determination",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "roof-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Determination",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Floating on a broad cloud and drifting with the wind."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": "mina",
+            "locationId": "roof-garden",
+            "state": "Still around Mina's shoulders."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Moved inward from the low wall."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Intact and billowing; its angle changes the town's course."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Hanging from opposite edges of the sail."
+          }
+        ]
+      },
+      "emotion": "Determination",
+      "entitiesRequired": [
+        "cloudborne-town",
+        "patchwork-quilt",
+        "seedling-tray",
+        "storm-bank",
+        "roof-sail",
+        "steering-ropes"
+      ],
+      "visualFocus": "The sail pulling the rooftops sideways.",
+      "shotType": "medium",
+      "compositionIntent": "Connect Maya's pointing hand, the sail, and the distant gap in one diagonal.",
+      "textPurpose": "Reveal a usable rule and turn observation into a goal.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "roof-garden",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [
+              "patchwork-quilt"
+            ],
+            "emotion": "Concern",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "roof-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Concern",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Floating on a broad cloud and drifting with the wind."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": "mina",
+            "locationId": "roof-garden",
+            "state": "Still around Mina's shoulders."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Moved inward from the low wall."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "roof-garden",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [
+              "patchwork-quilt"
+            ],
+            "emotion": "Determination",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "roof-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Determination",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Floating on a broad cloud and drifting with the wind."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": "mina",
+            "locationId": "roof-garden",
+            "state": "Still around Mina's shoulders."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Moved inward from the low wall."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Intact and billowing; its angle changes the town's course."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Hanging from opposite edges of the sail."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "A gust puffed out the roof sail, and the town swung slightly sideways.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Maya pointed at the ropes hanging from its edges.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"We can turn it—let's steer through that gap!\"",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "A gust puffed out the roof sail, and the town swung slightly sideways. Maya pointed at the ropes hanging from its edges. \"We can turn it—let's steer through that gap!\""
+    },
+    {
+      "pageId": "p4",
+      "beatId": "b4",
+      "locationId": "sail-deck",
+      "charactersPresent": [
+        "mina",
+        "maya"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "roof-garden",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [
+              "patchwork-quilt"
+            ],
+            "emotion": "Determination",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "roof-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Determination",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Floating on a broad cloud and drifting with the wind."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": "mina",
+            "locationId": "roof-garden",
+            "state": "Still around Mina's shoulders."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Moved inward from the low wall."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Intact and billowing; its angle changes the town's course."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Hanging from opposite edges of the sail."
+          }
+        ]
+      },
+      "action": "On the sail deck, they test small pulls and find that opposite adjustments turn without tipping. Mina places her quilt beside the rope cleats.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "sail-deck",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Confidence",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "sail-deck",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Confidence",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Floating on a broad cloud and drifting with the wind."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Folded beside the cleats."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Moved inward from the low wall."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Intact and billowing; its angle changes the town's course."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Hanging from opposite edges of the sail."
+          },
+          {
+            "entityId": "rope-cleats",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Available to secure either control rope."
+          }
+        ]
+      },
+      "emotion": "Confidence",
+      "entitiesRequired": [
+        "cloudborne-town",
+        "patchwork-quilt",
+        "seedling-tray",
+        "storm-bank",
+        "roof-sail",
+        "steering-ropes",
+        "rope-cleats"
+      ],
+      "visualFocus": "One rope shortening while the other lengthens.",
+      "shotType": "overhead",
+      "compositionIntent": "Make the two rope paths and balanced positions easy to read.",
+      "textPurpose": "Plant the steering method and the available repair material.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "roof-garden",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [
+              "patchwork-quilt"
+            ],
+            "emotion": "Determination",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "roof-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Determination",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Floating on a broad cloud and drifting with the wind."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": "mina",
+            "locationId": "roof-garden",
+            "state": "Still around Mina's shoulders."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Moved inward from the low wall."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Intact and billowing; its angle changes the town's course."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Hanging from opposite edges of the sail."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "sail-deck",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Confidence",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "sail-deck",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Confidence",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Floating on a broad cloud and drifting with the wind."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Folded beside the cleats."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Moved inward from the low wall."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Intact and billowing; its angle changes the town's course."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Hanging from opposite edges of the sail."
+          },
+          {
+            "entityId": "rope-cleats",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Available to secure either control rope."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "On the sail deck, Mina folded her quilt beside the cleats.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Maya gave one rope a tiny tug while Mina let the other slip.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The town turned without tipping; they tried again, swapping pulls.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "On the sail deck, Mina folded her quilt beside the cleats. Maya gave one rope a tiny tug while Mina let the other slip. The town turned without tipping; they tried again, swapping pulls."
+    },
+    {
+      "pageId": "p5",
+      "beatId": "b5",
+      "locationId": "sail-deck",
+      "charactersPresent": [
+        "mina",
+        "maya"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "sail-deck",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Confidence",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "sail-deck",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Confidence",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Floating on a broad cloud and drifting with the wind."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Folded beside the cleats."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Moved inward from the low wall."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Intact and billowing; its angle changes the town's course."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Hanging from opposite edges of the sail."
+          },
+          {
+            "entityId": "rope-cleats",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Available to secure either control rope."
+          }
+        ]
+      },
+      "action": "As the gap narrows, Maya pulls her rope hard before Mina releases the other. The trapped sail tears, and the town tips towards the storm.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "sail-deck",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Alarm",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "sail-deck",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Alarm",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Tilted and drifting closer to the storm."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Folded beside the cleats."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Moved inward from the low wall."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Torn through its centre and unable to hold wind evenly."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Hanging from opposite edges of the sail."
+          },
+          {
+            "entityId": "rope-cleats",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Available to secure either control rope."
+          }
+        ]
+      },
+      "emotion": "Alarm",
+      "entitiesRequired": [
+        "cloudborne-town",
+        "patchwork-quilt",
+        "seedling-tray",
+        "storm-bank",
+        "roof-sail",
+        "steering-ropes",
+        "rope-cleats"
+      ],
+      "visualFocus": "A tear opening between the strained sail edges.",
+      "shotType": "action",
+      "compositionIntent": "Use opposing rope diagonals and a tilted horizon to show the mistake.",
+      "textPurpose": "Make urgency cause a costly error rather than introduce an unrelated obstacle.",
+      "pageTurnHook": "What will slide off the tilted roof?",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "sail-deck",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Confidence",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "sail-deck",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Confidence",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Floating on a broad cloud and drifting with the wind."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Folded beside the cleats."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Moved inward from the low wall."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Intact and billowing; its angle changes the town's course."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Hanging from opposite edges of the sail."
+          },
+          {
+            "entityId": "rope-cleats",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Available to secure either control rope."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "sail-deck",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Alarm",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "sail-deck",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Alarm",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Tilted and drifting closer to the storm."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Folded beside the cleats."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Moved inward from the low wall."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Torn through its centre and unable to hold wind evenly."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Hanging from opposite edges of the sail."
+          },
+          {
+            "entityId": "rope-cleats",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Available to secure either control rope."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "The gap was shrinking, and Maya hauled hard on her rope.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Mina still gripped the other; the sail stretched tight, then ripped through its middle.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Their town lurched towards the storm, tilting beneath their feet.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "The gap was shrinking, and Maya hauled hard on her rope. Mina still gripped the other; the sail stretched tight, then ripped through its middle. Their town lurched towards the storm, tilting beneath their feet."
+    },
+    {
+      "pageId": "p6",
+      "beatId": "b6",
+      "locationId": "roof-garden",
+      "charactersPresent": [
+        "mina",
+        "maya"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "sail-deck",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Alarm",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "sail-deck",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Alarm",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Tilted and drifting closer to the storm."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Folded beside the cleats."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Moved inward from the low wall."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Torn through its centre and unable to hold wind evenly."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Hanging from opposite edges of the sail."
+          },
+          {
+            "entityId": "rope-cleats",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Available to secure either control rope."
+          }
+        ]
+      },
+      "action": "The tipping roof sends the seedling tray sliding, drawing both children down to catch it. Mina saves one plant, but the others spill over the wall.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "roof-garden",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Regret",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "roof-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Regret",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Tilted and drifting closer to the storm."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Folded beside the cleats."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Caught against the wall; only one seedling remains."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Torn through its centre and unable to hold wind evenly."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Hanging from opposite edges of the sail."
+          },
+          {
+            "entityId": "rope-cleats",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Available to secure either control rope."
+          }
+        ]
+      },
+      "emotion": "Regret",
+      "entitiesRequired": [
+        "cloudborne-town",
+        "patchwork-quilt",
+        "seedling-tray",
+        "storm-bank",
+        "roof-sail",
+        "steering-ropes",
+        "rope-cleats"
+      ],
+      "visualFocus": "One bean plant held above the nearly empty tray.",
+      "shotType": "close",
+      "compositionIntent": "Keep the saved plant prominent while falling soil marks the loss beyond the wall.",
+      "textPurpose": "Give their steering mistake a visible personal cost.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "sail-deck",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Alarm",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "sail-deck",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Alarm",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Tilted and drifting closer to the storm."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Folded beside the cleats."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Moved inward from the low wall."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Torn through its centre and unable to hold wind evenly."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Hanging from opposite edges of the sail."
+          },
+          {
+            "entityId": "rope-cleats",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Available to secure either control rope."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "roof-garden",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Regret",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "roof-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Regret",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Tilted and drifting closer to the storm."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Folded beside the cleats."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Caught against the wall; only one seedling remains."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Torn through its centre and unable to hold wind evenly."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Hanging from opposite edges of the sail."
+          },
+          {
+            "entityId": "rope-cleats",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Available to secure either control rope."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "The seedling tray skidded across the roof garden, and both children raced after it.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Maya caught the tray against the wall as Mina cupped one seedling.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The others spilled over the edge and vanished into cloud.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "The seedling tray skidded across the roof garden, and both children raced after it. Maya caught the tray against the wall as Mina cupped one seedling. The others spilled over the edge and vanished into cloud."
+    },
+    {
+      "pageId": "p7",
+      "beatId": "b7",
+      "locationId": "sail-deck",
+      "charactersPresent": [
+        "mina",
+        "maya"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "roof-garden",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Regret",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "roof-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Regret",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Tilted and drifting closer to the storm."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Folded beside the cleats."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Caught against the wall; only one seedling remains."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Torn through its centre and unable to hold wind evenly."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Hanging from opposite edges of the sail."
+          },
+          {
+            "entityId": "rope-cleats",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Available to secure either control rope."
+          }
+        ]
+      },
+      "action": "They return to the torn sail, where Mina offers her quilt as a patch. Maya accepts a corner, and they agree to move the ropes together.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "sail-deck",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [
+              "patchwork-quilt"
+            ],
+            "emotion": "Trust",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "sail-deck",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Trust",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Tilted and drifting closer to the storm."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": "mina",
+            "locationId": "sail-deck",
+            "state": "Lifted for use as a sail patch, with Maya helping hold it."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Caught against the wall; only one seedling remains."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Torn through its centre and unable to hold wind evenly."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Hanging from opposite edges of the sail."
+          },
+          {
+            "entityId": "rope-cleats",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Available to secure either control rope."
+          }
+        ]
+      },
+      "emotion": "Trust",
+      "entitiesRequired": [
+        "cloudborne-town",
+        "patchwork-quilt",
+        "seedling-tray",
+        "storm-bank",
+        "roof-sail",
+        "steering-ropes",
+        "rope-cleats"
+      ],
+      "visualFocus": "Their hands holding opposite quilt corners.",
+      "shotType": "medium",
+      "compositionIntent": "Place the quilt between the children as a shared task rather than a barrier.",
+      "textPurpose": "Turn the setback into cooperation and a meaningful sacrifice.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "roof-garden",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Regret",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "roof-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Regret",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Tilted and drifting closer to the storm."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Folded beside the cleats."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Caught against the wall; only one seedling remains."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Torn through its centre and unable to hold wind evenly."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Hanging from opposite edges of the sail."
+          },
+          {
+            "entityId": "rope-cleats",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Available to secure either control rope."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "sail-deck",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [
+              "patchwork-quilt"
+            ],
+            "emotion": "Trust",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "sail-deck",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Trust",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Tilted and drifting closer to the storm."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": "mina",
+            "locationId": "sail-deck",
+            "state": "Lifted for use as a sail patch, with Maya helping hold it."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Caught against the wall; only one seedling remains."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Torn through its centre and unable to hold wind evenly."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Hanging from opposite edges of the sail."
+          },
+          {
+            "entityId": "rope-cleats",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Available to secure either control rope."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Back on the sail deck, Mina lifted her quilt towards the ragged tear.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"Take this corner, and we'll move the ropes together.\"",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Maya took it with both hands and nodded.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Back on the sail deck, Mina lifted her quilt towards the ragged tear. \"Take this corner, and we'll move the ropes together.\" Maya took it with both hands and nodded."
+    },
+    {
+      "pageId": "p8",
+      "beatId": "b8",
+      "locationId": "sail-deck",
+      "charactersPresent": [
+        "mina",
+        "maya"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "sail-deck",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [
+              "patchwork-quilt"
+            ],
+            "emotion": "Trust",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "sail-deck",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Trust",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Tilted and drifting closer to the storm."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": "mina",
+            "locationId": "sail-deck",
+            "state": "Lifted for use as a sail patch, with Maya helping hold it."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Caught against the wall; only one seedling remains."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Torn through its centre and unable to hold wind evenly."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Hanging from opposite edges of the sail."
+          },
+          {
+            "entityId": "rope-cleats",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Available to secure either control rope."
+          }
+        ]
+      },
+      "action": "They loosen both ropes and secure them on the cleats, letting the sail hang flat. Together, they tie the quilt across the tear.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "sail-deck",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Concentration",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "sail-deck",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Concentration",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Tilted and drifting closer to the storm."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Tied across the sail's tear."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Caught against the wall; only one seedling remains."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Patched and hanging slack."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Loosened and secured on the cleats."
+          },
+          {
+            "entityId": "rope-cleats",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Available to secure either control rope."
+          }
+        ]
+      },
+      "emotion": "Concentration",
+      "entitiesRequired": [
+        "cloudborne-town",
+        "patchwork-quilt",
+        "seedling-tray",
+        "storm-bank",
+        "roof-sail",
+        "steering-ropes",
+        "rope-cleats"
+      ],
+      "visualFocus": "The patch covering the torn centre.",
+      "shotType": "close",
+      "compositionIntent": "Show cleated slack ropes beside the newly secured quilt corners.",
+      "textPurpose": "Use established equipment to make the repair physically possible.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "sail-deck",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [
+              "patchwork-quilt"
+            ],
+            "emotion": "Trust",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "sail-deck",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Trust",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Tilted and drifting closer to the storm."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": "mina",
+            "locationId": "sail-deck",
+            "state": "Lifted for use as a sail patch, with Maya helping hold it."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Caught against the wall; only one seedling remains."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Torn through its centre and unable to hold wind evenly."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Hanging from opposite edges of the sail."
+          },
+          {
+            "entityId": "rope-cleats",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Available to secure either control rope."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "sail-deck",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Concentration",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "sail-deck",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Concentration",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Tilted and drifting closer to the storm."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Tied across the sail's tear."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Caught against the wall; only one seedling remains."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Patched and hanging slack."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Loosened and secured on the cleats."
+          },
+          {
+            "entityId": "rope-cleats",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Available to secure either control rope."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Both ropes slipped loose through their hands before they secured them on the cleats.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The torn sail hung flat.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Working side by side, Mina and Maya tied the quilt across the tear.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Both ropes slipped loose through their hands before they secured them on the cleats. The torn sail hung flat. Working side by side, Mina and Maya tied the quilt across the tear."
+    },
+    {
+      "pageId": "p9",
+      "beatId": "b9",
+      "locationId": "sail-deck",
+      "charactersPresent": [
+        "mina",
+        "maya"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "sail-deck",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Concentration",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "sail-deck",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Concentration",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Tilted and drifting closer to the storm."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Tied across the sail's tear."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Caught against the wall; only one seedling remains."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Patched and hanging slack."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Loosened and secured on the cleats."
+          },
+          {
+            "entityId": "rope-cleats",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Available to secure either control rope."
+          }
+        ]
+      },
+      "action": "They free the ropes and raise the patched sail together. Mina watches its edges, waiting for wind before signalling their turn.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "sail-deck",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Suspense",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "sail-deck",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Suspense",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Tilted and drifting closer to the storm."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Tied across the sail's tear."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Caught against the wall; only one seedling remains."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Raised, with wind beginning to fill the patch."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Freed from the cleats and controlled together by the children."
+          },
+          {
+            "entityId": "rope-cleats",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Available to secure either control rope."
+          }
+        ]
+      },
+      "emotion": "Suspense",
+      "entitiesRequired": [
+        "cloudborne-town",
+        "patchwork-quilt",
+        "seedling-tray",
+        "storm-bank",
+        "roof-sail",
+        "steering-ropes",
+        "rope-cleats"
+      ],
+      "visualFocus": "The quilt lifting as wind reaches the sail.",
+      "shotType": "low",
+      "compositionIntent": "Let the patched sail dominate while the storm closes behind it.",
+      "textPurpose": "Show changed behaviour under the same pressure that caused their mistake.",
+      "pageTurnHook": "Will the quilt hold when the wind fills it?",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "sail-deck",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Concentration",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "sail-deck",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Concentration",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Tilted and drifting closer to the storm."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Tied across the sail's tear."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Caught against the wall; only one seedling remains."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Patched and hanging slack."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Loosened and secured on the cleats."
+          },
+          {
+            "entityId": "rope-cleats",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Available to secure either control rope."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "sail-deck",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Suspense",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "sail-deck",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Suspense",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Tilted and drifting closer to the storm."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Tied across the sail's tear."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Caught against the wall; only one seedling remains."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Raised, with wind beginning to fill the patch."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Freed from the cleats and controlled together by the children."
+          },
+          {
+            "entityId": "rope-cleats",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Available to secure either control rope."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Together, they freed the ropes and raised the patched sail.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Maya waited while Mina watched its fluttering edges.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Wind swelled the quilt; Mina lifted her chin and called, \"Now!\"",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Together, they freed the ropes and raised the patched sail. Maya waited while Mina watched its fluttering edges. Wind swelled the quilt; Mina lifted her chin and called, \"Now!\""
+    },
+    {
+      "pageId": "p10",
+      "beatId": "b10",
+      "locationId": "sail-deck",
+      "charactersPresent": [
+        "mina",
+        "maya"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "sail-deck",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Suspense",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "sail-deck",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Suspense",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Tilted and drifting closer to the storm."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Tied across the sail's tear."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Caught against the wall; only one seedling remains."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Raised, with wind beginning to fill the patch."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Freed from the cleats and controlled together by the children."
+          },
+          {
+            "entityId": "rope-cleats",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Available to secure either control rope."
+          }
+        ]
+      },
+      "action": "At Mina's signal, Maya pulls a little while Mina releases the opposite rope. The quilt holds, steering the floating town through the clear gap.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "sail-deck",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Relief",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "sail-deck",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Relief",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Level and safely beyond the storm, travelling through clear sky."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Tied across the sail's tear."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Caught against the wall; only one seedling remains."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Holding wind evenly with the quilt patch intact."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Freed from the cleats and controlled together by the children."
+          },
+          {
+            "entityId": "rope-cleats",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Available to secure either control rope."
+          }
+        ]
+      },
+      "emotion": "Relief",
+      "entitiesRequired": [
+        "cloudborne-town",
+        "patchwork-quilt",
+        "seedling-tray",
+        "storm-bank",
+        "roof-sail",
+        "steering-ropes",
+        "rope-cleats"
+      ],
+      "visualFocus": "The cloud-supported streets passing into clear sky.",
+      "shotType": "high",
+      "compositionIntent": "Show the town's curved course clearing the storm, with the patched sail visible below.",
+      "textPurpose": "Resolve the central danger through the earlier test, repair, and changed teamwork.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "sail-deck",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Suspense",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "sail-deck",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Suspense",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Tilted and drifting closer to the storm."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Tied across the sail's tear."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Caught against the wall; only one seedling remains."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Raised, with wind beginning to fill the patch."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Freed from the cleats and controlled together by the children."
+          },
+          {
+            "entityId": "rope-cleats",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Available to secure either control rope."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "sail-deck",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Relief",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "sail-deck",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Relief",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Level and safely beyond the storm, travelling through clear sky."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Tied across the sail's tear."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Caught against the wall; only one seedling remains."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Holding wind evenly with the quilt patch intact."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Freed from the cleats and controlled together by the children."
+          },
+          {
+            "entityId": "rope-cleats",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Available to secure either control rope."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Maya pulled a little as Mina let the opposite rope slide.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The quilt stretched full and held; their town levelled and turned into the gap.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Dark clouds passed on either side, then clear sky opened ahead.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Maya pulled a little as Mina let the opposite rope slide. The quilt stretched full and held; their town levelled and turned into the gap. Dark clouds passed on either side, then clear sky opened ahead."
+    },
+    {
+      "pageId": "p11",
+      "beatId": "b11",
+      "locationId": "roof-garden",
+      "charactersPresent": [
+        "mina",
+        "maya"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "sail-deck",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Relief",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "sail-deck",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Relief",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Level and safely beyond the storm, travelling through clear sky."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Tied across the sail's tear."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Caught against the wall; only one seedling remains."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Holding wind evenly with the quilt patch intact."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Freed from the cleats and controlled together by the children."
+          },
+          {
+            "entityId": "rope-cleats",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Available to secure either control rope."
+          }
+        ]
+      },
+      "action": "Above the clouds, Mina and Maya settle the surviving seedling into its tray. Between handfuls of soil, they check the purple-and-yellow sail together.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "roof-garden",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Attentive calm",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "roof-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Attentive calm",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Level and safely beyond the storm, travelling through clear sky."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Tied across the sail's tear."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Set securely beside the inner wall, with the surviving seedling replanted."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Holding wind evenly with the quilt patch intact."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Freed from the cleats and controlled together by the children."
+          },
+          {
+            "entityId": "rope-cleats",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Available to secure either control rope."
+          }
+        ]
+      },
+      "emotion": "Attentive calm",
+      "entitiesRequired": [
+        "cloudborne-town",
+        "patchwork-quilt",
+        "seedling-tray",
+        "storm-bank",
+        "roof-sail",
+        "steering-ropes",
+        "rope-cleats"
+      ],
+      "visualFocus": "One surviving plant beneath the repurposed quilt.",
+      "shotType": "vignette",
+      "compositionIntent": "Pair the small green shoot in the foreground with the quilt patch overhead.",
+      "textPurpose": "End with care, shared watchfulness, and visible reminders of the adventure's cost.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "sail-deck",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Relief",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "sail-deck",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Relief",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Level and safely beyond the storm, travelling through clear sky."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Tied across the sail's tear."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Caught against the wall; only one seedling remains."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Holding wind evenly with the quilt patch intact."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Freed from the cleats and controlled together by the children."
+          },
+          {
+            "entityId": "rope-cleats",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Available to secure either control rope."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "roof-garden",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Attentive calm",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "roof-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Attentive calm",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "cloudborne-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Level and safely beyond the storm, travelling through clear sky."
+          },
+          {
+            "entityId": "patchwork-quilt",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Tied across the sail's tear."
+          },
+          {
+            "entityId": "seedling-tray",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Set securely beside the inner wall, with the surviving seedling replanted."
+          },
+          {
+            "entityId": "storm-bank",
+            "ownerCharacterId": null,
+            "locationId": "roof-garden",
+            "state": "Ahead of the drifting town, with a clear gap along its edge."
+          },
+          {
+            "entityId": "roof-sail",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Holding wind evenly with the quilt patch intact."
+          },
+          {
+            "entityId": "steering-ropes",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Freed from the cleats and controlled together by the children."
+          },
+          {
+            "entityId": "rope-cleats",
+            "ownerCharacterId": null,
+            "locationId": "sail-deck",
+            "state": "Available to secure either control rope."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Beside the roof garden's inner wall, they tucked the last seedling into its tray.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Between handfuls of soil, both glanced up at the sail.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Purple and yellow billowed above them; the seedling stood beneath.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Beside the roof garden's inner wall, they tucked the last seedling into its tray. Between handfuls of soil, both glanced up at the sail. Purple and yellow billowed above them; the seedling stood beneath."
+    }
+  ],
+  "imageCalls": 0,
+  "imageDraws": 0,
+  "imageReason": "images_disabled",
+  "imageUsd": 0,
+  "id": "c",
+  "listedUsd": 0.06585,
+  "guardUsd": 0.1317
+}

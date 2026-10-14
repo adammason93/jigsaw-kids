@@ -1,0 +1,1584 @@
+{
+  "status": "REVIEWABLE",
+  "request": {
+    "castIds": [
+      "maya",
+      "leo"
+    ],
+    "idea": "They find a tiny dragon hiding underneath their school.",
+    "yearGroup": "Year 1",
+    "length": "quick",
+    "tone": "magical"
+  },
+  "modelCalls": 4,
+  "repairCalls": 2,
+  "repairs": [
+    {
+      "stage": "bible",
+      "problems": [
+        "idea-not-structural"
+      ]
+    },
+    {
+      "stage": "bible",
+      "problems": [
+        "teleport:maya",
+        "teleport:leo"
+      ]
+    }
+  ],
+  "stagesRepaired": [
+    "bible"
+  ],
+  "bible": {
+    "title": "A Quiet Place Below",
+    "yearGroup": "Year 1",
+    "readerAge": "Year 1",
+    "tone": "magical",
+    "targetLength": "quick",
+    "userIdea": "They find a tiny dragon hiding underneath their school.",
+    "castIds": [
+      "maya",
+      "leo"
+    ],
+    "visualStyle": "wondii-picture-book",
+    "premise": "Maya and Leo find a tiny dragon hiding underneath their school. Its scales glow whenever feet step directly above it.",
+    "hook": "Maya's footsteps bring golden flashes through the school floor.",
+    "goal": "Find a hiding place where nobody can step above the dragon.",
+    "centralProblem": "The dragon hides beneath the walkway, where footsteps make its scales flash.",
+    "stakes": "The dragon cannot rest or stay hidden beneath passing feet.",
+    "climaxBeatId": "b4",
+    "resolutionBeatId": "b5",
+    "emotionalArc": [
+      "interest",
+      "concern",
+      "disappointment",
+      "relief",
+      "contentment"
+    ],
+    "motif": "Footsteps above and golden flashes below.",
+    "locations": [
+      {
+        "locationId": "school-walkway",
+        "name": "the school walkway",
+        "connectedTo": [
+          "beneath-school-floor"
+        ],
+        "visualIdentity": "Wooden boards beside a fixed cupboard, with an inspection hatch and short steps leading down."
+      },
+      {
+        "locationId": "beneath-school-floor",
+        "name": "beneath the school floor",
+        "connectedTo": [
+          "school-walkway"
+        ],
+        "visualIdentity": "One dry, low space containing the hatch steps, exposed walkway boards overhead, and a sheltered corner beneath the cupboard."
+      }
+    ],
+    "entities": [
+      {
+        "entityId": "floor-hatch",
+        "name": "the hatch",
+        "identity": "A wooden inspection hatch with short steps into the space below.",
+        "ownerCharacterId": null,
+        "locationId": "school-walkway",
+        "state": "Closed gently.",
+        "introducedAt": "b1"
+      },
+      {
+        "entityId": "blue-dragon",
+        "name": "the tiny dragon",
+        "identity": "A palm-sized blue dragon whose scales glow gold whenever feet step directly above it.",
+        "ownerCharacterId": null,
+        "locationId": "beneath-school-floor",
+        "state": "Resting beneath the cupboard base, with blue scales despite footsteps on the adjacent walkway.",
+        "introducedAt": "b2"
+      },
+      {
+        "entityId": "solid-cupboard",
+        "name": "the school cupboard",
+        "identity": "A fixed cupboard whose solid base covers one corner below and prevents feet from walking above that corner.",
+        "ownerCharacterId": null,
+        "locationId": "school-walkway",
+        "state": "Fixed beside the walkway, covering a sheltered corner below.",
+        "introducedAt": "b1"
+      }
+    ],
+    "beats": [
+      {
+        "beatId": "b1",
+        "role": "hook",
+        "locationId": "school-walkway",
+        "charactersPresent": [
+          "maya",
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "maya",
+            "trait": "curious",
+            "shows": "She repeats her step while watching the glowing crack."
+          },
+          {
+            "characterId": "leo",
+            "trait": "careful",
+            "shows": "He lifts the hatch slowly and holds it open."
+          }
+        ],
+        "problemFamily": "",
+        "because": "",
+        "resolvesProblem": false,
+        "action": "Maya's footsteps bring flashes through the school floor. Leo opens the hatch beside the cupboard.",
+        "emotion": "interest",
+        "entitiesRequired": [
+          "floor-hatch",
+          "solid-cupboard"
+        ],
+        "visualFocus": "Golden light beneath Maya's shoe.",
+        "shotType": "establishing",
+        "compositionIntent": "Show both children, the glowing seam, the hatch, and the cupboard together.",
+        "textPurpose": "Link the hidden light to footsteps and establish access below.",
+        "pageTurnHook": "What makes the light below?",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "school-walkway",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "school-walkway",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": []
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "school-walkway",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "interest",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "school-walkway",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "interest",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floor-hatch",
+              "ownerCharacterId": null,
+              "locationId": "school-walkway",
+              "state": "Open, revealing short steps down."
+            },
+            {
+              "entityId": "solid-cupboard",
+              "ownerCharacterId": null,
+              "locationId": "school-walkway",
+              "state": "Fixed beside the walkway, covering a sheltered corner below."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b2",
+        "role": "discovery",
+        "locationId": "beneath-school-floor",
+        "charactersPresent": [
+          "maya",
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "maya",
+            "trait": "curious",
+            "shows": "She follows the dragon's upward gaze to the boards."
+          },
+          {
+            "characterId": "leo",
+            "trait": "kind",
+            "shows": "He offers an open palm without grabbing the dragon."
+          }
+        ],
+        "problemFamily": "exposed-hideout",
+        "because": "b1",
+        "resolvesProblem": false,
+        "action": "They climb down and find a tiny dragon hiding. It ducks beneath the boards where their feet passed.",
+        "emotion": "concern",
+        "entitiesRequired": [
+          "floor-hatch",
+          "solid-cupboard",
+          "blue-dragon"
+        ],
+        "visualFocus": "The dragon crouching beneath the footprint positions.",
+        "shotType": "reveal",
+        "compositionIntent": "Show the dragon below the walkway and the cupboard-covered corner beside it.",
+        "textPurpose": "Reveal the source of the flashes and its unsuitable hiding place.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "school-walkway",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "interest",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "school-walkway",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "interest",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floor-hatch",
+              "ownerCharacterId": null,
+              "locationId": "school-walkway",
+              "state": "Open, revealing short steps down."
+            },
+            {
+              "entityId": "solid-cupboard",
+              "ownerCharacterId": null,
+              "locationId": "school-walkway",
+              "state": "Fixed beside the walkway, covering a sheltered corner below."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "beneath-school-floor",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "concern",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "beneath-school-floor",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "concern",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floor-hatch",
+              "ownerCharacterId": null,
+              "locationId": "school-walkway",
+              "state": "Open, revealing short steps down."
+            },
+            {
+              "entityId": "solid-cupboard",
+              "ownerCharacterId": null,
+              "locationId": "school-walkway",
+              "state": "Fixed beside the walkway, covering a sheltered corner below."
+            },
+            {
+              "entityId": "blue-dragon",
+              "ownerCharacterId": null,
+              "locationId": "beneath-school-floor",
+              "state": "Crouching below the walkway; its scales are blue while both children are below."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b3",
+        "role": "attempt",
+        "locationId": "school-walkway",
+        "charactersPresent": [
+          "maya",
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "leo",
+            "trait": "careful",
+            "shows": "He lowers his toes gently onto one board."
+          },
+          {
+            "characterId": "maya",
+            "trait": "curious",
+            "shows": "She watches the crack during Leo's soft step."
+          }
+        ],
+        "problemFamily": "tiptoe-failure",
+        "because": "b2",
+        "resolvesProblem": false,
+        "action": "They climb up and try tiptoes for the dragon. Even soft steps make its scales flash.",
+        "emotion": "disappointment",
+        "entitiesRequired": [
+          "floor-hatch",
+          "solid-cupboard",
+          "blue-dragon"
+        ],
+        "visualFocus": "Light returning despite the gentle step.",
+        "shotType": "close",
+        "compositionIntent": "Frame Leo's softly placed toes above a glowing crack.",
+        "textPurpose": "Establish that avoiding overhead feet, not reducing noise, is necessary.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "beneath-school-floor",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "concern",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "beneath-school-floor",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "concern",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floor-hatch",
+              "ownerCharacterId": null,
+              "locationId": "school-walkway",
+              "state": "Open, revealing short steps down."
+            },
+            {
+              "entityId": "solid-cupboard",
+              "ownerCharacterId": null,
+              "locationId": "school-walkway",
+              "state": "Fixed beside the walkway, covering a sheltered corner below."
+            },
+            {
+              "entityId": "blue-dragon",
+              "ownerCharacterId": null,
+              "locationId": "beneath-school-floor",
+              "state": "Crouching below the walkway; its scales are blue while both children are below."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "school-walkway",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "disappointment",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "school-walkway",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "disappointment",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floor-hatch",
+              "ownerCharacterId": null,
+              "locationId": "school-walkway",
+              "state": "Open, revealing short steps down."
+            },
+            {
+              "entityId": "solid-cupboard",
+              "ownerCharacterId": null,
+              "locationId": "school-walkway",
+              "state": "Fixed beside the walkway, covering a sheltered corner below."
+            },
+            {
+              "entityId": "blue-dragon",
+              "ownerCharacterId": null,
+              "locationId": "beneath-school-floor",
+              "state": "Its scales flash gold with each step directly overhead."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b4",
+        "role": "climax",
+        "locationId": "beneath-school-floor",
+        "charactersPresent": [
+          "maya",
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "maya",
+            "trait": "brave",
+            "shows": "She holds out both hands for the dragon to climb onto."
+          },
+          {
+            "characterId": "leo",
+            "trait": "careful",
+            "shows": "He checks the cupboard base and points to the covered corner."
+          }
+        ],
+        "problemFamily": "safe-shelter-choice",
+        "because": "b3",
+        "resolvesProblem": false,
+        "action": "They climb down; Leo finds shelter beneath the cupboard. Maya carries the dragon there, away from overhead feet.",
+        "emotion": "relief",
+        "entitiesRequired": [
+          "floor-hatch",
+          "solid-cupboard",
+          "blue-dragon"
+        ],
+        "visualFocus": "The blue dragon in Maya's hands beneath the solid base.",
+        "shotType": "low",
+        "compositionIntent": "Keep the hatch steps and covered corner visible within the same underground space.",
+        "textPurpose": "Solve the hiding problem using the established cupboard and the failed tiptoe test.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "school-walkway",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "disappointment",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "school-walkway",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "disappointment",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floor-hatch",
+              "ownerCharacterId": null,
+              "locationId": "school-walkway",
+              "state": "Open, revealing short steps down."
+            },
+            {
+              "entityId": "solid-cupboard",
+              "ownerCharacterId": null,
+              "locationId": "school-walkway",
+              "state": "Fixed beside the walkway, covering a sheltered corner below."
+            },
+            {
+              "entityId": "blue-dragon",
+              "ownerCharacterId": null,
+              "locationId": "beneath-school-floor",
+              "state": "Its scales flash gold with each step directly overhead."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "beneath-school-floor",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [
+                "blue-dragon"
+              ],
+              "emotion": "relief",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "beneath-school-floor",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "relief",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floor-hatch",
+              "ownerCharacterId": null,
+              "locationId": "school-walkway",
+              "state": "Open, revealing short steps down."
+            },
+            {
+              "entityId": "solid-cupboard",
+              "ownerCharacterId": null,
+              "locationId": "school-walkway",
+              "state": "Fixed beside the walkway, covering a sheltered corner below."
+            },
+            {
+              "entityId": "blue-dragon",
+              "ownerCharacterId": "maya",
+              "locationId": "beneath-school-floor",
+              "state": "Held beneath the cupboard base, away from the walkway; its scales remain blue."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b5",
+        "role": "resolution",
+        "locationId": "school-walkway",
+        "charactersPresent": [
+          "maya",
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "leo",
+            "trait": "kind",
+            "shows": "He closes the hatch gently after the dragon settles."
+          },
+          {
+            "characterId": "maya",
+            "trait": "curious",
+            "shows": "She takes a normal step and checks the dark crack."
+          }
+        ],
+        "problemFamily": "",
+        "because": "b4",
+        "resolvesProblem": true,
+        "action": "They leave the dragon resting and climb back up. Their school steps bring no flashes now.",
+        "emotion": "contentment",
+        "entitiesRequired": [
+          "floor-hatch",
+          "solid-cupboard",
+          "blue-dragon"
+        ],
+        "visualFocus": "The dark seam beneath Maya's shoe.",
+        "shotType": "medium",
+        "compositionIntent": "Echo the opening view with a normal footstep and no light below.",
+        "textPurpose": "Show that the dragon can rest hidden while the walkway remains usable.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "beneath-school-floor",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [
+                "blue-dragon"
+              ],
+              "emotion": "relief",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "beneath-school-floor",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "relief",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floor-hatch",
+              "ownerCharacterId": null,
+              "locationId": "school-walkway",
+              "state": "Open, revealing short steps down."
+            },
+            {
+              "entityId": "solid-cupboard",
+              "ownerCharacterId": null,
+              "locationId": "school-walkway",
+              "state": "Fixed beside the walkway, covering a sheltered corner below."
+            },
+            {
+              "entityId": "blue-dragon",
+              "ownerCharacterId": "maya",
+              "locationId": "beneath-school-floor",
+              "state": "Held beneath the cupboard base, away from the walkway; its scales remain blue."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "school-walkway",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "contentment",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "school-walkway",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "contentment",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floor-hatch",
+              "ownerCharacterId": null,
+              "locationId": "school-walkway",
+              "state": "Closed gently."
+            },
+            {
+              "entityId": "solid-cupboard",
+              "ownerCharacterId": null,
+              "locationId": "school-walkway",
+              "state": "Fixed beside the walkway, covering a sheltered corner below."
+            },
+            {
+              "entityId": "blue-dragon",
+              "ownerCharacterId": null,
+              "locationId": "beneath-school-floor",
+              "state": "Resting beneath the cupboard base, with blue scales despite footsteps on the adjacent walkway."
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "storyProblems": [],
+  "planProblems": [],
+  "textProblems": [],
+  "pages": [
+    {
+      "pageId": "p1",
+      "beatId": "b1",
+      "locationId": "school-walkway",
+      "charactersPresent": [
+        "maya",
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "school-walkway",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "school-walkway",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": []
+      },
+      "action": "Maya's footsteps bring flashes through the school floor. Leo opens the hatch beside the cupboard.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "school-walkway",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "interest",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "school-walkway",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "interest",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Open, revealing short steps down."
+          },
+          {
+            "entityId": "solid-cupboard",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Fixed beside the walkway, covering a sheltered corner below."
+          }
+        ]
+      },
+      "emotion": "interest",
+      "entitiesRequired": [
+        "floor-hatch",
+        "solid-cupboard"
+      ],
+      "visualFocus": "Golden light beneath Maya's shoe.",
+      "shotType": "establishing",
+      "compositionIntent": "Show both children, the glowing seam, the hatch, and the cupboard together.",
+      "textPurpose": "Link the hidden light to footsteps and establish access below.",
+      "pageTurnHook": "What makes the light below?",
+      "needsFromPrevious": null,
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "school-walkway",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "interest",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "school-walkway",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "interest",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Open, revealing short steps down."
+          },
+          {
+            "entityId": "solid-cupboard",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Fixed beside the walkway, covering a sheltered corner below."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Maya's steps send flashes through the school floor.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Leo opens the hatch beside the cupboard.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Maya's steps send flashes through the school floor. Leo opens the hatch beside the cupboard."
+    },
+    {
+      "pageId": "p2",
+      "beatId": "b2",
+      "locationId": "beneath-school-floor",
+      "charactersPresent": [
+        "maya",
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "school-walkway",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "interest",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "school-walkway",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "interest",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Open, revealing short steps down."
+          },
+          {
+            "entityId": "solid-cupboard",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Fixed beside the walkway, covering a sheltered corner below."
+          }
+        ]
+      },
+      "action": "They climb down and find a tiny dragon hiding. It ducks beneath the boards where their feet passed.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "beneath-school-floor",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "concern",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "beneath-school-floor",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "concern",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Open, revealing short steps down."
+          },
+          {
+            "entityId": "solid-cupboard",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Fixed beside the walkway, covering a sheltered corner below."
+          },
+          {
+            "entityId": "blue-dragon",
+            "ownerCharacterId": null,
+            "locationId": "beneath-school-floor",
+            "state": "Crouching below the walkway; its scales are blue while both children are below."
+          }
+        ]
+      },
+      "emotion": "concern",
+      "entitiesRequired": [
+        "floor-hatch",
+        "solid-cupboard",
+        "blue-dragon"
+      ],
+      "visualFocus": "The dragon crouching beneath the footprint positions.",
+      "shotType": "reveal",
+      "compositionIntent": "Show the dragon below the walkway and the cupboard-covered corner beside it.",
+      "textPurpose": "Reveal the source of the flashes and its unsuitable hiding place.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "school-walkway",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "interest",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "school-walkway",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "interest",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Open, revealing short steps down."
+          },
+          {
+            "entityId": "solid-cupboard",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Fixed beside the walkway, covering a sheltered corner below."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "beneath-school-floor",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "concern",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "beneath-school-floor",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "concern",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Open, revealing short steps down."
+          },
+          {
+            "entityId": "solid-cupboard",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Fixed beside the walkway, covering a sheltered corner below."
+          },
+          {
+            "entityId": "blue-dragon",
+            "ownerCharacterId": null,
+            "locationId": "beneath-school-floor",
+            "state": "Crouching below the walkway; its scales are blue while both children are below."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "They climb down beneath school and find a tiny dragon.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "It ducks into hiding where their feet had been.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "They climb down beneath school and find a tiny dragon. It ducks into hiding where their feet had been."
+    },
+    {
+      "pageId": "p3",
+      "beatId": "b3",
+      "locationId": "school-walkway",
+      "charactersPresent": [
+        "maya",
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "beneath-school-floor",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "concern",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "beneath-school-floor",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "concern",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Open, revealing short steps down."
+          },
+          {
+            "entityId": "solid-cupboard",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Fixed beside the walkway, covering a sheltered corner below."
+          },
+          {
+            "entityId": "blue-dragon",
+            "ownerCharacterId": null,
+            "locationId": "beneath-school-floor",
+            "state": "Crouching below the walkway; its scales are blue while both children are below."
+          }
+        ]
+      },
+      "action": "They climb up and try tiptoes for the dragon. Even soft steps make its scales flash.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "school-walkway",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "disappointment",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "school-walkway",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "disappointment",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Open, revealing short steps down."
+          },
+          {
+            "entityId": "solid-cupboard",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Fixed beside the walkway, covering a sheltered corner below."
+          },
+          {
+            "entityId": "blue-dragon",
+            "ownerCharacterId": null,
+            "locationId": "beneath-school-floor",
+            "state": "Its scales flash gold with each step directly overhead."
+          }
+        ]
+      },
+      "emotion": "disappointment",
+      "entitiesRequired": [
+        "floor-hatch",
+        "solid-cupboard",
+        "blue-dragon"
+      ],
+      "visualFocus": "Light returning despite the gentle step.",
+      "shotType": "close",
+      "compositionIntent": "Frame Leo's softly placed toes above a glowing crack.",
+      "textPurpose": "Establish that avoiding overhead feet, not reducing noise, is necessary.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "beneath-school-floor",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "concern",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "beneath-school-floor",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "concern",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Open, revealing short steps down."
+          },
+          {
+            "entityId": "solid-cupboard",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Fixed beside the walkway, covering a sheltered corner below."
+          },
+          {
+            "entityId": "blue-dragon",
+            "ownerCharacterId": null,
+            "locationId": "beneath-school-floor",
+            "state": "Crouching below the walkway; its scales are blue while both children are below."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "school-walkway",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "disappointment",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "school-walkway",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "disappointment",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Open, revealing short steps down."
+          },
+          {
+            "entityId": "solid-cupboard",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Fixed beside the walkway, covering a sheltered corner below."
+          },
+          {
+            "entityId": "blue-dragon",
+            "ownerCharacterId": null,
+            "locationId": "beneath-school-floor",
+            "state": "Its scales flash gold with each step directly overhead."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "They climb up and try tiptoes on the school walkway.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Even soft steps make the dragon's scales flash gold.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "They climb up and try tiptoes on the school walkway. Even soft steps make the dragon's scales flash gold."
+    },
+    {
+      "pageId": "p4",
+      "beatId": "b4",
+      "locationId": "beneath-school-floor",
+      "charactersPresent": [
+        "maya",
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "school-walkway",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "disappointment",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "school-walkway",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "disappointment",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Open, revealing short steps down."
+          },
+          {
+            "entityId": "solid-cupboard",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Fixed beside the walkway, covering a sheltered corner below."
+          },
+          {
+            "entityId": "blue-dragon",
+            "ownerCharacterId": null,
+            "locationId": "beneath-school-floor",
+            "state": "Its scales flash gold with each step directly overhead."
+          }
+        ]
+      },
+      "action": "They climb down; Leo finds shelter beneath the cupboard. Maya carries the dragon there, away from overhead feet.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "beneath-school-floor",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "blue-dragon"
+            ],
+            "emotion": "relief",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "beneath-school-floor",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "relief",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Open, revealing short steps down."
+          },
+          {
+            "entityId": "solid-cupboard",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Fixed beside the walkway, covering a sheltered corner below."
+          },
+          {
+            "entityId": "blue-dragon",
+            "ownerCharacterId": "maya",
+            "locationId": "beneath-school-floor",
+            "state": "Held beneath the cupboard base, away from the walkway; its scales remain blue."
+          }
+        ]
+      },
+      "emotion": "relief",
+      "entitiesRequired": [
+        "floor-hatch",
+        "solid-cupboard",
+        "blue-dragon"
+      ],
+      "visualFocus": "The blue dragon in Maya's hands beneath the solid base.",
+      "shotType": "low",
+      "compositionIntent": "Keep the hatch steps and covered corner visible within the same underground space.",
+      "textPurpose": "Solve the hiding problem using the established cupboard and the failed tiptoe test.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "school-walkway",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "disappointment",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "school-walkway",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "disappointment",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Open, revealing short steps down."
+          },
+          {
+            "entityId": "solid-cupboard",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Fixed beside the walkway, covering a sheltered corner below."
+          },
+          {
+            "entityId": "blue-dragon",
+            "ownerCharacterId": null,
+            "locationId": "beneath-school-floor",
+            "state": "Its scales flash gold with each step directly overhead."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "beneath-school-floor",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "blue-dragon"
+            ],
+            "emotion": "relief",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "beneath-school-floor",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "relief",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Open, revealing short steps down."
+          },
+          {
+            "entityId": "solid-cupboard",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Fixed beside the walkway, covering a sheltered corner below."
+          },
+          {
+            "entityId": "blue-dragon",
+            "ownerCharacterId": "maya",
+            "locationId": "beneath-school-floor",
+            "state": "Held beneath the cupboard base, away from the walkway; its scales remain blue."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Below school, they find the tiny dragon hiding again.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Leo finds shelter; Maya carries it beneath the cupboard.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Below school, they find the tiny dragon hiding again. Leo finds shelter; Maya carries it beneath the cupboard."
+    },
+    {
+      "pageId": "p5",
+      "beatId": "b5",
+      "locationId": "school-walkway",
+      "charactersPresent": [
+        "maya",
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "beneath-school-floor",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "blue-dragon"
+            ],
+            "emotion": "relief",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "beneath-school-floor",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "relief",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Open, revealing short steps down."
+          },
+          {
+            "entityId": "solid-cupboard",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Fixed beside the walkway, covering a sheltered corner below."
+          },
+          {
+            "entityId": "blue-dragon",
+            "ownerCharacterId": "maya",
+            "locationId": "beneath-school-floor",
+            "state": "Held beneath the cupboard base, away from the walkway; its scales remain blue."
+          }
+        ]
+      },
+      "action": "They leave the dragon resting and climb back up. Their school steps bring no flashes now.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "school-walkway",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "contentment",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "school-walkway",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "contentment",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Closed gently."
+          },
+          {
+            "entityId": "solid-cupboard",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Fixed beside the walkway, covering a sheltered corner below."
+          },
+          {
+            "entityId": "blue-dragon",
+            "ownerCharacterId": null,
+            "locationId": "beneath-school-floor",
+            "state": "Resting beneath the cupboard base, with blue scales despite footsteps on the adjacent walkway."
+          }
+        ]
+      },
+      "emotion": "contentment",
+      "entitiesRequired": [
+        "floor-hatch",
+        "solid-cupboard",
+        "blue-dragon"
+      ],
+      "visualFocus": "The dark seam beneath Maya's shoe.",
+      "shotType": "medium",
+      "compositionIntent": "Echo the opening view with a normal footstep and no light below.",
+      "textPurpose": "Show that the dragon can rest hidden while the walkway remains usable.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "beneath-school-floor",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "blue-dragon"
+            ],
+            "emotion": "relief",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "beneath-school-floor",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "relief",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Open, revealing short steps down."
+          },
+          {
+            "entityId": "solid-cupboard",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Fixed beside the walkway, covering a sheltered corner below."
+          },
+          {
+            "entityId": "blue-dragon",
+            "ownerCharacterId": "maya",
+            "locationId": "beneath-school-floor",
+            "state": "Held beneath the cupboard base, away from the walkway; its scales remain blue."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "school-walkway",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "contentment",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "school-walkway",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "contentment",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Closed gently."
+          },
+          {
+            "entityId": "solid-cupboard",
+            "ownerCharacterId": null,
+            "locationId": "school-walkway",
+            "state": "Fixed beside the walkway, covering a sheltered corner below."
+          },
+          {
+            "entityId": "blue-dragon",
+            "ownerCharacterId": null,
+            "locationId": "beneath-school-floor",
+            "state": "Resting beneath the cupboard base, with blue scales despite footsteps on the adjacent walkway."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "They leave the tiny dragon hiding and climb up.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "They find no flashes beneath their school steps now.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "They leave the tiny dragon hiding and climb up. They find no flashes beneath their school steps now."
+    }
+  ],
+  "imageCalls": 0,
+  "imageDraws": 0,
+  "imageReason": "images_disabled",
+  "imageUsd": 0,
+  "id": "a",
+  "listedUsd": 0.094738,
+  "guardUsd": 0.189476
+}

@@ -1,0 +1,82 @@
+"use strict";
+
+// Patch 9, research mode only. Live run 21 (12:43 BST) stopped at the final check:
+// - the recap repair returned the recap word for word (the brief showed only the old text to
+//   fill) and the unchanged check missed it (same words, different shape);
+// - the question audit judged the correct answer ("Swim with its webbed feet.") as a wrong
+//   choice that is true in general.
+var assert = require("assert");
+var Brain = require("../js/lesson-brain.js");
+var run9 = require("./fixtures/source-grounded/run9-lesson-lineage.json");
+var response = require("./fixtures/source-grounded/run9-generate-adventure.json");
+function copy(v) { return JSON.parse(JSON.stringify(v)); }
+function ctxFor(research) {
+  var c = { yearGroup: "Year 3", subject: "Science", topic: "Dinosaurs", requestedMinutes: 15, lessonText: "Teach Year 3 about dinosaurs", lessonBrief: { teacherIntent: run9.intent },
+    lessonSkeleton: copy(response.lessonSkeleton), lessonPlan: copy(response.lessonPlan), storyPlan: copy(response.storyPlan), knowledgePack: copy(run9.pack), knowledgeSelection: copy(run9.selection) };
+  if (research) c.researchEvidence = copy(run9.research);
+  return c;
+}
+
+// 1. Per-beat targets from run 21's own recap, failures and plan (keyKnowledge/droppedKnowledge).
+var plan = {
+  keyKnowledge: ["Spinosaurus had nostrils further up on its snout than other dinosaurs.", "Spinosaurus's nostrils further up let it breathe with most of its snout underwater.", "Spinosaurus had paddle-like webbed feet.", "Spinosaurus's webbed feet allowed the dinosaur to swim.", "Brachiosaurus had forelegs longer than its hind legs.", "Brachiosaurus's longer forelegs helped it reach high into the trees."],
+  droppedKnowledge: ["Spinosaurus lived in what is now North Africa’s Sahara region, which then had a large river system.", "Spinosaurus was well adapted for aquatic life."]
+};
+var beats = [
+  { id: "recap:0", text: "Spinosaurus had nostrils higher up to breathe with most of its snout underwater." },
+  { id: "recap:1", text: "Its webbed feet allowed it to swim well." },
+  { id: "recap:2", text: "Brachiosaurus's longer forelegs helped it reach high into the trees." }
+];
+var failure = ["The recap uses knowledge that was not taught.", "The recap slot changes what the source says about webbed feet (u2, beat recap:1): the source says \"swim\", but it uses the vaguer \"well\" instead. Keep the source's meaning and its key words."];
+var t = Brain.beatRepairTargets(beats, failure, plan);
+assert.deepStrictEqual(t.beats[0].failing, []);
+assert.deepStrictEqual(t.beats[2].failing, []);
+assert.strictEqual(t.beats[1].failing.length, 2);
+assert.ok(t.beats[1].failing.some(function (f) { return /beat recap:1/.test(f); }));
+assert.ok(t.beats[1].failing.some(function (f) { return /This line uses "well", a word from knowledge this lesson left out \("Spinosaurus was well adapted for aquatic life\."\)/.test(f); }), JSON.stringify(t.beats[1].failing));
+assert.deepStrictEqual(t.slotFailures, []);
+// An untaught-knowledge failure with no leaking word in any beat stays slot-wide.
+assert.deepStrictEqual(Brain.beatRepairTargets([beats[0]], [failure[0]], plan).slotFailures, [failure[0]]);
+
+// 2. The research repair brief shows currentBeats; the default brief does not.
+var raw = { title: response.title, objectives: response.objectives, activities: copy(response.activities) };
+var acc = Brain.accept(copy(raw), ctxFor(true));
+var recapFail = ["The recap slot changes what the source says about jaws (u2, beat recap:1): the source says \"chew\". Keep the source's meaning and its key words."];
+var issues = Object.assign(recapFail.slice(), { slotIssues: { recap: recapFail.slice() } });
+var brief = JSON.parse(Brain.slotRepairBrief(ctxFor(true), ["recap"], issues, acc.previous).user);
+var spec = brief.slotsToRewrite[0];
+assert.ok(spec.currentBeats && spec.currentBeats[1].failing.length === 1 && !spec.currentBeats[0].failing.length, JSON.stringify(spec.currentBeats));
+assert.ok(/currentBeats shows each beat's text now/.test(brief.instruction));
+// Live run 22: the failing beat's output text is empty (no old text to copy), passing beats keep
+// theirs, and the failing beat carries the teach lines for the same knowledgeRefs.
+assert.strictEqual(spec.output.beats[1].text, "");
+assert.ok(spec.output.beats[0].text && spec.output.beats[2].text);
+var teachAct = acc.previous.activities.filter(function (a) { return a.slotId === "teach"; })[0];
+var teachText = function (id) { return teachAct.beats.filter(function (b) { return b.id === id; })[0].pupil.text; };
+assert.deepStrictEqual(spec.currentBeats[1].taughtLines, [teachText("teach:2"), teachText("teach:3")]);
+assert.ok(!spec.currentBeats[0].taughtLines);
+assert.ok(/Its text in output is left empty: write it new/.test(brief.instruction));
+var plainAcc = Brain.accept(copy(raw), ctxFor(false));
+var plain = JSON.parse(Brain.slotRepairBrief(ctxFor(false), ["recap"], issues, plainAcc.previous).user);
+assert.ok(!plain.slotsToRewrite[0].currentBeats && !/currentBeats/.test(plain.instruction), "default brief unchanged");
+
+// 3. A recap returned with the same words in the output shape counts as unchanged; a changed beat does not.
+var recapAct = acc.previous.activities.filter(function (a) { return a.slotId === "recap"; })[0];
+var out = { beats: recapAct.beats.map(function (b) { return { id: b.id, text: b.pupil.text }; }) };
+var same = Brain.mergeSlotContent(acc.previous, { slots: { recap: copy(out) } });
+var acceptedRecap = { previous: acc.previous, slotIds: ["recap"], slotIssues: { recap: recapFail.slice() }, issues: issues };
+assert.deepStrictEqual(Brain.targetRepair(acc.previous, same, acceptedRecap).unchanged, ["The repair returned the recap slot unchanged. A repair must change what failed."]);
+var changed = copy(out); changed.beats[1].text = "A different recap line.";
+assert.deepStrictEqual(Brain.targetRepair(acc.previous, Brain.mergeSlotContent(acc.previous, { slots: { recap: changed } }), acceptedRecap).unchanged, []);
+
+// 4. The audit names the wrong choices, and a verdict on the correct answer is not a wrong-choice failure.
+var q = { prompt: "What did Spinosaurus's webbed feet help it do?", choices: ["Swim with its webbed feet.", "Climb trees."], correct: "Swim with its webbed feet." };
+var ab = JSON.parse(Brain.questionAuditBrief({ yearGroup: "Year 3", taughtSentences: [], sourcePassages: [], questions: [q] }).user);
+assert.deepStrictEqual(ab.questions[0].wrongChoices, ["Climb trees."]);
+function audit(rows) { return { questions: [{ prompt: q.prompt, teleological: "no", circular: "no", distractors: rows }] }; }
+assert.deepStrictEqual(Brain.questionAuditIssues(q, 1, audit([{ choice: "Swim with its webbed feet.", trueInGeneral: "yes", reason: "The source says so." }, { choice: "Climb trees.", trueInGeneral: "no", reason: "No." }])), []);
+// A real wrong choice judged true still fails (the rule is unchanged).
+var bad = Brain.questionAuditIssues(q, 1, audit([{ choice: "Climb trees.", trueInGeneral: "partly", reason: "Some did." }]));
+assert.strictEqual(bad.length, 1);
+assert.ok(/Question 2 has a wrong choice \("Climb trees\."\) that is partly true/.test(bad[0].text));
+console.log("research repair beats and audit tests passed");

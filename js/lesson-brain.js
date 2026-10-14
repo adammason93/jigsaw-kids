@@ -170,8 +170,27 @@
     return (list || []).some(function (item) { return clean(item, 80).toLowerCase() === key; });
   }
 
+  // Intent framing (hypothesis under test, Oct 2026). Years 3 to 6 only.
+  // An open-ended topic request gets one explanatory objective; a stated objective
+  // is kept as stated. Years 1 and 2, and requests with no known year, keep the
+  // original prompt unchanged.
+  var EXPLICIT_OBJECTIVE = /\b(?:name|names|naming|label|labels|labelling|labeling|identify|identifying|classify|classifying|sort|sorting|group|grouping|recall|recalling|list|listing|recognise|recognize|describe|describing|compare|comparing|explain|explaining|measure|measuring|calculate|calculating|count|counting|add|adding|subtract|subtracting|multiply|multiplying|divide|dividing|spell|spelling|write|writing|read|reading|use|using|order|ordering|sequence|draw|drawing|plot|locate|find|retell|summarise|summarize|practise|practice|know|learn|memorise|memorize|remember|understand|state|match|solve|investigate|interpret|estimate|convert|punctuate|perform|create|design|make|how|why|what|which|when|where|that)\b/i;
+  var INTENT_FRAMING_OPEN = "This request names a topic but states no objective. For this year group, propose one concrete, age-appropriate explanatory learningGoal within the teacher's topic: how something in that topic works or happens, or why it happens or matters. Choose one relationship, not a list of types, names, or facts. Stay within the topic the teacher gave. requiredEvidence then names that how or why relationship, and focusConcepts are the ideas needed for it.";
+  var INTENT_FRAMING_EXPLICIT = "The teacher states an objective. Keep that objective as stated in learningGoal, whether it is naming, labelling, identifying, classifying, sorting, recalling facts, a skill, or an explanation. Do not rewrite it as a how or why objective, and do not add an explanation the teacher did not ask for.";
+
+  function intentFraming(ctx) {
+    var raw = clean((ctx && (ctx.lessonText || ctx.teacherInstructions)) || "", 500);
+    var yearText = clean(ctx && ctx.yearGroup, 20) || ((raw.match(/\byear\s*[1-6]\b/i) || [])[0] || "");
+    var year = Number((yearText.match(/[1-6]/) || [])[0] || 0);
+    if (year < 3 || year > 6) return { mode: "unchanged", year: year || null };
+    var request = raw.replace(/\byear\s*[1-6]\b/gi, " ");
+    return { mode: EXPLICIT_OBJECTIVE.test(request) ? "preserve-explicit" : "explanatory-objective", year: year };
+  }
+
   function teacherIntentBrief(ctx) {
     var raw = clean((ctx && (ctx.lessonText || ctx.teacherInstructions)) || "", 500);
+    var framing = intentFraming(ctx);
+    var framingLine = framing.mode === "explanatory-objective" ? [INTENT_FRAMING_OPEN] : framing.mode === "preserve-explicit" ? [INTENT_FRAMING_EXPLICIT] : [];
     return {
       system: [
         "You interpret one primary teacher's request. Return one JSON object and nothing else.",
@@ -188,10 +207,11 @@
         "If the teacher does not name a subject, set subject and subjectConfidence to inferred only when the topic is unmistakably that subject. Otherwise subject is an empty string and subjectConfidence is uncertain.",
         "If the teacher names a misconception, keep the mistake out of focusConcepts and make learningGoal the idea that corrects it.",
         "The lesson should build from what pupils already know toward the new goal. The new goal is the teaching target.",
-        "requiredEvidence is one short statement of what a pupil must show before the teacher can conclude the learning goal was achieved. Name the thinking the pupil does and the content or relationship that must be covered. A comparison names both sides. A sequence names the whole order, not one stage. Using or measuring is not replaced by naming or defining. Do not make the evidence harder than the goal. Do not turn prior knowledge, exclusions, or presentation preferences into the evidence unless they are the goal itself.",
-        "Do not invent a different topic. If the request is unclear, keep learningGoal close to what was asked and leave uncertain fields empty.",
+        "requiredEvidence is one short statement of what a pupil must show before the teacher can conclude the learning goal was achieved. Name the thinking the pupil does and the content or relationship that must be covered. A comparison names both sides. A sequence names the whole order, not one stage. Using or measuring is not replaced by naming or defining. Do not make the evidence harder than the goal. Do not turn prior knowledge, exclusions, or presentation preferences into the evidence unless they are the goal itself. Do not put a count of types, kinds, examples, or features into requiredEvidence unless the teacher asked for that count.",
+        "Do not invent a different topic. If the request is unclear, keep learningGoal close to what was asked and leave uncertain fields empty."
+      ].concat(framingLine, [
         "JSON shape: {\"yearGroup\":\"\",\"subject\":\"\",\"subjectConfidence\":\"explicit\" or \"inferred\" or \"uncertain\",\"learningGoal\":\"\",\"requiredEvidence\":\"\",\"focusConcepts\":[],\"priorKnowledge\":[],\"exclusions\":[],\"preferences\":[],\"durationMinutes\":null}."
-      ].join(" "),
+      ]).join(" "),
       user: JSON.stringify({
         request: raw,
         statedYear: clean(ctx && ctx.yearGroup, 20),
@@ -208,7 +228,7 @@
     var prior = phraseList(body.priorKnowledge, 120, 4);
     var exclusions = phraseList(body.exclusions, 120, 4);
     var preferences = phraseList(body.preferences, 40, 4);
-    var evidence = clean(body.requiredEvidence, 280);
+    var evidence = evidenceWithoutInventedQuota(clean(body.requiredEvidence, 280), (ctx && (ctx.lessonText || ctx.teacherInstructions)) || "");
     if (evidence.length < 16 || listedAs(prior, evidence) || listedAs(exclusions, evidence) || listedAs(preferences, evidence)) {
       return { ok: false, reason: "missing-evidence" };
     }
@@ -246,6 +266,30 @@
     };
   }
 
+  var QUOTA_WORD = { "2": "two", "3": "three", "4": "four", "5": "five", "6": "six" };
+
+  function requestHasCount(request, count) {
+    var text = String(request || "").toLowerCase().replace(/\byear\s*[1-6]\b/g, " ");
+    var word = QUOTA_WORD[count] || String(count || "").toLowerCase();
+    if (!word) return false;
+    if (new RegExp("\\b" + word + "\\b").test(text)) return true;
+    var digit = "";
+    Object.keys(QUOTA_WORD).forEach(function (key) { if (QUOTA_WORD[key] === word) digit = key; });
+    return !!digit && new RegExp("\\b" + digit + "\\b").test(text);
+  }
+
+  // A count of types or features is a requirement only when the teacher asked for it.
+  // An invented count is removed. A count the teacher asked for is kept.
+  function evidenceWithoutInventedQuota(evidence, request) {
+    var next = String(evidence || "").replace(/\b(?:at least\s+|more than\s+)?(two|three|four|five|six|\d+)\s+different\s+(?=(?:types|kinds|examples|features|characteristics)\b)/gi, function (phrase, count) {
+      return requestHasCount(request, count) ? phrase : "";
+    }).replace(/\b(?:at least\s+|more than\s+)?(two|three|four|five|six|\d+)\s+(?=(?:types|kinds|examples|features|characteristics)\b)/gi, function (phrase, count) {
+      return requestHasCount(request, count) ? phrase : "";
+    }).replace(/\s{2,}/g, " ").replace(/\s+([,.])/g, "$1").trim();
+    if (clean(next, 280).length < 16) return evidence;
+    return next;
+  }
+
   function explicitMinutes(ctx) {
     var raw = String((ctx && (ctx.lessonText || ctx.teacherInstructions)) || "");
     var match = raw.match(/\b(\d{1,3})\s*(?:min|mins|minute|minutes)\b/i);
@@ -281,6 +325,1246 @@
       ctx.lessonBrief.durationMinutes = intent.durationMinutes;
     }
     return ctx;
+  }
+
+  var PACK_PROVENANCE = { model: 1, teacher_material: 1, retrieved: 1, curated: 1, curriculum_planning: 1 };
+  var PACK_KIND = { fact: 1, mechanism: 1, definition: 1, process: 1, caveat: 1, concept: 1, example: 1 };
+  var PACK_STRIP = { lessonArc: 1, beats: 1, questions: 1, activities: 1, narrative: 1, narrativeTheme: 1, pupilWording: 1, stages: 1, lessonPlan: 1, interactions: 1 };
+
+  function stableClaimId(text) {
+    var norm = clean(text, 180).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+    var hash = 5381;
+    var i;
+    for (i = 0; i < norm.length; i++) {
+      hash = ((hash << 5) + hash) ^ norm.charCodeAt(i);
+      hash = hash | 0;
+    }
+    return "c" + (hash >>> 0).toString(36);
+  }
+
+  function claimOverlap(text, corpus) {
+    var left = contentWords(text);
+    if (!left.length) return 0;
+    var right = contentWords(corpus);
+    var shared = 0;
+    left.forEach(function (word) {
+      if (right.some(function (other) { return sameStem(word, other); })) shared += 1;
+    });
+    return shared / left.length;
+  }
+
+  function wordCovered(word, claimWords) {
+    return claimWords.some(function (other) {
+      if (sameStem(word, other)) return true;
+      return word.length >= 4 && other.length >= 4 && word.slice(0, 4) === other.slice(0, 4);
+    });
+  }
+
+  function wordsCovered(text, claims) {
+    var pointWords = contentWords(text);
+    if (!pointWords.length) return false;
+    var claimWords = [];
+    (claims || []).forEach(function (claim) {
+      contentWords(claim && claim.text).forEach(function (word) { claimWords.push(word); });
+    });
+    return pointWords.every(function (word) { return wordCovered(word, claimWords); });
+  }
+
+  // Source-grounded packs (Oct 2026). Research mode is on only when ctx.researchEvidence
+  // carries passages that were fetched from allowlisted pages. Search snippets are never
+  // passages. A claim is admitted only when its quote is found, verbatim after whitespace,
+  // case, and typographic-quote normalisation, in a passage it cites. The automated
+  // entailment check runs after that. Neither step is human verification, and model
+  // confidence is never read as support. factuallyVerified stays false.
+  var SOURCE_SUPPORT_LABEL = "quote-verified + automated entailment check";
+  var SOURCE_QUOTE_MIN_WORDS = 5;
+
+  function quoteKey(value) {
+    var text = String(value == null ? "" : value);
+    if (text.normalize) text = text.normalize("NFKC");
+    return text
+      .replace(/[\u2018\u2019\u201a\u201b\u2032`]/g, "'")
+      .replace(/[\u201c\u201d\u201e\u201f\u2033]/g, "\"")
+      .replace(/[\u2010\u2011\u2012\u2013\u2014\u2015\u2212]/g, "-")
+      .replace(/[\u00a0\u2000-\u200b\u202f\u205f\u3000]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase();
+  }
+
+  function trimQuote(value) {
+    return quoteKey(value).replace(/^["'\s]+|["'\s]+$/g, "").replace(/^[.,;:]+|[,;:]+$/g, "").trim();
+  }
+
+  // Verbatim containment after normalisation. Ellipses are refused: one contiguous extract.
+  function quoteInPassage(quote, passageText) {
+    var needle = trimQuote(quote);
+    if (!needle) return { ok: false, reason: "QUOTE_MISSING" };
+    if (/\.\.\.|\u2026/.test(String(quote || ""))) return { ok: false, reason: "QUOTE_NOT_CONTIGUOUS" };
+    if (needle.split(/\s+/).filter(Boolean).length < SOURCE_QUOTE_MIN_WORDS) return { ok: false, reason: "QUOTE_TOO_SHORT" };
+    var hay = quoteKey(passageText);
+    if (hay.indexOf(needle) !== -1) return { ok: true, reason: "" };
+    var bare = needle.replace(/[.!?]+$/, "");
+    if (bare && bare.split(/\s+/).length >= SOURCE_QUOTE_MIN_WORDS && hay.indexOf(bare) !== -1) return { ok: true, reason: "" };
+    return { ok: false, reason: "QUOTE_NOT_FOUND" };
+  }
+
+  // Source tiers (patch 6): only evidence-tier passages (museums, universities, scientific
+  // organisations, government bodies, established educational publishers) may support a
+  // pupil-facing fact. Wikipedia and Simple English Wikipedia are discovery only.
+  var DISCOVERY_ONLY_URL = /^https?:\/\/(?:[a-z0-9-]+\.)*(?:wikipedia|wikimedia|wikibooks|wikiversity|wiktionary|fandom)\.(?:org|com)(?:[\/?#]|$)/i;
+  function passageIsEvidence(item) {
+    if (!item) return false;
+    if (item.tier && item.tier !== "evidence") return false;
+    return !DISCOVERY_ONLY_URL.test(String(item.url || ""));
+  }
+
+  function researchPassages(ctx) {
+    var evidence = ctx && ctx.researchEvidence;
+    var list = evidence && Array.isArray(evidence.passages) ? evidence.passages : null;
+    if (!list || !list.length) return null;
+    var byId = {};
+    list.forEach(function (item) {
+      if (item && item.id && item.text) byId[String(item.id)] = item;
+    });
+    return Object.keys(byId).length ? byId : null;
+  }
+
+  function sourceRefsOf(item) {
+    var raw = item && (item.sourceRef != null ? item.sourceRef : (item.sourceRefs != null ? item.sourceRefs : item.passageIds));
+    var list = Array.isArray(raw) ? raw : (raw == null || raw === "" ? [] : String(raw).split(/[\s,;]+/));
+    var out = [];
+    list.forEach(function (ref) {
+      var id = clean(ref && typeof ref === "object" ? (ref.id || ref.passageId) : ref, 40);
+      if (id && out.indexOf(id) === -1) out.push(id);
+    });
+    return out.slice(0, 4);
+  }
+
+  // Resolves the cited passage ids and checks the quote. A claim with no resolvable
+  // passage, or a quote that is not in a cited passage, is not admitted.
+  function sourceCheck(item, passages) {
+    var refs = sourceRefsOf(item);
+    var quote = clean(item && (item.quote || item.sourceQuote || item.supportingQuote), 400);
+    if (!refs.length) return { ok: false, reason: "UNRESOLVED_SOURCE", refs: [], quote: quote };
+    var resolved = refs.filter(function (id) { return !!passages[id]; });
+    if (!resolved.length) return { ok: false, reason: "UNRESOLVED_SOURCE", refs: refs, quote: quote };
+    var found = resolved.filter(function (id) { return passageIsEvidence(passages[id]); });
+    if (!found.length) return { ok: false, reason: "SOURCE_NOT_EVIDENCE", refs: resolved, quote: quote };
+    var verdict = { ok: false, reason: "QUOTE_MISSING" };
+    var matched = "";
+    found.forEach(function (id) {
+      if (verdict.ok) return;
+      var check = quoteInPassage(quote, passages[id].text);
+      if (check.ok) { verdict = check; matched = id; }
+      else if (verdict.reason === "QUOTE_MISSING" || check.reason === "QUOTE_NOT_FOUND") verdict = check;
+    });
+    if (!verdict.ok) return { ok: false, reason: verdict.reason, refs: found, quote: quote };
+    var ordered = [matched].concat(found.filter(function (id) { return id !== matched; }));
+    return {
+      ok: true,
+      refs: ordered,
+      quote: quote,
+      passageText: String(passages[matched].text || ""),
+      urls: ordered.map(function (id) { return clean(passages[id].url, 300); }),
+      titles: ordered.map(function (id) { return clean(passages[id].title, 160); })
+    };
+  }
+
+  function researchPassagesForBrief(ctx) {
+    var evidence = (ctx && ctx.researchEvidence) || {};
+    var all = Array.isArray(evidence.passages) ? evidence.passages : [];
+    var chosen = Array.isArray(evidence.selectedPassageIds) && evidence.selectedPassageIds.length ? evidence.selectedPassageIds : null;
+    var list = (chosen ? all.filter(function (item) { return chosen.indexOf(item.id) !== -1; }) : all).filter(passageIsEvidence);
+    return list.slice(0, 40).map(function (item) {
+      return { id: clean(item.id, 40), title: clean(item.title, 160), section: clean(item.section, 120), url: clean(item.url, 300), text: clean(item.text, 1600) };
+    });
+  }
+
+  // Sentences in the passages that state a cause, purpose or result in their own words.
+  // Listing them points the model at quotes that can carry a mechanism; it adds no fact and
+  // changes no check (the link gate still reads the quote the model picks).
+  function linkSentencesForBrief(ctx) {
+    var out = [];
+    researchPassagesForBrief(ctx).forEach(function (item) {
+      String(item.text || "").split(/(?<=[.!?])\s+(?=[A-Z"'(])/).forEach(function (sentence) {
+        var text = clean(sentence, 320);
+        if (out.length >= 40 || text.split(/\s+/).length < 6 || !quoteStatesLink(text)) return;
+        out.push({ sourceRef: item.id, sentence: text });
+      });
+    });
+    return out;
+  }
+
+  function researchPackBrief(ctx) {
+    return {
+      system: [
+        "You select and adapt subject knowledge for one primary lesson from retrieved source passages. Return one JSON object and nothing else.",
+        "Do not write a lesson, stages, activities, beats, questions, interactions, narrative, or pupil wording.",
+        "sources in the request are passages fetched from trusted pages. They are the only factual source in this step. Do not use your own knowledge to add a fact, name, date, number, cause, or feature that the passages do not state. A claim that no passage supports must be left out.",
+        "Every claim, mechanism, and vocabulary item carries sourceRef, an array of one or two passage ids from sources, and quote, one contiguous extract of 6 to 40 words copied character for character from one cited passage that supports the claim. Do not join extracts, do not use an ellipsis, and do not change words inside the quote. Code checks the quote against the passage. A claim whose quote is not found in a cited passage is dropped.",
+        "A mechanism whose only result is that the animal survived, lived somewhere, or did well is not an explanation; state what the feature did, as a passage says it.",
+        "The claim text may use simpler words for the year group, but it must keep the meaning of the quote and must not add anything the quote does not say. Keep a hedge such as may, probably, or scientists think when the source hedges.",
+        "Write a knowledge pack with more claims than one lesson will teach. A later step selects a subset for the year, the goal, and the duration. Each claim is one sentence a teacher could check against its quote. Tag depth as concrete, mechanism, or system.",
+        "teacherIntent.learningGoal is the objective. Aim the pack at that objective while staying inside the teacher's topic. strandPairsRequired is how many distinct feature-and-explanation pairs this lesson needs. A pair is two separate claims. The feature claim is concrete and names one feature, part, or piece of evidence in at least six words. The mechanism claim says how or why that same feature works or what it shows, and it states the link in words such as because, so that, so it could, which lets, which means, or allowed. A sentence that only names the feature, or only says it helped, is not the explanation. Both claims of a pair cite passages that support them. The mechanism's own quote must state the how or why, for example what the feature was used for, what it did, or why it worked. A quote that only names or lists the feature does not support a mechanism, even when the feature claim uses the same quote. Do not add a purpose, cause, or result that the quote does not state. If no passage states how or why a feature works, leave that pair out. Write the mechanism with the working part and what it does, the way a passage states it, for example \"long legs let them take longer strides, so they could run faster\", but only when a passage says so. \"X helped them Y\" on its own does not say how: write what the feature did, using the passage's own link words such as allowed, let, so, because, or used to. A claim that links two facts needs a quote that states that link; two facts a passage only lists side by side are not a link.",
+        "linkSentences lists sentences from the passages that state a cause, purpose, or result in their own words. A mechanism quote should come from one of them or from another sentence that states the link itself. A feature claim says only what its own quote says; do not add a detail from the next sentence.",
+        "mechanisms repeats each mechanism claim with the same text, sourceRef, and quote, plus feature: a short phrase of two to four words copied from its feature claim. The words of that feature phrase must appear in the feature claim and the mechanism claim, and in no other claim, so the pair is unambiguous. Each pair must be a different teaching idea about a different feature. Supply strandPairsRequired pairs when the passages support them. If the passages support fewer, supply fewer. Never invent a feature or a function to reach the number.",
+        "ageFit is { from, to } using years 1 to 6. Concrete claims can start at Year 1. A simple mechanism may start at Year 2. A harder mechanism starts at Year 3 or 4. A system claim starts at Year 5 or 6. Leave out passage content that is not suitable for the requested year, such as graphic injury or frightening detail.",
+        "provenance is retrieved for every claim. factuallyVerified must be false: a quote shows where a claim came from, and it is not human verification. confidence is high, medium, or low, and it is not evidence. teacherRequested is true only when the teacher asked for that specific claim.",
+        "Do not state a counted list of main types, kinds, or groups unless a cited passage states that list. contested is true when the passages say scientists disagree or are unsure; put that in uncertainty.",
+        "If the request assumes something false, set falsePremise to a short statement of that assumption and admit a correction, with correctsPremise true, only when a passage supports it. status is usable when the claims are ordinary, qualified when a claim is contested or support is thin, and blocked when the passages cannot support a lesson on the topic.",
+        "vocabulary is words worth knowing, each with a short gloss supported by its quote. misconceptions are optional mistakes children make, each with corrects naming the claim that corrects it. A misconception is not a fact to teach.",
+        "JSON shape: { status, falsePremise, blockReason, niche, claims: [{ text, kind, depth, confidence, provenance, sourceRef: [], quote, teacherRequested, factuallyVerified, contested, uncertainty, ageFit: { from, to }, correctsPremise, importance, accepted }], mechanisms: [{ text, feature, sourceRef: [], quote }], concepts: [], vocabulary: [{ term, gloss, sourceRef: [], quote }], misconceptions: [{ text, corrects }], openQuestions: [] }."
+      ].join(" "),
+      user: JSON.stringify({
+        request: clean(ctx.lessonText || ctx.teacherInstructions || "", 4000),
+        yearGroup: clean(ctx.yearGroup, 20),
+        subject: clean(ctx.subject, 40),
+        topic: clean(ctx.topic, 120),
+        requestedMinutes: ctx.requestedMinutes || null,
+        teacherIntent: (ctx.lessonBrief && ctx.lessonBrief.teacherIntent) || null,
+        strandPairsRequired: strandsRequiredFor(ctx),
+        sources: researchPassagesForBrief(ctx),
+        linkSentences: linkSentencesForBrief(ctx),
+        curriculumContext: "England primary. The curriculum note is planning guidance only. It is not a factual source in this step."
+      })
+    };
+  }
+
+  // One automated entailment pass over quote-verified claims. It labels support; it does
+  // not verify. A claim without a supported verdict is held out of the lesson.
+  function sourceEntailmentBrief(pack, ctx) {
+    var passages = researchPassages(ctx) || {};
+    var items = ((pack && pack.claims) || []).filter(function (claim) {
+      return claim && claim.provenance === "retrieved" && claim.quoteVerified;
+    }).slice(0, 24).map(function (claim) {
+      var first = passages[(claim.sourceRef || [])[0]] || {};
+      var item = { claimId: claim.claimId, claim: claim.text, quote: claim.sourceQuote, passage: clean(first.text, 1600) };
+      if ((claim.wordsNotInSource || []).length) item.wordsNotInSource = claim.wordsNotInSource.slice();
+      if (claimStatesLink(claim.text)) item.needsLinkQuote = true;
+      return item;
+    });
+    return {
+      system: [
+        "You check whether a source extract supports a sentence written for a primary lesson. Return one JSON object and nothing else.",
+        "For each item, read quote and its passage. verdict is supported only when the quote, read in its passage, states everything the claim says. Simpler wording for children is fine when the meaning is the same. verdict is partial when part of the claim is supported and part is added. verdict is unsupported when the claim adds a fact, number, name, cause, purpose, or generalisation the quote does not state, drops a hedge the source keeps, or contradicts it. When the claim links two things with which, so, because, helped, allowed, let, or to, the quote must state that link. Two facts that the quote only lists side by side do not support a link between them.",
+        "Do not use your own knowledge to fill a gap. Do not judge whether the claim is true in the world, only whether this quote supports it.",
+        "linkQuote: when the claim states a purpose, cause, result, or how-or-why link and you judge it supported, copy the exact words from quote (at least five, no ellipsis) that state that link. Code checks them. An item with needsLinkQuote true and verdict supported must have a linkQuote. Otherwise linkQuote is an empty string.",
+        "wordsNotInSource lists claim words that appear in neither the quote nor its passage. Put each one either in wording, when it is only simpler wording for words in the quote, or in addedFacts, when the claim uses it to state something the quote does not say (for example a place, a part, a habit, a speed, or a purpose). A claim with any addedFacts is not supported. A word you do not place counts as added.",
+        "JSON shape: { \"results\": [{ \"claimId\": \"\", \"verdict\": \"supported\" or \"partial\" or \"unsupported\", \"missing\": \"\", \"linkQuote\": \"\", \"wording\": [], \"addedFacts\": [] }] }."
+      ].join(" "),
+      user: JSON.stringify({ items: items })
+    };
+  }
+
+  // Claim words that appear in neither the quote nor its passage (topic words aside). The
+  // entailment step must account for each one as simpler wording; anything else holds the
+  // claim (live case: "Dinosaurs laid eggs in nests" from "Like other reptiles, they laid
+  // eggs.", where the passage never mentions nests).
+  var SOURCE_WORD_STOP = { the: 1, and: 1, that: 1, this: 1, with: 1, from: 1, into: 1, they: 1, them: 1, their: 1, there: 1, these: 1, those: 1, were: 1, have: 1, been: 1, being: 1, some: 1, many: 1, most: 1, more: 1, much: 1, very: 1, also: 1, than: 1, then: 1, which: 1, what: 1, when: 1, where: 1, while: 1, would: 1, could: 1, should: 1, might: 1, about: 1, other: 1, such: 1, like: 1, each: 1, every: 1, only: 1, just: 1, does: 1, did: 1, done: 1, make: 1, made: 1, makes: 1, help: 1, helps: 1, helped: 1, helping: 1, lets: 1, allowed: 1, allow: 1, allows: 1, because: 1, over: 1, onto: 1, upon: 1, your: 1, its: 1, it: 1 };
+  function sourceWords(text) {
+    return String(text || "").toLowerCase().replace(/[\u2019']s\b/g, "").split(/[^a-z]+/).filter(function (word) { return word.length >= 4 && !SOURCE_WORD_STOP[word]; });
+  }
+  function sourceStem(word) { return word.replace(/ies$/, "y").replace(/(?:es|s|ed|ing|ly)$/, "").slice(0, 5); }
+  function wordsNotInSource(claimText, quote, passageText, topic) {
+    var have = {};
+    sourceWords([quote, passageText, topic].join(" ")).forEach(function (word) { have[sourceStem(word)] = 1; });
+    var out = [];
+    sourceWords(claimText).forEach(function (word) { if (!have[sourceStem(word)] && out.indexOf(word) === -1) out.push(word); });
+    return out.slice(0, 12);
+  }
+
+  function parseSourceEntailment(raw) {
+    var body = raw && typeof raw === "object" ? raw : null;
+    var rows = body && Array.isArray(body.results) ? body.results : null;
+    if (!rows) return { ok: false, results: {} };
+    var out = {};
+    rows.forEach(function (row) {
+      if (!row || typeof row !== "object") return;
+      var id = clean(row.claimId, 40);
+      var verdict = clean(row.verdict, 20).toLowerCase();
+      if (!id || (verdict !== "supported" && verdict !== "partial" && verdict !== "unsupported")) return;
+      function list(value) { return (Array.isArray(value) ? value : []).map(function (word) { return clean(word, 40).toLowerCase(); }).filter(Boolean).slice(0, 20); }
+      out[id] = { verdict: verdict, missing: clean(row.missing, 200), linkQuote: clean(row.linkQuote, 300), wording: list(row.wording), addedFacts: list(row.addedFacts) };
+    });
+    return { ok: true, results: out };
+  }
+
+  // A claim that links a feature to a purpose, cause or result needs a quote that states
+  // that link itself. Two facts that a passage only lists side by side (for example
+  // "had feathers, and were probably warm-blooded") do not support "feathers helped
+  // them stay warm". This runs in code after the model verdict and can only hold a claim.
+  var CLAIM_LINK = /\b(?:because|so that|so (?:it|they|that|the|its|their)\b|which (?:may have |might have |probably )?(?:help(?:ed|s)?|let|lets|allowed|allows|meant|means|made|makes|kept|keeps|gave|gives|enabled|enables)|help(?:ed|s)?|help (?:it|them)|allow(?:s|ed|ing)?|enabl(?:e|es|ed|ing)|lets?|letting|in order to|to help|for (?:protection|defen[cs]e|safety)|used (?:for|to)|as a result|caus(?:e|es|ed|ing)|therefore|thanks to|meaning|made it possible)\b/i;
+  var QUOTE_LINK = /\b(?:because|so that|so (?:it|they|that|the|its|their)\b|which (?:may have |might have |probably )?(?:help(?:ed|s)?|let|lets|allowed|allows|meant|means|made|makes|kept|keeps|gave|gives|enabled|enables)|help(?:ed|s)?|help(?:ing)? (?:it|them|to)|allow(?:s|ed|ing)?|enabl(?:e|es|ed|ing)|lets? (?:it|them|the|a)|in order to|to help|for (?:protection|defen[cs]e|safety|eating|fighting|display)|used (?:for|to|as)|as a result|caus(?:e|es|ed|ing)|therefore|thus|hence|thanks to|meaning|made it possible|reasons?|why|this (?:allowed|meant|made|let|help(?:ed)?|gave|would|means|makes|lets)|would (?:make|have|help|allow)|gave (?:it|them)|to (?:protect|defend|reach|catch|eat|grind|crush|slice|tear|cut|support|keep|stay|run|move|attract|show|scare|fight|hunt|find|breathe|cool|warm|walk|swim|fly|bite|chew|hold|carry|balance|signal|communicate))\b/i;
+
+  // The link words a linkQuote must contain: QUOTE_LINK without its bare "to + verb" branch.
+  var LINK_WORDS = new RegExp(QUOTE_LINK.source.replace(/\|to \(\?:protect[^)]*\)\)\\b$/, ")\\b"), "i");
+  // Patch 7: any "let/lets/letting" in a claim is a link ("let Spinosaurus breathe", "let
+  // dinosaurs use less energy" escaped the old "let it/them/the/a" pattern, so run 14 kept
+  // those claims with an empty linkQuote). CLAIM_LINK is used only by the research entailment.
+  function claimStatesLink(text) { return CLAIM_LINK.test(String(text || "")); }
+  function quoteStatesLink(text) { return QUOTE_LINK.test(String(text || "")); }
+
+  function applySourceEntailment(pack, parsed) {
+    if (!pack || pack.sourceMode !== "retrieved") return pack;
+    var results = (parsed && parsed.ok && parsed.results) || {};
+    var counts = { supported: 0, partial: 0, unsupported: 0, unchecked: 0 };
+    (pack.claims || []).forEach(function (claim) {
+      if (claim.provenance !== "retrieved") return;
+      var row = results[claim.claimId];
+      var verdict = row ? row.verdict : "unchecked";
+      var note = row ? row.missing : "no entailment verdict was returned";
+      if (verdict === "supported" && claimStatesLink(claim.text) && !quoteStatesLink(claim.sourceQuote)) {
+        verdict = "unsupported";
+        note = "LINK_NOT_IN_QUOTE: the claim states a purpose, cause or result, and the quote does not state that link.";
+        counts.linkHeld = (counts.linkHeld || 0) + 1;
+      }
+      // Link-quote rule: a how/why claim needs the exact passage words that state the link.
+      // They must sit inside the claim's own verified quote and use link words themselves.
+      if (verdict === "supported" && claimStatesLink(claim.text)) {
+        var linkQuote = row && row.linkQuote || "";
+        var linkOk = linkQuote.split(/\s+/).filter(Boolean).length >= 5 && quoteKey(claim.sourceQuote).indexOf(quoteKey(linkQuote)) !== -1 && LINK_WORDS.test(linkQuote);
+        if (linkOk) claim.linkQuote = linkQuote;
+        else {
+          verdict = "partial";
+          note = "LINK_NOT_QUOTED: the check did not give words from the quote that state the how-or-why link" + (linkQuote ? " (gave \"" + clean(linkQuote, 120) + "\")" : "") + ".";
+          counts.linkNotQuoted = (counts.linkNotQuoted || 0) + 1;
+        }
+      }
+      // Added-detail rule: every claim word absent from the quote and passage must be
+      // accounted for as simpler wording.
+      if (verdict === "supported" && (claim.wordsNotInSource || []).length) {
+        var wording = (row && row.wording) || [];
+        var addedFacts = (row && row.addedFacts) || [];
+        var unexplained = claim.wordsNotInSource.filter(function (word) { return wording.indexOf(word) === -1 || addedFacts.indexOf(word) !== -1; });
+        if (unexplained.length) {
+          verdict = "partial";
+          note = "ADDED_DETAIL: the claim adds words its source does not state (" + unexplained.join(", ") + ").";
+          counts.addedDetail = (counts.addedDetail || 0) + 1;
+        }
+      }
+      claim.entailment = verdict;
+      claim.entailmentNote = note;
+      counts[verdict] += 1;
+      if (verdict === "supported") {
+        claim.sourceSupport = SOURCE_SUPPORT_LABEL;
+        claim.sourceHold = false;
+        claim.provenanceNote = "retrieved; quote found verbatim in cited passage; automated entailment check: supported; not human-verified";
+      } else {
+        claim.sourceSupport = "quote-verified; automated entailment check: " + verdict;
+        claim.sourceHold = true;
+        claim.provenanceNote = "retrieved; quote found verbatim; automated entailment check: " + verdict + "; held out of the lesson";
+      }
+      claim.factuallyVerified = false;
+    });
+    pack.sourceAudit = pack.sourceAudit || {};
+    pack.sourceAudit.entailment = counts;
+    pack.sourceAudit.entailmentRan = !!(parsed && parsed.ok);
+    if (!(pack.claims || []).some(function (claim) { return claim.provenance === "retrieved" && !claim.sourceHold; }) && pack.status !== "blocked") {
+      pack.status = "blocked";
+      pack.needsSource = true;
+      pack.localAdmission = "needs_source";
+      pack.statusReason = "NEEDS_SOURCE: no retrieved claim passed the quote check and the automated entailment check.";
+    }
+    return pack;
+  }
+
+  function closestSentence(quote, text) {
+    var want = quoteKey(quote).split(/[^a-z0-9']+/).filter(function (w) { return w.length > 2; });
+    if (!want.length) return "";
+    var best = "";
+    var bestScore = 0;
+    String(text || "").split(/(?<=[.!?])\s+/).forEach(function (sentence) {
+      var have = quoteKey(sentence);
+      var score = want.filter(function (w) { return have.indexOf(w) !== -1; }).length / want.length;
+      if (score > bestScore) { bestScore = score; best = sentence.trim(); }
+    });
+    return bestScore >= 0.5 ? clean(best, 400) : "";
+  }
+
+  // The exact reasons each item failed, for one source-repair call. Feedback only: the
+  // repaired pack goes back through the same quote check, entailment and readiness gate.
+  function sourceRepairFeedback(pack, selection, readiness, ctx) {
+    var passages = researchPassages(ctx) || {};
+    var rows = [];
+    ((pack && pack.sourceAudit && pack.sourceAudit.rejected) || []).forEach(function (row) {
+      var item = { item: row.text, problem: row.reason, cited: row.sourceRef || [], quoteGiven: row.quote || "" };
+      if (row.reason === "QUOTE_NOT_FOUND" || row.reason === "UNRESOLVED_SOURCE") {
+        var elsewhere = Object.keys(passages).filter(function (id) { return row.quote && quoteInPassage(row.quote, passages[id].text).ok; });
+        if (elsewhere.length) {
+          item.problem = "WRONG_PASSAGE";
+          item.fix = "The quote is in " + elsewhere.join(", ") + ", not in the cited passage. Cite the passage that contains it.";
+        } else {
+          var near = "";
+          (row.sourceRef || []).some(function (id) { near = passages[id] ? closestSentence(row.quote, passages[id].text) : ""; return !!near; });
+          item.problem = row.reason === "UNRESOLVED_SOURCE" ? "UNRESOLVED_SOURCE" : "REWORDED_QUOTE";
+          item.fix = near
+            ? "The quote was reworded. The closest sentence in the cited passage is: \"" + near + "\". Copy a quote character for character, or drop the item if that sentence does not support it."
+            : "No cited passage contains this quote. Copy a quote character for character from a passage that supports the item, or drop the item.";
+        }
+      } else if (row.reason === "SOURCE_NOT_EVIDENCE") {
+        item.fix = "The cited passage is from a discovery-only source (for example Wikipedia). It cannot support a pupil-facing fact. Cite a passage from a museum, university, scientific organisation, government body or educational publisher that states it, or drop the item.";
+      } else if (row.reason === "QUOTE_NOT_CONTIGUOUS") {
+        item.fix = "Use one contiguous extract with no ellipsis.";
+      } else if (row.reason === "QUOTE_TOO_SHORT") {
+        item.fix = "Use a quote of at least six words.";
+      }
+      rows.push(item);
+    });
+    ((pack && pack.claims) || []).forEach(function (claim) {
+      if (claim.provenance !== "retrieved" || !claim.sourceHold) return;
+      rows.push({
+        item: claim.text,
+        claimId: claim.claimId,
+        problem: "ENTAILMENT_" + String(claim.entailment || "unchecked").toUpperCase(),
+        cited: claim.sourceRef || [],
+        quoteGiven: claim.sourceQuote || "",
+        fix: (claim.entailmentNote ? claim.entailmentNote + " " : "") + "Rewrite the claim so it says only what the quote states, or cite a quote that states the link, or drop it."
+      });
+    });
+    var MECHANISM_FIX = "A mechanism must state how or why the feature works, in words such as because, so it could, which lets, allowed, or let, as the passage states it. A verb such as helped with no stated job (\"features helped dinosaurs\") does not state a mechanism. The feature phrase must appear in exactly one concrete feature claim.";
+    var goalList = [];
+    goalWords(ctx).forEach(function (word) { if (goalList.indexOf(word) === -1) goalList.push(word); });
+    ((readiness && readiness.pairs) || []).forEach(function (pair) {
+      if (pair.ready) return;
+      var gaps = pair.gaps || [];
+      var irrelevant = gaps.some(function (gap) { return /not relevant to the learning goal/.test(gap); });
+      var otherGaps = gaps.some(function (gap) { return !/not relevant to the learning goal/.test(gap); });
+      // A pair held only for relevance has a working mechanism. The relevance check is a word
+      // match against the goal, so say which words it reads instead of the mechanism advice.
+      var fix = irrelevant
+        ? "Code could not link this pair to the learning goal: no word of the feature claim or explanation matches a goal word (" + goalList.slice(0, 16).join(", ") + "). If the passage supports it, keep the pair and rewrite this explanation item so it uses one of those words, for example adding the topic word to the name of a group the passage places in the topic, or saying what the feature did in the goal's terms. Keep the same quote. Add only wording the passage supports; never add a fact." + (otherGaps ? " " + MECHANISM_FIX : "")
+        : MECHANISM_FIX;
+      if (gaps.some(function (gap) { return /only says the feature helped the animal survive/.test(gap); })) fix += " Helped it survive or live somewhere is not what a feature did: state the action the passage gives (for example let it breathe, reach, or move), or replace this pair with another feature whose passage states what it did.";
+      rows.push({
+        item: pair.explanation || "",
+        problem: irrelevant && !otherGaps ? "PAIR_NOT_LINKED_TO_GOAL" : "PAIR_NOT_READY",
+        feature: pair.feature || "",
+        gaps: gaps.slice(0, 4),
+        fix: fix
+      });
+    });
+    return rows.slice(0, 40);
+  }
+
+  function sourceRepairBrief(pack, selection, readiness, ctx) {
+    var first = researchPackBrief(ctx);
+    var previous = ((pack && pack.claims) || []).map(function (claim) {
+      return { claimId: claim.claimId, text: claim.text, depth: claim.depth, ageFit: claim.ageFit || null, sourceRef: claim.sourceRef || [], quote: claim.sourceQuote || "", entailment: claim.entailment || "", held: !!claim.sourceHold };
+    });
+    var readyPairs = ((readiness && readiness.pairs) || []).filter(function (pair) { return pair.ready; }).map(function (pair) { return { feature: pair.feature, featureClaimId: pair.featureClaimId, explanation: pair.explanation }; });
+    var user = JSON.parse(first.user);
+    user.previousPack = { claims: previous, mechanisms: ((pack && pack.mechanisms) || []).map(function (m) { return { text: m.text, feature: m.feature }; }) };
+    user.rejections = sourceRepairFeedback(pack, selection, readiness, ctx);
+    user.readiness = { requiredPairs: readiness && readiness.requiredPairs, readyPairCount: readiness && readiness.distinctReady, readyPairs: readyPairs };
+    return {
+      system: first.system + " This is the single repair of a knowledge pack that failed checks. rejections lists each failed item with the exact problem and how to fix it. Return a complete new knowledge pack in the same JSON shape. Copy every claim that passed (held is false and it is not in rejections) and every pair in readiness.readyPairs unchanged, with the same text, sourceRef, quote, and ageFit. Fix an item only from the sources; if the sources cannot support it, drop it. The repaired pack goes through the same quote check, entailment check, and readiness check. There is no further repair.",
+      user: JSON.stringify(user)
+    };
+  }
+
+  function knowledgePackBrief(ctx) {
+    ctx = ctx || {};
+    if (researchPassages(ctx)) return researchPackBrief(ctx);
+    return {
+      system: [
+        "You ground subject knowledge for one primary lesson. Return one JSON object and nothing else.",
+        "Do not write a lesson, stages, activities, beats, questions, interactions, narrative, or pupil wording.",
+        "Write a knowledge pack with more true claims than one lesson will teach. A later step selects a subset for the year, the goal, and the duration.",
+        "Each claim is one sentence a teacher could check. Include concrete claims a child can observe or name, mechanism claims that say how or why, and system claims that say how several mechanisms work together. A mechanism names one concrete feature and the job that feature does, in words a child in the requested year can say. When the topic is broad, include several mechanisms, each about a different feature, and only when that feature and its job can be stated without guessing. A sentence that only says the subject is adapted, or that an environment influenced its features or behaviour, is not a mechanism. Do not invent a feature or a function to widen the pack. Tag depth as concrete, mechanism, or system.",
+        "strandPairsRequired in the request is how many distinct feature-and-explanation pairs this lesson's breadth needs. A pair is two selected claims: a concrete claim that names one feature or concept, and a different mechanism claim that states how or why that feature works. The mechanisms list repeats each explanation. Its feature field is a short phrase copied from the naming claim, not a new fact. Each pair must be a different teaching idea. Two explanations of the same feature count as one pair. An id on its own is not a pair, and a sentence that only names the feature is not the explanation. Supply that many pairs when the feature and the function can be stated without guessing. Do not invent a feature or a function to reach the number. factuallyVerified stays false: a complete pair is not verification, and verification is not a pair.",
+        "ageFit is { from, to } using years 1 to 6. Concrete claims can start at Year 1. A simple mechanism may start at Year 2. A harder mechanism starts at Year 3 or 4. A system claim starts at Year 5 or 6. Age fit is metadata. Do not write a different lesson for each year.",
+        "confidence is high, medium, or low. If you are unsure of a name, date, measurement, or local detail, omit that claim. Do not invent it. A named place by itself is allowed. Do not bind that place to specific geology, a mechanism, a date, or a cause unless the teacher material states that binding. High confidence does not make a local binding true, and it does not verify a claim. Do not state a counted list of main types, kinds, or groups unless the teacher asked for that count or the teacher material states that list. If the lesson cannot be taught without an unsupported local binding, set status to blocked and say a source is needed.",
+        "provenance is model, unless the sentence is taken from uploadedMaterialSummary, in which case use teacher_material. Do not use retrieved, curated, or curriculum_planning. This step has no web search, curated pack, or curriculum document.",
+        "factuallyVerified must be false. You cannot verify your own knowledge. teacherRequested is true only when the teacher asked for that specific claim, not because the claim is about the same topic. Teacher material is not automatic truth.",
+        "If the request assumes something false, set falsePremise to a short statement of that assumption. Do not admit the falsehood as a claim. Admit a correction, with correctsPremise true, only when you can state it without guessing. Set status to qualified when a correction is included. Set status to blocked when you cannot correct the premise without guessing, or when teaching the topic would require invented facts.",
+        "status is usable when the claims are ordinary and you are not flagging a premise problem, a contested point, or a thin topic. status is qualified when a claim is contested, the topic is niche or local, confidence is limited, or a false premise was corrected. status is blocked when the pack must not be taught.",
+        "contested is true when historians or scientists still disagree. Put that in uncertainty. Do not present one side as the only fact.",
+        "mechanisms repeats the how or why claims. Each one includes feature, the concrete feature that mechanism explains. concepts are short labels, not sentences. vocabulary is words worth knowing, with a short gloss. misconceptions are optional mistakes children make. A misconception is not a fact to teach.",
+        "JSON shape: { status, falsePremise, blockReason, niche, claims: [{ text, kind, depth, confidence, provenance, teacherRequested, factuallyVerified, contested, uncertainty, ageFit: { from, to }, correctsPremise, importance, accepted }], mechanisms: [{ text, feature }], concepts: [], vocabulary: [{ term, gloss }], misconceptions: [{ text, corrects }], openQuestions: [] }."
+      ].join(" "),
+      user: JSON.stringify({
+        request: clean(ctx.lessonText || ctx.teacherInstructions || "", 4000),
+        uploadedMaterialSummary: clean(ctx.uploadedMaterialSummary || "", 4000),
+        yearGroup: clean(ctx.yearGroup, 20),
+        subject: clean(ctx.subject, 40),
+        topic: clean(ctx.topic, 120),
+        requestedMinutes: ctx.requestedMinutes || null,
+        teacherIntent: (ctx.lessonBrief && ctx.lessonBrief.teacherIntent) || null,
+        strandPairsRequired: strandsRequiredFor(ctx),
+        curriculumContext: "England primary. The curriculum note is planning guidance only. It is not a factual source in this step."
+      })
+    };
+  }
+
+  function packDepth(raw, text, kind) {
+    var given = clean(raw && raw.depth, 20).toLowerCase();
+    if (given === "concrete" || given === "mechanism" || given === "system") return given;
+    if (kind === "mechanism" || kind === "process") return "mechanism";
+    if (/\b(system|cycle|work together|working together)\b/i.test(text)) return "system";
+    if (statesRelation(text) || statesFunction(text)) return "mechanism";
+    return "concrete";
+  }
+
+  function packAgeFit(raw, depth) {
+    var from = depth === "system" ? 5 : (depth === "mechanism" ? 3 : 1);
+    var to = 6;
+    var given = false;
+    var body = raw && typeof raw.ageFit === "object" ? raw.ageFit : null;
+    if (raw && typeof raw.ageFit === "string") {
+      var nums = String(raw.ageFit).match(/[1-6]/g) || [];
+      if (nums.length === 1) { from = to = Number(nums[0]); given = true; }
+      else if (nums.length >= 2) { from = Number(nums[0]); to = Number(nums[1]); given = true; }
+    }
+    if (body) {
+      var start = Number(body.from != null ? body.from : body.min);
+      var end = Number(body.to != null ? body.to : body.max);
+      if (start >= 1 && start <= 6) { from = start; given = true; }
+      if (end >= 1 && end <= 6) { to = end; given = true; }
+    }
+    if (!given) {
+      from = depth === "system" ? 5 : (depth === "mechanism" ? 3 : 1);
+      to = 6;
+    }
+    if (to < from) to = from;
+    return { from: from, to: to };
+  }
+
+  function packProvenance(rawValue, text, ctx) {
+    var asked = clean(rawValue, 40).toLowerCase().replace(/[\s-]+/g, "_");
+    if (asked === "llm" || asked === "parametric") asked = "model";
+    if (asked === "upload" || asked === "teacher") asked = "teacher_material";
+    if (!PACK_PROVENANCE[asked]) asked = "model";
+  var material = clean((ctx && ctx.uploadedMaterialSummary) || "", 8000);
+  var fromMaterial = !!(material && claimOverlap(text, material) >= 0.6);
+  var ignored = "";
+  if (asked === "retrieved" || asked === "curated" || asked === "curriculum_planning") {
+    ignored = asked;
+    asked = "model";
+  }
+  if (fromMaterial) {
+    return {
+      provenance: "teacher_material",
+      provenanceNote: "teacher-material/unverified" + (ignored ? "; ignored " + ignored + " label" : "")
+    };
+  }
+  if (asked === "teacher_material" || ignored) {
+    var note = ignored
+      ? "downgraded from " + ignored + ": phase 1 has no external source; model-originated/unverified"
+      : "downgraded: the claim is not in the teacher material; model-originated/unverified";
+    return { provenance: "model", provenanceNote: note };
+  }
+  return { provenance: "model", provenanceNote: "model-originated/unverified" };
+}
+
+  function teacherAskedClaim(rawFlag, text, ctx) {
+    var request = clean((ctx && (ctx.lessonText || ctx.teacherInstructions)) || "", 4000);
+    var words = contentWords(text);
+    var flagged = rawFlag === true || String(rawFlag).toLowerCase() === "true";
+    if (words.length >= 2 && claimOverlap(text, request) >= 0.75) return true;
+    var intent = (ctx && ctx.lessonBrief && ctx.lessonBrief.teacherIntent) || {};
+    var focus = (intent.focusConcepts || []).concat(intent.learningGoal ? [intent.learningGoal] : []).join(" ");
+    return !!(flagged && words.length >= 2 && claimOverlap(text, focus) >= 0.75);
+  }
+
+  function affirmsPremise(text, premise) {
+    if (!premise) return false;
+    if (/\b(not|never|aren't|isn't|cannot|can't)\b/i.test(text)) return false;
+    var premiseWords = contentWords(premise);
+    var claimWords = contentWords(text);
+    if (premiseWords.length < 2 || !claimWords.length) return false;
+    var shared = 0;
+    premiseWords.forEach(function (word) {
+      if (claimWords.some(function (other) { return sameStem(word, other); })) shared += 1;
+    });
+    return shared >= Math.min(2, premiseWords.length) && shared / premiseWords.length >= 0.6;
+  }
+
+  function claimCandidates(raw) {
+    var out = [];
+    function push(item, fallbackKind, fallbackDepth) {
+      if (!item) return;
+      if (typeof item === "string") {
+        out.push({ text: item, kind: fallbackKind, depth: fallbackDepth });
+        return;
+      }
+      if (typeof item !== "object") return;
+      var copy = {};
+      var key;
+      for (key in item) copy[key] = item[key];
+      copy.text = item.text || item.claim || item.statement || item.knowledge || "";
+      if (!copy.kind && fallbackKind) copy.kind = fallbackKind;
+      if (!copy.depth && fallbackDepth) copy.depth = fallbackDepth;
+      out.push(copy);
+    }
+    var claims = Array.isArray(raw && raw.claims) ? raw.claims : [];
+    var mechanisms = Array.isArray(raw && raw.mechanisms) ? raw.mechanisms : [];
+    claims.forEach(function (item) { push(item, "fact", ""); });
+    mechanisms.forEach(function (item) { push(item, "mechanism", "mechanism"); });
+    return out.slice(0, 24);
+  }
+
+  // Place-bound admission is deterministic. It does not read model confidence, usable, or niche.
+  // A named place is not enough. The risk is binding that place to geology, a mechanism, a date, or a cause.
+  var PLACE_STOP = {
+    The: 1, This: 1, That: 1, These: 1, Those: 1, There: 1, Then: 1, They: 1, Their: 1,
+    Year: 1, Years: 1, Teach: 1, Teaching: 1, Children: 1, Child: 1, Pupils: 1, Students: 1,
+    Explain: 1, How: 1, Why: 1, What: 1, When: 1, Where: 1, Which: 1, Who: 1,
+    Science: 1, History: 1, Geography: 1, English: 1, Maths: 1, Mathematics: 1,
+    Please: 1, Primary: 1, Class: 1, Today: 1, Some: 1, Many: 1, Most: 1,
+    Heavy: 1, Steep: 1, High: 1, Low: 1, Large: 1, Small: 1,
+    Act: 1, Church: 1, King: 1, Queen: 1, Pope: 1, Sir: 1, Saint: 1, Lord: 1
+  };
+  var LOCAL_GEO = /\b(?:geolog\w*|stratum|strata|shale|limestone|sandstone|chalk|granite|slate|bedrock|sediment\w*|minerals?|escarpments?|clay|rock\s+layers?|layers?\s+of\s+\w+)\b/i;
+  var LOCAL_EVENT = /\b(?:landslips?|landslides?|rockfalls?|subsidence|erupt(?:ed|ion|s)?|earthquakes?|flood(?:ed|s|ing)?|collapsed|collapse|slippage)\b/i;
+  var LOCAL_CAUSE = /\b(?:caused|causes|causing|because|due to|so that|formed|forming|formation|saturat\w*|erod\w*|slipped|slips)\b/i;
+  var LOCAL_YEAR = /\b(?:1[0-9]{3}|20[0-9]{2})\b/;
+  var LOCAL_PHYSICAL = /\b(?:soil|rocks?|water|rain|rainfall|slopes?|hillsides?|cliffs?|coasts?|rivers?|ice|lava|waves?|layers?|geology|geological)\b/i;
+
+  function collapsePlaces(list) {
+    var found = [];
+    (list || []).forEach(function (name) {
+      var label = clean(name, 60).replace(/['’]s$/, "");
+      if (!label || label.length < 3) return;
+      var key = label.toLowerCase();
+      if (found.some(function (item) { return item.toLowerCase() === key; })) return;
+      found.push(label);
+    });
+    return found.filter(function (name) {
+      var key = name.toLowerCase();
+      return !found.some(function (other) {
+        var rest = other.toLowerCase();
+        return rest !== key && rest.indexOf(key) !== -1 && rest.length > key.length;
+      });
+    });
+  }
+
+  function properPlaces(text) {
+    var value = String(text || "");
+    var found = [];
+    function add(name) {
+      var label = clean(name, 60).replace(/['’]s$/, "");
+      if (!label || label.length < 3) return;
+      var parts = label.split(/\s+/);
+      if (parts.length === 1 && PLACE_STOP[parts[0]]) return;
+      if (parts.every(function (part) { return PLACE_STOP[part]; })) return;
+      found.push(label);
+    }
+    var multi = /\b([A-Z][A-Za-z'’]+(?:\s+[A-Z][A-Za-z'’]+){1,3})\b/g;
+    var prep = /\b(?:at|in|on|near|around|above|below|beside|from|of|about)\s+([A-Z][A-Za-z'’]+)\b/g;
+    var poss = /\b([A-Z][A-Za-z'’]+(?:\s+[A-Z][A-Za-z'’]+){0,2})['’]s\b/g;
+    var theName = /\bThe\s+([A-Z][A-Za-z'’]+)\b/g;
+    var match;
+    while ((match = multi.exec(value))) add(match[1]);
+    while ((match = prep.exec(value))) add(match[1]);
+    while ((match = poss.exec(value))) add(match[1]);
+    while ((match = theName.exec(value))) add(match[1]);
+    return collapsePlaces(found);
+  }
+
+  function mentionsPlace(text, places) {
+    var lower = String(text || "").toLowerCase();
+    var hit = [];
+    (places || []).forEach(function (place) {
+      if (lower.indexOf(String(place).toLowerCase()) !== -1 && hit.indexOf(place) === -1) hit.push(place);
+    });
+    return hit;
+  }
+
+  function placeBoundClaim(text, places) {
+    var named = mentionsPlace(text, places);
+    properPlaces(text).forEach(function (place) {
+      if (named.indexOf(place) === -1) named.push(place);
+    });
+    named = collapsePlaces(named);
+    if (!named.length) return { bound: false, places: [] };
+    var geo = LOCAL_GEO.test(text);
+    var event = LOCAL_EVENT.test(text);
+    var cause = LOCAL_CAUSE.test(text);
+    var year = LOCAL_YEAR.test(text);
+    var physical = LOCAL_PHYSICAL.test(text);
+    var bound = geo || event || (year && (cause || physical || geo || event)) || (cause && physical);
+    return { bound: !!bound, places: named };
+  }
+
+  function requestNeedsPlaceBound(request, extraPlaces) {
+    var text = String(request || "");
+    var places = collapsePlaces(properPlaces(text).concat(extraPlaces || []));
+    var mentioned = places.filter(function (place) {
+      return text.toLowerCase().indexOf(place.toLowerCase()) !== -1;
+    });
+    var asks = /\b(?:how|why|caused|causes|causing|cause|formed|forming|formation|when)\b/i.test(text);
+    var physical = LOCAL_GEO.test(text) || LOCAL_EVENT.test(text) || LOCAL_PHYSICAL.test(text);
+    return { needs: !!(mentioned.length && asks && physical), places: mentioned };
+  }
+
+  function placesOverlap(left, right) {
+    return (left || []).some(function (place) {
+      var key = place.toLowerCase();
+      return (right || []).some(function (other) {
+        var rest = other.toLowerCase();
+        return key === rest || key.indexOf(rest) !== -1 || rest.indexOf(key) !== -1;
+      });
+    });
+  }
+
+  function lessonRequestText(ctx) {
+    ctx = ctx || {};
+    var brief = ctx.lessonBrief || {};
+    var intent = brief.teacherIntent || {};
+    return clean([
+      ctx.lessonText, ctx.teacherInstructions, ctx.topic, brief.rawRequest, brief.learningGoal, intent.learningGoal
+    ].join(" "), 4000);
+  }
+
+  function classificationCount(text) {
+    var match = String(text || "").match(/\b(two|three|four|five|six|\d+)\s+(?:main\s+)?(?:types|kinds|groups|classes|categories)\b/i);
+    if (match) return match[1];
+    match = String(text || "").match(/\b(?:there\s+(?:are|were)|these\s+are)\s+(?:only\s+)?(?:the\s+)?(two|three|four|five|six|\d+)\s+(?:different\s+)?(?:types|kinds|groups|classes|categories)\b/i);
+    return match ? match[1] : "";
+  }
+
+  // A counted inventory of types is a classification. Model confidence does not verify it.
+  function unsupportedClassification(text, provenance, teacherRequested, ctx) {
+    var count = classificationCount(text);
+    if (!count || provenance !== "model" || teacherRequested) return false;
+    return !requestHasCount(lessonRequestText(ctx), count);
+  }
+
+  function normaliseKnowledgePack(raw, ctx) {
+    ctx = ctx || {};
+    var body = raw && typeof raw === "object" ? raw : {};
+    var mechanismFeatureByText = {};
+    (Array.isArray(body.mechanisms) ? body.mechanisms : []).forEach(function (item) {
+      if (!item || typeof item !== "object") return;
+      var featureText = clean(item.feature || "", 80);
+      var mechanismText = clean(item.text || item.claim || item.statement || "", 180).toLowerCase();
+      if (!mechanismText || !featureText) return;
+      mechanismFeatureByText[mechanismText] = featureText;
+    });
+    var stripped = [];
+    Object.keys(PACK_STRIP).forEach(function (key) {
+      if (body[key] != null) stripped.push(key);
+    });
+    var falsePremise = clean(body.falsePremise || body.false_premise || "", 200);
+    var rejected = [];
+    var seen = {};
+    var overrides = 0;
+    var claims = [];
+    var passages = researchPassages(ctx);
+    var sourceRejected = [];
+    var sourceChecked = 0;
+    claimCandidates(body).forEach(function (item) {
+      var text = clean(item.text, 180);
+      if (!text || text.length < 8) return;
+      var key = text.toLowerCase();
+      if (item.accepted === false || String(item.status || "").toLowerCase() === "rejected") {
+        rejected.push({ text: text, reason: "not accepted" });
+        return;
+      }
+      if (affirmsPremise(text, falsePremise)) {
+        rejected.push({ text: text, reason: "false premise" });
+        return;
+      }
+      if (seen[key]) return;
+      seen[key] = 1;
+      var sourced = null;
+      if (passages) {
+        sourceChecked += 1;
+        sourced = sourceCheck(item, passages);
+        if (!sourced.ok) {
+          var refusal = { text: text, reason: sourced.reason, sourceRef: sourced.refs, quote: clean(sourced.quote, 300) };
+          rejected.push(refusal);
+          sourceRejected.push(refusal);
+          return;
+        }
+      }
+      var kind = clean(item.kind, 20).toLowerCase();
+      if (!PACK_KIND[kind]) kind = "fact";
+      var depth = packDepth(item, text, kind);
+      var origin = sourced
+        ? { provenance: "retrieved", provenanceNote: "retrieved; quote found verbatim in cited passage; automated entailment check pending; not human-verified" }
+        : packProvenance(item.provenance || item.origin, text, ctx);
+      var verifiedFlag = item.factuallyVerified === true || String(item.factuallyVerified).toLowerCase() === "true" || item.verified === true;
+      if (verifiedFlag) overrides += 1;
+      var importance = clean(item.importance, 20).toLowerCase();
+      if (importance !== "supporting" && importance !== "optional") importance = "core";
+      var confidence = clean(item.confidence, 20).toLowerCase();
+      if (confidence !== "high" && confidence !== "medium" && confidence !== "low") confidence = "medium";
+      var teacherRequested = teacherAskedClaim(item.teacherRequested, text, ctx);
+      claims.push({
+        claimId: stableClaimId(text),
+        text: text,
+        kind: kind,
+        depth: depth,
+        confidence: confidence,
+        provenance: origin.provenance,
+        provenanceNote: origin.provenanceNote,
+        teacherRequested: teacherRequested,
+        factuallyVerified: false,
+        contested: item.contested === true || String(item.contested).toLowerCase() === "true",
+        uncertainty: clean(item.uncertainty, 140),
+        ageFit: packAgeFit(item, depth),
+        correctsPremise: item.correctsPremise === true || String(item.correctsPremise).toLowerCase() === "true",
+        importance: importance,
+        classificationHold: unsupportedClassification(text, origin.provenance, teacherRequested, ctx)
+      });
+      if (sourced) {
+        var entry = claims[claims.length - 1];
+        entry.sourceRef = sourced.refs.slice();
+        entry.sourceQuote = clean(sourced.quote, 400);
+        entry.sourceUrls = sourced.urls.slice();
+        entry.sourceTitles = sourced.titles.slice();
+        entry.quoteVerified = true;
+        entry.wordsNotInSource = wordsNotInSource(entry.text, sourced.quote, sourced.passageText, ctx && ctx.topic);
+        entry.entailment = "pending";
+        entry.sourceSupport = "quote-verified; automated entailment check pending";
+        entry.sourceHold = true;
+      }
+    });
+    var used = {};
+    claims.forEach(function (claim) {
+      if (!used[claim.claimId]) { used[claim.claimId] = 1; return; }
+      var n = 2;
+      while (used[claim.claimId + n]) n += 1;
+      claim.claimId = claim.claimId + n;
+      used[claim.claimId] = 1;
+    });
+    var mechanisms = claims.filter(function (claim) {
+      return claim.depth === "mechanism" || claim.kind === "mechanism" || claim.kind === "process";
+    }).map(function (claim) {
+      var feature = mechanismFeatureByText[claim.text.toLowerCase()] || "";
+      return {
+        claimId: claim.claimId,
+        text: claim.text,
+        feature: feature,
+        featureClaimId: feature ? featureClaimFor(feature, claims, claim.text, ctx) : ""
+      };
+    });
+    var concepts = (Array.isArray(body.concepts) ? body.concepts : []).map(function (item) {
+      return clean(typeof item === "string" ? item : (item && (item.term || item.label || item.text)) || "", 40);
+    }).filter(function (text) {
+      return text && text.split(/\s+/).length <= 6 && text.indexOf(".") === -1;
+    }).slice(0, 8);
+    var vocabulary = (Array.isArray(body.vocabulary) ? body.vocabulary : []).map(function (item) {
+      if (typeof item === "string") return passages ? null : { term: clean(item, 40), gloss: "" };
+      var word = { term: clean(item && (item.term || item.word), 40), gloss: clean(item && (item.gloss || item.definition), 120) };
+      if (!passages) return word;
+      var check = sourceCheck(item, passages);
+      if (!check.ok) {
+        sourceRejected.push({ text: "vocabulary: " + word.term, reason: check.reason, sourceRef: check.refs, quote: clean(check.quote, 300) });
+        return null;
+      }
+      word.sourceRef = check.refs.slice();
+      word.sourceQuote = clean(check.quote, 400);
+      return word;
+    }).filter(function (item) { return item && item.term; }).slice(0, 8);
+    var misconceptions = (Array.isArray(body.misconceptions) ? body.misconceptions : []).map(function (item, index) {
+      var text = clean(typeof item === "string" ? item : (item && (item.text || item.mistake)) || "", 160);
+      if (!text) return null;
+      var hint = clean(item && (item.corrects || item.correction || item.correctClaimId) || "", 180);
+      var claimId = "";
+      claims.forEach(function (claim) {
+        if (claimId) return;
+        if (hint && (claim.claimId === hint || claimOverlap(hint, claim.text) >= 0.6)) claimId = claim.claimId;
+      });
+      if (passages && !claimId) return null;
+      return { id: "m" + (index + 1), text: text, correctsClaimId: claimId };
+    }).filter(Boolean).slice(0, 6);
+    var seenPlaces = [];
+    claims.forEach(function (claim) {
+      properPlaces(claim.text).forEach(function (place) { seenPlaces.push(place); });
+    });
+    var requestText = lessonRequestText(ctx);
+    var requestLocal = requestNeedsPlaceBound(requestText, seenPlaces);
+    var placeIndex = collapsePlaces(requestLocal.places.concat(seenPlaces));
+    claims.forEach(function (claim) {
+      var bound = placeBoundClaim(claim.text, placeIndex);
+      claim.placeBound = bound.bound;
+      claim.placeNames = bound.places;
+      claim.supplied = claim.provenance === "teacher_material";
+      claim.factuallyVerified = false;
+      if (!claim.placeBound) {
+        claim.support = "generic";
+        claim.localHold = false;
+      } else if (claim.supplied) {
+        claim.support = "supplied";
+        claim.localHold = false;
+      } else if (claim.provenance === "retrieved" && claim.quoteVerified) {
+        claim.support = "retrieved";
+        claim.localHold = false;
+      } else {
+        claim.support = "unsupported";
+        claim.localHold = true;
+      }
+    });
+    var covering = claims.some(function (claim) {
+      return (claim.supplied || (claim.provenance === "retrieved" && claim.quoteVerified)) && claim.placeBound && placesOverlap(claim.placeNames, requestLocal.places);
+    });
+    var needsSource = !!(requestLocal.needs && !covering);
+    var localHolds = claims.filter(function (claim) { return claim.localHold; });
+    var modelStatus = clean(body.status, 20).toLowerCase();
+    if (modelStatus !== "usable" && modelStatus !== "qualified" && modelStatus !== "blocked") modelStatus = "";
+    var modelNiche = body.niche === true || String(body.niche).toLowerCase() === "true";
+    var qualifiers = [];
+    if (falsePremise) qualifiers.push(claims.length ? "false premise removed from the claims" : "false premise and no correction");
+    if (claims.some(function (claim) { return claim.contested; })) qualifiers.push("contested claims stay in the pack and out of the lesson");
+    if (claims.length && claims.every(function (claim) { return claim.confidence === "low"; })) qualifiers.push("every claim is low confidence");
+    if (modelNiche) qualifiers.push("niche topic; model knowledge is unverified");
+    if (claims.length && claims.length < 3) qualifiers.push("thin pack");
+    if (localHolds.length) qualifiers.push("unsupported place-bound claims are held out of the lesson");
+    if (claims.some(function (claim) { return claim.classificationHold; })) qualifiers.push("an unverified classification is held out of the lesson; model confidence does not verify it");
+    if (claims.some(function (claim) { return claim.placeBound && claim.supplied; })) qualifiers.push("teacher-supplied place detail is unverified");
+    var localAdmission = needsSource ? "needs_source" : (localHolds.length || claims.some(function (claim) { return claim.placeBound; }) ? "hold" : "clear");
+    var status = "usable";
+    var statusReason = "Enough claims to select from. Every claim is still unverified.";
+    if (!claims.length) {
+      status = "blocked";
+      statusReason = needsSource
+        ? "NEEDS_SOURCE: the lesson needs a place-bound explanation and the pack has no supported claim for that place."
+        : (clean(body.blockReason, 200) || (falsePremise ? "false premise and no claims that can be taught" : "no admitted claims"));
+      if (needsSource) localAdmission = "needs_source";
+    } else if (needsSource) {
+      status = "blocked";
+      statusReason = "NEEDS_SOURCE: the lesson needs a place-bound explanation and the pack has no supported claim for that place. Model confidence does not make a local claim a teaching fact.";
+      localAdmission = "needs_source";
+    } else if (modelStatus === "blocked") {
+      status = "blocked";
+      statusReason = clean(body.blockReason, 200) || "the pack is blocked and must not be taught";
+    } else if (qualifiers.length || modelStatus === "qualified" || localAdmission === "hold") {
+      status = "qualified";
+      statusReason = qualifiers.join("; ") || clean(body.blockReason, 200) || "the pack can be selected only with the recorded limits";
+    }
+    if (passages && !claims.length) {
+      status = "blocked";
+      localAdmission = "needs_source";
+      statusReason = "NEEDS_SOURCE: no claim had a quote found in a cited retrieved passage. Model confidence and search snippets are not support.";
+    }
+    var idSource = claims.map(function (claim) { return claim.claimId; }).join(".");
+    var sourceFields = passages ? {
+      sourceMode: "retrieved",
+      sourceAudit: {
+        label: SOURCE_SUPPORT_LABEL,
+        checked: sourceChecked,
+        admitted: claims.length,
+        rejected: sourceRejected.slice(0, 40),
+        rejectedByReason: sourceRejected.reduce(function (acc, row) { acc[row.reason] = (acc[row.reason] || 0) + 1; return acc; }, {}),
+        entailmentRan: false,
+        humanVerified: false
+      }
+    } : null;
+    var packOut = {
+      id: "kp_" + stableClaimId(idSource || clean(body.topic || (ctx && ctx.topic) || "empty", 80)).slice(1),
+      version: 1,
+      phase: 1,
+      topic: clean(body.topic || (ctx && ctx.topic) || "", 120),
+      subject: clean(body.subject || (ctx && ctx.subject) || "", 40),
+      status: status,
+      statusReason: statusReason,
+      modelStatus: modelStatus,
+      modelNiche: modelNiche,
+      localAdmission: localAdmission,
+      needsSource: status === "blocked" && localAdmission === "needs_source",
+      falsePremise: falsePremise,
+      provenanceSummary: passages
+        ? "Retrieved mode: every admitted claim cites a fetched passage and carries a quote that code found verbatim in that passage after whitespace, case, and typographic-quote normalisation. An automated entailment check then labels support; a claim without a supported verdict is held out of the lesson. Support label: " + SOURCE_SUPPORT_LABEL + ". No claim is human-verified and factuallyVerified stays false. Model confidence and search snippets are not support."
+        : "Phase 1: no claim is factually verified. Supplied teacher material, support for a claim, and verification are separate. Model-originated claims are unverified. Teacher material is not treated as truth. Retrieved, curated, and curriculum origins are not available in this phase.",
+      verificationOverrides: overrides,
+      claims: claims,
+      mechanisms: mechanisms,
+      concepts: concepts,
+      vocabulary: vocabulary,
+      misconceptions: misconceptions,
+      openQuestions: phraseList(body.openQuestions, 160, 4),
+      rejectedClaims: rejected.slice(0, 8),
+      strippedFields: stripped
+    };
+    if (sourceFields) {
+      packOut.sourceMode = sourceFields.sourceMode;
+      packOut.sourceAudit = sourceFields.sourceAudit;
+    }
+    return packOut;
+  }
+
+  function selectPackForLesson(pack, ctx) {
+    ctx = ctx || {};
+    pack = pack || {};
+    var year = Number(yearDigit(ctx.yearGroup || ctx.yearAssumption || (ctx.lessonBrief && ctx.lessonBrief.yearGroup))) || 0;
+    if (!year) year = ctx.yearAssumed ? 3 : 3;
+    var mode = year <= 2 ? "concrete" : (year <= 4 ? "mechanism" : "system");
+    if (!pack.claims || !pack.claims.length || pack.status === "blocked") {
+      return {
+        status: "blocked",
+        reason: pack.status === "blocked" ? (pack.statusReason || "knowledge pack is blocked") : "no claims to select",
+        depthMode: mode,
+        year: year,
+        claimIds: [],
+        heldBack: (pack.claims || []).map(function (claim) {
+          return { claimId: claim.claimId, reason: claim.localHold ? "unsupported local claim" : "pack blocked" };
+        })
+      };
+    }
+    var held = [];
+    var eligible = [];
+    pack.claims.forEach(function (claim) {
+      if (claim.localHold) {
+        held.push({ claimId: claim.claimId, depth: claim.depth, reason: "unsupported local claim" });
+        return;
+      }
+      if (claim.classificationHold) {
+        held.push({ claimId: claim.claimId, depth: claim.depth, reason: "unsupported classification" });
+        return;
+      }
+      if (pack.sourceMode === "retrieved" && (claim.sourceHold || claim.entailment !== "supported")) {
+        held.push({ claimId: claim.claimId, depth: claim.depth, reason: "source support not confirmed (" + (claim.entailment || "unchecked") + ")" });
+        return;
+      }
+      var fit = claim.ageFit || { from: 1, to: 6 };
+      if (year < fit.from || year > fit.to) {
+        held.push({ claimId: claim.claimId, depth: claim.depth, reason: "outside age fit" });
+        return;
+      }
+      if (claim.contested) {
+        held.push({ claimId: claim.claimId, depth: claim.depth, reason: "contested" });
+        return;
+      }
+      if (claim.importance === "optional") {
+        held.push({ claimId: claim.claimId, depth: claim.depth, reason: "optional" });
+        return;
+      }
+      var depthOk = false;
+      if (mode === "concrete") depthOk = claim.depth === "concrete" || (claim.depth === "mechanism" && fit.from <= 2);
+      else if (mode === "mechanism") depthOk = claim.depth === "concrete" || claim.depth === "mechanism";
+      else depthOk = claim.depth === "concrete" || claim.depth === "mechanism" || claim.depth === "system";
+      if (!depthOk) {
+        held.push({ claimId: claim.claimId, depth: claim.depth, reason: "other depth" });
+        return;
+      }
+      eligible.push(claim);
+    });
+    var confidenceRank = { high: 0, medium: 1, low: 2 };
+    var depthRank = { concrete: 0, mechanism: 1, system: 2 };
+    eligible.sort(function (a, b) {
+      return (depthRank[a.depth] || 0) - (depthRank[b.depth] || 0) || (confidenceRank[a.confidence] || 1) - (confidenceRank[b.confidence] || 1) || (a.claimId < b.claimId ? -1 : 1);
+    });
+    var strong = eligible.filter(function (claim) { return claim.confidence !== "low"; });
+    if (strong.length >= 2) {
+      eligible.filter(function (claim) { return claim.confidence === "low"; }).forEach(function (claim) {
+        held.push({ claimId: claim.claimId, depth: claim.depth, reason: "low confidence" });
+      });
+      eligible = strong;
+    }
+    var hasPrimary = eligible.some(function (claim) {
+      if (mode === "concrete") return claim.depth === "concrete" || claim.depth === "mechanism";
+      return claim.depth === mode;
+    });
+    var status = "ready";
+    var reason = "";
+    if (!hasPrimary) {
+      status = eligible.length >= 2 ? "qualified" : "blocked";
+      reason = "The pack has no " + mode + " claim that fits Year " + year + ".";
+    } else if (eligible.length < 2) {
+      status = "blocked";
+      reason = "Not enough claims fit Year " + year + " without inventing facts.";
+    } else if (mode === "concrete") {
+      reason = "Year " + year + " selects concrete claims, and a mechanism only when its age fit starts at Year 2 or earlier. System claims stay in the pack.";
+    } else if (mode === "mechanism") {
+      reason = "Year " + year + " selects concrete claims and mechanisms. System claims stay in the pack.";
+    } else {
+      reason = "Year " + year + " selects concrete claims, mechanisms, and system claims. Younger years do not receive the system claims.";
+    }
+    if (pack.status === "qualified" && status === "ready") status = "qualified";
+    return {
+      status: status,
+      reason: reason,
+      depthMode: mode,
+      year: year,
+      claimIds: eligible.map(function (claim) { return claim.claimId; }),
+      heldBack: held
+    };
+  }
+
+  function packForPlanner(pack) {
+    pack = pack || {};
+    return {
+      id: pack.id,
+      status: pack.status,
+      statusReason: pack.statusReason,
+      falsePremise: pack.falsePremise || "",
+      provenanceSummary: pack.provenanceSummary,
+      claims: (pack.claims || []).filter(function (claim) {
+        return !(pack.sourceMode === "retrieved" && claim.sourceHold);
+      }).map(function (claim) {
+        var row = {
+          claimId: claim.claimId,
+          text: claim.text,
+          kind: claim.kind,
+          depth: claim.depth,
+          confidence: claim.confidence,
+          provenance: claim.provenance,
+          provenanceNote: claim.provenanceNote,
+          teacherRequested: !!claim.teacherRequested,
+          factuallyVerified: false,
+          contested: !!claim.contested,
+          uncertainty: claim.uncertainty || "",
+          ageFit: claim.ageFit,
+          importance: claim.importance,
+          correctsPremise: !!claim.correctsPremise,
+          supplied: !!claim.supplied,
+          support: claim.support || "",
+          placeBound: !!claim.placeBound,
+          localHold: !!claim.localHold
+        };
+        if (claim.sourceRef) {
+          row.sourceRef = claim.sourceRef.slice();
+          row.sourceSupport = claim.sourceSupport || "";
+        }
+        return row;
+      }),
+      mechanisms: pack.mechanisms || [],
+      concepts: pack.concepts || [],
+      vocabulary: pack.vocabulary || [],
+      misconceptions: pack.misconceptions || [],
+      rejectedClaims: pack.rejectedClaims || [],
+      doNotTeach: (pack.claims || []).filter(function (claim) { return claim.localHold || claim.classificationHold || (pack.sourceMode === "retrieved" && claim.sourceHold); }).map(function (claim) { return claim.text; }).concat((pack.rejectedClaims || []).map(function (item) { return item.text; })).concat(pack.falsePremise ? [pack.falsePremise] : []).slice(0, 12)
+    };
+  }
+
+  function packConstraint(ctx) {
+    if (!ctx || !ctx.knowledgePack || ctx.knowledgePack.status === "blocked" || !(ctx.knowledgePack.claims || []).length) return "";
+    return "knowledgePack.claims is the only source of subject facts. Each learningMap point must include claimIds, an array of claimId values from that pack. knowledgeSelection.claimIds are the only claims eligible for this year, intent, and duration. The knowledge sentence may shorten the cited claim. It must not add a subject fact, name, date, measurement, or mechanism that the cited claim does not already state. The pack holds more claims than this lesson should teach. Select a subset that fits the depth budget. knowledgeSelection.depthMode is concrete, mechanism, or system: concrete names what a child can observe, mechanism says how or why a part works, and system says how several mechanisms work together. Do not satisfy an older year by writing longer words for the same claim. Do not teach falsePremise, doNotTeach, or rejectedClaims. narrativeTheme may be imaginative. The learning map may not invent facts.";
+  }
+
+  function knowledgePackLog(pack, selection) {
+    pack = pack || {};
+    selection = selection || {};
+    return {
+      packId: pack.id || "",
+      status: pack.status || "",
+      statusReason: clean(pack.statusReason, 220),
+      modelStatus: pack.modelStatus || "",
+      modelNiche: !!pack.modelNiche,
+      localAdmission: pack.localAdmission || "",
+      needsSource: !!pack.needsSource,
+      falsePremise: clean(pack.falsePremise, 180),
+      provenanceSummary: clean(pack.provenanceSummary, 280),
+      verificationOverrides: pack.verificationOverrides || 0,
+      claimCount: (pack.claims || []).length,
+      claims: (pack.claims || []).slice(0, 18).map(function (claim) {
+        var row = {
+          claimId: claim.claimId,
+          text: clean(claim.text, 180),
+          kind: claim.kind,
+          depth: claim.depth,
+          confidence: claim.confidence,
+          provenance: claim.provenance,
+          provenanceNote: clean(claim.provenanceNote, 140),
+          teacherRequested: !!claim.teacherRequested,
+          factuallyVerified: false,
+          contested: !!claim.contested,
+          uncertainty: clean(claim.uncertainty, 120),
+          ageFit: claim.ageFit || null,
+          importance: claim.importance || "",
+          correctsPremise: !!claim.correctsPremise,
+          supplied: !!claim.supplied,
+          support: claim.support || "",
+          placeBound: !!claim.placeBound,
+          localHold: !!claim.localHold,
+          classificationHold: !!claim.classificationHold
+        };
+        return claim.sourceRef ? Object.assign(row, {
+          sourceRef: claim.sourceRef.slice(),
+          sourceQuote: clean(claim.sourceQuote, 300),
+          sourceUrls: (claim.sourceUrls || []).slice(0, 2),
+          quoteVerified: !!claim.quoteVerified,
+          entailment: claim.entailment || "",
+          sourceSupport: claim.sourceSupport || "",
+          sourceHold: !!claim.sourceHold
+        }) : row;
+      }),
+      mechanisms: (pack.mechanisms || []).slice(0, 12).map(function (item) {
+        return { claimId: item.claimId, text: clean(item.text, 160), feature: clean(item.feature, 80), featureClaimId: item.featureClaimId || "" };
+      }),
+      concepts: (pack.concepts || []).slice(0, 8),
+      vocabulary: (pack.vocabulary || []).slice(0, 8),
+      misconceptions: (pack.misconceptions || []).slice(0, 6),
+      openQuestions: (pack.openQuestions || []).slice(0, 4),
+      rejectedClaims: (pack.rejectedClaims || []).slice(0, 8),
+      strippedFields: pack.strippedFields || [],
+      sourceMode: pack.sourceMode || "",
+      sourceAudit: pack.sourceAudit ? {
+        label: pack.sourceAudit.label,
+        checked: pack.sourceAudit.checked,
+        admitted: pack.sourceAudit.admitted,
+        rejectedByReason: pack.sourceAudit.rejectedByReason,
+        rejected: (pack.sourceAudit.rejected || []).slice(0, 12),
+        entailment: pack.sourceAudit.entailment || null,
+        entailmentRan: !!pack.sourceAudit.entailmentRan,
+        humanVerified: false
+      } : null,
+      selection: {
+        status: selection.status || "",
+        reason: clean(selection.reason, 240),
+        depthMode: selection.depthMode || "",
+        year: selection.year || 0,
+        claimIds: (selection.claimIds || []).slice(0, 18),
+        heldBack: (selection.heldBack || []).slice(0, 18)
+      }
+    };
+  }
+
+  function knowledgeTrace(plan, slots, ctx) {
+    plan = plan || {};
+    ctx = ctx || {};
+    var pack = ctx.knowledgePack || {};
+    var byClaim = {};
+    (pack.claims || []).forEach(function (claim) { byClaim[claim.claimId] = claim; });
+    var byPoint = {};
+    (plan.learningMap || []).forEach(function (item) { byPoint[item.id] = item; });
+    function claimsFor(refs) {
+      var ids = [];
+      (refs || []).forEach(function (ref) {
+        var point = byPoint[ref];
+        ((point && point.claimIds) || []).forEach(function (id) {
+          if (ids.indexOf(id) === -1) ids.push(id);
+        });
+      });
+      return ids;
+    }
+    var beats = [];
+    (slots || []).forEach(function (slot) {
+      if (!slot) return;
+      (slot.beats || []).forEach(function (beat) {
+        if (beats.length >= 40) return;
+        beats.push({
+          stage: slot.id,
+          beatId: beat.id,
+          move: beat.move,
+          mapIds: (beat.knowledgeRefs || []).slice(0, 4),
+          claimIds: claimsFor(beat.knowledgeRefs).slice(0, 4)
+        });
+      });
+    });
+    return {
+      packId: pack.id || "",
+      packStatus: pack.status || "",
+      provenanceSummary: clean(pack.provenanceSummary, 280),
+      depthMode: (ctx.knowledgeSelection && ctx.knowledgeSelection.depthMode) || "",
+      depthReason: clean((ctx.knowledgeSelection && ctx.knowledgeSelection.reason) || "", 240),
+      map: (plan.learningMap || []).slice(0, 14).map(function (item) {
+        return {
+          mapId: item.id,
+          knowledge: clean(item.knowledge, 160),
+          claimIds: (item.claimIds || []).slice(0, 4),
+          provenance: (item.claimIds || []).map(function (id) { return byClaim[id] ? byClaim[id].provenance : ""; }).slice(0, 4),
+          sourceRef: (item.claimIds || []).map(function (id) { return byClaim[id] && byClaim[id].sourceRef ? byClaim[id].sourceRef.slice() : []; }).slice(0, 4),
+          factuallyVerified: false
+        };
+      }),
+      teach: beats.filter(function (beat) { return beat.stage === "teach"; }).slice(0, 24),
+      apply: beats.filter(function (beat) { return beat.stage === "apply"; }),
+      check: beats.filter(function (beat) { return beat.stage === "check"; })
+    };
   }
 
   function knowledgeLines(ctx) {
@@ -401,7 +1685,7 @@
     var copy = {};
     var key;
     for (key in ctx) {
-      if (key === "organisationId" || key === "classId") continue;
+      if (key === "organisationId" || key === "classId" || key === "knowledgePack" || key === "knowledgeSelection" || key === "researchEvidence") continue;
       copy[key] = ctx[key];
     }
     if (copy.lessonPlan) copy.lessonPlan = publishPlan(copy.lessonPlan);
@@ -422,18 +1706,36 @@
   function scopeGuide(ctx, depth) {
     var scope = teachingScope(ctx);
     var span = strandRange(depth);
+    var year = beatYear((ctx && (ctx.yearGroup || ctx.yearAssumption)) || "");
     if (scope.scope === "broad") {
-      var young = beatYear((ctx && (ctx.yearGroup || ctx.yearAssumption)) || "");
-      var youngLine = young && young <= 2
+      var youngLine = year && year <= 2
         ? " For Year 1 and Year 2, two developed strands are enough. Each strand is one everyday sentence that names an idea and one sentence that says how or why it works, with dependsOn linking that explanation to the name. Two linked strands are better than six unlinked facts. Do not fill the point target with extra names that have no how or why."
         : "";
-      return "Scope: the teacher named a broad topic. Choose a coherent scope yourself for this year and duration: one foundation point, then " + (span.low === span.high ? span.low : span.low + " to " + span.high) + " strands about the ideas that matter most for understanding this topic at this age, and a connection point if the strands work together. Do not shrink the lesson to one fact, do not write an encyclopedia list, and do not wait for the teacher to name the subtopics." + youngLine;
+      return "Scope: the teacher named a broad topic. Choose a coherent scope yourself for this year and duration: at most one shared foundation, then " + (span.low === span.high ? span.low : span.low + " to " + span.high) + " strands about the ideas that matter most for understanding this topic at this age, and a connection point if the strands work together. A shared foundation is optional when it adds no teaching value. Do not invent one to satisfy the format. Each strand head is a feature or concept, not another foundation. Its function or mechanism dependsOn that feature. Each developed strand contains both the named idea and its linked how or why. Do not shrink the lesson to one fact, do not write an encyclopedia list, and do not wait for the teacher to name the subtopics." + youngLine;
     }
-    return "Scope: the teacher asked about one relationship, method, or idea. Stay inside it: every strand must lead to the learning goal. Go deeper, not wider: the parts or steps involved, how each one works, and what that achieves for the goal. Do not add other aspects of the wider topic.";
+    var depthLine = "";
+    if (planSeeksDepth(ctx)) {
+      var minimum = seekingStrandMinimum(ctx, depth);
+      var count = String(minimum);
+      if (year <= 2) {
+        depthLine = " Year 1 and Year 2 stay in everyday words: one foundation, then " + count + " developed strand" + (minimum === 1 ? "" : "s") + ". Each strand names a feature and says how or why it works. A short true how or why is enough; do not inflate the wording.";
+      } else if (year <= 4) {
+        depthLine = " Year 3 and Year 4 need " + count + " developed strands: several important ideas inside this goal. Each strand names a feature or event, then how or why it works, then the consequence where it matters. Keep the foundation in a simple sentence.";
+      } else {
+        depthLine = " Year 5 and Year 6 need " + count + " developed strands with real mechanisms and a connection between them. Deeper means a clearer how or why, richer vocabulary and reasoning, not a fourth strand of names.";
+      }
+      depthLine += " Use at most one shared foundation, and only when it adds teaching value before every strand. A foundation is optional. Do not invent a foundation to satisfy the format. The named feature or concept is the strand head, and its function or mechanism dependsOn that feature, not the foundation. Each developed strand contains both the named idea and its linked how or why. A sentence that only names what something has is not a developed strand until a later point in the same strand explains it and depends on that name. Do not label that name as foundation.";
+    }
+    return "Scope: the teacher asked about one relationship, method, or idea. Stay inside it: every strand must lead to the learning goal. Go deeper, not wider: the parts or steps involved, how each one works, and what that achieves for the goal. Do not add other aspects of the wider topic." + depthLine;
   }
 
   function planBrief(ctx) {
     var safe = forModel(ctx || {});
+    var packNote = packConstraint(ctx);
+    if (packNote) {
+      safe.knowledgePack = packForPlanner(ctx.knowledgePack);
+      safe.knowledgeSelection = ctx.knowledgeSelection || null;
+    }
     var depth = depthBudget((ctx || {}).yearGroup || (ctx || {}).yearAssumption, (ctx || {}).requestedMinutes);
     var system = [
       "You are planning one primary lesson. This response is the internal lesson plan only.",
@@ -441,7 +1743,7 @@
       "Decide what the children should understand. Then decide what to teach so they can understand it. The classroom activities are chosen in a later step.",
       "Work in this order: the teacher's request, the context, one learning objective, the key knowledge, prior knowledge, misconceptions, vocabulary, the teaching sequence, then where a check or a recap belongs.",
       "learningObjective is one sentence a teacher could say. successCriteria are two or three things the class can do if the lesson worked.",
-      "learningMap is the connected journey of learning points a pupil needs in order to achieve lessonBrief.learningGoal. Each point is one child-sized idea in one sentence. Together the points must be sufficient. Build it from strands. The foundation is what a pupil needs first. A strand develops one idea: a point that names the feature, part, event, step, or idea; then a point that explains how or why it works (a function, mechanism, cause, process, or procedure); then, where it matters, a point saying what that leads to. The first point of a strand lists only the foundation in dependsOn. Each later point in a strand lists the point before it. A connection point lists the last points of two or more strands and says how they work together. An example point lists the point it shows. Every point adds new information: do not restate an earlier point in other words, do not write a point that only says these things help, and do not write a point about learning the topic itself. Do not write a disconnected list of facts about the topic. For this year and about " + depth.minutes + " minutes, aim for about " + depth.floor + " to " + depth.max + " points. This is a target, not a quota: a narrow goal about one specific feature may need fewer, and never more than " + depth.max + ". Do not reach the number with a restatement, a paraphrase, trivia, or a second example of the same idea. Do not invent quotations, dates, or events. A simplified explanation must still be true. When the goal asks how something helps, causes, affects, works, changes, gets, carries, or transports, or why something happens or matters, the points must lead to the goal: at least one point states the relationship the goal asks about, and every other point is a step towards it. A nearby fact about the same topic that leads nowhere does not belong. importance is core for a point the goal cannot do without and supporting for a helpful step.",
+      "learningMap is the connected journey of learning points a pupil needs in order to achieve lessonBrief.learningGoal. Each point is one child-sized idea in one sentence. Together the points must be sufficient. Build it from strands. Use at most one shared foundation in the whole map. A shared foundation is optional: include it only when that sentence adds teaching value before every strand, and omit it when it does not. Do not invent a foundation to satisfy the format. Do not give a feature, a part, or an adaptation the role foundation. A strand develops one idea: the strand head names the feature, part, event, step, or idea with role feature or concept; then a point explains how or why it works (a function, mechanism, cause, process, or procedure); then, where it matters, a point says what that leads to. When a foundation exists, the strand head lists only that foundation in dependsOn. When it does not, the strand head has an empty dependsOn. The function or mechanism dependsOn that specific feature, not the foundation, and explains records that same id. Each developed strand contains both the named idea and its linked how or why. A function that depends only on the foundation is a separate fact, not a developed strand. A connection point lists the last points of two or more strands and says how they work together. An example point lists the point it shows. Every point adds new information: do not restate an earlier point in other words, do not write a point that only says these things help, and do not write a point about learning the topic itself. Do not write a disconnected list of facts about the topic. For this year and about " + depth.minutes + " minutes, aim for about " + depth.floor + " to " + depth.max + " points. This is a target, not a quota: a narrow goal about one specific feature may need fewer, and never more than " + depth.max + ". Do not reach the number with a restatement, a paraphrase, trivia, or a second example of the same idea. Do not invent quotations, dates, or events. A simplified explanation must still be true. When the goal asks how something helps, causes, affects, works, changes, gets, carries, or transports, or why something happens or matters, the points must lead to the goal: at least one point states the relationship the goal asks about, and every other point is a step towards it. A nearby fact about the same topic that leads nowhere does not belong. importance is core for a point the goal cannot do without and supporting for a helpful step.",
       scopeGuide(ctx || {}, depth),
       "Match the goal. Why or cause: state the reason, not only what is seen or where it happens. Significance or importance: state the change, event, or contribution and why it mattered. Compare: include what is needed about both sides. Process: state the change or sequence, not only the parts, inputs, places, or outputs. Procedure or use: write the actions the pupil carries out, not only the name of the step. Definition: a short definition and only the characteristics or examples needed to use it. Explain: the facts that specific goal needs, not a generic list about the topic.",
       "A sentence that only names the topic, states identity, gives a famous number or date, says something is important or significant, or says where something happens does not meet a relationship the goal requires.",
@@ -450,15 +1752,15 @@
       "vocabulary is only the words worth teaching at this age.",
       "lessonBrief.intent says whether this lesson is why, process, compare, definition, procedure, or explain. When lessonBrief.teacherIntent is present, lessonBrief.learningGoal is the only new teaching target, lessonBrief.focusConcepts are the ideas to teach, lessonBrief.priorKnowledge is already known and may be the starting point, and lessonBrief.exclusions must not be retaught. lessonBrief.teacherIntent.requiredEvidence says what a correct check must show. It is not an extra learning point. lessonBrief.preferences and the duration are presentation, not learning points. Do not turn prior knowledge or an exclusion into the lesson target.",
       "When teacherIntent is absent, lessonBrief.concepts are the ideas to teach. Do not treat words such as between, difference, why, or how as the concept.",
-      "Each learningMap point is { id, knowledge, role, importance, dependsOn }. id is p1, p2, and so on. role is foundation, feature, concept, function, cause, effect, mechanism, process, procedure, comparison, example, or connection. A role is only a label: a sentence of six words or a place does not become a cause, function, or process because of its role. The sentence itself must state the relationship. A connection point says how earlier points work together. An example point shows an earlier point in use.",
+      "Each learningMap point is { id, knowledge, role, importance, dependsOn, explains" + (packNote ? ", claimIds" : "") + " }. id is p1, p2, and so on. role is foundation, feature, concept, function, cause, effect, mechanism, process, procedure, comparison, example, or connection. Use role foundation at most once. An adaptation's named feature is role feature or concept. A role is only a label: a sentence of six words or a place does not become a cause, function, or process because of its role. The sentence itself must state the relationship. explains is the id of the feature, concept, or earlier point this sentence explains. A mechanism, function, cause, or process sets explains to that feature's id and lists the same id in dependsOn. A foundation, and a strand head with nothing before it, sets explains to an empty string. explains must be an existing point id. Do not point explains at a point the sentence does not explain, and do not choose an id because it is the previous point. A connection point says how earlier points work together. An example point shows an earlier point in use.",
       "lessonArc purpose must be exactly one of these words: hook, investigate, teach, apply, check, resolution, recap. Do not write a sentence as the purpose. The system decides which learning points are taught, in what order, and which are checked, and places them on the teach stage and the recap. The hook and the investigate stage must not contain them.",
       "Age changes the plan: vocabulary, how long the sentences are, how deep the explanation goes, the examples, and how hard the reasoning is. Year 1 and Year 2 key knowledge stays in everyday words.",
       "If yearAssumed is true, plan for yearAssumption and say so in yearGroup. Do not pretend the teacher named that year.",
       "lessonBrief.topic is the specific concept to teach. Do not widen it into a broader topic.",
       "teachingApproach is two sentences on how to teach this subject. narrativeTheme is a light classroom frame, or an empty string if a story frame would get in the way.",
       subjectGuide(safe.subject, (safe.lessonBrief && safe.lessonBrief.topic) || safe.topic),
-      "JSON shape: { title, subject, topic, yearGroup, durationMinutes, learningObjective, successCriteria, priorKnowledge, learningMap: [{ id, knowledge, role, importance, dependsOn }], vocabulary, misconceptions, teachingApproach, narrativeTheme, lessonArc: [{ purpose, learningRole, concept }] }."
-    ].join(" ");
+      "JSON shape: { title, subject, topic, yearGroup, durationMinutes, learningObjective, successCriteria, priorKnowledge, learningMap: [{ id, knowledge, role, importance, dependsOn, explains }], vocabulary, misconceptions, teachingApproach, narrativeTheme, lessonArc: [{ purpose, learningRole, concept }] }."
+    ].concat(packNote ? [packNote] : []).join(" ");
     return { system: system, user: JSON.stringify(safe) };
   }
 
@@ -666,22 +1968,39 @@
     };
   }
 
+  function soleMove(list, index, move) {
+    var ref = (list[index].refs || [])[0];
+    if (!ref) return false;
+    return !list.some(function (other, otherIndex) {
+      return otherIndex !== index && other.move === move && (other.refs || [])[0] === ref;
+    });
+  }
+
   function trimMoves(list, cap) {
     var next = (list || []).slice();
-    ["exemplify", "connect", "compare", "predict", "model"].forEach(function (move) {
+    function dropMove(move, keepSole) {
       while (next.length > cap) {
         var index = -1;
         for (var i = next.length - 1; i >= 0; i -= 1) {
-          if (next[i].move === move) { index = i; break; }
+          if (next[i].move !== move) continue;
+          if (keepSole && soleMove(next, i, move)) continue;
+          index = i;
+          break;
         }
         if (index === -1) break;
         next.splice(index, 1);
       }
-    });
+    }
+    ["predict", "compare", "connect"].forEach(function (move) { dropMove(move, false); });
+    ["exemplify", "model"].forEach(function (move) { dropMove(move, true); });
     while (next.length > cap && next.length > 1) {
       var drop = -1;
       for (var end = next.length - 1; end >= 0; end -= 1) {
-        if (next[end].move !== "name" && next[end].move !== "explain") { drop = end; break; }
+        var move = next[end].move;
+        if (move === "name" || move === "explain") continue;
+        if ((move === "model" || move === "exemplify") && soleMove(next, end, move)) continue;
+        drop = end;
+        break;
       }
       if (drop === -1) break;
       next.splice(drop, 1);
@@ -961,6 +2280,68 @@
     return { taught: order, at: at, before: before };
   }
 
+  function teachingTrace(plan, slots, ctx) {
+    plan = plan || {};
+    ctx = ctx || {};
+    var year = beatYear((ctx.yearGroup || ctx.yearAssumption) || plan.yearGroup);
+    var depth = plan.depthBudget || depthBudget(year, plan.durationMinutes);
+    var items = beatKnowledge(plan, year);
+    var textOf = {};
+    items.forEach(function (item) { textOf[item.id] = item.text; });
+    var look = teachingLookup(plan);
+    var ledger = taughtLedger(slots);
+    function strandOf(ref) {
+      return look && look.point[ref] ? look.point[ref].strand : "";
+    }
+    var beats = [];
+    var byRef = {};
+    (slots || []).forEach(function (slot) {
+      if (!slot) return;
+      (slot.beats || []).forEach(function (beat) {
+        (beat.knowledgeRefs || []).forEach(function (ref) {
+          var row = {
+            stage: slot.id,
+            beatId: beat.id,
+            move: beat.move,
+            ref: ref,
+            strand: strandOf(ref),
+            knowledge: textOf[ref] || ""
+          };
+          beats.push(row);
+          if (!byRef[ref]) byRef[ref] = { ref: ref, strand: row.strand, knowledge: row.knowledge, learned: "", used: "", checked: "", consolidated: "" };
+          var entry = byRef[ref];
+          if (TEACHING_MOVES[beat.move]) {
+            var learned = beat.move + " in " + slot.id;
+            if (!entry.learned) entry.learned = learned;
+            else if (entry.learned.indexOf(beat.move + " ") !== 0 && entry.learned.indexOf(", " + beat.move) === -1) entry.learned += ", then " + beat.move;
+          }
+          if (!entry.used && (beat.move === "practise" || beat.move === "apply")) entry.used = beat.move + " in " + slot.id;
+          if (!entry.checked && beat.move === "retrieve") entry.checked = beat.id;
+          if (!entry.consolidated && beat.move === "consolidate") entry.consolidated = beat.id;
+        });
+      });
+    });
+    var check = (slots || []).filter(function (slot) { return slot && slot.id === "check"; })[0];
+    var checkStrands = [];
+    ((check && check.beats) || []).forEach(function (beat) {
+      var strand = strandOf((beat.knowledgeRefs || [])[0]);
+      if (strand && checkStrands.indexOf(strand) === -1) checkStrands.push(strand);
+    });
+    return {
+      year: depth.year,
+      minutes: depth.minutes,
+      depthFloor: depth.floor,
+      depthMax: depth.max,
+      questionBudget: depth.questions,
+      checkQuestions: ((check && check.beats) || []).filter(function (beat) { return beat.move === "retrieve"; }).length,
+      checkStrands: checkStrands,
+      taughtBeforeApply: (ledger.before.apply || []).slice(),
+      taughtBeforeCheck: (ledger.before.check || []).slice(),
+      beats: beats,
+      knowledge: Object.keys(byRef).map(function (ref) { return byRef[ref]; })
+    };
+  }
+
   function learningMapReport(plan, slots, ctx) {
     plan = plan || {};
     var map = Array.isArray(plan.learningMap) ? plan.learningMap : [];
@@ -986,7 +2367,8 @@
           knowledge: clean(item.knowledge, 140),
           role: item.role || "",
           importance: item.importance || "",
-          dependsOn: (item.dependsOn || []).slice(0, 6)
+          dependsOn: (item.dependsOn || []).slice(0, 6),
+          claimIds: (item.claimIds || []).slice(0, 4)
         };
       }),
       admitted: map.map(function (item) { return item.id; }).slice(0, 14),
@@ -1342,6 +2724,7 @@
     year = beatYear(year);
     if (hasLearningMap(plan)) return planMapBeats(skeleton, plan, year);
     var bounds = beatLimit(year);
+    var depth = depthBudget(year, plan && plan.durationMinutes);
     var items = beatKnowledge(plan, year);
     if (!items.length) return (skeleton || []).map(function (slot) { return Object.assign({}, slot, { beats: [] }); });
     var first = items[0].id;
@@ -1359,26 +2742,35 @@
     });
     if (year >= 3 && items.length >= 2) teach.push({ move: "connect", refs: [items[0].id, items[1].id] });
     var taught = {};
-    packBeats("teach", teach, bounds.cap).forEach(function (beat) {
-      if (beat.move === "name" || beat.move === "explain" || beat.move === "model") {
+    var teachCap = Math.max(teach.length, 1);
+    packBeats("teach", teach, teachCap).forEach(function (beat) {
+      if (beat.move === "name" || beat.move === "explain" || beat.move === "model" || beat.move === "exemplify") {
         (beat.knowledgeRefs || []).forEach(function (ref) { taught[ref] = true; });
       }
     });
     var focus = first;
     var focused = false;
-    packBeats("teach", teach, bounds.cap).forEach(function (beat) {
+    packBeats("teach", teach, teachCap).forEach(function (beat) {
       if (!focused && (beat.move === "explain" || beat.move === "model") && beat.knowledgeRefs[0]) {
         focus = beat.knowledgeRefs[0];
         focused = true;
       }
     });
-    var teachBeats = packBeats("teach", teach, bounds.cap);
+    var teachBeats = packBeats("teach", teach, teachCap);
     var connect = null;
     teachBeats.forEach(function (beat) { if (beat.move === "connect") connect = beat; });
-    var checkRefs = year >= 5 && connect ? connect.knowledgeRefs.slice() : [focus];
     var named = items.filter(function (item) { return taught[item.id]; }).map(function (item) { return item.id; });
     if (!named.length) named = [first];
-    var checkBeats = [{ move: "retrieve", refs: checkRefs }];
+    var checkPool = items.filter(function (item) { return taught[item.id] && (ASSESSABLE[item.kind] || item.id === focus); });
+    if (!checkPool.length) checkPool = items.filter(function (item) { return item.id === focus; });
+    var checkRefs = checkPool.slice(0, depth.questions).map(function (item) { return item.id; });
+    if (year >= 5 && connect) {
+      connect.knowledgeRefs.forEach(function (ref) {
+        if (checkRefs.length < depth.questions && checkRefs.indexOf(ref) === -1) checkRefs.push(ref);
+      });
+    }
+    if (!checkRefs.length) checkRefs = [focus];
+    var checkBeats = checkRefs.map(function (ref) { return { move: "retrieve", refs: [ref] }; });
     var recap = year >= 4
       ? [{ move: "consolidate", refs: named.slice() }]
       : named.map(function (ref) { return { move: "consolidate", refs: [ref] }; });
@@ -1396,8 +2788,16 @@
       recap: recap
     };
     return (skeleton || []).map(function (slot) {
-      var beats = packBeats(slot.id, shaped[slot.id] || [], bounds.cap).filter(function (beat) { return BEAT_MOVES[beat.move]; });
-      return Object.assign({}, slot, { beats: beats });
+      var list = shaped[slot.id] || [];
+      var cap = slot.id === "teach" || slot.id === "check" || slot.id === "recap" ? Math.max(list.length, 1) : bounds.cap;
+      var beats = packBeats(slot.id, list, cap).filter(function (beat) { return BEAT_MOVES[beat.move]; });
+      var next = Object.assign({}, slot, { beats: beats });
+      if (slot.id === "check") {
+        var textOf = {};
+        items.forEach(function (item) { textOf[item.id] = item.text; });
+        next.requiredKnowledge = checkRefs.map(function (ref) { return textOf[ref]; }).filter(Boolean);
+      }
+      return next;
     });
   }
 
@@ -1508,15 +2908,15 @@
       notice: "notice directs attention to one concrete unsolved problem and does not give the later explanation. It is not an empty question such as what lives here." + (beatYear(year) <= 2 ? " A Year 1 or Year 2 notice beat is one sentence: one looking question or one looking instruction. It is never an instruction followed by a question." : ""),
       predict: "predict asks for a prediction from what the class can already use.",
       name: "name states the planned knowledge clearly in one short everyday sentence. It says what the thing is, not only a bare label.",
-      explain: "explain says how or why the referenced knowledge works, in new words and in one short sentence.",
-      exemplify: "exemplify gives one age-appropriate example of the referenced knowledge.",
-      model: "model demonstrates the planned process or procedure.",
+      explain: "explain says how or why the referenced knowledge works, in new words and in one short sentence. Naming the thing is not an explanation.",
+      exemplify: "exemplify gives one concrete example of the referenced knowledge. Do not say only that an example exists.",
+      model: "model shows the step or action of the referenced knowledge. Do not say only that there is a worked step.",
       compare: "compare points to a relevant similarity or difference.",
       connect: "connect states how the referenced knowledge joins the ideas taught before it.",
-      practise: "practise is short pupil-facing preparation for the task. It refers to the knowledge the child is about to use on a new case. It does not merely say use your knowledge. It does not duplicate the entire task instruction or repeat the taught sentence.",
-      apply: "apply is a short pupil-facing bridge from the taught knowledge into the task. It makes clear what idea the pupil should use. It does not replace the task itself.",
-      reveal: "reveal resolves the adventure using the taught knowledge.",
-      consolidate: "consolidate restates the learned knowledge itself, including the how or why when that was taught, not that the lesson is finished."
+      practise: "practise is short pupil-facing preparation for the task. It refers to the knowledge the child is about to use on a new case. It does not merely say use your knowledge. It does not write only 'use it in what you make'. It does not duplicate the entire task instruction or repeat the taught sentence.",
+      apply: "apply is a short pupil-facing bridge from the taught knowledge into the task. It names the idea the pupil should use. It does not replace the task itself, and it is not a request to repeat the fact.",
+      reveal: "reveal settles the adventure by stating the taught knowledge. When the adventure has a mission, the sentence is that mission's payoff. Do not say only that the class can now use the idea.",
+      consolidate: "consolidate restates the learned knowledge itself, including the how or why when that was taught. Do not say only that the lesson is finished or that the class can now use the idea."
     };
     var lines = Object.keys(meaning).filter(function (move) { return seen[move]; }).map(function (move) { return meaning[move]; });
     return lines.length ? "Pupil text for each planned move: " + lines.join(" ") : "";
@@ -1602,6 +3002,7 @@
         });
       }
       var textReason = pupilCopyReason(text, year, minimum, blocked);
+      if (!textReason) textReason = beatSubstanceReason(beat, text, items);
       if (textReason) row(textReason);
       if (cue) {
         var cueReason = pupilCopyReason(cue, year, 4, blocked);
@@ -1627,9 +3028,109 @@
       "too many sentences for year": young ? "It has more than one sentence. Year 1 and Year 2 need exactly one sentence. Do not write an instruction followed by a question. Keep one of them as the whole sentence." : "It has more than two sentences. Use one or two sentences.",
       "internal-copy collision": "It copies an internal label. Write words a pupil would hear.",
       "copies a knowledge sentence": "It copies the knowledge sentence word for word. Say the same idea in new words.",
-      "copies the name sentence": "It repeats the name sentence. Explain the idea in new words."
+      "copies the name sentence": "It repeats the name sentence. Explain the idea in new words.",
+      "does not explain": "It names the thing but does not say how or why. Add the cause, the step, or what it does.",
+      "does not give an example": "It does not give a real example. Name one concrete case of the taught idea.",
+      "does not demonstrate": "It does not show the step. Walk through the action the pupil should watch.",
+      "does not use the taught knowledge": "It does not ask the pupil to use the taught idea. Give a new case that needs that idea.",
+      "does not transfer the taught knowledge": "It does not name the taught idea the task will use. Point at that idea, not at the lesson in general.",
+      "does not settle the taught knowledge": "It celebrates finishing. State the taught idea that settles the mission.",
+      "does not bring the learning together": "It talks about the lesson. State the knowledge the class can now say."
     };
     return fixes[reason] || "Rewrite this beat.";
+  }
+
+  var ACTION_VERB = /\b(grip|grips|gripping|breathe|breathes|breathing|push|pushes|pushing|pull|pulls|pulling|lift|lifts|lifting|steer|steers|steering|carry|carries|carrying|soak|soaks|soaking|move|moves|moving|turn|turns|turning|slide|slides|sliding|spread|spreads|sweep|sweeps|drive|drives|catch|catches|hold|holds|keep|keeps|slow|slows|flow|flows|flowing|flood|floods|multiply|multiplies|add|adds|divide|divides|wear|wears|drop|drops|join|joins|balance|balances|pick|picks|picking|drag|drags|dragging|build|builds|building|feed|feeds|feeding|grow|grows|growing)\b/i;
+  var META_SHELL = /\b(the class can now|we learned|what we learned|the idea about|today we|you now know|idea from this lesson|let'?s think)\b/i;
+
+  function knowledgeOverlap(text, knowledge) {
+    var used = contentWords(text);
+    var seen = {};
+    return contentWords(knowledge).filter(function (bit) {
+      if (bit.length < 4 || seen[bit]) return false;
+      if (!used.some(function (word) { return sameStem(word, bit); })) return false;
+      seen[bit] = 1;
+      return true;
+    });
+  }
+
+  function knowledgeOf(refs, items) {
+    return (refs || []).map(function (ref) {
+      var found = "";
+      (items || []).forEach(function (item) { if (item.id === ref) found = item.text; });
+      return found;
+    }).filter(Boolean).join(" ");
+  }
+
+  function resultSo(text) {
+    return /\bso\b(?!\s+(?:that|far|much|many|easily|well))/i.test(String(text || ""));
+  }
+
+  function bareLabel(text) {
+    return /^(a |an |the )?[a-z0-9' -]{0,48}\b(is|are|was|were|has|have)\b/i.test(clean(text));
+  }
+
+  function explainsBeat(text, knowledge) {
+    var body = String(text || "").replace(/^\s*this matters because\s+/i, "");
+    var causal = statesRelation(body) || statesFunction(body) || ACTION_VERB.test(body) || resultSo(body);
+    var hits = knowledgeOverlap(text, knowledge);
+    if (causal && hits.length >= 1) return true;
+    return hits.length >= 3 && !bareLabel(body);
+  }
+
+  function genericExample(text) {
+    return /\bhere is one clear example\b/i.test(text) || /\bexample of (the |this )?idea\b/i.test(text) || /\bthe idea in use\b/i.test(text);
+  }
+
+  function bareUse(text) {
+    var norm = clean(text).toLowerCase().replace(/[.?!]+$/g, "").trim();
+    return /^use\b.+\bin what you make$/.test(norm) || /\buse your knowledge\b/.test(norm);
+  }
+
+  function emptyMeta(text, knowledge) {
+    return META_SHELL.test(text) && knowledgeOverlap(text, knowledge).length < 2;
+  }
+
+  function beatSubstanceReason(beat, text, items) {
+    var knowledge = knowledgeOf(beat.knowledgeRefs, items);
+    if (!knowledge || !beat || !beat.move) return "";
+    var hits = knowledgeOverlap(text, knowledge);
+    if (beat.move === "explain") return explainsBeat(text, knowledge) ? "" : "does not explain";
+    if (beat.move === "exemplify") {
+      if ((genericExample(text) && hits.length < 2) || !hits.length) return "does not give an example";
+      return "";
+    }
+    if (beat.move === "model") {
+      if ((!hits.length && /\b(worked step|say what changes)\b/i.test(text)) || !hits.length) return "does not demonstrate";
+      if (!/\b(first|then|next|step|watch)\b/i.test(text) && !explainsBeat(text, knowledge)) return "does not demonstrate";
+      return "";
+    }
+    if (beat.move === "practise") {
+      if (bareUse(text) || emptyMeta(text, knowledge) || !hits.length) return "does not use the taught knowledge";
+      if (!/\b(show|choose|find|point|sort|decide|build|label|match|move|push|complete|pick|try|shade|group|order|arrange|compare|predict|use|make|place|put|trace)\b/i.test(text)) return "does not use the taught knowledge";
+      return "";
+    }
+    if (beat.move === "apply") {
+      if (bareUse(text) || emptyMeta(text, knowledge) || !hits.length) return "does not transfer the taught knowledge";
+      if (/^(what|why|which|who)\b/i.test(clean(text))) return "does not transfer the taught knowledge";
+      return "";
+    }
+    if (beat.move === "reveal") return emptyMeta(text, knowledge) || !hits.length ? "does not settle the taught knowledge" : "";
+    if (beat.move === "consolidate") return emptyMeta(text, knowledge) || !hits.length ? "does not bring the learning together" : "";
+    return "";
+  }
+
+  function substanceIssue(beat, reason) {
+    var phrase = {
+      "does not explain": "does not explain the idea",
+      "does not give an example": "does not give an example",
+      "does not demonstrate": "does not demonstrate the idea",
+      "does not use the taught knowledge": "does not use the taught knowledge",
+      "does not transfer the taught knowledge": "does not use the taught knowledge",
+      "does not settle the taught knowledge": "does not settle the taught knowledge",
+      "does not bring the learning together": "does not bring the learning together"
+    }[reason] || "does not teach";
+    return "The " + beat.id + " beat " + phrase + ".";
   }
 
   var APPLY_REPAIR_FIX = {
@@ -1663,6 +3164,11 @@
       if (!reveal && item && sameSentence(text, item.text)) issues.push("The " + beat.id + " beat repeats a knowledge sentence.");
       if (beat.move === "name" && ref) names[ref] = text;
       if (beat.move === "explain" && ref && sameSentence(text, names[ref])) issues.push("The " + beat.id + " beat repeats the name sentence.");
+      var copyOk = pupilSentence(text, year, minimum) && !blocked.some(function (field) { return sameSentence(text, field); });
+      if (copyOk) {
+        var substance = beatSubstanceReason(beat, text, items);
+        if (substance) issues.push(substanceIssue(beat, substance));
+      }
     });
     return issues;
   }
@@ -1690,7 +3196,21 @@
       };
     }).filter(function (item) { return item.prompt || item.correct; });
     var interaction = raw.scene && raw.scene.interaction && typeof raw.scene.interaction === "object" ? raw.scene.interaction : {};
-    return {
+    // Patch 6: a research apply slot may return structured choices and a new example. The keys
+    // are added only when present, so other slots and the default path are unchanged.
+    var structured = (Array.isArray(raw.applyChoices) && raw.applyChoices.length ? raw.applyChoices : (Array.isArray(raw.choices) && raw.choices.length ? raw.choices : (Array.isArray(interaction.choices) ? interaction.choices : []))).filter(function (choice) { return choice && typeof choice === "object" && !Array.isArray(choice); });
+    var rawCase = raw.newCase && typeof raw.newCase === "object" ? raw.newCase : (interaction.newCase && typeof interaction.newCase === "object" ? interaction.newCase : null);
+    var extra = {};
+    if (structured.length) extra.applyChoices = structured.slice(0, 4).map(function (choice) {
+      return { text: clean(choice.text, 160), correct: choice.correct === true, feedback: clean(choice.feedback, 300) };
+    });
+    if (rawCase) extra.newCase = {
+      text: clean(rawCase.text, 300),
+      kind: rawCase.kind === "sourced" ? "sourced" : (rawCase.kind === "transfer" ? "transfer" : clean(rawCase.kind, 20)),
+      sourceRef: (Array.isArray(rawCase.sourceRef) ? rawCase.sourceRef : (rawCase.sourceRef ? [rawCase.sourceRef] : [])).map(function (id) { return clean(id, 24); }).filter(Boolean).slice(0, 2),
+      quote: clean(rawCase.quote, 400)
+    };
+    return Object.assign(extra, {
       title: clean(raw.title || config.title, 80),
       lines: lines.map(function (line) { return textOf(line, 280); }).filter(Boolean).slice(0, 4),
       instruction: clean(raw.applyInstruction || config.instruction || raw.instruction || interaction.instruction || config.prompt || question.prompt, 180),
@@ -1714,7 +3234,7 @@
           text: clean(beat.text || pupil.text, 280)
         };
       }).filter(function (beat) { return beat.id; })
-    };
+    });
   }
 
   var FAMILY_TARGET = {
@@ -1828,6 +3348,19 @@
     });
   }
 
+  var DEPICT = { draw: 1, drawing: 1, write: 1, writing: 1, sketch: 1, sketching: 1, picture: 1 };
+
+  function disguisedRecall(instruction, sentence) {
+    var words = linkWords(instruction).filter(function (word) { return word.length >= 4; });
+    if (!words.some(function (word) { return RESTATE[word]; })) return false;
+    if (!words.some(function (word) { return DEPICT[word]; })) return false;
+    var sentenceWords = linkWords(sentence);
+    return !words.some(function (word) {
+      if (RESTATE[word] || DEPICT[word]) return false;
+      return !sentenceWords.some(function (bit) { return sameWord(word, bit); });
+    });
+  }
+
   function applyAlignment(activity, required) {
     var instruction = applyInstructionOf(activity);
     var named = activity && activity.knowledgeUsed || "";
@@ -1866,6 +3399,7 @@
       return { status: "unresolved", reason: "unlisted-action", matchedKnowledge: matched, evidence: hits };
     }
     if (restatesNamed(instruction, matched)) return { status: "unresolved", reason: "restatement", matchedKnowledge: matched, evidence: hits };
+    if (disguisedRecall(instruction, matched)) return { status: "fail", reason: "not-an-action", matchedKnowledge: matched, evidence: hits };
     if (hits.length >= 2 || (hits.length >= 1 && bits.length > 0 && hits.length === bits.length && bits.length <= 2)) {
       return { status: "pass", reason: "relation-covered", matchedKnowledge: matched, evidence: hits };
     }
@@ -1921,7 +3455,12 @@
       activity.successCondition = "The pupil has used this idea: " + clean(matched, 90);
     }
     if (!activity.teachingConnection) activity.teachingConnection = "The task uses this teaching: " + clean(matched, 90);
-    if (activity.scene && activity.scene.interaction) activity.scene.interaction.successCondition = clean(activity.successCondition, 40);
+    var step = activity.scene && activity.scene.interaction;
+    // Patch 7: a research choose step keeps its machine success condition ("correct-choice");
+    // the sentence goes to successText (it was clipped to 40 characters over "correct-choice").
+    if (step && step.type === "choose" && Array.isArray(step.choices) && step.choices.length) {
+      if (!step.successText) step.successText = clean(activity.successCondition, 240);
+    } else if (step) step.successCondition = clean(activity.successCondition, 40);
   }
 
   function applySemanticInput(activity, slot, ctx) {
@@ -2123,7 +3662,8 @@
     if (slot === "apply") bits.push(applyInstructionOf(activity));
     if (slot === "check") {
       checkQuestionsOf(activity).forEach(function (question) {
-        bits.push(question.correct, question.explain, question.prompt);
+        // The scored answer and the question are what the check marks. Feedback may restate the taught idea.
+        bits.push(question.correct, question.prompt);
       });
     }
     ((activity.config && activity.config.lines) || []).forEach(function (line) { bits.push(line); });
@@ -2134,6 +3674,25 @@
     if (slot === "check") return ["The check scores knowledge that was not taught."];
     if (slot === "apply") return ["The apply task uses knowledge that was not taught."];
     return ["The " + slot + " uses knowledge that was not taught."];
+  }
+
+  function retrieveSubstanceIssues(activity, slot, items) {
+    var retrieves = ((slot && slot.beats) || (activity && activity.beats) || []).filter(function (beat) {
+      return beat && beat.move === "retrieve";
+    });
+    if (!retrieves.length) return [];
+    var questions = checkQuestionsOf(activity);
+    var issues = [];
+    retrieves.forEach(function (beat, index) {
+      var knowledge = knowledgeOf(beat.knowledgeRefs, items);
+      if (!knowledge) return;
+      var question = questions.length > 1 ? (questions[index] || {}) : (questions[0] || {});
+      var blob = [question.prompt, question.correct, question.explain].join(" ");
+      if (!knowledgeOverlap(blob, knowledge).length) {
+        issues.push("The check slot does not retrieve the taught knowledge for " + (beat.id || "this question") + ".");
+      }
+    });
+    return issues;
   }
 
   function checkSlotIssues(activity, ctx) {
@@ -2315,6 +3874,17 @@
     var activities = (skeleton || []).map(function (slot) {
       var content = map[slot.id] || {};
       var beats = slot.beats && slot.beats.length ? keepBeatPlan(slot.beats, content.beats) : [];
+      // Patch 7, research mode: the Try it stage comes from its own checked call (ctx.applyTask),
+      // so its beat text and its choose task are the task's, whatever the content call returned.
+      var task = slot.id === "apply" && researchMode(ctx) && ctx.applyTask && Array.isArray(ctx.applyTask.choices) ? ctx.applyTask : null;
+      if (task) content = Object.assign({}, content, { instruction: task.instruction, successCondition: task.successText, applyChoices: task.choices, newCase: task.newCase });
+      if (task && beats.length) {
+        beats = beats.map(function (beat, index) {
+          var own = (task.beats || []).filter(function (b) { return b && b.id === beat.id; })[0] || (task.beats || [])[index];
+          if (!own || !own.text) return beat;
+          return Object.assign({}, beat, { pupil: Object.assign({}, beat.pupil || {}, { text: own.text }) });
+        });
+      }
       var spoken = beats.length
         ? beats.map(function (beat) { return beat.pupil && beat.pupil.text; }).filter(Boolean)
         : (content.lines || []).slice();
@@ -2329,6 +3899,41 @@
           target: content.target || FAMILY_TARGET[slot.interactionIntent] || "world",
           instruction: beatApply ? (content.instruction || "") : (content.instruction || (spoken[0] || "")),
           successCondition: content.successCondition || ""
+        };
+      }
+      // Patch 6, research mode: the apply task is a choice on a new example with feedback per
+      // choice. The unit comes from the apply beat's knowledge refs (ID lineage), not the model.
+      if (task) {
+        interaction = {
+          type: "choose",
+          target: "choices",
+          instruction: task.instruction,
+          successCondition: "correct-choice",
+          successText: task.successText,
+          choices: task.choices,
+          newCase: task.newCase,
+          unitId: task.unitId,
+          claimIds: task.claimIds,
+          intent: slot.interactionIntent || ""
+        };
+      } else if (slot.id === "apply" && researchMode(ctx) && content.applyChoices && content.applyChoices.length) {
+        var applyClaims = mapClaimIds(plan, beats.reduce(function (all, beat) { return all.concat(beat.knowledgeRefs || []); }, []));
+        var applyUnit = "";
+        var applyIds = [];
+        researchUnits(ctx).forEach(function (unit) {
+          if (!applyUnit && applyClaims.indexOf(unit.explanationClaimId) !== -1) { applyUnit = unit.unitId; applyIds = [unit.elementClaimId, unit.explanationClaimId]; }
+        });
+        interaction = {
+          type: "choose",
+          target: "choices",
+          instruction: content.instruction || "",
+          successCondition: "correct-choice",
+          successText: content.successCondition || "",
+          choices: content.applyChoices,
+          newCase: content.newCase || null,
+          unitId: applyUnit,
+          claimIds: applyIds,
+          intent: slot.interactionIntent || ""
         };
       }
       var checked = beats.length && slot.id === "check" ? (refText || content.knowledgeChecked) : content.knowledgeChecked;
@@ -2532,6 +4137,26 @@
     return "The pupil-facing text must include every concept: " + ((((brief.concepts || []).filter(Boolean).length ? brief.concepts : words(brief.topic || (safe && safe.topic) || "").filter(function (word) { return !FUNCTION[word]; })).join(", ")) || "the topic") + ".";
   }
 
+  // Patch 6: content rules for research lessons. Prompt guidance only; the same rules are
+  // checked in code by researchRuleIssues, and the slot repair receives the exact failures.
+  function researchContentRules(year) {
+    return [
+      "Research lesson rules. sourceWording lists each taught unit with the source's own sentence (sourceSays) and its result (keepThisResult).",
+      "The teach explain beat and the recap beat for a unit keep that result in the source's words, including keyWords and any comparison word such as less or more. Do not swap it for a vaguer word such as efficiently, better, easier, or well.",
+      "Every teach, recap and apply sentence about a unit's result keeps the source's concrete meaning: never make it bigger or vaguer (say breathe even with most of its snout under water, not breathe underwater; say use less energy to move, not move better), and never add always, never, completely or fully.",
+      "Use everyday words for " + (year || "this year group") + ". Avoid long technical words; if one is needed, explain it in the same sentence (for example: perpendicular, which means at a right angle).",
+      "Say what a feature did or how it worked. Do not say an animal had, grew, or developed a feature in order to do something, and do not ask why an animal had a feature.",
+      "The learning goal may use the words adapt, adapted or adaptation; those words are for the teacher. In pupil text (hook, resolution and every other slot) never say an animal adapted or adapted to something: say what each feature let the animal do (for example: these nostrils let it breathe with most of its snout under water).",
+      "Each check question's correct answer uses the words of a teach sentence. Each wrong choice must be false according to evidencePassages; do not use a feature the sources say also helped with the same job.",
+      "Never use another taught result as a wrong choice when it is about the same animal: if two units teach two results for one animal (for example its nostrils and its feet), each result is true of that animal, so it cannot be a wrong choice in the other unit's question. Do not give every question the same set of choices.",
+      "Each wrong choice must be plainly false about the animal: not another true fact, not a vaguer version of the right reason (moved more easily for used less energy), and not a body part that also helps with the same job. A question must not give its own answer: the correct answer adds the taught fact instead of repeating the question's words. Never ask how or why an animal adapted, evolved, needed or got a feature; ask what the feature did or let the animal do.",
+      "apply is a choice on a new example. newCase.text describes one new example the teach slot did not answer: either a case stated in evidencePassages (kind sourced, with sourceRef and an exact quote copied from that passage) or a made-up case that starts with Imagine and can be solved with one taught reason (kind transfer, sourceRef empty, quote empty). instruction asks the class to choose. choices has two or three options with exactly one correct; each feedback is one or two sentences that say why that option is right or wrong using the taught reason, and the correct feedback uses that unit's keyWords. successCondition says the class picks the choice that the taught reason supports.",
+      "The apply beats set up the new example in new words. Never repeat or closely reword a teach sentence or a sourceSays sentence in an apply beat (copying a knowledge sentence fails validation); the taught reason belongs in the correct choice's feedback.",
+      "An animal's name that sourceWording uses (for example the name of the animal a unit is about) may be used as it is; it is the subject, not a hard word.",
+      "Each stage shows one picture: say this picture or the picture, never these images, the pictures or these photos."
+    ].join(" ");
+  }
+
   function contentBrief(ctx, plan, story) {
     var safe = forModel(ctx || {});
     var sourcePlan = plan || (ctx && ctx.lessonPlan) || null;
@@ -2563,17 +4188,28 @@
         shape.push("lessonPlan.teachingThreads groups the knowledge into strands. Teach beats on the same strand build one idea in order: name introduces the feature or idea, explain says how or why it works, exemplify shows it in use, and connect says what it leads to or how the strands work together. Each beat adds to the one before it. Do not say the same sentence twice in different words.");
       }
       if (skeleton.some(function (slot) { return slot.id === "apply" && slot.applicationTarget; })) {
-        shape.push("The apply slot has applicationTarget: the taught strand the task must use and the evidence a finished task shows. Write a task the pupil can only get right by using that explanation on a new case the teach slot did not already answer. The pupil chooses, using a short question with real choices or three lesson choices. Do not ask only to talk, show, or demonstrate, and do not say sort the cards, match the cards, or drag. Drawing, retelling, or describing the topic is not enough on its own.");
+        shape.push("The apply slot has applicationTarget: the taught strand the task must use and the evidence a finished task shows. Write a task the pupil can only get right by using that explanation on a new case the teach slot did not already answer. Name the taught explanation and how the pupil uses it. A task that only says choose a topic and explain its features does not use that explanation. The pupil chooses, using a short question with real choices or three lesson choices. Do not ask only to talk, show, or demonstrate, and do not say sort the cards, match the cards, or drag. Drawing, retelling, or describing the topic is not enough on its own.");
       }
       beatSlots.forEach(function (slot) {
         if (slot.id !== "apply") return;
         shape.push("The apply slot is one response. Return its planned beats, including " + slot.beats.map(function (beat) { return beat.id; }).join(", ") + ", with cue and text, together with instruction, target, successCondition, and teachingConnection. The beat pupil copy and the task fields are both required. Do not omit the planned beat because the task instruction is present. Do not return knowledgeUsed. The beat prepares the pupil for the task and is not the task. The instruction is the action.");
       });
     }
+    if (researchMode(ctx)) {
+      var wordingUnits = researchUnits(ctx);
+      safe.sourceWording = wordingUnits.map(function (unit) {
+        return { unitId: unit.unitId, feature: unit.feature, sourceSays: unit.explanationQuote, keepThisResult: unit.resultClause, keyWords: unit.keyTerms, sourceRefs: unit.sourceRefs };
+      });
+      var unitRefs = [];
+      wordingUnits.forEach(function (unit) { (unit.sourceRefs || []).forEach(function (id) { if (unitRefs.indexOf(id) === -1) unitRefs.push(id); }); });
+      var evidence = (researchPassagesForBrief(ctx) || []).slice().sort(function (a, b) { return (unitRefs.indexOf(a.id) === -1 ? 1 : 0) - (unitRefs.indexOf(b.id) === -1 ? 1 : 0); });
+      safe.evidencePassages = evidence.slice(0, 10).map(function (p) { return { id: p.id, url: p.url, text: clean(p.text, 700) }; });
+      shape.push(researchContentRules((ctx && ctx.yearGroup) || ""));
+    }
     shape.push("Each slot already has minutes, minimumParticipation, and contentDepth. A slot without beats meets that participation with short spoken lines. A slot with beats meets it only through the planned beat texts. Do not add a lines array beside beats. Do not pad a slot into a long paragraph.");
     var system = shape.concat([
       "hook creates one concrete unsolved problem the class can picture and must not reveal the answer. It is not an empty question such as what lives here or what this lesson is about. investigate asks the class to look, using the slot's interactionIntent. It must not explain the answer and it must not be a pupil spin. teach states every requiredKnowledge fact in short sentences this age can hear. A name sentence says what the thing is. An explain sentence says how or why in new words. Do not leave the teaching as only a list of names. apply must make the pupil use at least one requiredKnowledge item through the slot's interactionIntent, on a new case the teach slot did not already answer. The instruction is a pupil choice that needs the taught idea, such as a short question with real choices or three lesson choices. Do not ask the class only to talk, show, or demonstrate. Do not say sort the cards, match the cards, or drag. instruction is that task. On a legacy apply slot, knowledgeUsed names the requiredKnowledge item the task uses. On an apply slot with beats, do not return knowledgeUsed. successCondition says what a finished action shows. teachingConnection says how the task follows the teaching. Sort the cards, move this, or put these in order is not an apply task unless the taught idea is in the instruction. Choosing a pupil is not the apply slot. check comes after teaching and assesses teacherIntent.requiredEvidence for teacherIntent.learningGoal. A correct answer must be sufficient evidence of requiredEvidence. When the evidence or the retrieve beat's knowledge names more than one necessary part, the correct answer must include every part. Naming only one part leaves the check partial. One stage, one side, one component, a label, or a definition is not enough unless requiredEvidence itself asks only for that. knowledgeChecked names the learning the question tests. successEvidence says what a correct answer shows. teachingConnection says how the question follows the required evidence. Keep the question as easy to read as the year group. resolution is the mission outcome after the check. recap states the taught facts clearly, including the how or why when that was taught, in sentences a pupil could say back. Do not say that the screen is a recap or a mystery.",
-      "A stage with mayRevealAnswer false must not state requiredKnowledge and must not use because, caused by, or due to. Do not add a fact that is not in keyKnowledge.",
+      "A stage with mayRevealAnswer false must not state requiredKnowledge and must not use because, caused by, or due to. Do not add a fact that is not in keyKnowledge. When the plan records knowledgeGrounding, those keyKnowledge sentences are the lesson's selection from the knowledge pack. A story may invent the mission and the characters. It must not invent a subject fact.",
       "For a why lesson, the check correct answer is the cause, reason, or process in keyKnowledge. The visible outcome can be the question or a wrong choice.",
       "When teacherIntent is present, paraphrase the learning goal and the focus concepts. Do not make the class meet preference words, duration words, prior-knowledge labels, or exclusions. Otherwise lessonBrief.concepts are the ideas the class must meet. Do not treat between, difference, why, or how as ideas to teach.",
       "storyPlan is the setting and the mission. Do not turn the lesson into a lesson about stories unless lessonBrief.topic is about stories.",
@@ -2590,7 +4226,7 @@
       "title must not repeat the teacher's request.",
       "A hook may describe the unsolved visible event. Do not invent a mechanic for it. If that event is something the class can see, name a worldEffect type the player already allows: shake, rumble, pulse, glow, highlight, zoom, pan, reveal, crack, move-object, vibrate-object, fade, particles, flash, or sound-cue.",
       "Do not write {name} or a pupil name. participantSelection on a slot chooses who acts. The slot's instruction is what they do.",
-      "Do not copy pedagogicalPurpose, learningRole, interactionIntent, a move name, or a slot id into cue or text. A notice, predict, practise, apply, reveal, or consolidate sentence must not repeat a keyKnowledge sentence. Apply, when it has beats, also returns instruction, target, successCondition, and teachingConnection, and does not return knowledgeUsed. A quiz check slot does not return beat cue or text. Each retrieve beat is one quiz question. When the check has one retrieve beat, return prompt, choices, correct, explain, successEvidence, and teachingConnection. When it has several, return questions in that beat order, one object per beat id, and do not add or remove a question. Each question tests only the knowledge ref on its retrieve beat."
+      "Do not copy pedagogicalPurpose, learningRole, interactionIntent, a move name, or a slot id into cue or text. A notice, predict, practise, apply, reveal, or consolidate sentence must not repeat a keyKnowledge sentence. Apply, when it has beats, also returns instruction, target, successCondition, and teachingConnection, and does not return knowledgeUsed. A quiz check slot does not return beat cue or text. Each retrieve beat is one quiz question. When the check has one retrieve beat, return prompt, choices, correct, explain, successEvidence, and teachingConnection. When it has several, return questions in that beat order, one object per beat id, and do not add or remove a question. Each question tests only the knowledge ref on its retrieve beat, and only knowledge taught before that question. The correct answer must depend on that knowledge. Do not mark a fact that was left out of the learning map as correct. A question the class could answer without it is not retrieval."
     ]).filter(Boolean).join(" ");
     var schema = {
       type: "object",
@@ -2648,8 +4284,13 @@
         fields.successCondition = { type: "string" };
         fields.teachingConnection = { type: "string" };
       }
+      if (slot.id === "apply" && researchMode(ctx)) {
+        fields.choices = { type: "array", minItems: 2, maxItems: 3, items: { type: "object", additionalProperties: false, properties: { text: { type: "string" }, correct: { type: "boolean" }, feedback: { type: "string" } }, required: ["text", "correct", "feedback"] } };
+        fields.newCase = { type: "object", additionalProperties: false, properties: { text: { type: "string" }, kind: { type: "string", enum: ["sourced", "transfer"] }, sourceRef: { type: "array", items: { type: "string" } }, quote: { type: "string" } }, required: ["text", "kind", "sourceRef", "quote"] };
+      }
       var slotSchema = { type: "object", additionalProperties: false, properties: fields };
       if (planned && slot.id === "apply") slotSchema.required = ["beats", "instruction", "target", "successCondition", "teachingConnection"];
+      if (slot.id === "apply" && researchMode(ctx)) slotSchema.required = (slotSchema.required || Object.keys(fields)).concat(["choices", "newCase"]).filter(function (key, i, all) { return all.indexOf(key) === i; });
       schema.properties.slots.properties[slot.id] = slotSchema;
     });
     return { system: system, user: JSON.stringify(safe), schema: schema };
@@ -2704,6 +4345,110 @@
     return (issues || []).filter(function (issue) {
       return slotsOwnedBy(issue, activities).indexOf(slotId) !== -1;
     });
+  }
+
+  // Patch 9, research mode only: per-question repair targets. A question's failures are the
+  // per-question issues accept() recorded for it plus any issue that names it ("Question 2").
+  // Issues that name no question and belong to no question are slot-wide.
+  function repairTargets(activity, failure, questionFailures) {
+    var map = questionFailures || {};
+    var owned = [];
+    var questions = checkQuestionsOf(activity).map(function (q, i) {
+      var label = new RegExp("\\bQuestion " + (i + 1) + "\\b");
+      var failing = [];
+      var own = [q.prompt, q.correct, q.explain].concat((q.choices || []).map(function (c) { return typeof c === "string" ? c : (c && c.text) || ""; })).join(" \n ").toLowerCase();
+      // A slot-level issue that quotes this question's words ("effectively", "Why did ...") is its own.
+      function quotes(f) { return (String(f).match(/"([^"]{3,})"/g) || []).some(function (m) { return own.indexOf(m.slice(1, -1).toLowerCase()) !== -1; }); }
+      (map[i] || []).concat((failure || []).filter(function (f) { return label.test(f) || (!/\bQuestion \d+\b/.test(f) && quotes(f)); })).forEach(function (f) {
+        if (failing.indexOf(f) === -1) failing.push(f);
+        if (owned.indexOf(f) === -1) owned.push(f);
+      });
+      return { id: q.id, prompt: q.prompt, choices: q.choices, correct: q.correct, explain: q.explain, failing: failing };
+    });
+    var slotFailures = (failure || []).filter(function (f) { return owned.indexOf(f) === -1 && !/\bQuestion \d+\b/.test(f); });
+    return { questions: questions, slotFailures: slotFailures };
+  }
+
+  // Patch 9, research mode only: per-beat repair targets for a beat slot (recap, teach...). Live
+  // run 21's recap repair returned the recap word for word: the failures named a beat but the
+  // brief only showed the old text as the output to fill. A beat's failures are those that name
+  // it ("beat recap:1") or quote its words; an untaught-knowledge failure is pinned to the beat
+  // and the word that trips it (the same test as droppedLeak).
+  function beatRepairTargets(beats, failure, plan) {
+    var dropped = (plan && plan.droppedKnowledge) || [];
+    var kept = ((plan && plan.keyKnowledge) || []).join(" ").toLowerCase();
+    var owned = [];
+    var rows = (beats || []).map(function (beat) {
+      var id = String((beat && beat.id) || "");
+      var text = clean(beat && (beat.text || (beat.pupil && beat.pupil.text)), 280);
+      var lower = text.toLowerCase();
+      var failing = [];
+      function quotes(f) { return (String(f).match(/"([^"]{2,})"/g) || []).some(function (m) { return new RegExp("\\b" + m.slice(1, -1).toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b").test(lower); }); }
+      (failure || []).forEach(function (f) {
+        var named = /\bbeat [a-z]+:\d+/.test(f);
+        if ((named && f.indexOf("beat " + id) !== -1 && new RegExp("beat " + id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b").test(f)) || (!named && quotes(f))) {
+          failing.push(f); if (owned.indexOf(f) === -1) owned.push(f);
+        }
+        if (/uses knowledge that was not taught/.test(f)) {
+          dropped.forEach(function (item) {
+            contentWords(item).forEach(function (word) {
+              if (word.length >= 4 && kept.indexOf(word) === -1 && lower.indexOf(word) !== -1) {
+                var line = "This line uses \"" + word + "\", a word from knowledge this lesson left out (\"" + clean(item, 100) + "\"). Say it with the taught words instead.";
+                if (failing.indexOf(line) === -1) failing.push(line);
+                if (owned.indexOf(f) === -1) owned.push(f);
+              }
+            });
+          });
+        }
+      });
+      return { id: id, text: text, failing: failing };
+    });
+    return { beats: rows, slotFailures: (failure || []).filter(function (f) { return owned.indexOf(f) === -1; }) };
+  }
+
+  // Patch 9, research mode only, after the slot repair: a check question that failed nothing (and
+  // no slot-wide check failure) keeps its first version, so a repair cannot break a passing
+  // question; and a repaired slot that came back unchanged is rejected.
+  // What the pupil sees in a slot, so a repair that returns the same words in another shape
+  // (beats filled, title and lines left empty) still counts as unchanged. Live run 21's recap
+  // came back word for word and was not caught.
+  function slotFace(slot) {
+    slot = slot || {};
+    function txt(v) { return clean(typeof v === "string" ? v : (v && v.text) || "", 400).toLowerCase(); }
+    var beats = (slot.beats || []).map(function (b) { return [String((b && b.id) || ""), txt(b && (b.text || (b.pupil && b.pupil.text)))]; }).filter(function (b) { return b[1]; });
+    return JSON.stringify({
+      beats: beats,
+      lines: beats.length ? [] : (slot.lines || []).map(txt),
+      instruction: txt(slot.instruction), prompt: txt(slot.prompt), correct: txt(slot.correct), explain: txt(slot.explain),
+      choices: (slot.choices || []).map(txt),
+      questions: (slot.questions || []).map(function (q) { q = q || {}; return [txt(q.prompt), (q.choices || []).map(txt), txt(q.correct), txt(q.explain), txt(q.successEvidence), txt(q.teachingConnection)]; })
+    });
+  }
+
+  function targetRepair(previous, merged, accepted) {
+    var before = readSlotMap(previous);
+    var after = merged && merged.slots ? merged.slots : {};
+    var notes = [];
+    var activity = ((previous && previous.activities) || []).filter(function (a) { return a && a.slotId === "check"; })[0] || null;
+    var failure = (accepted && accepted.slotIssues && accepted.slotIssues.check) || [];
+    var kept = [];
+    if (before.check && after.check && Array.isArray(before.check.questions) && Array.isArray(after.check.questions) && (accepted.slotIds || []).indexOf("check") !== -1) {
+      var targets = repairTargets(activity || { config: { questions: before.check.questions } }, failure, accepted.issues && accepted.issues.questionFailures);
+      if (!targets.slotFailures.length) {
+        targets.questions.forEach(function (row, i) {
+          if (!row.failing.length && before.check.questions[i] && after.check.questions[i]) {
+            after.check.questions[i] = JSON.parse(JSON.stringify(before.check.questions[i]));
+            kept.push(i + 1);
+          }
+        });
+      }
+    }
+    (accepted.slotIds || []).forEach(function (id) {
+      if (before[id] && after[id] && slotFace(before[id]) === slotFace(after[id]) && ((accepted.slotIssues || {})[id] || []).length) {
+        notes.push("The repair returned the " + id + " slot unchanged. A repair must change what failed.");
+      }
+    });
+    return { merged: merged, kept: kept, unchanged: notes };
   }
 
   function slotRepairBrief(ctx, slotIds, issues, previous) {
@@ -2766,7 +4511,36 @@
         if (spec.rejectedBeats.length) spec.pupilCopyRequirements = pupilCopyContract(year);
         else delete spec.rejectedBeats;
       }
+      if (researchMode(ctx) && slot.id !== "apply" && slot.beats && slot.beats.length && !quizRetrieve && activity && activity.beats && spec.failure.length) {
+        var beatTargets = beatRepairTargets((activity.beats || []).map(function (row) { return { id: row && row.id, text: row && row.pupil && row.pupil.text }; }), spec.failure, ctx && ctx.lessonPlan);
+        if (beatTargets.beats.some(function (row) { return row.failing.length; })) {
+          spec.currentBeats = beatTargets.beats;
+          spec.beatFailures = beatTargets.slotFailures;
+          // Live run 22: with the old text pre-filled in output, the recap came back unchanged
+          // again. A failing beat's output text is left empty, and the beat shows how the teach
+          // slot said the same idea (same knowledgeRefs), whose words already passed.
+          var teachSlot = skeleton.filter(function (s) { return s && s.id === "teach"; })[0] || null;
+          var teachActivity = ((previous && previous.activities) || []).filter(function (a) { return a && a.slotId === "teach"; })[0] || null;
+          spec.currentBeats.forEach(function (row) {
+            if (!row.failing.length) return;
+            (spec.output.beats || []).forEach(function (out) { if (out.id === row.id) out.text = ""; });
+            var refs = ((slot.beats || []).filter(function (b) { return b.id === row.id; })[0] || {}).knowledgeRefs || [];
+            if (slot.id === "teach" || !teachSlot || !teachActivity || !refs.length) return;
+            var lines = [];
+            (teachSlot.beats || []).forEach(function (tb) {
+              if (!(tb.knowledgeRefs || []).some(function (r) { return refs.indexOf(r) !== -1; })) return;
+              (teachActivity.beats || []).forEach(function (ab) { var t = ab && ab.id === tb.id && ab.pupil && clean(ab.pupil.text, 280); if (t && lines.indexOf(t) === -1) lines.push(t); });
+            });
+            if (lines.length) row.taughtLines = lines;
+          });
+        }
+      }
       if (slot.id === "apply" && slot.applicationTarget) spec.applicationTarget = slot.applicationTarget;
+      if (slot.id === "apply" && researchMode(ctx)) {
+        spec.output.choices = [{ text: "", correct: false, feedback: "" }];
+        spec.output.newCase = { text: "", kind: "transfer", sourceRef: [], quote: "" };
+        spec.researchRules = researchContentRules((ctx && ctx.yearGroup) || "");
+      } else if (researchMode(ctx)) spec.researchRules = researchContentRules((ctx && ctx.yearGroup) || "");
       if (slot.id === "apply" && activity && spec.failure.some(function (item) { return /apply slot does not use the taught knowledge/.test(item); })) {
         var verdict = applyAlignment(activity, slot.requiredKnowledge || []);
         if (verdict.status === "fail" && APPLY_REPAIR_FIX[verdict.reason]) spec.applyFailure = APPLY_REPAIR_FIX[verdict.reason];
@@ -2775,6 +4549,20 @@
         spec.retrieveBeat = (slot.beats || []).filter(function (beat) { return beat.move === "retrieve"; }).map(function (beat) {
           return { id: beat.id, move: beat.move, knowledgeRefs: beat.knowledgeRefs || [] };
         })[0] || null;
+      }
+      if (slot.id === "check" && researchMode(ctx) && activity) {
+        var targeted = repairTargets(activity, spec.failure, issues && issues.questionFailures);
+        spec.currentQuestions = targeted.questions.map(function (row, i) {
+          var id = spec.output && spec.output.questions && spec.output.questions[i] ? spec.output.questions[i].id : row.id;
+          // Every field the question contract needs, so a copied or rewritten question keeps them.
+          var raw = checkQuestionsOf(activity)[i] || {};
+          var shown = { id: id, prompt: row.prompt, choices: row.choices, correct: row.correct, explain: row.explain };
+          ["successEvidence", "teachingConnection"].forEach(function (key) { if (raw[key]) shown[key] = raw[key]; });
+          shown.failing = row.failing;
+          if (row.failing.length && issues && issues.questionWhy && issues.questionWhy[i]) shown.markerReason = issues.questionWhy[i];
+          return shown;
+        });
+        spec.slotFailures = targeted.slotFailures;
       }
       if (slot.id === "check") {
         var intent = ctx && ctx.lessonBrief && ctx.lessonBrief.teacherIntent;
@@ -2796,12 +4584,30 @@
     } else if (apply) {
       instruction += " The APPLY task MUST require the pupil to use this knowledge: " + ((apply.requiredKnowledge || []).join(" | ") || "the taught idea") + ". The mechanic and interaction family cannot change. Return instruction, knowledgeUsed, successCondition, and teachingConnection for that slot. knowledgeUsed must name one requiredKnowledge item. A bare sort, move, or sequence is invalid.";
     }
+    if (apply) {
+      var ideaRefs = [];
+      ((apply.teachingBeats) || []).forEach(function (beat) {
+        (beat.knowledgeRefs || []).forEach(function (ref) {
+          if (ideaRefs.indexOf(ref) === -1) ideaRefs.push(ref);
+        });
+      });
+      if (!ideaRefs.length && apply.applicationTarget) ideaRefs = (apply.applicationTarget.knowledgeRefs || []).slice(0, 4);
+      var ideaText = [];
+      ((ctx && ctx.lessonPlan && ctx.lessonPlan.learningMap) || []).forEach(function (item) {
+        if (item && ideaRefs.indexOf(item.id) !== -1 && ideaText.indexOf(item.knowledge) === -1) ideaText.push(item.knowledge);
+      });
+      if (ideaText.length) {
+        instruction += " The taught idea this task must use is: " + ideaText.join(" ") + ". The pupil sentence and the instruction must both name that idea and show how the pupil uses it on a new case. Choosing a topic and explaining features in general does not use it.";
+      }
+    }
     var checkSpec = null;
     specs.forEach(function (spec) { if (spec.slotType === "CHECK") checkSpec = spec; });
     if (checkSpec) {
-      instruction += " The CHECK slot must stay a quiz. Rewrite only the listed CHECK questions. Do not rewrite any other stage. Year: " + (checkSpec.year || "") + ". Subject: " + (checkSpec.subject || "") + ". Learning goal: " + (checkSpec.learningGoal || "the requested learning") + ". Required evidence: " + (checkSpec.requiredEvidence || "the required evidence") + ". The evidence failure is: " + ((checkSpec.failure || []).join(" ") || "the correct answer is not sufficient evidence") + ". Each replacement question must make a correct answer sufficient evidence of the relationship it tests. Do not merely ask for one component when that question's relationship needs the connection. If the required evidence names more than one necessary part, the correct answer must include every part. Use words this year group can read. Do not make a question harder than the relationship it tests.";
+      instruction += " The CHECK slot must stay a quiz. Rewrite only the listed CHECK questions. " + (researchMode(ctx) && specs.length > 1 ? "Do not rewrite any stage that is not listed." : "Do not rewrite any other stage.") + " Year: " + (checkSpec.year || "") + ". Subject: " + (checkSpec.subject || "") + ". Learning goal: " + (checkSpec.learningGoal || "the requested learning") + ". Required evidence: " + (checkSpec.requiredEvidence || "the required evidence") + ". The evidence failure is: " + ((checkSpec.failure || []).join(" ") || "the correct answer is not sufficient evidence") + ". Each replacement question must make a correct answer sufficient evidence of the relationship it tests. Do not merely ask for one component when that question's relationship needs the connection. If the required evidence names more than one necessary part, the correct answer must include every part. Use words this year group can read. Do not make a question harder than the relationship it tests.";
       if (checkSpec.output && checkSpec.output.questions) instruction += " Return questions for exactly these ids, in this order: " + checkSpec.output.questions.map(function (item) { return item.id; }).join(", ") + ". Do not add or remove a question. Rewrite only a question whose relationship failed. Copy a question that already passed.";
       if (checkSpec.retrieveBeat) instruction += " The quiz is the retrieve beat " + checkSpec.retrieveBeat.id + ". Do not return cue or text for that beat.";
+      if (checkSpec.currentQuestions) instruction += " currentQuestions shows every question as it is now and the checks it failed (failing). Copy a question whose failing list is empty exactly as it is. Rewrite a question that has failing items so it fixes every one of them; the new version must differ from the old one. Every returned question keeps every field in output, including successEvidence and teachingConnection. markerReason, where given, is why the marker found the correct answer is not enough evidence; the new correct answer must supply what it says is missing. slotFailures, if any, apply to the whole quiz. Each question keeps its own wrong choices: never give two questions the same choices.";
+      if (researchMode(ctx) && specs.length > 1) instruction += " Return every listed slot: " + specs.map(function (spec) { return String(spec.slotType || "").toLowerCase(); }).join(", ") + ". A listed slot you leave out keeps its failure and the lesson fails.";
     }
     if (specs.some(function (spec) { return spec.slotType !== "APPLY"; })) {
       var otherFailures = [];
@@ -2823,6 +4629,7 @@
       if (spec.slotType !== "RECAP" || !spec.rejectedBeats || !spec.rejectedBeats.length) return;
       instruction += " Rewrite only the rejected recap consolidate beat. Keep the other beat ids. Do not regenerate the plan or the lesson. " + (spec.pupilCopyRequirements || "");
     });
+    if (specs.some(function (spec) { return spec.currentBeats; })) instruction += " currentBeats shows each beat's text now and the checks it failed (failing). Rewrite a beat that has failing items so it fixes every one of them; the new text must differ from the old text. Its text in output is left empty: write it new. taughtLines, where given, shows how the teach slot said the same idea; keep its key words. Copy a beat whose failing list is empty exactly as it is.";
     instruction += " Do not return activities, mechanics, or a new stage.";
     brief.user = JSON.stringify({
       slotsToRewrite: specs,
@@ -2847,11 +4654,15 @@
     var required = [];
     if (/more connected learning points/.test(found)) {
       var depth = depthBudget((ctx && (ctx.yearGroup || ctx.yearAssumption)) || (previous && previous.yearGroup), ctx && ctx.requestedMinutes);
-      required.push("depth: return a connected learningMap of about " + depth.floor + " to " + depth.max + " points that leads to the goal. Start from what a pupil needs first, then the feature or concept, what it does or why, the effect, and how the ideas connect. Each later point lists the earlier points it builds on in dependsOn. Split a big relationship into child-sized steps. A paraphrase, a second example of the same idea, or trivia is not a new point");
+      required.push("depth: return a connected learningMap of about " + depth.floor + " to " + depth.max + " points that leads to the goal. Start from what a pupil needs first, then the feature or concept, what it does or why, the effect, and how the ideas connect. Each later point lists the earlier points it builds on in dependsOn. Split a big relationship into child-sized steps. A paraphrase, a second example of the same idea, or trivia is not a new point. If a selected pack claim was left unconnected and a kept point builds on it, include that claim and point dependsOn at it. Do not invent a new fact to fill the count");
     }
     if (/developed strands/.test(found)) {
-      var span = strandRange(depthBudget((ctx && (ctx.yearGroup || ctx.yearAssumption)) || (previous && previous.yearGroup), ctx && ctx.requestedMinutes));
-      required.push("strands: this topic is broad, so the learningMap needs " + span.low + " to " + Math.max(span.low, span.high) + " separate strands that each develop one idea. A strand names a feature, part, event, or idea and then explains how or why it works, with a function, mechanism, cause, process, or procedure point that depends on it. The first point of each strand depends only on the foundation. A list of separate facts is not a strand. Prefer two linked strands. Drop spare one-line facts instead of keeping a list of names with empty dependsOn. Development is read only from dependsOn: a point counts as developing a strand only when its dependsOn lists the earlier point of that strand it builds on. For example p2 names a feature with dependsOn [\"p1\"], and p3 explains what that feature does with dependsOn [\"p2\"]. A sentence with because, helps, or work together and an empty dependsOn is still a separate fact. Every point except the foundation must have a non-empty dependsOn");
+      var budget = depthBudget((ctx && (ctx.yearGroup || ctx.yearAssumption)) || (previous && previous.yearGroup), ctx && ctx.requestedMinutes);
+      var span = strandRange(budget);
+      var broadTopic = /broad topic/.test(found);
+      var low = broadTopic ? span.low : (planSeeksDepth(ctx, objective) ? seekingStrandMinimum(ctx, budget) : span.low);
+      var prefer = low >= 3 ? "Prefer three linked strands over a list of names." : "Prefer two linked strands over a list of names.";
+      required.push("strands: " + (broadTopic ? "this topic is broad, so the learningMap needs " : "the learningMap needs ") + low + " separate strands that each develop one idea. A strand head names a feature, part, event, or idea and uses role feature or concept, not foundation. Its function, mechanism, cause, process, or procedure dependsOn that specific feature, not the foundation, and explains records that same id. At most one point may be role foundation, and only when it is genuinely shared and adds teaching value. A shared foundation is optional. Do not invent a foundation simply to satisfy formatting. If earlier points were labelled foundation but they are separate features, correct those labels to feature or concept and point each explanation at its own feature. Preserve the underlying knowledge and the real dependencies. A list of separate facts is not a strand. A sentence that only names what something has is not the explanation. " + prefer + " Drop spare one-line facts instead of keeping a list of names with empty dependsOn. Development is read only from dependsOn: a point counts as developing a strand only when its dependsOn lists the earlier point of that strand it builds on. For example, with one foundation, p2 names a feature with dependsOn [\"p1\"] and p3 explains what that feature does with dependsOn [\"p2\"]. Without a foundation, the feature has an empty dependsOn and the explanation dependsOn the feature. A function that depends only on a foundation, or a sentence with because, helps, or work together and an empty dependsOn, is still a separate fact. Every point except a single optional foundation must have a non-empty dependsOn");
     }
     if (/outcome, not the reason/.test(found)) {
       if (seeksContribution(ctx, objective)) {
@@ -2874,6 +4685,27 @@
     return required;
   }
 
+  // Patch 9, research mode only. Code counts strands from dependsOn: a feature that depends on a
+  // background point is counted inside that point's strand. Live run 19's map hung both
+  // Spinosaurus features under "Spinosaurus was well adapted for aquatic life", so 3 pairs made
+  // 2 strands, and the generic repair line got the same map back unchanged.
+  function strandRepairLine(previous) {
+    var map = (previous && Array.isArray(previous.learningMap)) ? previous.learningMap : [];
+    var byId = {};
+    map.forEach(function (p) { if (p && p.id) byId[p.id] = p; });
+    function links(p) {
+      return [].concat(p.dependsOn || [], p.explains || []).map(function (d) { return String(d || "").trim(); }).filter(function (d) { return d && byId[d] && !/^(feature|concept)$/.test(String(byId[d].role || "")); });
+    }
+    var hung = map.filter(function (p) { return p && /^(feature|concept)$/.test(String(p.role || "")) && links(p).length; });
+    if (!hung.length) return " Return a changed learningMap; the same map fails again.";
+    var parents = [];
+    hung.forEach(function (p) { links(p).forEach(function (d) { if (parents.indexOf(d) === -1) parents.push(d); }); });
+    // The background points behind them (and the background points those depend on).
+    for (var i = 0; i < parents.length; i++) links(byId[parents[i]]).forEach(function (d) { if (parents.indexOf(d) === -1) parents.push(d); });
+    var ids = hung.map(function (p) { return p.id; }).join(", ");
+    return " Code counts strands from the links between points: " + ids + " " + (hung.length > 1 ? "are features linked" : "is a feature linked") + " to background " + parents.map(function (d) { return d + " (\"" + clean(byId[d].knowledge, 80) + "\")"; }).join(", ") + ", so " + (hung.length > 1 ? "they are" : "it is") + " counted inside one strand. Leave out " + parents.join(", ") + " (background, not a feature or its explanation) and give " + ids + " an empty dependsOn and an empty explains, so each feature heads its own strand with its explanation. Return a changed learningMap; the same map fails again.";
+  }
+
   function planRepairBrief(ctx, issues, previous) {
     var brief = planBrief(ctx);
     var intent = (ctx && ctx.lessonBrief && ctx.lessonBrief.teacherIntent) || {};
@@ -2889,10 +4721,18 @@
         ? "The lesson arc failed. Set each lessonArc purpose to exactly one of hook, investigate, teach, apply, check, resolution, recap. Do not write a sentence as the purpose."
         : "Copy lessonArc exactly.",
       relationship.length
-        ? "Replace only the insufficient learningMap points. Keep the points that already lead to the goal and keep their dependsOn links. Do not paraphrase one idea into several points. Do not add trivia or a nearby fact that leads nowhere. Do not return the failed sentences unchanged. The new sentences must be the knowledge a pupil of this year would say back to achieve the learningGoal. A connector word does not repair a sentence. because, which meant, led to, therefore, significant, and important count only when the words around them are the missing fact. 'It was significant', 'it had an influence', 'it led to changes', 'it had an impact', or 'it is essential' is not that fact. Missing relationship: " + relationship.join(" ")
+        ? "Replace only the insufficient learningMap points. Keep the points that already lead to the goal and keep their dependsOn links and explains ids. Do not paraphrase one idea into several points. Do not add trivia or a nearby fact that leads nowhere. Do not return the failed sentences unchanged. The new sentences must be the knowledge a pupil of this year would say back to achieve the learningGoal. A connector word does not repair a sentence. because, which meant, led to, therefore, significant, and important count only when the words around them are the missing fact. 'It was significant', 'it had an influence', 'it led to changes', 'it had an impact', or 'it is essential' is not that fact. Missing relationship: " + relationship.join(" ")
         : ""
     ].filter(Boolean).join(" ");
-    brief.user = JSON.stringify({
+    if (/developed strands/.test(found)) {
+      instruction += " Correct incorrectly labelled foundations. A feature or adaptation is not a foundation. Point each function or mechanism at its own feature. Preserve the underlying knowledge and the dependencies that are still true. Do not invent a foundation simply to satisfy formatting.";
+      // Patch 9, research mode only: say exactly which links merge the strands, and ask for a changed map.
+      if (researchMode(ctx)) instruction += strandRepairLine(previous);
+    }
+    if (ctx && ctx.knowledgePack && ctx.knowledgePack.status !== "blocked") {
+      instruction += " Every learningMap point must include claimIds copied from knowledgePack.claims. The sentence may shorten that claim. It must not add a subject fact the claim does not state. Do not teach falsePremise, doNotTeach, rejectedClaims, or a claim held as an unsupported local detail. Do not invent a feature or a relationship the knowledge pack does not admit. Where the pack has a feature claim and an explanation of that feature, keep both and point the explanation at that feature.";
+    }
+    var repairPayload = {
       learningGoal: goal,
       requiredEvidence: requiredEvidenceOf(ctx) || clean((ctx && ctx.lessonBrief && ctx.lessonBrief.requiredEvidence) || "", 280),
       focusConcepts: (intent.focusConcepts || (ctx && ctx.lessonBrief && ctx.lessonBrief.focusConcepts) || []).slice(0, 4),
@@ -2904,7 +4744,12 @@
       previous: previous || null,
       lesson: forModel(ctx),
       instruction: instruction
-    });
+    };
+    if (ctx && ctx.knowledgePack && ctx.knowledgePack.status !== "blocked") {
+      repairPayload.knowledgePack = packForPlanner(ctx.knowledgePack);
+      repairPayload.knowledgeSelection = ctx.knowledgeSelection || null;
+    }
+    brief.user = JSON.stringify(repairPayload);
     return brief;
   }
 
@@ -3115,9 +4960,43 @@
     return false;
   }
 
+  // Verb parity for the learning-map reason check (source-grounded lesson PR, its own commit).
+  // statesRelation accepts "allowed" but not "allows", "let", "lets" or "enables", so "Straight
+  // back legs allowed them to use less energy" passed and "Straight back legs let them use less
+  // energy" did not, for the same sourced mechanism. These verbs now count when they state a job:
+  // an object and at least one specific word for what the feature did. Vague jobs (survive, live,
+  // do well, adapt) and a bare object ("let sauropods.") still fail. The help family is unchanged:
+  // the existing contract treats "helps sharks stay afloat" as an outcome, not a reason.
+  var ENABLE_VERB = /\b(?:allows?|allowing|lets?|letting|enables?|enabled|enabling)\b\s+([^.;!?]*)/i;
+  var ENABLE_PRONOUN = /^(?:them|it|they|him|her|us|you)\b/i;
+  var VAGUE_JOB = { survive: 1, survives: 1, surviving: 1, survival: 1, live: 1, lives: 1, living: 1, lived: 1, adapt: 1, adapts: 1, adapted: 1, adapting: 1, thrive: 1, thrived: 1, succeed: 1, successful: 1, success: 1, well: 1, better: 1, good: 1, things: 1, habitat: 1, habitats: 1, environment: 1, environments: 1 };
+
+  function statesEnabledJob(text) {
+    var found = String(text || "").match(ENABLE_VERB);
+    if (!found) return false;
+    var rest = found[1].replace(/^\s+/, "");
+    var specific = contentWords(rest).filter(function (word) { return !VAGUE_JOB[word]; });
+    return specific.length >= (ENABLE_PRONOUN.test(rest) ? 1 : 2);
+  }
+
+  // "so the jaws could open wide" states the job the same way "so that the jaws could open
+  // wide" does, and the readiness gate already reads it as a mechanism (statesMechanism). Live
+  // run 8 lost a ready NHM pair at the plan stage for this phrasing alone. Same specificity rule.
+  var SO_COULD = /\bso\b\s+([^.;!?]{0,60}?)\b(?:can|could)\b\s+([^.;!?]*)/i;
+
+  function statesSoCould(text) {
+    var found = String(text || "").match(SO_COULD);
+    if (!found) return false;
+    return contentWords(found[2]).filter(function (word) { return !VAGUE_JOB[word]; }).length >= 1;
+  }
+
+  function statesReasonOrJob(text) {
+    return statesRelation(text) || statesEnabledJob(text) || statesSoCould(text);
+  }
+
   function statesFunction(text) {
     var value = String(text || "");
-    return /\b(helps|helping|help|reduces|reduced|reducing|reduce|allows|allowed|allowing|allow|enables|enabled|enabling|enable|causes|caused|causing|cause|affects|affected|affecting|affect|lets|let|makes|made|making|make|changes|changed|changing|change|aids|aided|aid)\b\s+[a-z0-9]/i.test(value);
+    return /\b(helps|helped|helping|help|reduces|reduced|reducing|reduce|allows|allowed|allowing|allow|enables|enabled|enabling|enable|causes|caused|causing|cause|affects|affected|affecting|affect|lets|let|makes|made|making|make|changes|changed|changing|change|aids|aided|aiding|aid)\b\s+[a-z0-9]/i.test(value);
   }
 
   function sameStem(left, right) {
@@ -3130,10 +5009,10 @@
     return shared >= 5;
   }
 
-  var CONTRIBUTION_VERBS = "help|helps|helping|cause|causes|caused|affect|affects|affected|work|works|change|changes|changed|contribute|contributes|contributing|make|makes|made|aid|aids|get|gets|getting|obtain|obtains|transport|transports|transporting|carry|carries|carrying";
+  var CONTRIBUTION_VERBS = "help|helps|helping|cause|causes|caused|affect|affects|affected|work|works|working|change|changes|changed|contribute|contributes|contributing|make|makes|made|aid|aids|get|gets|getting|obtain|obtains|transport|transports|transporting|carry|carries|carrying|adapt|adapts|adapted|adapting|survive|survives|survived|surviving";
   var WHOLE_HEAD = { body: 1, bodies: 1, system: 1, systems: 1 };
   var RELATION_STEM = {
-    help: 1, helps: 1, helping: 1, reduce: 1, reduces: 1, reduced: 1, reducing: 1,
+    help: 1, helps: 1, helped: 1, helping: 1, reduce: 1, reduces: 1, reduced: 1, reducing: 1,
     allow: 1, allows: 1, allowed: 1, allowing: 1, enable: 1, enables: 1, enabled: 1,
     cause: 1, causes: 1, caused: 1, causing: 1, affect: 1, affects: 1, affected: 1,
     let: 1, lets: 1, make: 1, makes: 1, made: 1, making: 1, change: 1, changes: 1, changed: 1,
@@ -3188,8 +5067,42 @@
     return contentWords(value);
   }
 
-  function answersContribution(text, goal) {
-    if (!statesFunction(text) && !statesRelation(text)) return false;
+  function contributionVerb(goal) {
+    var text = clean(goal, 500).toLowerCase();
+    var how = text.match(new RegExp("\\bhow\\b[^.]{0,100}?\\b(" + CONTRIBUTION_VERBS + ")\\b"));
+    return how ? how[1] : "";
+  }
+
+  // "How are camels adapted to the desert?" The words after the verb name the
+  // setting. Sharing that setting is not a contribution. A specific outcome
+  // such as "helps it swim" still has to share the outcome.
+  function adaptationAsk(goal) {
+    return /^(?:adapt|surviv)/.test(contributionVerb(goal));
+  }
+
+  function aboutHead(text, head) {
+    if (!head) return false;
+    return contentWords(text).some(function (token) { return sameStem(token, head); });
+  }
+
+  function subjectAncestor(row, head, seen) {
+    if (!row || seen.indexOf(row) !== -1) return false;
+    seen.push(row);
+    if (aboutHead(row.text, head)) return true;
+    return row.deps.some(function (dep) { return subjectAncestor(dep, head, seen); });
+  }
+
+  function answersContribution(text, goal, row) {
+    if (!statesFunction(text) && !statesRelation(text) && !statesSoCould(text)) return false;
+    if (adaptationAsk(goal)) {
+      var head = contributionHead(goal);
+      if (head) {
+        if (aboutHead(text, head)) return true;
+        // A mechanism may name the feature's job without repeating the subject.
+        // It still contributes when it depends on that subject's feature.
+        return !!(row && subjectAncestor(row, head, []));
+      }
+    }
     var wanted = outcomeWords(goal);
     if (!wanted.length) return false;
     var have = functionWords(text);
@@ -3210,9 +5123,14 @@
     });
   }
 
-  function sameRelationship(left, right, goal) {
-    var a = relationSignature(left, goal);
-    var b = relationSignature(right, goal);
+  function sameRelationship(left, right, goal, names) {
+    // Patch 7, research mode only (names given): an animal's name is the subject, not part of
+    // the relationship. Live run 15 dropped "Spinosaurus's webbed feet allowed the dinosaur to
+    // swim" as a restatement of "Spinosaurus's nostrils further up let it breathe ..." because
+    // the only long word they shared was the name.
+    function named(word) { return names && names[word]; }
+    var a = relationSignature(left, goal).filter(function (word) { return !named(word); });
+    var b = relationSignature(right, goal).filter(function (word) { return !named(word); });
     if (!a.length || !b.length) return false;
     function long(list) { return list.filter(function (word) { return word.length >= 8; }); }
     var aLong = long(a);
@@ -3247,7 +5165,774 @@
     return kind;
   }
 
-  function mapProposals(parsed) {
+  function claimIdList(value) {
+    var source = Array.isArray(value) ? value : (value ? [value] : []);
+    var out = [];
+    source.forEach(function (item) {
+      var id = clean(typeof item === "string" ? item : (item && item.claimId) || "", 24);
+      if (!id || !/^c[a-z0-9]+$/i.test(id) || out.indexOf(id) !== -1) return;
+      out.push(id);
+    });
+    return out.slice(0, 4);
+  }
+
+  function eligibleClaims(ctx) {
+    var pack = ctx && ctx.knowledgePack;
+    var claims = (pack && pack.claims) || [];
+    var ids = ctx && ctx.knowledgeSelection && ctx.knowledgeSelection.claimIds;
+    if (ids && ids.length) {
+      var allow = {};
+      ids.forEach(function (id) { allow[id] = 1; });
+      return claims.filter(function (claim) { return allow[claim.claimId]; });
+    }
+    return claims.filter(function (claim) { return !claim.contested && !(pack.sourceMode === "retrieved" && claim.sourceHold); });
+  }
+
+  function repeatsRejected(text, pack) {
+    return (pack.rejectedClaims || []).some(function (item) {
+      if (claimOverlap(text, item.text) < 0.75) return false;
+      if (/\b(not|never|aren't|isn't|cannot|can't)\b/i.test(text) && !/\b(not|never|aren't|isn't|cannot|can't)\b/i.test(item.text)) return false;
+      return claimOverlap(item.text, text) >= 0.6;
+    });
+  }
+
+  function bindRowToPack(row, ctx) {
+    var pack = ctx.knowledgePack;
+    if (repeatsRejected(row.text, pack)) return { ok: false, reason: "rejected claim is not a fact" };
+    var known = {};
+    (pack.claims || []).forEach(function (claim) { known[claim.claimId] = claim; });
+    var eligible = eligibleClaims(ctx);
+    var allow = {};
+    eligible.forEach(function (claim) { allow[claim.claimId] = claim; });
+    var cited = row.claimIds || [];
+    var knownCited = cited.filter(function (id) { return known[id]; });
+    var eligibleCited = knownCited.filter(function (id) { return allow[id]; });
+    if (knownCited.length && !eligibleCited.length) return { ok: false, reason: "claim not selected for this year" };
+    if (eligibleCited.length) {
+      var citedClaims = eligibleCited.map(function (id) { return allow[id]; });
+      if (!wordsCovered(row.text, citedClaims)) return { ok: false, reason: "invented fact outside the knowledge pack" };
+      return { ok: true, claimIds: eligibleCited };
+    }
+    var match = null;
+    eligible.forEach(function (claim) {
+      if (match) return;
+      if (wordsCovered(row.text, [claim])) match = claim;
+    });
+    if (!match) return { ok: false, reason: "invented fact outside the knowledge pack" };
+    return { ok: true, claimIds: [match.claimId] };
+  }
+
+  function groundingOnPlan(ctx, items) {
+    if (!ctx || !ctx.knowledgePack || ctx.knowledgePack.status === "blocked") return null;
+    var byClaim = {};
+    (ctx.knowledgePack.claims || []).forEach(function (claim) { byClaim[claim.claimId] = claim; });
+    return {
+      packId: ctx.knowledgePack.id,
+      status: ctx.knowledgePack.status,
+      provenanceSummary: ctx.knowledgePack.provenanceSummary,
+      premiseCorrected: !!ctx.knowledgePack.falsePremise,
+      depthMode: (ctx.knowledgeSelection && ctx.knowledgeSelection.depthMode) || "",
+      depthReason: (ctx.knowledgeSelection && ctx.knowledgeSelection.reason) || "",
+      selectedClaimIds: ((ctx.knowledgeSelection && ctx.knowledgeSelection.claimIds) || []).slice(),
+      points: (items || []).map(function (item) {
+        return {
+          mapId: item.id,
+          claimIds: (item.claimIds || []).slice(),
+          provenance: (item.claimIds || []).map(function (id) { return byClaim[id] ? byClaim[id].provenance : ""; })
+        };
+      })
+    };
+  }
+
+  var EXPLAIN_ROLE = { mechanism: 1, "function": 1, cause: 1, process: 1 };
+  var NAMED_POINT = { feature: 1, concept: 1, fact: 1, definition: 1 };
+
+  function pointIdShape(value) {
+    return /^[a-z](?:[0-9]+[a-z]?)?$/i.test(String(value || ""));
+  }
+
+  function dependencyRefs(raw) {
+    var found = [];
+    function add(value) {
+      if (value == null || value === "") return;
+      if (Array.isArray(value)) { value.forEach(add); return; }
+      if (typeof value === "object") { add(value.id || value.ref || value.pointId || ""); return; }
+      var text = clean(value, 80);
+      if (!text) return;
+      if (pointIdShape(text)) {
+        if (found.indexOf(text) === -1) found.push(text);
+        return;
+      }
+      text.split(/[^A-Za-z0-9]+/).forEach(function (part) {
+        if (/^[a-z][0-9]+[a-z]?$/i.test(part) && found.indexOf(part) === -1) found.push(part);
+      });
+    }
+    if (!raw || typeof raw !== "object") return found;
+    add(raw.dependsOn);
+    add(raw.depends_on);
+    add(raw.explains);
+    add(raw.explainId);
+    add(raw.featureId);
+    if (typeof raw.feature === "string" && pointIdShape(clean(raw.feature, 24))) add(raw.feature);
+    return found;
+  }
+
+  function linkWords(text) {
+    return depthWords(text).filter(function (word) { return word.length >= 4; });
+  }
+
+  function topicWords(ctx) {
+    ctx = ctx || {};
+    var brief = ctx.lessonBrief || {};
+    return linkWords([ctx.topic, ctx.lessonText, ctx.teacherInstructions, brief.rawRequest, brief.learningGoal].join(" "));
+  }
+
+  var LINK_VERB = {
+    carry: 1, carried: 1, carries: 1, carrying: 1, move: 1, moved: 1, moves: 1, moving: 1,
+    join: 1, joins: 1, joined: 1, share: 1, shared: 1, shares: 1, need: 1, needed: 1, needs: 1,
+    grow: 1, grew: 1, grown: 1, feed: 1, feeds: 1, fed: 1, store: 1, stores: 1, stored: 1,
+    arrive: 1, arrived: 1, build: 1, built: 1, hold: 1, holds: 1, held: 1
+  };
+  var LINK_FILLER = { those: 1, these: 1, them: 1, such: 1, also: 1, along: 1, while: 1, still: 1, away: 1, other: 1, same: 1, there: 1 };
+
+  function contentShare(child, parent, ctx, nouns) {
+    var topic = topicWords(ctx);
+    var parentWords = linkWords(parent.text);
+    return linkWords(child.text).some(function (word) {
+      if (LINK_FILLER[word] || (nouns && LINK_VERB[word])) return false;
+      if (topic.some(function (item) { return sameStem(word, item); })) return false;
+      return parentWords.some(function (other) {
+        return !LINK_FILLER[other] && sameStem(word, other) && (!nouns || !LINK_VERB[other]);
+      });
+    });
+  }
+
+  // A supplied explanation link is unrelated when it shares no content word with its
+  // target, apart from the lesson topic, and another point names the feature it explains.
+  // That other point is not substituted.
+  function unrelatedFeatureLink(row, target, rows, ctx) {
+    if (!row || !target || row === target) return false;
+    if (!EXPLAIN_ROLE[row.role]) return false;
+    if (!target.role || target.role === "foundation" || !NAMED_POINT[target.role]) return false;
+    if (contentShare(row, target, ctx, false)) return false;
+    return rows.some(function (other) {
+      return other !== row && other !== target && NAMED_POINT[other.role] && contentShare(row, other, ctx, true);
+    });
+  }
+
+  function featureClaimFor(feature, claims, mechanismText, ctx) {
+    var words = linkWords(feature);
+    if (!words.length) return "";
+    var hits = (claims || []).filter(function (claim) {
+      if (!claim || sameSentence(claim.text, mechanismText)) return false;
+      var claimWords = linkWords(claim.text);
+      return words.every(function (word) {
+        return claimWords.some(function (other) { return sameStem(word, other); });
+      });
+    });
+    if (hits.length !== 1) return "";
+    var child = { text: mechanismText };
+    var parent = hits[0];
+    var featureRow = { text: feature };
+    if (!contentShare(child, parent, ctx)) return "";
+    if (!contentShare(child, featureRow, ctx)) return "";
+    return parent.claimId || "";
+  }
+
+  function priorPlanRows(ctx) {
+    var prior = ctx && (ctx.priorPlan || ctx.priorLinks);
+    if (!prior) return [];
+    if (Array.isArray(prior)) return prior;
+    if (Array.isArray(prior.learningMap)) return prior.learningMap;
+    if (prior.lessonPlan && Array.isArray(prior.lessonPlan.learningMap)) return prior.lessonPlan.learningMap;
+    return [];
+  }
+
+  function priorKeysFor(row, prior, byKey) {
+    var source = null;
+    prior.forEach(function (item) {
+      if (source || !item) return;
+      if (sameSentence(item.knowledge || item.text, row.text)) source = item;
+    });
+    if (!source) return [];
+    var keys = [];
+    dependencyRefs(source).forEach(function (key) {
+      var earlier = null;
+      prior.forEach(function (item) {
+        if (earlier || !item) return;
+        if (clean(item.id, 24) === key) earlier = item;
+      });
+      var match = "";
+      if (earlier) {
+        Object.keys(byKey).forEach(function (id) {
+          if (match) return;
+          if (sameSentence(byKey[id].text, earlier.knowledge || earlier.text)) match = id;
+        });
+      } else if (byKey[key]) match = key;
+      if (match && keys.indexOf(match) === -1) keys.push(match);
+    });
+    return keys;
+  }
+
+  // Same strand count the teaching plan will require. Readiness uses it before any lesson is generated.
+  function strandsRequiredFor(ctx, objective) {
+    ctx = ctx || {};
+    objective = objective || learningGoalOf(ctx) || clean((ctx.lessonBrief && ctx.lessonBrief.learningGoal) || "", 240);
+    var budget = depthBudget(ctx.yearGroup || ctx.yearAssumption, ctx.requestedMinutes);
+    var scope = teachingScope(ctx);
+    var seeking = planSeeksDepth(ctx, objective);
+    var range = strandRange(budget);
+    if (seeking) return seekingStrandMinimum(ctx, budget);
+    if (scope.scope === "broad") return range.low;
+    return 1;
+  }
+
+  function selectedPackClaims(pack, selection) {
+    pack = pack || {};
+    var claims = pack.claims || [];
+    var ids = selection && selection.claimIds;
+    if (ids && ids.length) {
+      var allow = {};
+      ids.forEach(function (id) { allow[id] = 1; });
+      return claims.filter(function (claim) { return claim && allow[claim.claimId]; });
+    }
+    return claims.filter(function (claim) {
+      return claim && !claim.localHold && !claim.classificationHold && !claim.contested;
+    });
+  }
+
+  function featureHits(feature, claims, mechanismText) {
+    var words = linkWords(feature);
+    if (!words.length) return [];
+    return (claims || []).filter(function (claim) {
+      if (!claim || sameSentence(claim.text, mechanismText)) return false;
+      var claimWords = linkWords(claim.text);
+      return words.every(function (word) {
+        return claimWords.some(function (other) { return sameStem(word, other); });
+      });
+    });
+  }
+
+  function concreteFeatureClaim(claim, feature) {
+    if (!claim || !clean(claim.text)) return false;
+    if (claim.classificationHold) return false;
+    var words = linkWords(feature);
+    if (!words.length) return false;
+    var claimWords = linkWords(claim.text);
+    var named = words.every(function (word) {
+      return claimWords.some(function (other) { return sameStem(word, other); });
+    });
+    if (!named) return false;
+    return clean(claim.text).split(/\s+/).filter(Boolean).length >= 4;
+  }
+
+  // The words pairRelevant reads as the learning goal. Shared with the source repair so
+  // its feedback names the same words the gate checks.
+  function goalWords(ctx) {
+    ctx = ctx || {};
+    var brief = ctx.lessonBrief || {};
+    var intent = brief.teacherIntent || {};
+    var focus = intent.focusConcepts || brief.focusConcepts || [];
+    var corpus = [
+      intent.learningGoal, brief.learningGoal, intent.requiredEvidence, brief.requiredEvidence,
+      focus.join(" "), ctx.topic, ctx.lessonText, ctx.teacherInstructions, brief.rawRequest
+    ].join(" ");
+    return contentWords(corpus);
+  }
+
+  // Relevance correction (source-grounded lesson PR, its own commit). Live Year 3 runs 5 and 6
+  // held "Sauropods' very long necks let them stand still and stretch high, low and wide to reach
+  // plants" (verbatim NHM, entailment supported) only because "sauropods" is not the word
+  // "dinosaurs". The cited page can supply the topic: when the page title or lead names the
+  // teacher's topic, the topic counts for a pair that names a body feature and states what it
+  // does, under a goal about features or adaptation. The page alone never makes a claim
+  // relevant: an off-goal claim (no body feature, no stated job) gets nothing from it.
+  var BODY_FEATURE = /\b(?:legs?|necks?|tails?|teeth|tooth|jaws?|claws?|horns?|spikes?|plates?|armou?r|feathers?|wings?|skin|scales?|skulls?|bones?|beaks?|eyes?|nose|nostrils?|arms?|hands?|feet|foot|thumbs?|muscles?|frills?|crests?|fins?|shells?|fur|hair|stance|hips?|stomachs?|bell(?:y|ies)|brains?|roots?|leaves|leaf|stems?|petals?|seeds?|spines?|hooves|paws|trunks?|tusks?|gills?|lungs?|heads?)\b/i;
+  var FEATURE_GOAL = /\b(?:adapt\w*|features?|body|bodies|body parts?|surviv\w*)\b/;
+  // A body-feature pair describes what the animal or plant had and what that did for it.
+  // Activities (people making, wearing or measuring things) are not that, even on a topic page.
+  var FEATURE_OWNED = /\b(?:had|has|have|were|was|are|is|grew|grows)\b/i;
+  var HUMAN_ACTOR = /\b(?:children|child|pupils?|kids?|students?|you|your|we|our|people|class|teachers?|humans?|visitors?)\b/i;
+
+  function pageLead(passages, url) {
+    var first = null;
+    Object.keys(passages).forEach(function (id) {
+      var item = passages[id];
+      if (!item || item.url !== url) return;
+      var n = Number((String(id).match(/P(\d+)$/) || [])[1] || 9999);
+      if (!first || n < first.n) first = { n: n, text: item.text };
+    });
+    return first ? ((String(first.text).match(/^[^.!?]*[.!?]?/) || [""])[0]) : "";
+  }
+
+  function pageNamesTopic(featureClaim, ctx) {
+    var topic = contentWords((ctx && ctx.topic) || "");
+    var passages = researchPassages(ctx);
+    if (!topic.length || !passages || !featureClaim) return false;
+    return sourceRefsOf(featureClaim).some(function (id) {
+      var item = passages[id];
+      if (!item) return false;
+      var context = contentWords([item.title || "", pageLead(passages, item.url)].join(" "));
+      return topic.every(function (head) { return context.some(function (word) { return sameStem(word, head); }); });
+    });
+  }
+
+  function pageTopicCounts(featureClaim, explanation, feature, ctx) {
+    var brief = (ctx && ctx.lessonBrief) || {};
+    var intent = brief.teacherIntent || {};
+    var goalText = [intent.learningGoal, brief.learningGoal, intent.requiredEvidence, brief.requiredEvidence, (intent.focusConcepts || brief.focusConcepts || []).join(" ")].join(" ").toLowerCase();
+    if (!FEATURE_GOAL.test(goalText)) return false;
+    if (!feature || !BODY_FEATURE.test(feature)) return false;
+    if (!featureClaim || !BODY_FEATURE.test(featureClaim.text || "") || !FEATURE_OWNED.test(featureClaim.text || "")) return false;
+    if (HUMAN_ACTOR.test(featureClaim.text || "") || HUMAN_ACTOR.test(explanation || "")) return false;
+    if (!statesMechanism(explanation)) return false;
+    return pageNamesTopic(featureClaim, ctx);
+  }
+
+  function pairRelevant(featureClaim, explanation, feature, ctx) {
+    ctx = ctx || {};
+    var goal = goalWords(ctx);
+    var mine = contentWords([featureClaim && featureClaim.text, explanation, feature].join(" "));
+    if (pageTopicCounts(featureClaim, explanation, feature, ctx)) mine = mine.concat(contentWords(ctx.topic || ""));
+    if (!mine.length || !goal.length) return false;
+    function shares(list) {
+      return mine.some(function (word) {
+        return list.some(function (other) { return sameStem(word, other); });
+      });
+    }
+    if (teachingScope(ctx).scope === "broad") return shares(goal);
+    var subject = contentWords(ctx.topic || "");
+    var specific = goal.filter(function (word) {
+      return !subject.some(function (head) { return sameStem(word, head); });
+    });
+    if (!specific.length) return shares(goal);
+    return mine.some(function (word) {
+      if (subject.some(function (head) { return sameStem(word, head); })) return false;
+      return specific.some(function (other) { return sameStem(word, other); });
+    });
+  }
+
+  function sameTeachingIdea(left, right) {
+    if (!left || !right) return false;
+    if (left.featureClaimId && left.featureClaimId === right.featureClaimId) return true;
+    var a = linkWords(left.feature);
+    var b = linkWords(right.feature);
+    return a.some(function (word) {
+      return b.some(function (other) { return sameStem(word, other); });
+    });
+  }
+
+  // featureClaimId is necessary and not sufficient. A ready pair also names a concrete
+  // feature, explains how or why it works, links two different selected claims, and
+  // belongs to the learning goal. Provenance and factuallyVerified are not readiness.
+  function assessPackReadiness(pack, selection, ctx) {
+    ctx = ctx || {};
+    pack = pack || {};
+    selection = selection || {};
+    var empty = {
+      status: "ready",
+      skipped: true,
+      requiredPairs: 0,
+      distinctReady: 0,
+      pairs: [],
+      readyPairs: [],
+      ideas: [],
+      missing: [],
+      issues: [],
+      factuallyVerified: false
+    };
+    if (!pack.claims || !pack.claims.length || pack.status === "blocked" || selection.status === "blocked") return empty;
+    var required = strandsRequiredFor(ctx);
+    var selected = selectedPackClaims(pack, selection);
+    var selectedIds = {};
+    selected.forEach(function (claim) { selectedIds[claim.claimId] = claim; });
+    var byId = {};
+    (pack.claims || []).forEach(function (claim) { byId[claim.claimId] = claim; });
+    var mechanisms = pack.mechanisms || [];
+    var headIds = {};
+    mechanisms.forEach(function (item) {
+      if (item && item.featureClaimId) headIds[item.featureClaimId] = 1;
+    });
+    var examined = [];
+    mechanisms.forEach(function (item) {
+      if (!item || !item.text) return;
+      var feature = clean(item.feature, 80);
+      var featureClaim = item.featureClaimId ? byId[item.featureClaimId] : null;
+      var hits = feature ? featureHits(feature, pack.claims, item.text) : [];
+      var gaps = [];
+      if (!selectedIds[item.claimId]) gaps.push("the explanation is not selected admitted knowledge for this lesson");
+      if (!feature) gaps.push("no concrete feature or concept is named");
+      else if (!item.featureClaimId) gaps.push("the feature phrase does not match one other selected claim, so there is no explicit relationship");
+      else if (!featureClaim) gaps.push("the feature claim id does not resolve to an admitted claim");
+      else if (!selectedIds[featureClaim.claimId]) gaps.push("the feature claim is not selected for this lesson");
+      else if (hits.length !== 1 || hits[0].claimId !== featureClaim.claimId) gaps.push("the feature relationship is ambiguous");
+      else if (!contentShare({ text: item.text }, featureClaim, ctx) || !contentShare({ text: item.text }, { text: feature }, ctx)) gaps.push("the explanation does not share the feature with the selected claim");
+      else if (!concreteFeatureClaim(featureClaim, feature)) gaps.push("the selected claim is not a concrete feature or concept");
+      if (!statesMechanism(item.text)) {
+        gaps.push(item.featureClaimId && featureClaim && selectedIds[featureClaim.claimId]
+          ? "the feature claim resolves, but the explanation does not state how or why"
+          : "the explanation does not state how or why");
+      }
+      // Research mode: "helped it survive" is not a how-or-why explanation (patch 6).
+      if (researchMode(ctx) && genericResultOnly(item.text)) gaps.push("the explanation only says the feature helped the animal survive or live somewhere; it does not say what the feature did");
+      if (!gaps.some(function (gap) { return gap.indexOf("not relevant") !== -1; }) && featureClaim && selectedIds[featureClaim.claimId] && !pairRelevant(featureClaim, item.text, feature, ctx)) gaps.push("the pair is not relevant to the learning goal");
+      var ready = !gaps.length;
+      if (!ready && !feature && headIds[item.claimId] && !statesMechanism(item.text)) return;
+      examined.push({
+        mechanismClaimId: item.claimId,
+        featureClaimId: ready ? featureClaim.claimId : (item.featureClaimId || ""),
+        feature: feature,
+        featureText: featureClaim ? featureClaim.text : "",
+        featureClaim: ready ? featureClaim : null,
+        explanation: item.text,
+        ready: ready,
+        validated: ready,
+        gaps: gaps
+      });
+    });
+    var ideas = [];
+    examined.forEach(function (pair) {
+      if (!pair.ready) return;
+      var group = null;
+      ideas.forEach(function (idea) {
+        if (group) return;
+        if (idea.some(function (other) { return sameTeachingIdea(pair, other); })) group = idea;
+      });
+      if (!group) {
+        group = [];
+        ideas.push(group);
+      } else {
+        pair.ready = false;
+        pair.duplicate = true;
+        pair.gaps = ["repeats the teaching idea in \"" + clean(group[0].explanation, 120) + "\""];
+      }
+      group.push(pair);
+    });
+    ideas.forEach(function (group) {
+      group.forEach(function (pair, index) {
+        if (index === 0) return;
+        pair.ready = false;
+        pair.duplicate = true;
+        if (!pair.gaps.length) pair.gaps = ["repeats the teaching idea in \"" + clean(group[0].explanation, 120) + "\""];
+      });
+    });
+    var readyPairs = [];
+    examined.forEach(function (pair) { if (pair.ready) readyPairs.push(pair); });
+    // ID lineage: each gate-ready pair is a teaching unit the plan, beats and questions cite by id.
+    readyPairs.forEach(function (pair, index) {
+      pair.unitId = "u" + (index + 1);
+      pair.elementClaimId = pair.featureClaimId;
+      pair.explanationClaimId = pair.mechanismClaimId;
+    });
+    var missing = [];
+    if (ideas.length < required) {
+      missing.push("Missing substance: " + (required - ideas.length) + " more distinct pair" + (required - ideas.length === 1 ? "" : "s") + ". Each pair needs a concrete feature or concept, a separate explanation of how or why that feature works, an explicit relationship between those two selected claims, and relevance to the learning goal.");
+    }
+    if (!mechanisms.length) missing.push("The selected claims do not include a mechanism that explains a feature.");
+    examined.forEach(function (pair) {
+      if (pair.ready) return;
+      var detail = pair.gaps.join("; ");
+      if (detail) detail = detail.charAt(0).toUpperCase() + detail.slice(1);
+      missing.push("Not ready: \"" + clean(pair.explanation, 160) + "\". " + detail + ".");
+    });
+    var status = ideas.length >= required ? "ready" : "incomplete";
+    var issue = status === "ready" ? "" : "PACK_INCOMPLETE: this lesson needs " + required + " distinct feature-and-explanation pairs. The pack has " + ideas.length + ". " + missing.join(" ");
+    return {
+      status: status,
+      skipped: false,
+      requiredPairs: required,
+      distinctReady: ideas.length,
+      pairs: examined,
+      readyPairs: readyPairs,
+      ideas: ideas,
+      missing: missing,
+      issues: issue ? [issue] : [],
+      factuallyVerified: false
+    };
+  }
+
+  function lossReasonForPair(pair, rejected, items) {
+    var found = "";
+    (rejected || []).forEach(function (item) {
+      if (found || !item) return;
+      if (sameSentence(item.knowledge, pair.explanation) || sameSentence(item.knowledge, pair.featureText)) found = item.reason || "removed";
+    });
+    if (found) return found;
+    var head = false;
+    var child = false;
+    var linked = false;
+    (items || []).forEach(function (item) {
+      var ids = item.claimIds || [];
+      if (ids.indexOf(pair.featureClaimId) !== -1) head = true;
+      if (ids.indexOf(pair.mechanismClaimId) !== -1) {
+        child = true;
+        if ((item.dependsOn || []).some(function (id) {
+          return (items || []).some(function (other) {
+            return other.id === id && (other.claimIds || []).indexOf(pair.featureClaimId) !== -1;
+          });
+        })) linked = true;
+      }
+    });
+    if (head && child && !linked) return "the explanation no longer depends on the feature claim";
+    if (!child) return "the explanation is not in the learning map";
+    return "the feature claim is not in the learning map";
+  }
+
+  function pairPreserved(pair, items) {
+    var head = null;
+    var child = null;
+    (items || []).forEach(function (item) {
+      var ids = item.claimIds || [];
+      if (ids.indexOf(pair.featureClaimId) !== -1) head = item;
+      if (ids.indexOf(pair.mechanismClaimId) !== -1) child = item;
+    });
+    if (!head || !child || head === child) return false;
+    return (child.dependsOn || []).indexOf(head.id) !== -1;
+  }
+
+  function packPairReport(readiness, items, rejected) {
+    if (!readiness || readiness.skipped) {
+      return { skipped: true, requiredPairs: 0, distinctReady: 0, preserved: 0, lost: [], issue: "", factuallyVerified: false };
+    }
+    var preserved = 0;
+    var lost = [];
+    (readiness.ideas || []).forEach(function (group) {
+      var pair = group[0];
+      if (group.some(function (item) { return pairPreserved(item, items); })) {
+        preserved += 1;
+        return;
+      }
+      lost.push({
+        mechanismClaimId: pair.mechanismClaimId,
+        featureClaimId: pair.featureClaimId,
+        explanation: pair.explanation,
+        featureText: pair.featureText,
+        reason: lossReasonForPair(pair, rejected, items)
+      });
+    });
+    var issue = "";
+    if (lost.length) {
+      issue = lost.map(function (row) {
+        return "A required feature-and-explanation pair was removed: \"" + clean(row.explanation, 160) + "\" (feature: \"" + clean(row.featureText, 160) + "\"). Reason: " + row.reason + ".";
+      }).join(" ") + " Rechecked readiness: " + preserved + " of " + readiness.requiredPairs + " required pairs remain.";
+    }
+    return {
+      skipped: false,
+      requiredPairs: readiness.requiredPairs,
+      distinctReady: readiness.distinctReady,
+      preserved: preserved,
+      lost: lost,
+      issue: issue,
+      factuallyVerified: false
+    };
+  }
+
+  // ---- ID lineage (source-grounded lesson PR, patch 5) ----
+  // A gate-ready pack pair is a teaching unit: unitId, elementClaimId (the feature claim) and
+  // explanationClaimId (the claim that says what the feature does). The learning map, the
+  // teaching beats and the questions carry those ids, and validation follows the ids. Goal
+  // relevance was decided once, at the pack gate; it is not re-derived downstream from words.
+  // Substance still applies everywhere: a point or beat that cites a unit must itself state the
+  // feature's job in specific words ("helped them survive" or "let dinosaurs." does not).
+  var JOB_FILLER = { allow: 1, allows: 1, allowed: 1, allowing: 1, let: 1, lets: 1, letting: 1, enable: 1, enables: 1, enabled: 1, enabling: 1, help: 1, helps: 1, helped: 1, helping: 1, because: 1, could: 1, can: 1, make: 1, makes: 1, made: 1, making: 1, cause: 1, causes: 1, caused: 1, which: 1, when: 1, meant: 1, were: 1, was: 1, had: 1, have: 1, has: 1, their: 1, them: 1, they: 1, this: 1, these: 1, those: 1, that: 1, with: 1, from: 1, into: 1, than: 1, more: 1, very: 1, also: 1, other: 1, feature: 1, features: 1, adaptation: 1, adaptations: 1, body: 1, part: 1, parts: 1, important: 1, useful: 1, special: 1, way: 1, ways: 1, some: 1, many: 1, all: 1, the: 1, and: 1 };
+
+  function readyUnits(readiness) {
+    if (!readiness || readiness.skipped) return [];
+    return (readiness.readyPairs || []).filter(function (pair) { return pair && pair.unitId; }).map(function (pair) {
+      return { unitId: pair.unitId, elementClaimId: pair.elementClaimId || pair.featureClaimId, explanationClaimId: pair.explanationClaimId || pair.mechanismClaimId, feature: pair.feature || "", explanation: pair.explanation || "" };
+    });
+  }
+
+  // Specific words for what the feature does: not the feature's own words, not the topic, not
+  // the linking verb, and not a vague job (survive, live, adapt, environment).
+  function jobWords(text, feature, ctx) {
+    var skip = contentWords([feature, (ctx && ctx.topic) || ""].join(" "));
+    return contentWords(text).filter(function (word) {
+      if (word.length < 3 || JOB_FILLER[word] || VAGUE_JOB[word] || /^adapt/.test(word) || /^surviv/.test(word)) return false;
+      return !skip.some(function (other) { return sameStem(word, other); });
+    });
+  }
+
+  function statesUnitJob(text, unit, ctx) {
+    if (!statesMechanism(text)) return false;
+    return jobWords(text, unit && unit.feature, ctx).length >= 2;
+  }
+
+  function unitIdsForClaims(claimIds, units) {
+    var out = [];
+    (claimIds || []).forEach(function (id) {
+      units.forEach(function (unit) {
+        if ((unit.elementClaimId === id || unit.explanationClaimId === id) && out.indexOf(unit.unitId) === -1) out.push(unit.unitId);
+      });
+    });
+    return out;
+  }
+
+  // Plan stage: a point answers the learning goal when it cites a gate-ready unit's explanation
+  // claim and states that unit's job. A point citing no ready unit answers nothing; it stays only
+  // when the map links it to a point that does (the existing reachability rule).
+  function lineageAnswers(row, units, ctx) {
+    var ids = (row && row.claimIds) || [];
+    return units.some(function (unit) {
+      return ids.indexOf(unit.explanationClaimId) !== -1 && statesUnitJob(row.text, unit, ctx);
+    });
+  }
+
+  // Teaching and assessment: stamp the unit and claim ids each plan point, strand, beat and
+  // question carries (from knowledgeRefs -> learning map point -> claimIds), then check that every
+  // gate-ready unit is planned in a developed strand, taught by an explain beat that states its
+  // job, and assessed by at least one question. Returns { skipped, units, issues }.
+  function unitLineage(adventure, ctx) {
+    var readiness = assessPackReadiness(ctx && ctx.knowledgePack, ctx && ctx.knowledgeSelection, ctx);
+    var units = readyUnits(readiness);
+    if (!units.length) return { skipped: true, units: [], issues: [] };
+    var plan = (adventure && adventure.lessonPlan) || {};
+    var map = plan.learningMap || [];
+    var point = {};
+    map.forEach(function (item) {
+      item.unitIds = unitIdsForClaims(item.claimIds, units);
+      point[item.id] = item;
+    });
+    var strands = (plan.teachingPlan && plan.teachingPlan.strands) || [];
+    strands.forEach(function (strand) {
+      var ids = [];
+      (strand.knowledgeRefs || []).forEach(function (ref) { ((point[ref] && point[ref].unitIds) || []).forEach(function (id) { if (ids.indexOf(id) === -1) ids.push(id); }); });
+      strand.unitIds = ids;
+    });
+    function idsFor(refs) {
+      var unitIds = [];
+      var claimIds = [];
+      (refs || []).forEach(function (ref) {
+        var item = point[ref];
+        if (!item) return;
+        (item.unitIds || []).forEach(function (id) { if (unitIds.indexOf(id) === -1) unitIds.push(id); });
+        (item.claimIds || []).forEach(function (id) { if (claimIds.indexOf(id) === -1) claimIds.push(id); });
+      });
+      return { unitIds: unitIds, claimIds: claimIds };
+    }
+    var beatsById = {};
+    var questions = [];
+    ((adventure && adventure.activities) || []).forEach(function (activity) {
+      (activity.beats || []).forEach(function (beat) {
+        var ids = idsFor(beat.knowledgeRefs);
+        beat.unitIds = ids.unitIds;
+        beat.claimIds = ids.claimIds;
+        beatsById[beat.id] = { beat: beat, slotId: activity.slotId || "" };
+      });
+      var config = activity.config || {};
+      (Array.isArray(config.questions) ? config.questions : []).forEach(function (question) {
+        var from = beatsById[question.id];
+        var refs = from ? (from.beat.knowledgeRefs || []).slice() : [];
+        var ids = idsFor(refs);
+        question.knowledgeRefs = refs;
+        question.unitIds = ids.unitIds;
+        question.claimIds = ids.claimIds;
+        questions.push(question);
+      });
+    });
+    var issues = [];
+    var rows = units.map(function (unit) {
+      var planned = map.filter(function (item) { return (item.unitIds || []).indexOf(unit.unitId) !== -1; });
+      var explainPoint = planned.filter(function (item) { return (item.claimIds || []).indexOf(unit.explanationClaimId) !== -1; })[0] || null;
+      var elementPoint = planned.filter(function (item) { return (item.claimIds || []).indexOf(unit.elementClaimId) !== -1; })[0] || null;
+      var strand = strands.filter(function (s) { return (s.unitIds || []).indexOf(unit.unitId) !== -1 && s.developed !== false; })[0] || null;
+      var beats = Object.keys(beatsById).map(function (id) { return beatsById[id]; }).filter(function (row) { return (row.beat.unitIds || []).indexOf(unit.unitId) !== -1; });
+      var explainBeats = beats.filter(function (row) {
+        // The teaching itself: a teach-stage beat (or an explain move) that cites the unit's
+        // explanation point and states the job. A recap or apply prompt does not stand in for it.
+        var teaching = row.slotId === "teach" || row.beat.move === "explain";
+        return teaching && explainPoint && (row.beat.knowledgeRefs || []).indexOf(explainPoint.id) !== -1 && statesUnitJob(row.beat.pupil && row.beat.pupil.text, unit, ctx);
+      });
+      var asked = questions.filter(function (q) { return (q.unitIds || []).indexOf(unit.unitId) !== -1; });
+      var problems = [];
+      if (!explainPoint) problems.push("no learning-map point carries its explanation claim " + unit.explanationClaimId);
+      else if (!statesUnitJob(explainPoint.knowledge, unit, ctx)) problems.push("its learning-map point does not state what the feature does");
+      if (!elementPoint) problems.push("no learning-map point carries its feature claim " + unit.elementClaimId);
+      if (!strand) problems.push("no developed teaching strand carries it");
+      if (!explainBeats.length) problems.push("no teaching beat cites its explanation and states what the feature does");
+      if (!asked.length) problems.push("no question assesses it");
+      if (problems.length) issues.push("LINEAGE: unit " + unit.unitId + " (" + clean(unit.feature, 60) + "): " + problems.join("; ") + ".");
+      return {
+        unitId: unit.unitId, feature: unit.feature, elementClaimId: unit.elementClaimId, explanationClaimId: unit.explanationClaimId,
+        planPoints: planned.map(function (item) { return item.id; }), strand: strand ? strand.id : "",
+        beats: beats.map(function (row) { return row.beat.id; }), explainBeats: explainBeats.map(function (row) { return row.beat.id; }),
+        questions: asked.map(function (q) { return q.id; }), ok: !problems.length, problems: problems
+      };
+    });
+    var out = { skipped: false, requiredPairs: readiness.requiredPairs, units: rows, issues: issues, label: "ID lineage; automated; not human review" };
+    // Patch 6, research mode: lineage extends to APPLY. The apply beat cites a gate-ready unit,
+    // and a choose task carries that same unit id.
+    if (researchMode(ctx)) {
+      var applyActivity = ((adventure && adventure.activities) || []).filter(function (a) { return a && a.slotId === "apply"; })[0] || null;
+      var applyUnitIds = [];
+      ((applyActivity && applyActivity.beats) || []).forEach(function (beat) { (beat.unitIds || []).forEach(function (id) { if (applyUnitIds.indexOf(id) === -1) applyUnitIds.push(id); }); });
+      var readyIds = units.map(function (u) { return u.unitId; });
+      applyUnitIds = applyUnitIds.filter(function (id) { return readyIds.indexOf(id) !== -1; });
+      var step = applyActivity && applyActivity.scene && applyActivity.scene.interaction;
+      var applyProblems = [];
+      if (!applyActivity) applyProblems.push("the lesson has no APPLY stage");
+      else if (!applyUnitIds.length) applyProblems.push("no APPLY beat cites a gate-ready unit");
+      if (step && step.type === "choose") {
+        if (!step.unitId) applyProblems.push("the choose task carries no unit id");
+        else if (applyUnitIds.indexOf(step.unitId) === -1) applyProblems.push("the choose task's unit " + step.unitId + " is not the unit its beat cites (" + (applyUnitIds.join(", ") || "none") + ")");
+      }
+      if (applyProblems.length) issues.push("LINEAGE: apply: " + applyProblems.join("; ") + ".");
+      out.apply = { unitIds: applyUnitIds, interactionUnitId: (step && step.unitId) || "", interactionType: (step && step.type) || "", ok: !applyProblems.length, problems: applyProblems };
+    }
+    return out;
+  }
+
+  // A validated pack pair is the strand edge. A model hub does not replace it.
+  // An empty featureClaimId, an ambiguous id, or a thin explanation does not create a head.
+  function realiseFeatureLinks(rows, ctx) {
+    var readiness = assessPackReadiness(ctx && ctx.knowledgePack, ctx && ctx.knowledgeSelection, ctx);
+    if (readiness.skipped) return readiness;
+    readiness.pairs.forEach(function (pair) {
+      if (!pair.validated) return;
+      var row = null;
+      rows.forEach(function (item) {
+        if (row) return;
+        var ids = item.claimIds || [];
+        if (ids.indexOf(pair.mechanismClaimId) !== -1 || sameSentence(item.text, pair.explanation)) row = item;
+      });
+      if (!row) return;
+      if ((row.claimIds || []).indexOf(pair.featureClaimId) !== -1) return;
+      if (!EXPLAIN_ROLE[row.role]) row.role = "mechanism";
+      var targets = [];
+      rows.forEach(function (other) {
+        if (other === row) return;
+        var ids = other.claimIds || [];
+        if (ids.indexOf(pair.featureClaimId) !== -1 || sameSentence(other.text, pair.featureText)) targets.push(other);
+      });
+      var target = targets.length === 1 ? targets[0] : null;
+      if (!target && !targets.length && pair.featureClaim) {
+        target = {
+          key: "pack-" + pair.featureClaimId,
+          text: pair.featureClaim.text,
+          role: pair.featureClaim.kind === "definition" ? "concept" : "feature",
+          label: "",
+          importance: "core",
+          needs: [],
+          deps: [],
+          claimIds: [pair.featureClaimId],
+          index: row.index - 0.01,
+          packSupplied: true
+        };
+        rows.push(target);
+      }
+      if (!target || targets.length > 1) return;
+      if ((target.claimIds || []).indexOf(pair.featureClaimId) === -1) target.claimIds = (target.claimIds || []).concat([pair.featureClaimId]);
+      if (!contentShare(row, target, ctx)) return;
+      if (target.role !== "feature" && target.role !== "concept" && target.role !== "definition") target.role = "feature";
+      if (!NAMED_POINT[target.role]) return;
+      row.deps = [target];
+      row.packEdge = pair.featureClaimId;
+      target.packEdge = pair.featureClaimId;
+    });
+    return readiness;
+  }
+
+  function mapProposals(parsed, ctx) {
     var map = Array.isArray(parsed && parsed.learningMap) && parsed.learningMap.length ? parsed.learningMap : null;
     var legacy = parsed && parsed.keyKnowledge;
     var source = map || (Array.isArray(legacy) ? legacy : (legacy ? [legacy] : []));
@@ -3265,17 +5950,25 @@
         role: MAP_ROLES[label] ? label : "",
         label: label,
         importance: clean(object && raw.importance, 20).toLowerCase() === "supporting" ? "supporting" : "core",
-        needs: object && Array.isArray(raw.dependsOn) ? raw.dependsOn.map(function (dep) { return clean(dep, 24); }).filter(Boolean) : [],
+        needs: object ? dependencyRefs(raw) : [],
+        claimIds: object ? claimIdList(raw.claimIds || raw.claimId) : [],
         index: rows.length
       };
       if (!byKey[row.key]) byKey[row.key] = row;
       rows.push(row);
     });
+    var prior = priorPlanRows(ctx);
+    rows.forEach(function (row) {
+      if (row.needs.length || !prior.length) return;
+      priorKeysFor(row, prior, byKey).forEach(function (key) {
+        if (row.needs.indexOf(key) === -1) row.needs.push(key);
+      });
+    });
     rows.forEach(function (row) {
       row.deps = [];
       row.needs.forEach(function (key) {
         var target = byKey[key];
-        if (target && target !== row && row.deps.indexOf(target) === -1) row.deps.push(target);
+        if (target && target !== row && row.deps.indexOf(target) === -1 && !unrelatedFeatureLink(row, target, rows, ctx)) row.deps.push(target);
       });
     });
     return { rows: rows, proposed: !!map };
@@ -3294,11 +5987,23 @@
     return false;
   }
 
-  function mapRestates(kept, row, goal) {
+  function mapRestates(kept, row, goal, names) {
     if (sameSentence(kept.text, row.text)) return true;
     if (mapKind(kept.text, kept.role, kept.deps.length) !== "relationship" || mapKind(row.text, row.role, row.deps.length) !== "relationship") return false;
     if (mapReaches(kept, row) || mapReaches(row, kept)) return false;
-    return sameRelationship(kept.text, row.text, goal);
+    return sameRelationship(kept.text, row.text, goal, names);
+  }
+
+  // Names the research pack's claims use mid-sentence (capitalised, not a sentence start).
+  function packNames(ctx) {
+    var names = {};
+    ((ctx && ctx.knowledgePack && ctx.knowledgePack.claims) || []).forEach(function (claim) {
+      String(claim && claim.text || "").split(/\s+/).forEach(function (raw, index) {
+        var word = raw.replace(/[^A-Za-z'-]/g, "").replace(/'s$/i, "");
+        if (index > 0 && /^[A-Z][a-z]{3,}$/.test(word)) names[word.toLowerCase()] = 1;
+      });
+    });
+    return names;
   }
 
   function mapOrder(rows) {
@@ -3352,8 +6057,27 @@
     return { low: depth.floor >= 4 ? 2 : 1, high: Math.max(1, Math.floor((depth.max - 1) / 2)) };
   }
 
+  // A standard depth-seeking lesson needs more than one developed idea from Year 3.
+  // Year 1–2 stay at two. A short budget keeps strandRange.low so the map can still fit.
+  function seekingStrandMinimum(ctx, depth) {
+    var range = strandRange(depth);
+    if (range.low < 2) return range.low;
+    var year = beatYear((ctx && (ctx.yearGroup || ctx.yearAssumption)) || "");
+    if (year <= 2) return 2;
+    if (depth.max >= 7) return 3;
+    return range.low;
+  }
+
   function depthWords(text) {
     return contentWords(text).filter(function (word) { return !DEPTH_FILLER[word] && !RELATION_STEM[word]; });
+  }
+
+  function sharesAdmittedStem(left, right) {
+    var mine = depthWords(left).filter(function (word) { return word.length >= 5; });
+    var theirs = depthWords(right);
+    return mine.some(function (word) {
+      return theirs.some(function (other) { return sameStem(word, other); });
+    });
   }
 
   function stemIn(word, list) {
@@ -3462,8 +6186,21 @@
     return { order: ordered(flat), group: group, strands: strands };
   }
 
+  function statesMechanism(text) {
+    if (statesRelation(text) || statesFunction(text)) return true;
+    var value = String(text || "");
+    if (/\bwhich\s+(?:makes?|lets?|helps?|moves?|causes?|allows?|changes?|keeps?|stops?|carries|carry|push(?:es)?|pulls?|turns?|means?|wears?|drops?|builds?|sends?|takes?|gives?|shows?)\b/i.test(value)) return true;
+    if (/\b(?:push(?:es)?|pulls?|carry|carries|extracts?|reduces?|wears?|flows?|bounces?|reflects?|pumps?|absorbs?|releases?|produces?)\b\s+[a-z0-9]/i.test(value)) return true;
+    if (/\bso\b[^.]{0,60}\b(?:can|could)\b/i.test(value)) return true;
+    if (/\bto\s+(?:breathe|survive|live|grow|see|move|swim|fly|hunt|stay|keep|carry|change|protect|find|catch|push|pull|flow|hold|steer)\b/i.test(value)) return true;
+    if (/\bby\s+(?:pushing|pulling|moving|carrying|using|taking|making|cutting|wearing|flowing|reflecting|absorbing)\b/i.test(value)) return true;
+    return false;
+  }
+
   function explainedPoint(item) {
-    return !!(EXPLAINED_KIND[item.kind] || ((item.dependsOn || []).length && RELATIONAL_ROLE[item.role]));
+    if (EXPLAINED_KIND[item.kind]) return true;
+    var text = item.knowledge || item.text || "";
+    return !!((item.dependsOn || []).length && RELATIONAL_ROLE[item.role] && statesMechanism(text));
   }
 
   function depthSnapshot(items, teaching) {
@@ -3497,7 +6234,7 @@
       });
       mine.forEach(function (word) { seen.push(word); });
       earlier.push(mine);
-      var row = { id: item.id, kind: kind, role: item.role, dependsOn: deps };
+      var row = { id: item.id, kind: kind, role: item.role, dependsOn: deps, knowledge: item.knowledge };
       var category = "substantive";
       if (item.role === "example") category = deps.length ? "supporting" : "unsupported-example";
       else if (item.role === "connection" && deps.length) category = deps.length >= 2 && !metaPoint(item.knowledge) ? "synthesis" : "generic-connection";
@@ -3543,6 +6280,8 @@
       };
     });
     var range = strandRange(depth);
+    var seeking = planSeeksDepth(ctx);
+    var strandsRequired = seeking ? seekingStrandMinimum(ctx, depth) : (scope.scope === "broad" ? range.low : 1);
     var rejected = (dropped || []).map(function (item) {
       var reason = /^restates\b/.test(item.reason) ? "repetition" : item.reason;
       var row = { knowledge: clean(item.knowledge, 120), ref: "", reason: reason, taught: false };
@@ -3564,9 +6303,9 @@
         substantive: count.substantive,
         supporting: count.supporting,
         synthesis: count.synthesis,
-        strandsRequired: scope.scope === "broad" ? range.low : 1,
+        strandsRequired: strandsRequired,
         strandsDeveloped: developed,
-        met: achieved >= required && (scope.scope !== "broad" || developed >= range.low)
+        met: achieved >= required && (seeking ? developed >= strandsRequired : (scope.scope !== "broad" || developed >= range.low))
       },
       strands: list,
       points: points,
@@ -3579,11 +6318,21 @@
     var goal = planGoalText(ctx, objective);
     var budget = depthBudget(ctx.yearGroup || ctx.yearAssumption || (ctx.lessonPlan && ctx.lessonPlan.yearGroup), ctx.requestedMinutes);
     var seeking = seeksContribution(ctx, objective);
-    var proposal = mapProposals(parsed);
+    var proposal = mapProposals(parsed, ctx);
     var rejected = [];
     var unique = [];
+    var packOn = !!(ctx.knowledgePack && ctx.knowledgePack.status !== "blocked" && (ctx.knowledgePack.claims || []).length);
+    var mapNames = researchMode(ctx) ? packNames(ctx) : null;
     proposal.rows.forEach(function (row) {
-      var twin = unique.filter(function (kept) { return mapRestates(kept, row, goal); })[0];
+      if (packOn) {
+        var bound = bindRowToPack(row, ctx);
+        if (!bound.ok) {
+          rejected.push({ knowledge: row.text, reason: bound.reason });
+          return;
+        }
+        row.claimIds = bound.claimIds;
+      }
+      var twin = unique.filter(function (kept) { return mapRestates(kept, row, goal, mapNames); })[0];
       if (twin) {
         row.merged = twin;
         rejected.push({ knowledge: row.text, reason: "restates " + twin.key });
@@ -3599,9 +6348,13 @@
       });
       row.deps = deps;
     });
+    var readiness = realiseFeatureLinks(unique, ctx);
+    var units = readyUnits(readiness);
     unique.forEach(function (row) {
       row.kind = mapKind(row.text, row.role, row.deps.length);
-      row.answers = seeking && answersContribution(row.text, goal);
+      row.unitIds = unitIdsForClaims(row.claimIds, units);
+      // With gate-ready units, relevance follows the ids (lineageAnswers); otherwise the words.
+      row.answers = seeking && (units.length ? lineageAnswers(row, units, ctx) : answersContribution(row.text, goal, row));
     });
     var connected = unique;
     if (seeking && unique.some(function (row) { return row.answers; })) {
@@ -3622,12 +6375,37 @@
         return false;
       });
     } else if (unique.some(function (row) { return row.deps.length; })) {
-      connected = unique.filter(function (row) {
+      var linkedRows = [];
+      var orphanRows = [];
+      unique.forEach(function (row) {
         var linked = row.deps.length || unique.some(function (other) { return other.deps.indexOf(row) !== -1; });
-        if (linked) return true;
-        rejected.push({ knowledge: row.text, reason: "not connected to the learning map" });
-        return false;
+        if (linked) linkedRows.push(row);
+        else orphanRows.push(row);
       });
+      // A selected pack claim with no dependsOn is still the earlier idea when the map is
+      // short of the depth floor and a kept point already uses its words. It becomes a
+      // foundation those points build on. It is not a new fact, and it does not merge strands.
+      if (linkedRows.length < budget.floor) {
+        var stillOrphan = [];
+        var anchor = linkedRows.slice();
+        orphanRows.forEach(function (row) {
+          var prior = !row.role || row.role === "fact" || row.role === "concept" || row.role === "foundation" || row.role === "definition";
+          var hits = prior && row.claimIds && row.claimIds.length
+            ? anchor.filter(function (kept) { return sharesAdmittedStem(row.text, kept.text); })
+            : [];
+          if (!hits.length) { stillOrphan.push(row); return; }
+          row.role = "foundation";
+          hits.forEach(function (kept) {
+            if (kept.deps.indexOf(row) === -1) kept.deps.push(row);
+          });
+          linkedRows.push(row);
+        });
+        orphanRows = stillOrphan;
+      }
+      orphanRows.forEach(function (row) {
+        rejected.push({ knowledge: row.text, reason: "not connected to the learning map" });
+      });
+      connected = linkedRows;
     }
     var filtered = depthFilter(connected, ctx);
     var depthDropped = filtered.dropped.map(function (item) {
@@ -3661,9 +6439,12 @@
         role: row.role || KIND_ROLE[row.kind] || "fact",
         importance: row.importance,
         dependsOn: row.deps.filter(function (dep) { return chosen.indexOf(dep) !== -1; }).map(function (dep) { return idOf[dep.key + "#" + dep.index]; }),
+        claimIds: (row.claimIds || []).slice(),
+        unitIds: (row.unitIds || []).slice(),
         answers: !!row.answers
       };
     });
+    var pairReport = packPairReport(readiness, items, rejected);
     return {
       items: items,
       rejected: rejected,
@@ -3673,6 +6454,7 @@
       answered: items.some(function (item) { return item.answers; }),
       depthDropped: depthDropped,
       proposed: proposal.proposed,
+      packPairs: pairReport,
       raw: proposal.rows.map(function (row) { return { text: row.text, knowledgeType: knowledgeRole(row.text, ROLE_TYPE[row.role] || row.label) }; })
     };
   }
@@ -3741,6 +6523,18 @@
     return brief.intent === "procedure" || /\bhow to\b/.test(planGoalText(ctx, objective));
   }
 
+  function planSeeksDepth(ctx, objective) {
+    if (planNeedsSteps(ctx, objective)) return false;
+    var goal = planGoalText(ctx, objective);
+    if (planNeedsRelation(ctx, objective) || planNeedsProcess(ctx, objective) || seeksContribution(ctx, objective)) return true;
+    if (/\bhow\b[^.]{0,140}\b(?:adapt(?:ed|s|ing|ation|ations)?|surviv(?:e|es|ed|ing|al)|works?|working)\b/.test(goal)) return true;
+    if (/\b(?:what makes|what causes|what happens when)\b/.test(goal)) return true;
+    var scope = teachingScope(ctx);
+    if (scope.scope !== "narrow" || scope.reason.indexOf("relationship:") !== 0) return false;
+    if (/\b(?:difference between|compare|comparison)\b/.test(goal)) return false;
+    return true;
+  }
+
   function statesSteps(text) {
     var value = String(text || "");
     if (/\bplaces?\b(?!\s+value)\b/i.test(value)) return true;
@@ -3755,6 +6549,12 @@
     }
     if (!parsed || typeof parsed !== "object") return { ok: false, issues: ["The lesson plan was not valid structured data."] };
     if (parsed.lessonPlan && typeof parsed.lessonPlan === "object") parsed = parsed.lessonPlan;
+    if (ctx.knowledgePack && ctx.knowledgePack.status === "blocked") {
+      return { ok: false, issues: ["The knowledge pack is blocked."], previous: parsed };
+    }
+    if (ctx.knowledgeSelection && ctx.knowledgeSelection.status === "blocked") {
+      return { ok: false, issues: ["The knowledge pack cannot be selected for this lesson."], previous: parsed };
+    }
     var objective = clean(parsed.learningObjective || (Array.isArray(parsed.objectives) ? parsed.objectives[0] : parsed.objective) || "", 240);
     var relationCtx = Object.assign({}, ctx, { lessonPlan: { learningObjective: objective, topic: parsed.topic || ctx.topic } });
     var map = buildLearningMap(parsed, relationCtx, objective);
@@ -3774,20 +6574,31 @@
     if (objective.length < 12) issues.push("The lesson plan needs a learning objective.");
     var settled = !!ctx.breadthSettled;
     var scope = teachingScope(relationCtx);
-    var need = scope.scope === "broad" || map.broad || planNeedsRelation(relationCtx, objective) || planNeedsProcess(relationCtx, objective) ? map.budget.floor : map.budget.narrowFloor;
+    var seekingDepth = planSeeksDepth(relationCtx, objective);
+    var need = scope.scope === "broad" || map.broad || seekingDepth || planNeedsRelation(relationCtx, objective) || planNeedsProcess(relationCtx, objective) ? map.budget.floor : map.budget.narrowFloor;
     var teaching = buildTeachingPlan(map.items, relationCtx, scope, need, map.budget, map.rejected);
     var depth = teaching.substantiveDepth;
-    var gate = !!ctx.depthRequired && !settled && knowledge.length > 0;
-    var shallow = gate && depth.achieved < need;
-    var thinStrands = gate && scope.scope === "broad" && depth.strandsRequired >= 2 && depth.strandsDeveloped < depth.strandsRequired;
+    var pairReport = map.packPairs;
+    var gate = !!ctx.depthRequired && knowledge.length > 0;
+    // breadthSettled records a repaired choice of breadth. It does not waive a how or why:
+    // a depth-seeking goal still has to meet the depth floor and its developed strands.
+    var strandShort = depth.strandsDeveloped < depth.strandsRequired;
+    // breadthSettled records a repaired choice of breadth. It does not waive a how or why.
+    // Meeting the strand count does not waive the depth floor. The floor is waived after
+    // one repair only while the strand count itself is still the open failure.
+    var shallow = gate && depth.achieved < need && !(settled && !seekingDepth && strandShort);
+    var thinStrands = gate && depth.strandsDeveloped < depth.strandsRequired && (
+      (scope.scope === "broad" && depth.strandsRequired >= 2) || seekingDepth
+    );
     var oneEnough = answered && knowledge.length >= 1 && (!map.broad || settled);
     if (knowledge.length < 2 && !oneEnough && !shallow) issues.push("The lesson plan needs the key knowledge.");
     if (shallow) issues.push("The learning map needs more connected learning points.");
-    if (thinStrands) issues.push("The learning map needs two or more developed strands for this broad topic.");
-    if (seeksContribution(relationCtx, objective) && !answered && !rawEntries.some(function (item) { return statesRelation(item.text); })) {
+    if (thinStrands && scope.scope === "broad" && !seekingDepth && depth.strandsRequired >= 2) issues.push("The learning map needs two or more developed strands for this broad topic.");
+    else if (thinStrands) issues.push("The learning map needs developed strands that explain how or why, not only a name.");
+    if (seeksContribution(relationCtx, objective) && !answered && !rawEntries.some(function (item) { return statesReasonOrJob(item.text); })) {
       issues.push("The key knowledge states the outcome, not the reason.");
     }
-    if (planNeedsRelation(relationCtx, objective) && !rawEntries.some(function (item) { return statesRelation(item.text); })) {
+    if (planNeedsRelation(relationCtx, objective) && !rawEntries.some(function (item) { return statesReasonOrJob(item.text); })) {
       issues.push("The key knowledge states the outcome, not the reason.");
     }
     if (planNeedsProcess(relationCtx, objective) && !rawEntries.some(function (item) { return statesRelation(item.text); })) {
@@ -3802,12 +6613,13 @@
     if (ctx.yearGroup && parsed.yearGroup && yearDigit(parsed.yearGroup) && yearDigit(parsed.yearGroup) !== yearDigit(ctx.yearGroup)) {
       issues.push("The plan changed the year group.");
     }
+    if (ctx.knowledgePack && ctx.knowledgePack.status !== "blocked" && (ctx.knowledgePack.claims || []).length && !map.items.some(function (item) { return item.claimIds && item.claimIds.length; })) {
+      issues.push("The learning map must select claim ids from the knowledge pack.");
+    }
+    if (pairReport && pairReport.issue) issues.push(pairReport.issue);
     var snapshot = depthSnapshot(map.items, teaching);
-    if (issues.length) return { ok: false, issues: issues, previous: parsed, depth: snapshot };
-    return {
-      ok: true,
-      depth: snapshot,
-      plan: {
+    if (issues.length) return { ok: false, issues: issues, previous: parsed, depth: snapshot, mapRejected: map.rejected.slice(0, MAP_READ_LIMIT), packPairs: pairReport };
+    var admittedPlan = {
         title: clean(parsed.title, 80),
         subject: clean(parsed.subject || ctx.subject, 80),
         topic: clean(parsed.topic || ctx.topic, 120),
@@ -3828,8 +6640,10 @@
         teachingApproach: clean(parsed.teachingApproach, 400),
         narrativeTheme: clean(parsed.narrativeTheme, 120),
         lessonArc: contractArc(arc, knowledge)
-      }
-    };
+      };
+    var grounding = groundingOnPlan(ctx, map.items);
+    if (grounding) admittedPlan.knowledgeGrounding = grounding;
+    return { ok: true, depth: snapshot, plan: admittedPlan, packPairs: pairReport };
   }
 
   function freshId(prefix) {
@@ -4633,9 +7447,12 @@
 
   function cleanInteraction(raw) {
     if (!raw || typeof raw !== "object" || !WORLD_INTERACTIONS[raw.type]) return null;
-    var instruction = clean(raw.instruction, 120);
+    // Patch 7: a research choose step (it has choices) keeps its whole instruction; clipping at
+    // 120 cut run 14's mid-word. Other steps keep 120.
+    var chooser = raw.type === "choose" && Array.isArray(raw.choices) && raw.choices.length;
+    var instruction = clean(raw.instruction, chooser ? 240 : 120);
     if (instruction.length < 4) return null;
-    return {
+    var kept = {
       type: raw.type,
       target: clean(raw.target, 40) || "world",
       instruction: instruction,
@@ -4643,6 +7460,22 @@
       responseEffect: cleanEffect(raw.responseEffect),
       teachingReveal: clean(raw.teachingReveal, 220)
     };
+    // Patch 6: a choose step keeps its choices (text, correct, feedback), its new example and
+    // its unit id. Other steps are unchanged.
+    if (raw.type === "choose" && Array.isArray(raw.choices)) {
+      var choices = raw.choices.filter(function (c) { return c && typeof c === "object" && clean(c.text, 160); }).slice(0, 4).map(function (c) {
+        return { text: clean(c.text, 160), correct: c.correct === true, feedback: clean(c.feedback, 300) };
+      });
+      if (choices.length) {
+        kept.choices = choices;
+        if (raw.newCase && typeof raw.newCase === "object") kept.newCase = { text: clean(raw.newCase.text, 300), kind: clean(raw.newCase.kind, 20), sourceRef: (raw.newCase.sourceRef || []).slice(0, 2), quote: clean(raw.newCase.quote, 400) };
+        if (raw.unitId) kept.unitId = clean(raw.unitId, 24);
+        if (raw.intent) kept.intent = clean(raw.intent, 24);
+        if (Array.isArray(raw.claimIds)) kept.claimIds = raw.claimIds.map(function (id) { return clean(id, 24); }).filter(Boolean).slice(0, 4);
+        if (raw.successText) kept.successText = clean(raw.successText, 240);
+      }
+    }
+    return kept;
   }
 
   function effectForText(text) {
@@ -5372,6 +8205,831 @@
     return warning;
   }
 
+  // ---- Research-mode teaching rules (patch 6) -------------------------------------------
+  // These run only when the lesson was built from fetched research (ctx.researchEvidence), so
+  // the default path is unchanged. Each rule is a reusable code check: it reads the gate-ready
+  // units, their verbatim source quotes and the pupil copy, and returns issues that the single
+  // slot repair must fix. None of them writes pupil-facing lesson content.
+  function researchMode(ctx) {
+    var record = ctx && ctx.researchEvidence;
+    return !!(record && Array.isArray(record.passages) && record.passages.length);
+  }
+
+  function ruleSentences(text) {
+    return (String(text || "").match(/[^.!?]+[.!?]*/g) || []).map(function (s) { return s.trim(); }).filter(Boolean);
+  }
+
+  function ruleStem(word) {
+    var w = String(word || "").toLowerCase();
+    if (w.length > 5 && /ies$/.test(w)) return w.slice(0, -3) + "y";
+    if (w.length > 5 && /ing$/.test(w)) return w.slice(0, -3);
+    if (w.length > 4 && /ed$/.test(w)) return w.slice(0, -2);
+    if (w.length > 4 && /ly$/.test(w)) return w.slice(0, -2);
+    if (w.length > 4 && /es$/.test(w) && !/(ses|ces|ges|zes|ves)$/.test(w)) return w.slice(0, -2);
+    if (w.length > 3 && /s$/.test(w) && !/ss$/.test(w)) return w.slice(0, -1);
+    return w;
+  }
+
+  function ruleWordMatch(left, right) {
+    var a = ruleStem(left);
+    var b = ruleStem(right);
+    if (!a || !b) return false;
+    if (a === b) return true;
+    var shorter = a.length <= b.length ? a : b;
+    var longer = a.length <= b.length ? b : a;
+    return shorter.length >= 4 && longer.indexOf(shorter) === 0;
+  }
+
+  function ruleTokens(text) {
+    return clean(text, 2000).toLowerCase().replace(/[\u2018\u2019]/g, "'").split(/[^a-z0-9']+/).map(function (w) { return w.replace(/^'+|'+$/g, "").replace(/'s$/, ""); }).filter(Boolean);
+  }
+
+  var RULE_SKIP = { use: 1, uses: 1, used: 1, using: 1, able: 1, get: 1, got: 1, gets: 1, make: 1, made: 1, makes: 1, much: 1, without: 1, also: 1, really: 1, then: 1, there: 1, here: 1, its: 1, each: 1, some: 1, such: 1, other: 1, others: 1, than: 1, been: 1, being: 1, into: 1, onto: 1, over: 1, under: 1, only: 1, would: 1, could: 1, should: 1, might: 1, will: 1, what: 1, which: 1, who: 1, whose: 1, did: 1, does: 1, done: 1 };
+  var DIRECTION_WORDS = /\b(less|more|fewer|faster|slower|further|higher|lower|wider|narrower|stronger|weaker|bigger|smaller|longer|shorter|easier|harder|heavier|lighter|warmer|cooler)\b/gi;
+  var VAGUE_SUBSTITUTES = /\b(efficient|efficiently|efficiency|better|easier|easily|well|effective|effectively|properly|successfully|good|helpful)\b/gi;
+
+  function ruleContent(text, skip) {
+    var out = [];
+    ruleTokens(text).forEach(function (w) {
+      if (w.length < 3 || STOP[w] || FUNCTION[w] || JOB_FILLER[w] || RULE_SKIP[w]) return;
+      if (DIRECTION_WORDS.test(w)) { DIRECTION_WORDS.lastIndex = 0; return; }
+      DIRECTION_WORDS.lastIndex = 0;
+      if ((skip || []).some(function (s) { return ruleWordMatch(s, w); })) return;
+      if (!out.some(function (o) { return ruleWordMatch(o, w); })) out.push(w);
+    });
+    return out;
+  }
+
+  function directionsOf(text) {
+    var found = [];
+    String(text || "").toLowerCase().replace(DIRECTION_WORDS, function (m) { if (found.indexOf(m) === -1) found.push(m); return m; });
+    return found;
+  }
+
+  // The result clause of a source explanation: what the feature let the animal or thing do,
+  // in the source's own words. "This allowed them to use less energy to move than ..." gives
+  // "use less energy to move".
+  var RESULT_LINK = /\b(?:as a result|which means|that means|this means|because of this|so that|allowed|allows|allowing|allow|enabled|enables|enabling|enable|let|lets|letting|helped|helps|helping|meant|means|so)\b,?\s*(?:(?:them|it|him|her|us|you|they|it's|these\s+\w+|this\s+\w+|the\s+\w+)\s+)?(?:(?:were|was|are|is|could|can)\s+(?:able\s+)?)?(?:to\s+)?/i;
+  function resultClause(quote) {
+    var text = clean(quote, 600);
+    var match = RESULT_LINK.exec(text);
+    if (!match) return "";
+    var rest = text.slice(match.index + match[0].length);
+    // Patch 7: a named object ("let Spinosaurus breathe ...") is not part of the result.
+    rest = rest.replace(/^[A-Z][a-z]{2,}\s+(?=[a-z])/, "").replace(/^(?:to\s+)/, "");
+    var cut = rest.search(/\b(?:than|that|which|who|whose|like|because|while|whereas|although|unlike)\b|[,;:.!?]/i);
+    var clause = (cut === -1 ? rest : rest.slice(0, cut)).trim();
+    if (clause.split(/\s+/).length < 2) clause = rest.split(/[;:.!?]/)[0].trim();
+    return clause;
+  }
+
+  // An explanation whose only stated result is a general benefit (survive, live, thrive, do
+  // well) does not say what the feature did. Live run 13 (6 Oct 2026) admitted "The sail ...
+  // helped the animal survive in its river home" as an explanation. Research mode only.
+  var GENERIC_RESULT = /^(?:[A-Za-z'’]+\s+){0,2}(?:survive[sd]?|surviving|survival|live[sd]?|living|thrive[sd]?|thriving|succeed(?:ed)?|do(?:es)? (?:well|better)|did (?:well|better)|be (?:more )?successful|stay(?:ed)? alive|stay(?:ed)? safe)\b/i;
+  function genericResultOnly(text) {
+    var clause = resultClause(text);
+    if (!clause) return false;
+    return GENERIC_RESULT.test(clause.replace(/^(?:to|it|them|the animal|the dinosaur)\s+/i, ""));
+  }
+
+  function researchUnits(ctx) {
+    if (!researchMode(ctx)) return [];
+    var readiness = assessPackReadiness(ctx.knowledgePack, ctx.knowledgeSelection, ctx);
+    var units = readyUnits(readiness);
+    var claims = {};
+    ((ctx.knowledgePack && ctx.knowledgePack.claims) || []).forEach(function (claim) { if (claim && claim.claimId) claims[claim.claimId] = claim; });
+    var passages = researchPassages(ctx) || {};
+    return units.map(function (unit) {
+      var explain = claims[unit.explanationClaimId] || {};
+      var feature = claims[unit.elementClaimId] || {};
+      var refs = [];
+      (explain.sourceRef || []).concat(feature.sourceRef || []).forEach(function (id) { if (passages[id] && refs.indexOf(id) === -1) refs.push(id); });
+      var quote = clean(explain.sourceQuote || explain.quote || "", 600);
+      var clause = resultClause(quote) || resultClause(explain.text || unit.explanation);
+      return Object.assign({}, unit, {
+        explanationQuote: quote,
+        featureQuote: clean(feature.sourceQuote || feature.quote || "", 600),
+        resultClause: clause,
+        keyTerms: ruleContent(clause, ruleContent(unit.feature)),
+        directions: directionsOf(clause),
+        sourceRefs: refs,
+        passageText: refs.map(function (id) { return passages[id].text; }).join(" ")
+      });
+    });
+  }
+
+  function mapClaimIds(plan, refs) {
+    var ids = [];
+    ((plan && plan.learningMap) || []).forEach(function (item) {
+      if (item && (refs || []).indexOf(item.id) !== -1) (item.claimIds || []).forEach(function (id) { if (ids.indexOf(id) === -1) ids.push(id); });
+    });
+    return ids;
+  }
+
+  function beatPupilText(beat) {
+    return clean((beat && ((beat.pupil && beat.pupil.text) || beat.text)) || "", 400);
+  }
+
+  // Meaning preservation: a sentence that teaches or recaps a unit's explanation keeps the
+  // source's result in the source's words. Swapping "use less energy to move" for "move more
+  // efficiently" fails: the key words are gone, the direction word changed, and a vaguer word
+  // took their place.
+  function meaningCheck(sentence, unit) {
+    var text = clean(sentence, 400);
+    var words = ruleTokens(text);
+    var key = unit.keyTerms || [];
+    var kept = key.filter(function (term) { return words.some(function (w) { return ruleWordMatch(w, term); }); });
+    var missing = key.filter(function (term) { return kept.indexOf(term) === -1; });
+    var need = key.length <= 2 ? key.length : Math.ceil(key.length * 0.6);
+    var lostDirection = (unit.directions || []).filter(function (d) { return words.indexOf(d) === -1; });
+    // Patch 7: a vaguer word is excused only when the source's own explanation sentence uses it
+    // (run 14's passage had "better supported" elsewhere, which excused "move better").
+    var sourceWords = ruleTokens(unit.explanationQuote || unit.explanation || "");
+    var vague = [];
+    String(text).toLowerCase().replace(VAGUE_SUBSTITUTES, function (m) { if (sourceWords.indexOf(m) === -1 && vague.indexOf(m) === -1) vague.push(m); return m; });
+    var overstated = [];
+    String(text).toLowerCase().replace(OVERSTATEMENTS, function (m) { var w = m.replace(/\s+/g, " "); if (sourceWords.indexOf(w.split(" ")[0]) === -1 && overstated.indexOf(w) === -1) overstated.push(w); return m; });
+    var ok = kept.length >= need && !lostDirection.length;
+    return { ok: ok, kept: kept, missing: missing, lostDirection: lostDirection, vague: vague, overstated: overstated };
+  }
+  // Patch 7: absolute words that overstate a concrete source result. Flagged only when the
+  // source's explanation sentence does not use them. ("Could breathe underwater" for "breathe
+  // even with most of its snout submerged" fails on the dropped key words instead.)
+  var OVERSTATEMENTS = /\b(completely|fully|totally|entirely|always|never|anywhere|everywhere|perfectly|forever|fastest|strongest|biggest)\b/gi;
+
+  function meaningIssues(activities, ctx, units) {
+    var issues = [];
+    var plan = (ctx && ctx.lessonPlan) || {};
+    units.forEach(function (unit) {
+      if (!unit.resultClause || !(unit.keyTerms || []).length) return;
+      ["teach", "recap"].forEach(function (slotId) {
+        var activity = (activities || []).filter(function (a) { return a.slotId === slotId; })[0];
+        if (!activity) return;
+        var rows = (activity.beats || []).filter(function (beat) {
+          return mapClaimIds(plan, beat.knowledgeRefs).indexOf(unit.explanationClaimId) !== -1 && beatPupilText(beat);
+        });
+        if (!rows.length) return;
+        var results = rows.map(function (beat) { return { beat: beat, check: meaningCheck(beatPupilText(beat), unit) }; });
+        // Patch 7 (blocking): the teach slot needs one sentence that keeps the meaning and no
+        // teach sentence about this explanation may replace or overstate it; every recap
+        // sentence about it must keep the meaning.
+        var replaced = function (r) { return r.check.vague.length || r.check.overstated.length || r.check.lostDirection.length; };
+        var failing = slotId === "teach"
+          ? results.filter(replaced).concat(results.some(function (r) { return r.check.ok; }) ? [] : results.filter(function (r) { return !replaced(r); }).slice(0, 1))
+          : results.filter(function (r) { return !r.check.ok || replaced(r); });
+        failing.forEach(function (r) { issues.push(meaningRow(slotId, unit, "beat " + r.beat.id, r.check)); });
+      });
+      issues = issues.concat(applyMeaningIssues(activities, ctx, unit));
+    });
+    return issues;
+  }
+
+  function meaningRow(slotId, unit, where, check) {
+    var bits = [];
+    if (check.missing.length && !check.ok) bits.push("it drops the source words " + check.missing.map(function (w) { return "\"" + w + "\""; }).join(", "));
+    if (check.lostDirection.length) bits.push("it loses \"" + check.lostDirection.join("\", \"") + "\"");
+    if (check.vague.length) bits.push("it uses the vaguer \"" + check.vague.join("\", \"") + "\" instead");
+    if (check.overstated.length) bits.push("it overstates the source with \"" + check.overstated.join("\", \"") + "\"");
+    return { slotId: slotId, text: "The " + slotId + " slot changes what the source says about " + clean(unit.feature, 60) + " (" + unit.unitId + ", " + where + "): the source says \"" + clean(unit.resultClause, 120) + "\", but " + bits.join("; ") + ". Keep the source's meaning and its key words." };
+  }
+
+  // Patch 7: APPLY keeps the source's meaning too. For the unit the task uses, no apply text
+  // (beat, instruction, new example, choices, feedback) may use a vaguer or overstated result,
+  // and the correct choice's feedback must keep the source's key words.
+  function applyMeaningIssues(activities, ctx, unit) {
+    var apply = (activities || []).filter(function (a) { return a.slotId === "apply"; })[0];
+    if (!apply) return [];
+    var plan = (ctx && ctx.lessonPlan) || {};
+    var inter = (apply.scene && apply.scene.interaction) || {};
+    var cites = inter.unitId ? inter.unitId === unit.unitId : (apply.beats || []).some(function (b) { return mapClaimIds(plan, b.knowledgeRefs).indexOf(unit.explanationClaimId) !== -1; });
+    if (!cites) return [];
+    var out = [];
+    var texts = [];
+    (apply.beats || []).forEach(function (b) { if (beatPupilText(b)) texts.push({ where: "beat " + b.id, text: beatPupilText(b) }); });
+    if (inter.instruction) texts.push({ where: "instruction", text: inter.instruction });
+    if (inter.newCase && inter.newCase.text) texts.push({ where: "new example", text: inter.newCase.text });
+    (Array.isArray(inter.choices) ? inter.choices : []).forEach(function (c, i) {
+      texts.push({ where: "choice " + (i + 1), text: clean(c.text, 160) });
+      texts.push({ where: "choice " + (i + 1) + " feedback", text: clean(c.feedback, 300), correct: c.correct === true });
+    });
+    texts.forEach(function (row) {
+      var check = meaningCheck(row.text, unit);
+      if (check.vague.length || check.overstated.length || (row.correct && !check.ok)) out.push(meaningRow("apply", unit, row.where, check));
+    });
+    return out;
+  }
+
+  // Year-band vocabulary. A long or many-syllable word in Year 1 to 4 pupil copy must be a
+  // year-band curriculum word or be explained in the same sentence.
+  var BAND_WORDS = { environment: 1, environments: 1, adaptation: 1, adaptations: 1, temperature: 1, electricity: 1, evaporation: 1, condensation: 1, vertebrate: 1, vertebrates: 1, invertebrate: 1, invertebrates: 1, skeletons: 1, nutrition: 1, everything: 1, something: 1, sometimes: 1, information: 1, underground: 1, understand: 1, themselves: 1, investigate: 1, investigation: 1, comparison: 1, classification: 1, characteristics: 1, photosynthesis: 1, transparent: 1, magnetic: 1, different: 1, difference: 1, differences: 1, important: 1, discovered: 1, scientists: 1, everywhere: 1, grandparents: 1, carnivores: 1, herbivores: 1, omnivores: 1 };
+  function syllables(word) {
+    var w = String(word || "").toLowerCase().replace(/[^a-z]/g, "");
+    if (!w) return 0;
+    w = w.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, "").replace(/^y/, "");
+    var groups = w.match(/[aeiouy]{1,2}/g);
+    return groups ? groups.length : 1;
+  }
+  function glossedIn(sentence, word) {
+    var s = String(sentence || "");
+    var at = s.toLowerCase().indexOf(word.toLowerCase());
+    if (at === -1) return false;
+    var after = s.slice(at + word.length, at + word.length + 80);
+    var before = s.slice(Math.max(0, at - 60), at);
+    if (/^\s*(?:\(|,\s*(?:which|that)\s+(?:means|is)|,\s*(?:a|an|the)\s+\w+|\s*[-\u2013\u2014]\s*|\s+(?:means|is a|is an|is the|are a|are the|which means|that means|or\b))/i.test(after)) return true;
+    if (/(?:called|named|known as|means|word)\s+["\u201c]?$/i.test(before)) return true;
+    return false;
+  }
+  function hardWords(text, year, names) {
+    var digit = Number(yearDigit(year));
+    if (!digit || digit > 4) return [];
+    var limit = digit <= 2 ? 9 : 11;
+    var syl = digit <= 2 ? 4 : 5;
+    var out = [];
+    ruleSentences(text).forEach(function (sentence) {
+      (sentence.match(/[A-Za-z][A-Za-z'-]*/g) || []).forEach(function (raw) {
+        var word = raw.replace(/'s$/i, "");
+        var lower = word.toLowerCase();
+        if (BAND_WORDS[lower] || /-/.test(word)) return;
+        if (names && names[lower]) return;
+        var long = word.length >= limit || syllables(word) >= syl;
+        if (!long) return;
+        if (glossedIn(sentence, word)) return;
+        if (out.indexOf(word) === -1) out.push(word);
+      });
+    });
+    return out;
+  }
+
+  function pupilTextsOf(activity) {
+    var rows = [];
+    (activity.beats || []).forEach(function (beat) { var t = beatPupilText(beat); if (t) rows.push(t); if (beat.pupil && beat.pupil.cue) rows.push(clean(beat.pupil.cue, 200)); });
+    var config = activity.config || {};
+    if (!(activity.beats || []).length) (config.lines || []).forEach(function (line) { rows.push(clean(line, 280)); });
+    (config.questions || []).forEach(function (q) {
+      rows.push(clean(q.prompt, 240), clean(q.explain, 240));
+      (q.choices || []).forEach(function (c) { rows.push(clean(typeof c === "string" ? c : (c && c.text), 120)); });
+    });
+    if (activity.slotId === "apply") {
+      rows.push(clean(activity.applyInstruction, 240));
+      var inter = activity.scene && activity.scene.interaction;
+      if (inter && Array.isArray(inter.choices)) inter.choices.forEach(function (c) { rows.push(clean(c.text, 160), clean(c.feedback, 240)); });
+      if (inter && inter.newCase) rows.push(clean(inter.newCase.text, 300));
+    }
+    return rows.filter(Boolean);
+  }
+
+  // A proper name a ready unit teaches (capitalised inside its feature or explanation claim,
+  // for example the animal the unit is about) is the subject, not reading-level vocabulary.
+  // Live run 13 (6 Oct 2026) flagged "Brachiosaurus" and "Spinosaurus" in units about them.
+  function unitNames(ctx) {
+    var names = {};
+    researchUnits(ctx).forEach(function (unit) {
+      [unit.feature, unit.explanation].forEach(function (text) {
+        String(text || "").split(/\s+/).forEach(function (raw, index) {
+          var word = raw.replace(/[^A-Za-z'-]/g, "").replace(/'s$/i, "");
+          // A capitalised word that is not just the sentence's first word, or a first word the
+          // other claim also capitalises mid-sentence, is a name.
+          if (/^[A-Z][a-z]{3,}$/.test(word) && (index > 0 || new RegExp("\\S\\s+" + word + "\\b").test(String(unit.feature) + " " + String(unit.explanation)))) names[word.toLowerCase()] = 1;
+        });
+      });
+    });
+    return names;
+  }
+
+  function vocabularyIssues(activities, ctx) {
+    var year = (ctx && ctx.yearGroup) || "";
+    var issues = [];
+    var names = researchMode(ctx) ? unitNames(ctx) : null;
+    (activities || []).forEach(function (activity) {
+      var found = [];
+      pupilTextsOf(activity).forEach(function (text) { hardWords(text, year, names).forEach(function (w) { if (found.indexOf(w) === -1) found.push(w); }); });
+      if (found.length) issues.push({ slotId: activity.slotId, text: "The " + activity.slotId + " slot uses words above " + (year || "this year group") + " reading level: " + found.slice(0, 6).map(function (w) { return "\"" + w + "\""; }).join(", ") + ". Use an everyday word, or explain the word in the same sentence." });
+    });
+    return issues;
+  }
+
+  // Teleology: features did a job; animals did not grow them in order to do it.
+  var TELEOLOGY = [
+    /\bwhy\s+(?:did|do|does|would)\b[^?.!]{0,80}\b(?:have|has|had|develop|developed|grow|grew|evolve|evolved|get|got|need|needed)\b/i,
+    /\b(?:developed|evolved|grew|got|gained)\b[^.?!]{0,60}\b(?:in order to|so that|so they could|so it could|to help them|to be able to)\b/i,
+    /\b(?:had|have|has)\b[^.?!]{0,60}\b(?:in order to|so that they could|so that it could)\b/i,
+    // Patch 7: "adapt to ...", "how did X adapt", "evolved to ..." present a feature as a goal.
+    /\badapt(?:s|ed|ing)?\s+(?:to|in order to|so)\b/i,
+    /\bhow\s+(?:did|do|does)\b[^?.!]{0,60}\badapt\b/i,
+    /\b(?:evolved|developed|grew)\s+to\s+[a-z]+/i
+  ];
+  function teleological(text) {
+    return TELEOLOGY.some(function (re) { return re.test(String(text || "")); });
+  }
+
+  function teleologyIssues(activities) {
+    var issues = [];
+    (activities || []).forEach(function (activity) {
+      var bad = pupilTextsOf(activity).filter(teleological);
+      var config = activity.config || {};
+      (config.questions || []).forEach(function (q, index) {
+        if (/^\s*why\b/i.test(q.prompt || "") && (q.choices || []).some(function (c) { return /^\s*to\s+[a-z]+/i.test(typeof c === "string" ? c : (c && c.text) || ""); })) {
+          bad.push("Question " + (index + 1) + " answers a why question with a purpose (\"To ...\")");
+        }
+      });
+      if (bad.length) issues.push({ slotId: activity.slotId, text: "The " + activity.slotId + " slot uses goal-directed wording (\"" + clean(bad[0], 90) + "\"). Say what the feature did or how it worked, for example ask what it let the animal do, not why the animal had it." });
+    });
+    return issues;
+  }
+
+  function choiceText(choice) {
+    return clean(typeof choice === "string" ? choice : (choice && choice.text) || "", 160);
+  }
+
+  // Question checks: the correct answer must be traceable to a taught sentence, and a wrong
+  // choice must not be true or partly true according to the sources.
+  function questionIssues(activities, ctx, units) {
+    var issues = [];
+    var check = (activities || []).filter(function (a) { return a.slotId === "check"; })[0];
+    var teach = (activities || []).filter(function (a) { return a.slotId === "teach"; })[0];
+    if (!check || !teach) return issues;
+    var taught = (teach.beats || []).map(beatPupilText).join(" ");
+    var taughtWords = ruleTokens(taught);
+    var passages = researchPassages(ctx) || {};
+    var sentences = [];
+    Object.keys(passages).forEach(function (id) {
+      if (!passageIsEvidence(passages[id])) return;
+      ruleSentences(passages[id].text).forEach(function (s) { sentences.push({ id: id, text: s, words: ruleTokens(s) }); });
+    });
+    var topicWords = ruleContent((ctx && ctx.topic) || "");
+    (checkQuestionsOf(check) || []).forEach(function (q, index) {
+      var label = "Question " + (index + 1);
+      var answer = clean(q.correct, 160);
+      var answerWords = ruleContent(answer, topicWords);
+      var missing = answerWords.filter(function (w) { return !taughtWords.some(function (t) { return ruleWordMatch(t, w); }); });
+      var need = answerWords.length <= 2 ? answerWords.length : Math.ceil(answerWords.length * 0.6);
+      if (answerWords.length && answerWords.length - missing.length < need) {
+        issues.push({ slotId: "check", text: "The check slot " + label + " has a correct answer (\"" + answer + "\") whose words were not taught: " + missing.map(function (w) { return "\"" + w + "\""; }).join(", ") + ". The answer must match a sentence the teach slot says, in its words." });
+      }
+      // Patch 7: a circular question: the correct answer only restates the stem's own premise
+      // ("Why did dinosaurs with straight back legs use less energy?" -> "Because their legs were straight.").
+      var stemWords = ruleContent(q.prompt, topicWords);
+      var restated = ruleContent(answer.replace(/^\s*because\b/i, ""), topicWords);
+      if (restated.length && restated.every(function (w) { return stemWords.some(function (t) { return ruleWordMatch(t, w); }); })) {
+        issues.push({ slotId: "check", text: "The check slot " + label + " is circular: its correct answer (\"" + answer + "\") only repeats words the question already gives. Ask about what the feature did (or which feature did a job) so the answer adds the taught fact." });
+      }
+      var jobWords = ruleContent([q.prompt, answer].join(" "), topicWords.concat(["feature", "features", "part", "body", "animal", "animals", "help", "helped", "better", "most", "best", "true", "correct"]));
+      (q.choices || []).forEach(function (choice) {
+        var text = choiceText(choice);
+        if (!text || text.toLowerCase() === answer.toLowerCase()) return;
+        var bits = ruleContent(text, topicWords).concat(directionsOf(text));
+        if (!bits.length || bits.length > 4) return;
+        var hit = sentences.filter(function (s) {
+          var all = bits.every(function (b) { return s.words.some(function (w) { return ruleWordMatch(w, b); }); });
+          if (!all) return false;
+          return jobWords.some(function (j) { return bits.every(function (b) { return !ruleWordMatch(b, j); }) && s.words.some(function (w) { return ruleWordMatch(w, j); }); });
+        })[0];
+        if (hit) issues.push({ slotId: "check", text: "The check slot " + label + " has a wrong choice (\"" + text + "\") that the sources support as at least partly true (" + hit.id + ": \"" + clean(hit.text, 140) + "\"). Use a wrong choice the sources do not support." });
+      });
+      issues = issues.concat(questionAuditIssues(q, index, ctx && ctx.questionAudit));
+    });
+    return issues;
+  }
+
+  // Patch 7: the question audit (one model call per content version, research mode only) judges
+  // what code cannot: a wrong choice that is true or partly true in general, a circular question,
+  // and goal-directed wording. Its verdicts block. A question the audit did not return, or a
+  // teleology verdict that is not "no", fails ("unchecked" counts as a fail).
+  function auditKey(text) { return clean(text, 240).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(); }
+  function questionAuditIssues(q, index, audit) {
+    var label = "Question " + (index + 1);
+    var rows = (audit && Array.isArray(audit.questions)) ? audit.questions : [];
+    var row = rows.filter(function (r) { return r && auditKey(r.prompt) === auditKey(q.prompt); })[0];
+    if (!row) return [{ slotId: "check", text: "The check slot " + label + " was not checked for partly-true wrong choices, circular wording or goal-directed wording (an unchecked question fails). Keep the question short and clear so it can be checked." }];
+    var out = [];
+    if (row.teleological !== "no") out.push({ slotId: "check", text: "The check slot " + label + " uses goal-directed wording or could not be checked for it (" + (row.teleological === "yes" ? clean(row.teleologyReason || "it presents a feature as a goal", 140) : "unchecked counts as a fail") + "). Ask what the feature did or let the animal do, not how or why the animal adapted, needed or got it." });
+    if (row.circular === "yes") out.push({ slotId: "check", text: "The check slot " + label + " is circular (" + clean(row.circularReason || "the answer repeats the question", 140) + "). The correct answer must add the taught fact, not restate the question." });
+    (row.distractors || []).forEach(function (d) {
+      // The correct answer is not a wrong choice; a verdict on it is the audit misreading the question.
+      if (d && auditKey(d.choice) && auditKey(d.choice) === auditKey(q.correct)) return;
+      if (d && (d.trueInGeneral === "yes" || d.trueInGeneral === "partly")) out.push({ slotId: "check", text: "The check slot " + label + " has a wrong choice (\"" + clean(d.choice, 100) + "\") that is " + (d.trueInGeneral === "yes" ? "true" : "partly true") + " in general (" + clean(d.reason, 140) + "). Every wrong choice must be plainly false about the animal, not a vaguer or other true reason." });
+    });
+    return out;
+  }
+
+  function questionAuditBrief(input) {
+    var payload = {
+      yearGroup: clean(input && input.yearGroup, 40),
+      taughtSentences: textList(input && input.taughtSentences, 280, 12),
+      sourcePassages: ((input && input.sourcePassages) || []).slice(0, 6).map(function (p) { return { id: clean(p.id, 24), text: clean(p.text, 900) }; }),
+      questions: ((input && input.questions) || []).slice(0, 6).map(function (q) {
+        var choices = (q.choices || []).map(function (c) { return clean(typeof c === "string" ? c : (c && c.text), 120); });
+        // Live run 21: the audit judged the correct answer as a wrong choice. Name the wrong ones.
+        return { prompt: clean(q.prompt, 240), choices: choices, correct: clean(q.correct, 120), wrongChoices: choices.filter(function (c) { return auditKey(c) !== auditKey(q.correct); }) };
+      })
+    };
+    return {
+      system: [
+        "You audit the check questions of one primary science lesson. Return one JSON object and nothing else.",
+        "For each question: copy its prompt exactly. teleological is yes when the question or any choice presents a body feature as a goal or a need: asking how or why an animal adapted, evolved, needed, grew or got a feature, or saying it had a feature in order to or so that it could do something. Asking what a feature did or let the animal do is not teleological. Answer yes or no; never leave it out.",
+        "circular is yes when the correct answer only repeats words or facts the question already states, so a pupil could answer from the question alone.",
+        "For each wrong choice (wrongChoices; never the correct answer): trueInGeneral is yes when the statement is true about this animal or this kind of animal, partly when it is partly true or a vaguer version of the correct reason (for example moved more easily for used less energy, or a long neck when the question asks what helped it reach high), and no when it is plainly false. Use the source passages and general knowledge.",
+        "JSON shape: { \"questions\": [{ \"prompt\": \"\", \"teleological\": \"yes\" or \"no\", \"teleologyReason\": \"\", \"circular\": \"yes\" or \"no\", \"circularReason\": \"\", \"distractors\": [{ \"choice\": \"\", \"trueInGeneral\": \"yes\" or \"partly\" or \"no\", \"reason\": \"\" }] }] }."
+      ].join(" "),
+      user: JSON.stringify(payload)
+    };
+  }
+
+  function parseQuestionAudit(payload) {
+    var rows = payload && Array.isArray(payload.questions) ? payload.questions : null;
+    if (!rows) return { ok: false, questions: [] };
+    function yn(v, allowed) { var t = String(v || "").toLowerCase().trim(); return allowed.indexOf(t) !== -1 ? t : "unchecked"; }
+    return { ok: true, questions: rows.filter(function (r) { return r && typeof r === "object"; }).slice(0, 6).map(function (r) {
+      return {
+        prompt: clean(r.prompt, 240),
+        teleological: yn(r.teleological, ["yes", "no"]),
+        teleologyReason: clean(r.teleologyReason, 200),
+        circular: yn(r.circular, ["yes", "no"]),
+        circularReason: clean(r.circularReason, 200),
+        distractors: (Array.isArray(r.distractors) ? r.distractors : []).slice(0, 4).map(function (d) { d = d || {}; return { choice: clean(d.choice, 120), trueInGeneral: yn(d.trueInGeneral, ["yes", "partly", "no"]), reason: clean(d.reason, 200) }; })
+      };
+    }) };
+  }
+
+  // The check questions of a content response, read the way accept() reads them (no side effects).
+  function researchCheckQuestions(source, ctx) {
+    var parsed = source;
+    if (typeof parsed === "string") { try { parsed = JSON.parse(parsed); } catch (e) { return []; } }
+    if (!parsed || typeof parsed !== "object") return [];
+    parsed = JSON.parse(JSON.stringify(parsed));
+    if (ctx && ctx.lessonSkeleton) parsed = materialiseSkeleton(ctx.lessonSkeleton, parsed, ctx);
+    if (parsed && parsed.adventure && typeof parsed.adventure === "object") parsed = parsed.adventure;
+    var allowed = ctx && ctx.availableMechanics && ctx.availableMechanics.length ? ctx.availableMechanics : MECHANICS;
+    var check = null;
+    ((parsed && parsed.activities) || []).forEach(function (item) { var a = activityFrom(item, allowed); if (a && a.slotId === "check") check = a; });
+    return check ? checkQuestionsOf(check).filter(function (q) { return q && q.prompt; }) : [];
+  }
+
+  function questionAuditInput(source, ctx) {
+    var units = researchUnits(ctx);
+    var passages = researchPassages(ctx) || {};
+    var refs = [];
+    units.forEach(function (u) { (u.sourceRefs || []).forEach(function (id) { if (refs.indexOf(id) === -1) refs.push(id); }); });
+    var parsed = source;
+    var taught = [];
+    try {
+      var slots = readSlotMap(typeof source === "string" ? JSON.parse(source) : source);
+      ((slots.teach && slots.teach.beats) || []).forEach(function (b) { var t = clean(b && (b.text || (b.pupil && b.pupil.text)), 280); if (t) taught.push(t); });
+    } catch (e) { taught = []; }
+    return {
+      yearGroup: (ctx && ctx.yearGroup) || "",
+      taughtSentences: taught,
+      sourcePassages: refs.filter(function (id) { return passages[id]; }).map(function (id) { return { id: id, text: passages[id].text }; }),
+      questions: researchCheckQuestions(parsed, ctx)
+    };
+  }
+
+  // APPLY: a meaningful choice on a new example, with feedback that depends on the answer and
+  // an observable success condition (the right choice is picked). No silent tap-to-reveal.
+  var HYPOTHETICAL = /\b(imagine|suppose|pretend|picture|what if|if a|if an|if the|if you|made-up|invented|new animal|another animal|a model)\b/i;
+  function applyChoiceIssues(activity, ctx, units) {
+    var issues = [];
+    var inter = activity && activity.scene && activity.scene.interaction;
+    function add(text) { issues.push({ slotId: "apply", text: "The apply slot " + text }); }
+    if (!inter || inter.type !== "choose" || !Array.isArray(inter.choices)) {
+      add("needs a choose task: instruction, a new example (newCase), and two or three choices, each with feedback that says why it is right or wrong.");
+      return issues;
+    }
+    var choices = inter.choices;
+    if (choices.length < 2 || choices.length > 3) add("needs two or three choices.");
+    var right = choices.filter(function (c) { return c.correct === true; });
+    if (right.length !== 1) add("needs exactly one correct choice.");
+    var seen = {};
+    choices.forEach(function (c) {
+      var key = clean(c.text, 160).toLowerCase();
+      if (!key) add("has an empty choice.");
+      else if (seen[key]) add("repeats a choice.");
+      seen[key] = 1;
+      if (clean(c.feedback, 300).split(/\s+/).filter(Boolean).length < 6) add("needs feedback of at least six words for the choice \"" + clean(c.text, 60) + "\" saying why it is right or wrong.");
+    });
+    if (right.length === 1 && choices.length >= 2) {
+      var wrongFeedback = choices.filter(function (c) { return c.correct !== true; }).map(function (c) { return clean(c.feedback, 300).toLowerCase(); });
+      if (wrongFeedback.some(function (f) { return f === clean(right[0].feedback, 300).toLowerCase(); })) add("gives the same feedback to a right and a wrong choice.");
+    }
+    var unit = null;
+    units.forEach(function (u) { if (u.unitId === inter.unitId) unit = u; });
+    if (!unit) add("is not linked to a taught unit (the apply beat must cite a gate-ready unit's explanation).");
+    if (unit && right.length === 1) {
+      var why = clean(right[0].feedback, 300) + " " + clean(right[0].text, 160);
+      var terms = (unit.keyTerms || []).concat(ruleContent(unit.feature));
+      var hits = terms.filter(function (t) { return ruleTokens(why).some(function (w) { return ruleWordMatch(w, t); }); });
+      var resultHits = (unit.keyTerms || []).filter(function (t) { return ruleTokens(right[0].feedback).some(function (w) { return ruleWordMatch(w, t); }); });
+      if (hits.length < Math.min(2, terms.length) || resultHits.length < Math.min(1, (unit.keyTerms || []).length)) add("correct-choice feedback must use the taught explanation for " + clean(unit.feature, 60) + " (" + clean(unit.resultClause, 80) + ").");
+    }
+    var newCase = inter.newCase || {};
+    var caseText = clean(newCase.text, 300);
+    if (caseText.split(/\s+/).filter(Boolean).length < 6) add("needs a new example (newCase.text) of at least six words.");
+    else {
+      var teach = ((ctx && ctx.__activities) || []).filter(function (a) { return a.slotId === "teach"; })[0];
+      var taughtLines = ((teach && teach.beats) || []).map(beatPupilText);
+      var caseWords = ruleContent(caseText);
+      var copied = taughtLines.some(function (line) {
+        var lw = ruleContent(line);
+        var overlap = caseWords.filter(function (w) { return lw.some(function (l) { return ruleWordMatch(l, w); }); }).length;
+        return caseWords.length && overlap / caseWords.length >= 0.8;
+      });
+      if (copied) add("new example repeats a taught sentence. Use a new case the teaching did not already answer.");
+      if (newCase.kind === "sourced") {
+        var passages = researchPassages(ctx) || {};
+        var ref = (newCase.sourceRef || [])[0] || newCase.sourceRef;
+        var passage = passages[ref];
+        if (!passage || !passageIsEvidence(passage) || !quoteInPassage(newCase.quote || "", passage.text).ok) add("new example is marked sourced, but its quote is not found in an evidence passage. Copy the quote exactly, or make it a hypothetical transfer.");
+      } else if (newCase.kind === "transfer") {
+        if (!HYPOTHETICAL.test(caseText)) add("new example is a reasoning transfer, so it must be framed as made up (for example start with Imagine).");
+      } else add("new example must be kind sourced (with a verified quote) or transfer (a made-up case using the taught reason).");
+    }
+    var instruction = clean(activity.applyInstruction || inter.instruction, 240);
+    if (!/\b(choose|which|pick|decide|select)\b/i.test(instruction)) add("instruction must ask the class to choose.");
+    // Patch 7 APPLY contract (blocking). The instruction the player shows is complete and short.
+    var shown = String(inter.instruction || "").trim();
+    if (!shown || shown.length > 160 || !/[.?!]["\u201d']?$/.test(shown)) add("instruction must be one complete sentence of at most 160 characters ending with a full stop or question mark (run 14's was cut off mid-word).");
+    if (unit) {
+      // Every option's feedback names the taught claim (its feature or its result words).
+      var claimTerms = (unit.keyTerms || []).concat(ruleContent(unit.feature));
+      choices.forEach(function (c) {
+        var fw = ruleTokens(c.feedback);
+        if (claimTerms.length && !claimTerms.some(function (t) { return fw.some(function (w) { return ruleWordMatch(w, t); }); })) add("feedback for the choice \"" + clean(c.text, 60) + "\" must name the taught idea (" + clean(unit.feature, 60) + ": " + clean(unit.resultClause, 80) + ").");
+      });
+      // It carries the unit's claim ids and a success condition.
+      var ids = Array.isArray(inter.claimIds) ? inter.claimIds : [];
+      if (ids.indexOf(unit.elementClaimId) === -1 || ids.indexOf(unit.explanationClaimId) === -1) add("task must carry the taught unit's claim ids (" + unit.elementClaimId + ", " + unit.explanationClaimId + ").");
+      // A new example, not the taught case: it must not be about the animal the unit names.
+      var named = unitAnimalNames(unit).filter(function (name) { return new RegExp("\\b" + name + "\\b", "i").test(caseText); });
+      if (named.length) add("new example is about " + named.join(", ") + ", the animal already taught. Use a new animal or a made-up case.");
+    }
+    if (inter.successCondition !== "correct-choice" || clean(inter.successText, 240).split(/\s+/).filter(Boolean).length < 5) add("needs a success condition: the class succeeds when it picks the correct choice, and successText says in a sentence what that shows.");
+    return issues;
+  }
+
+  // The animal names a unit's own claims use (capitalised words that are not a sentence start).
+  function unitAnimalNames(unit) {
+    var names = [];
+    [unit.feature, unit.explanation].forEach(function (text) {
+      String(text || "").split(/\s+/).forEach(function (raw, index) {
+        var word = raw.replace(/[^A-Za-z'-]/g, "").replace(/'s$/i, "");
+        if (index > 0 && /^[A-Z][a-z]{3,}$/.test(word) && names.indexOf(word) === -1) names.push(word);
+      });
+    });
+    return names;
+  }
+
+  // Timing: research lessons total exactly the requested minutes. Extra minutes come off the
+  // framing stages first (recap, resolution, investigate, hook), then check, apply, teach.
+  function normaliseMinutes(activities, target) {
+    var total = function () { return activities.reduce(function (sum, a) { return sum + (Number(a.minutes) || 0); }, 0); };
+    target = Number(target) || 0;
+    if (!target || !activities.length || target < activities.length) return activities;
+    var takeOrder = ["recap", "resolution", "investigate", "hook", "check", "apply", "teach"];
+    var giveOrder = ["teach", "apply", "check", "investigate", "hook", "resolution", "recap"];
+    function floorOf(a) {
+      if (a.slotId === "check" && a.config && Array.isArray(a.config.questions)) return Math.max(1, Math.ceil(a.config.questions.length / 2));
+      return 1;
+    }
+    function bySlot(id) { return activities.filter(function (a) { return a.slotId === id; })[0]; }
+    activities.forEach(function (a) { a.minutes = Math.max(1, Math.round(Number(a.minutes) || 1)); });
+    var guard = 0;
+    while (total() > target && guard++ < 200) {
+      var moved = false;
+      takeOrder.concat(activities.map(function (a) { return a.slotId; })).some(function (id) {
+        var a = bySlot(id);
+        if (a && a.minutes > floorOf(a)) { a.minutes -= 1; moved = true; return true; }
+        return false;
+      });
+      if (!moved) break;
+    }
+    guard = 0;
+    while (total() < target && guard++ < 200) {
+      var a = null;
+      giveOrder.some(function (id) { a = bySlot(id); return !!a; });
+      (a || activities[0]).minutes += 1;
+    }
+    return activities;
+  }
+
+  // Objective: measurable and tied to the units. A plan objective such as "Pupils will
+  // understand how ..." names no observable outcome, so it is rebuilt from the unit features.
+  function objectiveIssues(objective, units) {
+    var text = clean(objective, 300);
+    var problems = [];
+    if (!/\b(explain|describe|identify|name|compare|choose|predict|sort|label|say|use|give)\b/i.test(text) || /\b(understand|know about|learn about|appreciate|be aware)\b/i.test(text)) problems.push("not measurable");
+    units.forEach(function (unit) {
+      var feature = ruleContent(unit.feature);
+      if (feature.length && !feature.some(function (w) { return ruleTokens(text).some(function (t) { return ruleWordMatch(t, w); }); })) problems.push("does not name " + unit.feature);
+    });
+    return problems;
+  }
+  function unitObjectives(units) {
+    var features = units.map(function (u) { return clean(u.feature, 60); }).filter(Boolean);
+    if (!features.length) return [];
+    return [
+      "Pupils can explain what each of these features did, using the reason the source gives: " + features.join("; ") + ".",
+      "Pupils can use one of these reasons to choose the right answer for a new example."
+    ];
+  }
+
+  // ---- Patch 7: the Try it task gets its own call (research mode only) ----
+  // One unit (the one the plan's apply beats cite), its reason quote, one choose task on a new
+  // example, checked in code by the same research rules, with one repair. Live run 14's content
+  // call omitted the choices (json_object mode does not enforce the schema).
+  function applyTaskUnit(ctx) {
+    var units = researchUnits(ctx);
+    if (!units.length) return null;
+    var slot = ((ctx && ctx.lessonSkeleton) || []).filter(function (s) { return s && s.id === "apply"; })[0];
+    if (!slot) return null;
+    var refs = (slot.beats || []).reduce(function (all, beat) { return all.concat(beat.knowledgeRefs || []); }, []);
+    var claims = mapClaimIds((ctx && ctx.lessonPlan) || {}, refs);
+    return units.filter(function (u) { return claims.indexOf(u.explanationClaimId) !== -1; })[0] || null;
+  }
+
+  function taughtSentences(raw) {
+    try {
+      var map = readSlotMap(typeof raw === "string" ? JSON.parse(raw) : raw);
+      return ((map.teach && map.teach.beats) || []).map(function (b) { return clean(b && (b.text || (b.pupil && b.pupil.text)), 280); }).filter(Boolean);
+    } catch (e) { return []; }
+  }
+
+  function applyTaskBrief(ctx, unit, opts) {
+    opts = opts || {};
+    var slot = ((ctx && ctx.lessonSkeleton) || []).filter(function (s) { return s && s.id === "apply"; })[0] || { beats: [] };
+    var year = (ctx && (ctx.yearGroup || ctx.yearAssumption)) || "";
+    var payload = {
+      yearGroup: year,
+      feature: clean(unit.feature, 120),
+      featureSays: clean(unit.featureQuote, 400),
+      reasonQuote: clean(unit.explanationQuote || unit.explanation, 500),
+      keepThisResult: clean(unit.resultClause, 160),
+      keyWords: unit.keyTerms || [],
+      comparisonWords: unit.directions || [],
+      taughtSentences: textList(opts.taught, 280, 12),
+      animalNamesAlreadyTaught: unitAnimalNames(unit),
+      applyBeats: (slot.beats || []).map(function (b) { return { id: b.id, move: b.move }; }),
+      fixThese: textList(opts.issues, 300, 12),
+      previous: opts.previous || null
+    };
+    return {
+      system: [
+        "You write the Try it task for one primary science lesson. Return one JSON object and nothing else.",
+        "Use only the reason in reasonQuote. The class has just been taught it (taughtSentences).",
+        "newCase.text is one new example the teaching did not answer: a made-up case that starts with Imagine, about new or made-up animals, never about an animal in animalNamesAlreadyTaught. Set newCase.kind to transfer.",
+        "Describe a made-up animal in plain words (for example: a new animal whose nostrils sit high on its snout). Never invent a name for it, in any field: a made-up name is a hard word for the class and fails the check.",
+        "instruction is one short question of at most 140 characters that ends with a question mark and starts with Choose (for example: Choose the animal that could ... ?). Never start it with Which, What or Why: that only asks for recall.",
+        "newCase and beats describe only the new animals' features, never what a feature lets or helps an animal do: the class works the result out from the taught reason.",
+        "choices has two or three options; exactly one has correct true. Every option's feedback is one or two sentences that name the feature and say what reasonQuote says it did. The correct option's feedback keeps keepThisResult in the source's words, including keyWords and every comparisonWord.",
+        "Never use a vaguer word for the result (better, easier, well, efficiently, good) and never add always, never, completely or fully. Never say an animal adapted, evolved, needed or got a feature, or had it in order to or so that it could do something.",
+        "Use everyday words for " + (year || "this year group") + ". successText is one sentence saying what picking the correct choice shows.",
+        "beats gives one or two short sentences for each applyBeats id that set up the new example in new words: name the feature and ask the class to compare or decide (for example: Compare the two animals and decide ...); do not start with What, Why or Which, and never repeat or closely reword a taught sentence.",
+        "If fixThese is not empty, previous failed those checks: write a changed task that fixes every one. Never return previous unchanged, and leave out every word that fixThese quotes.",
+        "JSON shape: { \"beats\": [{ \"id\": \"\", \"text\": \"\" }], \"newCase\": { \"text\": \"\", \"kind\": \"transfer\" }, \"instruction\": \"\", \"choices\": [{ \"text\": \"\", \"correct\": true, \"feedback\": \"\" }], \"successText\": \"\" }."
+      ].join(" "),
+      user: JSON.stringify(payload)
+    };
+  }
+
+  // Parsed without clipping the instruction, so a long or cut instruction fails the check
+  // instead of being shortened silently.
+  function parseApplyTask(payload, unit) {
+    var p = payload;
+    if (typeof p === "string") { try { p = JSON.parse(p); } catch (e) { p = null; } }
+    p = p && typeof p === "object" ? p : {};
+    var nc = p.newCase && typeof p.newCase === "object" ? p.newCase : {};
+    return {
+      unitId: unit ? unit.unitId : "",
+      claimIds: unit ? [unit.elementClaimId, unit.explanationClaimId] : [],
+      beats: (Array.isArray(p.beats) ? p.beats : []).filter(function (b) { return b && typeof b === "object"; }).slice(0, 4).map(function (b) { return { id: clean(b.id, 24), text: clean(b.text, 280) }; }),
+      newCase: { text: clean(nc.text, 300), kind: nc.kind === "sourced" ? "sourced" : (nc.kind === "transfer" ? "transfer" : clean(nc.kind, 20)), sourceRef: [], quote: "" },
+      instruction: String(p.instruction == null ? "" : p.instruction).replace(/\s+/g, " ").trim().slice(0, 400),
+      choices: (Array.isArray(p.choices) ? p.choices : []).filter(function (c) { return c && typeof c === "object"; }).slice(0, 4).map(function (c) { return { text: clean(c.text, 160), correct: c.correct === true, feedback: clean(c.feedback, 300) }; }),
+      successCondition: "correct-choice",
+      successText: clean(p.successText, 240)
+    };
+  }
+
+  function applyTaskIssues(task, unit, ctx) {
+    if (!unit) return ["The Try it task has no taught unit to use."];
+    task = task || {};
+    var activity = { slotId: "apply", beats: (task.beats || []).map(function (b) { return { id: b.id, pupil: { text: b.text } }; }),
+      scene: { interaction: { type: "choose", target: "choices", instruction: task.instruction, successCondition: task.successCondition, successText: task.successText, choices: task.choices, newCase: task.newCase, unitId: task.unitId, claimIds: task.claimIds } } };
+    var taught = (ctx && ctx.applyTaskTaught) || [];
+    var teach = { slotId: "teach", beats: taught.map(function (t, i) { return { id: "teach:" + i, pupil: { text: t } }; }) };
+    var rows = [];
+    if (!activity.beats.length || activity.beats.some(function (b) { return !b.pupil.text; })) rows.push({ text: "The apply slot needs set-up text for each apply beat." });
+    // The frozen beat contract still applies to the task's set-up text (the beat must use the
+    // taught knowledge and ask for an action), so it is checked here and fixed in the repair.
+    var applySlot = ((ctx && ctx.lessonSkeleton) || []).filter(function (s) { return s && s.id === "apply"; })[0] || { beats: [] };
+    var items = beatKnowledge((ctx && ctx.lessonPlan) || {}, (ctx && (ctx.yearGroup || ctx.yearAssumption)) || "");
+    (applySlot.beats || []).forEach(function (beat, index) {
+      var own = activity.beats.filter(function (b) { return b.id === beat.id; })[0] || activity.beats[index];
+      var reason = own && own.pupil.text ? beatSubstanceReason(beat, own.pupil.text, items) : "";
+      if (reason) rows.push({ text: substanceIssue(beat, reason) + " Name the feature and ask the class to compare or decide (for example: Compare the two animals and decide ...)." });
+    });
+    activity.beats.forEach(function (b) {
+      var bw = ruleContent(b.pupil.text);
+      var copied = taught.some(function (line) { var lw = ruleContent(line); var overlap = bw.filter(function (w) { return lw.some(function (l) { return ruleWordMatch(l, w); }); }).length; return bw.length && overlap / bw.length >= 0.8; });
+      if (copied) rows.push({ text: "The apply slot beat " + b.id + " repeats a taught sentence. Set up the new example in new words." });
+    });
+    rows = rows.concat(applyChoiceIssues(activity, Object.assign({}, ctx, { __activities: [teach, activity] }), [unit]));
+    rows = rows.concat(applyMeaningIssues([activity], ctx, unit));
+    rows = rows.concat(vocabularyIssues([activity], ctx));
+    rows = rows.concat(teleologyIssues([activity]));
+    rows = rows.concat(applyTaskShapeIssues(task, unit));
+    // Patch 9: a Try it repair that returns the task it was asked to fix is rejected.
+    var before = ctx && ctx.applyTaskPrevious;
+    if (before && JSON.stringify(taskCore(before)) === JSON.stringify(taskCore(task))) rows.push({ text: "The Try it repair returned the same task unchanged. A repair must change what failed." });
+    var out = [];
+    rows.forEach(function (r) { if (out.indexOf(r.text) === -1) out.push(r.text); });
+    return out;
+  }
+
+  function taskCore(task) {
+    task = task || {};
+    return { beats: (task.beats || []).map(function (b) { return b && b.text; }), newCase: task.newCase && task.newCase.text, instruction: task.instruction, choices: (task.choices || []).map(function (c) { return [c.text, c.correct, c.feedback]; }), successText: task.successText };
+  }
+
+  // Patch 8 (research mode only; the Try it call runs only with research).
+  // 1. The frozen apply-alignment check (recall-only, pupil selection, bare task) runs on the
+  //    task's instruction here, so the Try it repair can fix it. The content slot repair cannot:
+  //    the task overrides the content's apply fields. Live runs 17 and 18 asked "Which feature
+  //    helps ...?", which applyAlignment fails as recall-only after every repair.
+  // 2. The new example must not state the result itself: a set-up sentence that links to one of
+  //    the result's words ("..., allowing it to breathe ...", run 18) gives the answer away.
+  function applyTaskShapeIssues(task, unit) {
+    var rows = [];
+    var instruction = clean(task && task.instruction, 180);
+    var fix = " Start the instruction with Choose and ask which new animal or option fits (for example: Choose the animal that could ...).";
+    if (instruction && recallOnly(instruction)) rows.push({ text: "The apply slot asks for recall instead of using the knowledge." + fix });
+    else if (instruction && selectionOnly(instruction)) rows.push({ text: "The apply slot only picks a pupil instead of using the knowledge." + fix });
+    else if (instruction && bareTask(instruction)) rows.push({ text: "The apply slot gives a bare interaction instead of using the knowledge." + fix });
+    var featureWords = ruleContent([unit && unit.feature, unit && unit.featureQuote].join(" "));
+    var result = ruleContent(unit && unit.resultClause || "", featureWords);
+    var setup = [task && task.newCase && task.newCase.text].concat(((task && task.beats) || []).map(function (b) { return b && b.text; })).filter(Boolean).join(" ");
+    var giveaway = "";
+    ruleSentences(setup).forEach(function (sentence) {
+      if (giveaway || !CLAIM_LINK.test(sentence)) return;
+      var words = ruleContent(sentence);
+      if (result.some(function (r) { return words.some(function (w) { return ruleWordMatch(w, r); }); })) giveaway = sentence;
+    });
+    if (giveaway) rows.push({ text: "The Try it new example already gives the result (\"" + clean(giveaway, 120) + "\"), so the class does not need the taught reason. Describe only the new animals' features and let the class choose which one fits." });
+    return rows;
+  }
+
+  // Patch 7: every stage shows one picture, so pupil text must not talk about several
+  // ("Look at these images" sat over one picture in run 14).
+  var MANY_PICTURES = /\b(?:these|those|all (?:the|these|those)|the|some|both|two|three)\s+(?:images|pictures|photos|photographs|drawings|illustrations|scenes)\b/i;
+  function pictureCountIssues(activities) {
+    var rows = [];
+    (activities || []).forEach(function (activity) {
+      var hit = "";
+      pupilTextsOf(activity).forEach(function (text) { var m = MANY_PICTURES.exec(String(text || "")); if (!hit && m) hit = m[0]; });
+      if (hit) rows.push({ slotId: activity.slotId, text: "The " + activity.slotId + " slot talks about several pictures (\"" + hit + "\"), but each stage shows one picture. Say \"this picture\" or \"the picture\"." });
+    });
+    return rows;
+  }
+
+  // Patch 9, research mode only: the frozen lineage rule (a teach beat that cites a unit's
+  // explanation must state the feature's job in specific words) also runs before the slot
+  // repair, pinned to the teach beat, so the repair can fix it. Live run 23 passed every other
+  // check and then failed lineage after the repair on "These webbed feet allowed the dinosaur to
+  // swim." (one job word). The rule itself is unchanged and still runs after the repair.
+  function teachLineageIssues(activities, ctx) {
+    if (!ctx || !ctx.lessonPlan || !ctx.knowledgePack || typeof unitLineage !== "function") return [];
+    var lin;
+    try { lin = unitLineage({ lessonPlan: JSON.parse(JSON.stringify(ctx.lessonPlan)), activities: JSON.parse(JSON.stringify(activities || [])) }, ctx); } catch (e) { return []; }
+    if (!lin || lin.skipped) return [];
+    var units = readyUnits(assessPackReadiness(ctx.knowledgePack, ctx.knowledgeSelection, ctx));
+    var teach = (activities || []).filter(function (a) { return a && a.slotId === "teach"; })[0] || null;
+    var rows = [];
+    (lin.units || []).forEach(function (row) {
+      if ((row.problems || []).indexOf("no teaching beat cites its explanation and states what the feature does") === -1) return;
+      var unit = units.filter(function (u) { return u.unitId === row.unitId; })[0] || {};
+      var points = ((ctx.lessonPlan && ctx.lessonPlan.learningMap) || []).filter(function (p) { return p && (p.claimIds || []).indexOf(row.explanationClaimId) !== -1; }).map(function (p) { return p.id; });
+      var beats = ((teach && teach.beats) || []).filter(function (b) { return b && (b.knowledgeRefs || []).some(function (r) { return points.indexOf(r) !== -1; }); });
+      var where = beats.length ? "beat " + beats[beats.length - 1].id + " (\"" + clean(beats[beats.length - 1].pupil && beats[beats.length - 1].pupil.text, 120) + "\")" : "the beat for this explanation";
+      rows.push({ slotId: "teach", text: "The teach slot " + where + " cites the explanation for " + clean(unit.feature || row.feature, 60) + " but does not say what the feature does in enough specific words (the feature's own words, the topic word and a word like it, these or its do not count). Say it as one full sentence with the animal's name and what the feature does, as the explanation does: \"" + clean(unit.explanation, 160) + "\"" });
+    });
+    return rows;
+  }
+
+  function researchRuleIssues(activities, ctx) {
+    if (!researchMode(ctx)) return [];
+    var units = researchUnits(ctx);
+    var rows = [];
+    rows = rows.concat(meaningIssues(activities, ctx, units));
+    rows = rows.concat(vocabularyIssues(activities, ctx));
+    rows = rows.concat(teleologyIssues(activities));
+    rows = rows.concat(pictureCountIssues(activities));
+    rows = rows.concat(questionIssues(activities, ctx, units));
+    rows = rows.concat(teachLineageIssues(activities, ctx));
+    var apply = (activities || []).filter(function (a) { return a.slotId === "apply"; })[0];
+    if (apply) rows = rows.concat(applyChoiceIssues(apply, Object.assign({}, ctx, { __activities: activities }), units));
+    return rows;
+  }
+
   function accept(raw, ctx) {
     ctx = ctx || {};
     var parsed = raw;
@@ -5389,6 +9047,7 @@
     });
     var activities = incoming.map(function (item) { return activityFrom(item, allowed); }).filter(Boolean);
     activities = fitDuration(activities, durationBand(ctx.requestedMinutes || 15));
+    if (ctx.lessonSkeleton && researchMode(ctx)) activities = normaliseMinutes(activities, ctx.requestedMinutes || 15);
     var storyPlan = ctx.storyPlan || parsed.storyPlan || null;
     if (storyPlan && storyPlan.enabled !== false) {
       activities = ensureScenes(activities, storyPlan);
@@ -5423,6 +9082,11 @@
     }
     var owners = {};
     var qualityWarnings = [];
+    // Patch 9, research mode only: which check question each per-question issue belongs to, so the
+    // slot repair can rewrite only the questions that failed (see slotRepairBrief).
+    var questionFailures = {};
+    // ...and, for an evidence verdict, the marker's own reason (what the correct answer lacks).
+    var questionWhy = {};
     var pupilDiagnostics = [];
     var issues = educationalIssues(activities, issueCtx, owners);
     if (ctx.lessonSkeleton && ctx.lessonSkeleton.some(function (slot) { return slot.beats && slot.beats.length; })) {
@@ -5442,6 +9106,12 @@
           issues.push(issue);
           ownIssue(owners, slot.id, issue);
         });
+        if (slot.id === "check") {
+          retrieveSubstanceIssues(activity, slot, beatItems).forEach(function (issue) {
+            issues.push(issue);
+            ownIssue(owners, slot.id, issue);
+          });
+        }
       });
     }
     if (ctx.lessonSkeleton) {
@@ -5492,10 +9162,20 @@
               else {
                 issues.push(issue);
                 ownIssue(owners, activity.slotId, issue);
+                if (researchMode(ctx)) (questionFailures[index] = questionFailures[index] || []).push(issue);
+                if (researchMode(ctx) && /required evidence/.test(issue) && oneCtx.checkSemantic && oneCtx.checkSemantic.reason) questionWhy[index] = clean(oneCtx.checkSemantic.reason, 240);
               }
             });
           });
         }
+      });
+    }
+    if (ctx.lessonSkeleton && researchMode(ctx)) {
+      // Research rules always block, before and after the slot repair (patch 7). Live run 14
+      // completed with no APPLY choice because these were downgraded to warnings after repair.
+      researchRuleIssues(activities, issueCtx).forEach(function (row) {
+        issues.push(row.text);
+        ownIssue(owners, row.slotId, row.text);
       });
     }
     if (dropped) issues.push("An activity uses a game Wondii cannot play.");
@@ -5508,6 +9188,7 @@
       var structure = ctx.lessonSkeleton ? skeletonDrift(activities, ctx.lessonSkeleton) : [];
       var reported = structure.concat(issues);
       reported.slotIssues = slotIssuesFrom(reported, activities, owners);
+      if (ctx.lessonSkeleton && researchMode(ctx)) { reported.questionFailures = questionFailures; reported.questionWhy = questionWhy; }
       return { ok: false, structuralOk: !structure.length, slotIds: slotIdsFrom(reported, activities), slotIssues: reported.slotIssues, issues: reported, previous: parsed, applyAlignment: applyReport, checkAlignment: checkReport, qualityWarnings: qualityWarnings, pupilBeatDiagnostics: pupilDiagnostics };
     }
     var objectiveSource = parsed.objectives || parsed.learningObjectives || parsed.learningObjective || parsed.objective || ctx.learningObjectives || [];
@@ -5516,6 +9197,15 @@
     var plannedObjective = clean((ctx.lessonPlan && ctx.lessonPlan.learningObjective) || "", 240);
     if (!objectives.length && plannedObjective) objectives = [plannedObjective];
     if (!objectives.length) return { ok: false, issues: ["The lesson needs a learning objective."], previous: parsed, applyAlignment: applyReport };
+    var objectiveRule = null;
+    if (ctx.lessonSkeleton && researchMode(ctx)) {
+      var ruleUnits = researchUnits(ctx);
+      var objectiveProblems = objectiveIssues(objectives[0], ruleUnits);
+      if (objectiveProblems.length && ruleUnits.length) {
+        objectiveRule = { replaced: objectives.slice(), reasons: objectiveProblems, rule: "measurable objective naming every gate-ready unit" };
+        objectives = unitObjectives(ruleUnits);
+      } else objectiveRule = { replaced: [], reasons: [], rule: "measurable objective naming every gate-ready unit" };
+    }
     var title = withoutRequest(clean(parsed.title, 80), request, requestReplacement(request, ctx.topic || ""));
     var rawRequest = request;
     if (rawRequest.length >= 12 && title.toLowerCase().indexOf(rawRequest) !== -1) {
@@ -5541,6 +9231,7 @@
       estimateMinutes: sum
     };
     if (qualityWarnings.length) adventure.qualityWarnings = qualityWarnings.slice();
+    if (objectiveRule) adventure.objectiveRule = objectiveRule;
     return {
       ok: true,
       adventure: adventure,
@@ -5621,10 +9312,22 @@
     var repairedSlots = [];
     var heldApply = null;
     var warnAfterRepair = false;
+    var questionAudit = null;
+    var auditing = !!(ctx && ctx.lessonSkeleton && researchMode(ctx));
     function policyCtx(extra) {
       var next = Object.assign({}, ctx, extra || {});
       if (warnAfterRepair) next.semanticWarningsAllowed = true;
+      if (auditing) next.questionAudit = questionAudit;
       return next;
+    }
+    // Patch 7, research mode: audit the check questions of each content version before accepting it.
+    function audited(source) {
+      if (!auditing) return Promise.resolve();
+      questionAudit = null;
+      if (!ports.questionAudit) return Promise.resolve();
+      return Promise.resolve().then(function () { return ports.questionAudit(questionAuditInput(source, ctx)); }).then(function (value) {
+        questionAudit = value && value.ok ? value : null;
+      }).catch(function () { questionAudit = null; });
     }
     function pack(result, repairUsed) {
       return {
@@ -5701,9 +9404,15 @@
       }
       return step(0, []);
     }
-    var accepted = accept(raw, ctx);
-    var firstReport = accepted.applyAlignment || null;
-    var firstCheck = accepted.checkAlignment || null;
+    var accepted = null;
+    var firstReport = null;
+    var firstCheck = null;
+    if (!auditing) return start(accept(raw, ctx));
+    return audited(raw).then(function () { return start(accept(raw, policyCtx())); });
+    function start(first) {
+    accepted = first;
+    firstReport = accepted.applyAlignment || null;
+    firstCheck = accepted.checkAlignment || null;
     if (accepted.ok || accepted.structuralOk === false) return Promise.resolve(pack(accepted, false));
     return judged(raw, accepted).then(function (firstJudge) {
       if (firstJudge && firstJudge.stop) return pack(firstJudge.result, false);
@@ -5717,9 +9426,12 @@
         repairedSlots = (accepted.slotIds || []).slice();
         return Promise.resolve(ports.repair(accepted)).then(function (second) {
           var merged = mergeSlotContent(accepted.previous, second);
+          var targeting = auditing ? targetRepair(accepted.previous, merged, accepted) : null;
           heldApply = null;
           warnAfterRepair = true;
+          return audited(merged).then(function () {
           var repaired = accept(merged, policyCtx());
+          if (targeting && targeting.unchanged.length) repaired = Object.assign({}, repaired, { ok: false, issues: (repaired.issues || []).concat(targeting.unchanged) });
           return judged(merged, repaired).then(function (secondJudge) {
             if (secondJudge && secondJudge.result) repaired = secondJudge.result;
             if (repaired.ok) return pack(repaired, true);
@@ -5728,14 +9440,31 @@
               return pack(repaired, true);
             });
           });
+          });
         });
       });
     });
+    }
   }
 
   function runPipeline(ctx, callModel) {
     var started = Date.now();
     var planRepaired = false;
+    if (ctx && ctx.knowledgePack && ctx.knowledgePack.status !== "blocked" && (ctx.knowledgePack.claims || []).length) {
+      var readiness = assessPackReadiness(ctx.knowledgePack, ctx.knowledgeSelection, ctx);
+      if (readiness.status !== "ready") {
+        return Promise.resolve({
+          ok: false,
+          category: "invalid",
+          stage: "PACK_INCOMPLETE",
+          issues: readiness.issues || [],
+          packReadiness: readiness,
+          repairUsed: false,
+          fallbackUsed: false,
+          durationMs: Date.now() - started
+        });
+      }
+    }
     return Promise.resolve().then(function () {
       return callModel(planBrief(ctx), null);
     }).then(function (firstPlan) {
@@ -5923,6 +9652,7 @@
     depthBudget: depthBudget,
     buildLearningMap: buildLearningMap,
     taughtLedger: taughtLedger,
+    teachingTrace: teachingTrace,
     learningMapReport: learningMapReport,
     teachingScope: teachingScope,
     teachingPlanReport: teachingPlanReport,
@@ -5952,8 +9682,73 @@
     checkJudgePlan: checkJudgePlan,
     checkEvidenceInput: checkEvidenceInput,
     teacherIntentBrief: teacherIntentBrief,
+    intentFraming: intentFraming,
     normaliseTeacherIntent: normaliseTeacherIntent,
     applyTeacherIntent: applyTeacherIntent,
+    knowledgePackBrief: knowledgePackBrief,
+    normaliseKnowledgePack: normaliseKnowledgePack,
+    selectPackForLesson: selectPackForLesson,
+    assessPackReadiness: assessPackReadiness,
+    statesEnabledJob: statesEnabledJob,
+    unitLineage: unitLineage,
+    teachLineageIssues: teachLineageIssues,
+    researchMode: researchMode,
+    genericResultOnly: genericResultOnly,
+    researchUnits: researchUnits,
+    resultClause: resultClause,
+    meaningCheck: meaningCheck,
+    applyMeaningIssues: applyMeaningIssues,
+    pictureCountIssues: pictureCountIssues,
+    strandRepairLine: strandRepairLine,
+    repairTargets: repairTargets,
+    beatRepairTargets: beatRepairTargets,
+    targetRepair: targetRepair,
+    applyTaskShapeIssues: applyTaskShapeIssues,
+    sameRelationship: sameRelationship,
+    packNames: packNames,
+    applyTaskUnit: applyTaskUnit,
+    applyTaskBrief: applyTaskBrief,
+    parseApplyTask: parseApplyTask,
+    applyTaskIssues: applyTaskIssues,
+    taughtSentences: taughtSentences,
+    unitAnimalNames: unitAnimalNames,
+    meaningIssues: meaningIssues,
+    hardWords: hardWords,
+    vocabularyIssues: vocabularyIssues,
+    teleological: teleological,
+    teleologyIssues: teleologyIssues,
+    questionIssues: questionIssues,
+    questionAuditIssues: questionAuditIssues,
+    questionAuditBrief: questionAuditBrief,
+    parseQuestionAudit: parseQuestionAudit,
+    questionAuditInput: questionAuditInput,
+    researchCheckQuestions: researchCheckQuestions,
+    applyChoiceIssues: applyChoiceIssues,
+    normaliseMinutes: normaliseMinutes,
+    objectiveIssues: objectiveIssues,
+    unitObjectives: unitObjectives,
+    researchRuleIssues: researchRuleIssues,
+    researchContentRules: researchContentRules,
+    passageIsEvidence: passageIsEvidence,
+    cleanInteraction: cleanInteraction,
+    slotContent: slotContent,
+    readyUnits: readyUnits,
+    statesUnitJob: statesUnitJob,
+    lineageAnswers: lineageAnswers,
+    statesSoCould: statesSoCould,
+    knowledgePackLog: knowledgePackLog,
+    quoteInPassage: quoteInPassage,
+    quoteKey: quoteKey,
+    wordsNotInSource: wordsNotInSource,
+    sourceEntailmentBrief: sourceEntailmentBrief,
+    parseSourceEntailment: parseSourceEntailment,
+    applySourceEntailment: applySourceEntailment,
+    sourceRepairBrief: sourceRepairBrief,
+    sourceRepairFeedback: sourceRepairFeedback,
+    claimStatesLink: claimStatesLink,
+    quoteStatesLink: quoteStatesLink,
+    SOURCE_SUPPORT_LABEL: SOURCE_SUPPORT_LABEL,
+    knowledgeTrace: knowledgeTrace,
     conceptCoverageIssues: conceptCoverageIssues,
     resolveLessonContent: resolveLessonContent,
     runPipeline: runPipeline,

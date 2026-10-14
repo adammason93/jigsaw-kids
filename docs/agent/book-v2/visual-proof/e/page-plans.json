@@ -1,0 +1,2636 @@
+{
+  "title": "A Blink for the Sky",
+  "spreads": [
+    {
+      "spreadId": "p1",
+      "beatId": "b1",
+      "role": "hook",
+      "locationId": "flowerpot-corner",
+      "charactersPresent": [
+        "maya"
+      ],
+      "characterStateBefore": [
+        {
+          "characterId": "maya",
+          "locationId": "flowerpot-corner",
+          "clothing": "yellow cardigan, white shirt, blue skirt",
+          "carriedEntities": [],
+          "emotion": "steady",
+          "storyRole": "friend"
+        }
+      ],
+      "entityStateBefore": [],
+      "storyEvent": "Maya spots a flicker beneath the flowerpot. It vanishes when she looks towards the sky.",
+      "sequentialActions": [
+        "Maya spots a flicker beneath the flowerpot",
+        "It vanishes when she looks towards the sky"
+      ],
+      "illustrationMoment": "Maya spots a flicker beneath the flowerpot while it vanishes when she looks towards the sky",
+      "montage": false,
+      "characterInstances": {
+        "maya": 1
+      },
+      "lockedIdentities": {
+        "maya": {
+          "characterId": "maya",
+          "name": "Maya",
+          "origin": "canonical",
+          "type": "human",
+          "species": "human",
+          "face": "round face, warm brown eyes, soft eyebrows",
+          "head": "",
+          "body": "school-age child, not a toddler and not a teen",
+          "relativeSize": "average for about seven, a little shorter than Leo",
+          "covering": "",
+          "colouring": "medium brown",
+          "markings": "",
+          "eyes": "",
+          "ears": "",
+          "horns": "",
+          "tail": "",
+          "distinctiveFeatures": [
+            "long dark curls",
+            "yellow cardigan",
+            "green hair clip",
+            "white socks"
+          ],
+          "accessories": [
+            "green hair clip"
+          ],
+          "visualIdentifiers": [
+            "long dark curls",
+            "yellow cardigan",
+            "green hair clip",
+            "white socks"
+          ],
+          "ageAppearance": "about seven, school age",
+          "skinTone": "medium brown",
+          "hair": "long dark curls",
+          "defaultClothing": "yellow cardigan, white shirt, blue skirt, white socks",
+          "footwear": "navy shoes"
+        }
+      },
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "flowerpot-corner",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Quiet interest",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clay-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+          },
+          {
+            "entityId": "garden-wall",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Blocking most of the sky above the corner."
+          }
+        ]
+      },
+      "entitiesRequired": [
+        "clay-flowerpot",
+        "garden-wall"
+      ],
+      "visualFocus": "Maya's long dark curls and yellow cardigan beside one faint glow.",
+      "shotType": "establishing",
+      "cameraAngle": "establishing",
+      "compositionIntent": "Keep the garden small and sheltered around Maya's searching posture.",
+      "emotion": "Quiet interest",
+      "lighting": "evening light, quiet contrast, warm points of light",
+      "style": {
+        "styleId": "wondii-picture-book",
+        "scope": "book",
+        "illustrator": {
+          "rendering": "soft painted picture-book",
+          "characterRendering": "the same painted construction for every person and creature",
+          "shapeLanguage": "clear rounded shapes",
+          "edge": "soft painted edges",
+          "texture": "light painted texture",
+          "material": "painted surfaces",
+          "detail": "readable picture-book detail",
+          "depth": "gentle painted depth",
+          "facialRendering": "expressive painted faces with one construction",
+          "proportions": "storybook proportions",
+          "environmentRendering": "painted places, whatever the place contains",
+          "lightingPhilosophy": "painted light that follows the scene",
+          "colourTreatment": "harmonised painted colour",
+          "finish": "one picture-book finish"
+        },
+        "atmosphere": {
+          "mood": "evening light, quiet contrast, warm points of light",
+          "palette": "",
+          "brightness": "",
+          "timeOfDay": "",
+          "weather": "",
+          "atmosphere": "A sheltered corner beneath a tall garden wall, with one clay flowerpot and soft evening shadows.",
+          "warmth": "",
+          "tension": "",
+          "glow": ""
+        }
+      },
+      "textSafeRegion": "upper-left",
+      "layout": "large-reveal",
+      "openingState": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "flowerpot-corner",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": []
+      },
+      "continuityFromPrevious": null,
+      "requirementsForNext": {
+        "spreadId": "p2",
+        "mustMatch": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "flowerpot-corner",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Quiet interest",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "clay-flowerpot",
+              "ownerCharacterId": null,
+              "locationId": "flowerpot-corner",
+              "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+            },
+            {
+              "entityId": "garden-wall",
+              "ownerCharacterId": null,
+              "locationId": "flowerpot-corner",
+              "state": "Blocking most of the sky above the corner."
+            }
+          ]
+        }
+      },
+      "prose": ""
+    },
+    {
+      "spreadId": "p2",
+      "beatId": "b2",
+      "role": "discovery",
+      "locationId": "flowerpot-corner",
+      "charactersPresent": [
+        "maya"
+      ],
+      "characterStateBefore": [
+        {
+          "characterId": "maya",
+          "locationId": "flowerpot-corner",
+          "clothing": "yellow cardigan, white shirt, blue skirt",
+          "carriedEntities": [],
+          "emotion": "Quiet interest",
+          "storyRole": "friend"
+        }
+      ],
+      "entityStateBefore": [
+        {
+          "entityId": "clay-flowerpot",
+          "ownerCharacterId": null,
+          "locationId": "flowerpot-corner",
+          "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+        },
+        {
+          "entityId": "garden-wall",
+          "ownerCharacterId": null,
+          "locationId": "flowerpot-corner",
+          "state": "Blocking most of the sky above the corner."
+        }
+      ],
+      "storyEvent": "Maya finds a star with its points tucked inward. She holds out one open hand.",
+      "sequentialActions": [
+        "Maya finds a star with its points tucked inward",
+        "She holds out one open hand"
+      ],
+      "illustrationMoment": "Maya finds a star with its points tucked inward while she holds out one open hand",
+      "montage": false,
+      "characterInstances": {
+        "maya": 1
+      },
+      "lockedIdentities": {
+        "maya": {
+          "characterId": "maya",
+          "name": "Maya",
+          "origin": "canonical",
+          "type": "human",
+          "species": "human",
+          "face": "round face, warm brown eyes, soft eyebrows",
+          "head": "",
+          "body": "school-age child, not a toddler and not a teen",
+          "relativeSize": "average for about seven, a little shorter than Leo",
+          "covering": "",
+          "colouring": "medium brown",
+          "markings": "",
+          "eyes": "",
+          "ears": "",
+          "horns": "",
+          "tail": "",
+          "distinctiveFeatures": [
+            "long dark curls",
+            "yellow cardigan",
+            "green hair clip",
+            "white socks"
+          ],
+          "accessories": [
+            "green hair clip"
+          ],
+          "visualIdentifiers": [
+            "long dark curls",
+            "yellow cardigan",
+            "green hair clip",
+            "white socks"
+          ],
+          "ageAppearance": "about seven, school age",
+          "skinTone": "medium brown",
+          "hair": "long dark curls",
+          "defaultClothing": "yellow cardigan, white shirt, blue skirt, white socks",
+          "footwear": "navy shoes"
+        }
+      },
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "flowerpot-corner",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Tender attention",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clay-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+          },
+          {
+            "entityId": "garden-wall",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Blocking most of the sky above the corner."
+          },
+          {
+            "entityId": "hidden-star",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Hiding beneath the flowerpot rim with its points folded inward."
+          }
+        ]
+      },
+      "entitiesRequired": [
+        "clay-flowerpot",
+        "garden-wall",
+        "hidden-star"
+      ],
+      "visualFocus": "The star peeping from beneath the clay rim.",
+      "shotType": "close",
+      "cameraAngle": "close",
+      "compositionIntent": "Bring the tiny folded shape and Maya's open palm together.",
+      "emotion": "Tender attention",
+      "lighting": "evening light, quiet contrast, warm points of light",
+      "style": {
+        "styleId": "wondii-picture-book",
+        "scope": "book",
+        "illustrator": {
+          "rendering": "soft painted picture-book",
+          "characterRendering": "the same painted construction for every person and creature",
+          "shapeLanguage": "clear rounded shapes",
+          "edge": "soft painted edges",
+          "texture": "light painted texture",
+          "material": "painted surfaces",
+          "detail": "readable picture-book detail",
+          "depth": "gentle painted depth",
+          "facialRendering": "expressive painted faces with one construction",
+          "proportions": "storybook proportions",
+          "environmentRendering": "painted places, whatever the place contains",
+          "lightingPhilosophy": "painted light that follows the scene",
+          "colourTreatment": "harmonised painted colour",
+          "finish": "one picture-book finish"
+        },
+        "atmosphere": {
+          "mood": "evening light, quiet contrast, warm points of light",
+          "palette": "",
+          "brightness": "",
+          "timeOfDay": "",
+          "weather": "",
+          "atmosphere": "A sheltered corner beneath a tall garden wall, with one clay flowerpot and soft evening shadows.",
+          "warmth": "",
+          "tension": "",
+          "glow": ""
+        }
+      },
+      "textSafeRegion": "upper-right",
+      "layout": "caption-bleed",
+      "openingState": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "flowerpot-corner",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Quiet interest",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clay-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+          },
+          {
+            "entityId": "garden-wall",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Blocking most of the sky above the corner."
+          }
+        ]
+      },
+      "continuityFromPrevious": "p1",
+      "requirementsForNext": {
+        "spreadId": "p3",
+        "mustMatch": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "flowerpot-corner",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Tender attention",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "clay-flowerpot",
+              "ownerCharacterId": null,
+              "locationId": "flowerpot-corner",
+              "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+            },
+            {
+              "entityId": "garden-wall",
+              "ownerCharacterId": null,
+              "locationId": "flowerpot-corner",
+              "state": "Blocking most of the sky above the corner."
+            },
+            {
+              "entityId": "hidden-star",
+              "ownerCharacterId": null,
+              "locationId": "flowerpot-corner",
+              "state": "Hiding beneath the flowerpot rim with its points folded inward."
+            }
+          ]
+        }
+      },
+      "prose": ""
+    },
+    {
+      "spreadId": "p3",
+      "beatId": "b3",
+      "role": "reaction",
+      "locationId": "flowerpot-corner",
+      "charactersPresent": [
+        "maya"
+      ],
+      "characterStateBefore": [
+        {
+          "characterId": "maya",
+          "locationId": "flowerpot-corner",
+          "clothing": "yellow cardigan, white shirt, blue skirt",
+          "carriedEntities": [],
+          "emotion": "Tender attention",
+          "storyRole": "friend"
+        }
+      ],
+      "entityStateBefore": [
+        {
+          "entityId": "clay-flowerpot",
+          "ownerCharacterId": null,
+          "locationId": "flowerpot-corner",
+          "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+        },
+        {
+          "entityId": "garden-wall",
+          "ownerCharacterId": null,
+          "locationId": "flowerpot-corner",
+          "state": "Blocking most of the sky above the corner."
+        },
+        {
+          "entityId": "hidden-star",
+          "ownerCharacterId": null,
+          "locationId": "flowerpot-corner",
+          "state": "Hiding beneath the flowerpot rim with its points folded inward."
+        }
+      ],
+      "storyEvent": "The star climbs onto Maya's palm. When she points upward, it folds shut again.",
+      "sequentialActions": [
+        "The star climbs onto Maya's palm",
+        "When she points upward",
+        "it folds shut again"
+      ],
+      "illustrationMoment": "The star when she points upward while it folds shut again",
+      "montage": false,
+      "characterInstances": {
+        "maya": 1
+      },
+      "lockedIdentities": {
+        "maya": {
+          "characterId": "maya",
+          "name": "Maya",
+          "origin": "canonical",
+          "type": "human",
+          "species": "human",
+          "face": "round face, warm brown eyes, soft eyebrows",
+          "head": "",
+          "body": "school-age child, not a toddler and not a teen",
+          "relativeSize": "average for about seven, a little shorter than Leo",
+          "covering": "",
+          "colouring": "medium brown",
+          "markings": "",
+          "eyes": "",
+          "ears": "",
+          "horns": "",
+          "tail": "",
+          "distinctiveFeatures": [
+            "long dark curls",
+            "yellow cardigan",
+            "green hair clip",
+            "white socks"
+          ],
+          "accessories": [
+            "green hair clip"
+          ],
+          "visualIdentifiers": [
+            "long dark curls",
+            "yellow cardigan",
+            "green hair clip",
+            "white socks"
+          ],
+          "ageAppearance": "about seven, school age",
+          "skinTone": "medium brown",
+          "hair": "long dark curls",
+          "defaultClothing": "yellow cardigan, white shirt, blue skirt, white socks",
+          "footwear": "navy shoes"
+        }
+      },
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "flowerpot-corner",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "hidden-star"
+            ],
+            "emotion": "Hesitation",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clay-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+          },
+          {
+            "entityId": "garden-wall",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Blocking most of the sky above the corner."
+          },
+          {
+            "entityId": "hidden-star",
+            "ownerCharacterId": "maya",
+            "locationId": "flowerpot-corner",
+            "state": "Resting on Maya's palm, folded shut after her upward gesture."
+          }
+        ]
+      },
+      "entitiesRequired": [
+        "clay-flowerpot",
+        "garden-wall",
+        "hidden-star"
+      ],
+      "visualFocus": "Folded points resting on her palm.",
+      "shotType": "reaction",
+      "cameraAngle": "reaction",
+      "compositionIntent": "Contrast Maya's gentle upward gesture with the star's shrinking shape.",
+      "emotion": "Hesitation",
+      "lighting": "evening light, quiet contrast, warm points of light",
+      "style": {
+        "styleId": "wondii-picture-book",
+        "scope": "book",
+        "illustrator": {
+          "rendering": "soft painted picture-book",
+          "characterRendering": "the same painted construction for every person and creature",
+          "shapeLanguage": "clear rounded shapes",
+          "edge": "soft painted edges",
+          "texture": "light painted texture",
+          "material": "painted surfaces",
+          "detail": "readable picture-book detail",
+          "depth": "gentle painted depth",
+          "facialRendering": "expressive painted faces with one construction",
+          "proportions": "storybook proportions",
+          "environmentRendering": "painted places, whatever the place contains",
+          "lightingPhilosophy": "painted light that follows the scene",
+          "colourTreatment": "harmonised painted colour",
+          "finish": "one picture-book finish"
+        },
+        "atmosphere": {
+          "mood": "evening light, quiet contrast, warm points of light",
+          "palette": "",
+          "brightness": "",
+          "timeOfDay": "",
+          "weather": "",
+          "atmosphere": "A sheltered corner beneath a tall garden wall, with one clay flowerpot and soft evening shadows.",
+          "warmth": "",
+          "tension": "",
+          "glow": ""
+        }
+      },
+      "textSafeRegion": "upper-left",
+      "layout": "text-left",
+      "openingState": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "flowerpot-corner",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Tender attention",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clay-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+          },
+          {
+            "entityId": "garden-wall",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Blocking most of the sky above the corner."
+          },
+          {
+            "entityId": "hidden-star",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Hiding beneath the flowerpot rim with its points folded inward."
+          }
+        ]
+      },
+      "continuityFromPrevious": "p2",
+      "requirementsForNext": {
+        "spreadId": "p4",
+        "mustMatch": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "flowerpot-corner",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [
+                "hidden-star"
+              ],
+              "emotion": "Hesitation",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "clay-flowerpot",
+              "ownerCharacterId": null,
+              "locationId": "flowerpot-corner",
+              "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+            },
+            {
+              "entityId": "garden-wall",
+              "ownerCharacterId": null,
+              "locationId": "flowerpot-corner",
+              "state": "Blocking most of the sky above the corner."
+            },
+            {
+              "entityId": "hidden-star",
+              "ownerCharacterId": "maya",
+              "locationId": "flowerpot-corner",
+              "state": "Resting on Maya's palm, folded shut after her upward gesture."
+            }
+          ]
+        }
+      },
+      "prose": ""
+    },
+    {
+      "spreadId": "p4",
+      "beatId": "b4",
+      "role": "relationship",
+      "locationId": "flowerpot-corner",
+      "charactersPresent": [
+        "maya"
+      ],
+      "characterStateBefore": [
+        {
+          "characterId": "maya",
+          "locationId": "flowerpot-corner",
+          "clothing": "yellow cardigan, white shirt, blue skirt",
+          "carriedEntities": [
+            "hidden-star"
+          ],
+          "emotion": "Hesitation",
+          "storyRole": "friend"
+        }
+      ],
+      "entityStateBefore": [
+        {
+          "entityId": "clay-flowerpot",
+          "ownerCharacterId": null,
+          "locationId": "flowerpot-corner",
+          "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+        },
+        {
+          "entityId": "garden-wall",
+          "ownerCharacterId": null,
+          "locationId": "flowerpot-corner",
+          "state": "Blocking most of the sky above the corner."
+        },
+        {
+          "entityId": "hidden-star",
+          "ownerCharacterId": "maya",
+          "locationId": "flowerpot-corner",
+          "state": "Resting on Maya's palm, folded shut after her upward gesture."
+        }
+      ],
+      "storyEvent": "Maya cups her hands around the star. It unfolds and blinks once against her fingers.",
+      "sequentialActions": [
+        "Maya cups her hands around the star",
+        "It unfolds and blinks once against her fingers"
+      ],
+      "illustrationMoment": "Maya cups her hands around the star while it unfolds and blinks once against her fingers",
+      "montage": false,
+      "characterInstances": {
+        "maya": 1
+      },
+      "lockedIdentities": {
+        "maya": {
+          "characterId": "maya",
+          "name": "Maya",
+          "origin": "canonical",
+          "type": "human",
+          "species": "human",
+          "face": "round face, warm brown eyes, soft eyebrows",
+          "head": "",
+          "body": "school-age child, not a toddler and not a teen",
+          "relativeSize": "average for about seven, a little shorter than Leo",
+          "covering": "",
+          "colouring": "medium brown",
+          "markings": "",
+          "eyes": "",
+          "ears": "",
+          "horns": "",
+          "tail": "",
+          "distinctiveFeatures": [
+            "long dark curls",
+            "yellow cardigan",
+            "green hair clip",
+            "white socks"
+          ],
+          "accessories": [
+            "green hair clip"
+          ],
+          "visualIdentifiers": [
+            "long dark curls",
+            "yellow cardigan",
+            "green hair clip",
+            "white socks"
+          ],
+          "ageAppearance": "about seven, school age",
+          "skinTone": "medium brown",
+          "hair": "long dark curls",
+          "defaultClothing": "yellow cardigan, white shirt, blue skirt, white socks",
+          "footwear": "navy shoes"
+        }
+      },
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "flowerpot-corner",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "hidden-star"
+            ],
+            "emotion": "Growing trust",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clay-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+          },
+          {
+            "entityId": "garden-wall",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Blocking most of the sky above the corner."
+          },
+          {
+            "entityId": "hidden-star",
+            "ownerCharacterId": "maya",
+            "locationId": "flowerpot-corner",
+            "state": "Unfolded inside Maya's cupped hands, blinking once."
+          }
+        ]
+      },
+      "entitiesRequired": [
+        "clay-flowerpot",
+        "garden-wall",
+        "hidden-star"
+      ],
+      "visualFocus": "A warm line of light between her fingers.",
+      "shotType": "medium",
+      "cameraAngle": "medium",
+      "compositionIntent": "Let Maya's seated body form a still shelter.",
+      "emotion": "Growing trust",
+      "lighting": "evening light, quiet contrast, warm points of light",
+      "style": {
+        "styleId": "wondii-picture-book",
+        "scope": "book",
+        "illustrator": {
+          "rendering": "soft painted picture-book",
+          "characterRendering": "the same painted construction for every person and creature",
+          "shapeLanguage": "clear rounded shapes",
+          "edge": "soft painted edges",
+          "texture": "light painted texture",
+          "material": "painted surfaces",
+          "detail": "readable picture-book detail",
+          "depth": "gentle painted depth",
+          "facialRendering": "expressive painted faces with one construction",
+          "proportions": "storybook proportions",
+          "environmentRendering": "painted places, whatever the place contains",
+          "lightingPhilosophy": "painted light that follows the scene",
+          "colourTreatment": "harmonised painted colour",
+          "finish": "one picture-book finish"
+        },
+        "atmosphere": {
+          "mood": "evening light, quiet contrast, warm points of light",
+          "palette": "",
+          "brightness": "",
+          "timeOfDay": "",
+          "weather": "",
+          "atmosphere": "A sheltered corner beneath a tall garden wall, with one clay flowerpot and soft evening shadows.",
+          "warmth": "",
+          "tension": "",
+          "glow": ""
+        }
+      },
+      "textSafeRegion": "upper-right",
+      "layout": "image-left",
+      "openingState": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "flowerpot-corner",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "hidden-star"
+            ],
+            "emotion": "Hesitation",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clay-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+          },
+          {
+            "entityId": "garden-wall",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Blocking most of the sky above the corner."
+          },
+          {
+            "entityId": "hidden-star",
+            "ownerCharacterId": "maya",
+            "locationId": "flowerpot-corner",
+            "state": "Resting on Maya's palm, folded shut after her upward gesture."
+          }
+        ]
+      },
+      "continuityFromPrevious": "p3",
+      "requirementsForNext": {
+        "spreadId": "p5",
+        "mustMatch": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "flowerpot-corner",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [
+                "hidden-star"
+              ],
+              "emotion": "Growing trust",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "clay-flowerpot",
+              "ownerCharacterId": null,
+              "locationId": "flowerpot-corner",
+              "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+            },
+            {
+              "entityId": "garden-wall",
+              "ownerCharacterId": null,
+              "locationId": "flowerpot-corner",
+              "state": "Blocking most of the sky above the corner."
+            },
+            {
+              "entityId": "hidden-star",
+              "ownerCharacterId": "maya",
+              "locationId": "flowerpot-corner",
+              "state": "Unfolded inside Maya's cupped hands, blinking once."
+            }
+          ]
+        }
+      },
+      "prose": ""
+    },
+    {
+      "spreadId": "p5",
+      "beatId": "b5",
+      "role": "exploration",
+      "locationId": "flowerpot-corner",
+      "charactersPresent": [
+        "maya"
+      ],
+      "characterStateBefore": [
+        {
+          "characterId": "maya",
+          "locationId": "flowerpot-corner",
+          "clothing": "yellow cardigan, white shirt, blue skirt",
+          "carriedEntities": [
+            "hidden-star"
+          ],
+          "emotion": "Growing trust",
+          "storyRole": "friend"
+        }
+      ],
+      "entityStateBefore": [
+        {
+          "entityId": "clay-flowerpot",
+          "ownerCharacterId": null,
+          "locationId": "flowerpot-corner",
+          "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+        },
+        {
+          "entityId": "garden-wall",
+          "ownerCharacterId": null,
+          "locationId": "flowerpot-corner",
+          "state": "Blocking most of the sky above the corner."
+        },
+        {
+          "entityId": "hidden-star",
+          "ownerCharacterId": "maya",
+          "locationId": "flowerpot-corner",
+          "state": "Unfolded inside Maya's cupped hands, blinking once."
+        }
+      ],
+      "storyEvent": "Maya opens her hands, closes them, and opens them again. The star answers with two small blinks.",
+      "sequentialActions": [
+        "Maya opens her hands",
+        "closes them",
+        "opens them again",
+        "The star answers with two small blinks"
+      ],
+      "illustrationMoment": "Maya opens them again while the star answers with two small blinks",
+      "montage": false,
+      "characterInstances": {
+        "maya": 1
+      },
+      "lockedIdentities": {
+        "maya": {
+          "characterId": "maya",
+          "name": "Maya",
+          "origin": "canonical",
+          "type": "human",
+          "species": "human",
+          "face": "round face, warm brown eyes, soft eyebrows",
+          "head": "",
+          "body": "school-age child, not a toddler and not a teen",
+          "relativeSize": "average for about seven, a little shorter than Leo",
+          "covering": "",
+          "colouring": "medium brown",
+          "markings": "",
+          "eyes": "",
+          "ears": "",
+          "horns": "",
+          "tail": "",
+          "distinctiveFeatures": [
+            "long dark curls",
+            "yellow cardigan",
+            "green hair clip",
+            "white socks"
+          ],
+          "accessories": [
+            "green hair clip"
+          ],
+          "visualIdentifiers": [
+            "long dark curls",
+            "yellow cardigan",
+            "green hair clip",
+            "white socks"
+          ],
+          "ageAppearance": "about seven, school age",
+          "skinTone": "medium brown",
+          "hair": "long dark curls",
+          "defaultClothing": "yellow cardigan, white shirt, blue skirt, white socks",
+          "footwear": "navy shoes"
+        }
+      },
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "flowerpot-corner",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "hidden-star"
+            ],
+            "emotion": "Gentle discovery",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clay-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+          },
+          {
+            "entityId": "garden-wall",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Blocking most of the sky above the corner."
+          },
+          {
+            "entityId": "hidden-star",
+            "ownerCharacterId": "maya",
+            "locationId": "flowerpot-corner",
+            "state": "Answering Maya's hand signals with two blinks."
+          }
+        ]
+      },
+      "entitiesRequired": [
+        "clay-flowerpot",
+        "garden-wall",
+        "hidden-star"
+      ],
+      "visualFocus": "The repeated open-close-open pattern.",
+      "shotType": "vignette",
+      "cameraAngle": "vignette",
+      "compositionIntent": "Use a simple sequence of hands and answering light.",
+      "emotion": "Gentle discovery",
+      "lighting": "evening light, quiet contrast, warm points of light",
+      "style": {
+        "styleId": "wondii-picture-book",
+        "scope": "book",
+        "illustrator": {
+          "rendering": "soft painted picture-book",
+          "characterRendering": "the same painted construction for every person and creature",
+          "shapeLanguage": "clear rounded shapes",
+          "edge": "soft painted edges",
+          "texture": "light painted texture",
+          "material": "painted surfaces",
+          "detail": "readable picture-book detail",
+          "depth": "gentle painted depth",
+          "facialRendering": "expressive painted faces with one construction",
+          "proportions": "storybook proportions",
+          "environmentRendering": "painted places, whatever the place contains",
+          "lightingPhilosophy": "painted light that follows the scene",
+          "colourTreatment": "harmonised painted colour",
+          "finish": "one picture-book finish"
+        },
+        "atmosphere": {
+          "mood": "evening light, quiet contrast, warm points of light",
+          "palette": "",
+          "brightness": "",
+          "timeOfDay": "",
+          "weather": "",
+          "atmosphere": "A sheltered corner beneath a tall garden wall, with one clay flowerpot and soft evening shadows.",
+          "warmth": "",
+          "tension": "",
+          "glow": ""
+        }
+      },
+      "textSafeRegion": "upper-left",
+      "layout": "caption-bleed",
+      "openingState": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "flowerpot-corner",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "hidden-star"
+            ],
+            "emotion": "Growing trust",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clay-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+          },
+          {
+            "entityId": "garden-wall",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Blocking most of the sky above the corner."
+          },
+          {
+            "entityId": "hidden-star",
+            "ownerCharacterId": "maya",
+            "locationId": "flowerpot-corner",
+            "state": "Unfolded inside Maya's cupped hands, blinking once."
+          }
+        ]
+      },
+      "continuityFromPrevious": "p4",
+      "requirementsForNext": {
+        "spreadId": "p6",
+        "mustMatch": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "flowerpot-corner",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [
+                "hidden-star"
+              ],
+              "emotion": "Gentle discovery",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "clay-flowerpot",
+              "ownerCharacterId": null,
+              "locationId": "flowerpot-corner",
+              "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+            },
+            {
+              "entityId": "garden-wall",
+              "ownerCharacterId": null,
+              "locationId": "flowerpot-corner",
+              "state": "Blocking most of the sky above the corner."
+            },
+            {
+              "entityId": "hidden-star",
+              "ownerCharacterId": "maya",
+              "locationId": "flowerpot-corner",
+              "state": "Answering Maya's hand signals with two blinks."
+            }
+          ]
+        }
+      },
+      "prose": ""
+    },
+    {
+      "spreadId": "p6",
+      "beatId": "b6",
+      "role": "attempt",
+      "locationId": "flowerpot-corner",
+      "charactersPresent": [
+        "maya"
+      ],
+      "characterStateBefore": [
+        {
+          "characterId": "maya",
+          "locationId": "flowerpot-corner",
+          "clothing": "yellow cardigan, white shirt, blue skirt",
+          "carriedEntities": [
+            "hidden-star"
+          ],
+          "emotion": "Gentle discovery",
+          "storyRole": "friend"
+        }
+      ],
+      "entityStateBefore": [
+        {
+          "entityId": "clay-flowerpot",
+          "ownerCharacterId": null,
+          "locationId": "flowerpot-corner",
+          "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+        },
+        {
+          "entityId": "garden-wall",
+          "ownerCharacterId": null,
+          "locationId": "flowerpot-corner",
+          "state": "Blocking most of the sky above the corner."
+        },
+        {
+          "entityId": "hidden-star",
+          "ownerCharacterId": "maya",
+          "locationId": "flowerpot-corner",
+          "state": "Answering Maya's hand signals with two blinks."
+        }
+      ],
+      "storyEvent": "Maya lifts the star towards the narrow patch overhead. It blinks twice, but no light answers.",
+      "sequentialActions": [
+        "Maya lifts the star towards the narrow patch overhead",
+        "It blinks twice",
+        "but no light answers"
+      ],
+      "illustrationMoment": "Maya it blinks twice while but no light answers",
+      "montage": false,
+      "characterInstances": {
+        "maya": 1
+      },
+      "lockedIdentities": {
+        "maya": {
+          "characterId": "maya",
+          "name": "Maya",
+          "origin": "canonical",
+          "type": "human",
+          "species": "human",
+          "face": "round face, warm brown eyes, soft eyebrows",
+          "head": "",
+          "body": "school-age child, not a toddler and not a teen",
+          "relativeSize": "average for about seven, a little shorter than Leo",
+          "covering": "",
+          "colouring": "medium brown",
+          "markings": "",
+          "eyes": "",
+          "ears": "",
+          "horns": "",
+          "tail": "",
+          "distinctiveFeatures": [
+            "long dark curls",
+            "yellow cardigan",
+            "green hair clip",
+            "white socks"
+          ],
+          "accessories": [
+            "green hair clip"
+          ],
+          "visualIdentifiers": [
+            "long dark curls",
+            "yellow cardigan",
+            "green hair clip",
+            "white socks"
+          ],
+          "ageAppearance": "about seven, school age",
+          "skinTone": "medium brown",
+          "hair": "long dark curls",
+          "defaultClothing": "yellow cardigan, white shirt, blue skirt, white socks",
+          "footwear": "navy shoes"
+        }
+      },
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "flowerpot-corner",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "hidden-star"
+            ],
+            "emotion": "Waiting",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clay-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+          },
+          {
+            "entityId": "garden-wall",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Blocking most of the sky above the corner."
+          },
+          {
+            "entityId": "hidden-star",
+            "ownerCharacterId": "maya",
+            "locationId": "flowerpot-corner",
+            "state": "Held upward, sending two unanswered blinks."
+          }
+        ]
+      },
+      "entitiesRequired": [
+        "clay-flowerpot",
+        "garden-wall",
+        "hidden-star"
+      ],
+      "visualFocus": "Two faint flashes beneath the wall's high edge.",
+      "shotType": "low",
+      "cameraAngle": "low",
+      "compositionIntent": "Make the wall dominate the small visible patch of sky.",
+      "emotion": "Waiting",
+      "lighting": "evening light, quiet contrast, warm points of light",
+      "style": {
+        "styleId": "wondii-picture-book",
+        "scope": "book",
+        "illustrator": {
+          "rendering": "soft painted picture-book",
+          "characterRendering": "the same painted construction for every person and creature",
+          "shapeLanguage": "clear rounded shapes",
+          "edge": "soft painted edges",
+          "texture": "light painted texture",
+          "material": "painted surfaces",
+          "detail": "readable picture-book detail",
+          "depth": "gentle painted depth",
+          "facialRendering": "expressive painted faces with one construction",
+          "proportions": "storybook proportions",
+          "environmentRendering": "painted places, whatever the place contains",
+          "lightingPhilosophy": "painted light that follows the scene",
+          "colourTreatment": "harmonised painted colour",
+          "finish": "one picture-book finish"
+        },
+        "atmosphere": {
+          "mood": "evening light, quiet contrast, warm points of light",
+          "palette": "",
+          "brightness": "",
+          "timeOfDay": "",
+          "weather": "",
+          "atmosphere": "A sheltered corner beneath a tall garden wall, with one clay flowerpot and soft evening shadows.",
+          "warmth": "",
+          "tension": "",
+          "glow": ""
+        }
+      },
+      "textSafeRegion": "upper-right",
+      "layout": "image-left",
+      "openingState": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "flowerpot-corner",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "hidden-star"
+            ],
+            "emotion": "Gentle discovery",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clay-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+          },
+          {
+            "entityId": "garden-wall",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Blocking most of the sky above the corner."
+          },
+          {
+            "entityId": "hidden-star",
+            "ownerCharacterId": "maya",
+            "locationId": "flowerpot-corner",
+            "state": "Answering Maya's hand signals with two blinks."
+          }
+        ]
+      },
+      "continuityFromPrevious": "p5",
+      "requirementsForNext": {
+        "spreadId": "p7",
+        "mustMatch": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "flowerpot-corner",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [
+                "hidden-star"
+              ],
+              "emotion": "Waiting",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "clay-flowerpot",
+              "ownerCharacterId": null,
+              "locationId": "flowerpot-corner",
+              "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+            },
+            {
+              "entityId": "garden-wall",
+              "ownerCharacterId": null,
+              "locationId": "flowerpot-corner",
+              "state": "Blocking most of the sky above the corner."
+            },
+            {
+              "entityId": "hidden-star",
+              "ownerCharacterId": "maya",
+              "locationId": "flowerpot-corner",
+              "state": "Held upward, sending two unanswered blinks."
+            }
+          ]
+        }
+      },
+      "prose": ""
+    },
+    {
+      "spreadId": "p7",
+      "beatId": "b7",
+      "role": "setback",
+      "locationId": "flowerpot-corner",
+      "charactersPresent": [
+        "maya"
+      ],
+      "characterStateBefore": [
+        {
+          "characterId": "maya",
+          "locationId": "flowerpot-corner",
+          "clothing": "yellow cardigan, white shirt, blue skirt",
+          "carriedEntities": [
+            "hidden-star"
+          ],
+          "emotion": "Waiting",
+          "storyRole": "friend"
+        }
+      ],
+      "entityStateBefore": [
+        {
+          "entityId": "clay-flowerpot",
+          "ownerCharacterId": null,
+          "locationId": "flowerpot-corner",
+          "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+        },
+        {
+          "entityId": "garden-wall",
+          "ownerCharacterId": null,
+          "locationId": "flowerpot-corner",
+          "state": "Blocking most of the sky above the corner."
+        },
+        {
+          "entityId": "hidden-star",
+          "ownerCharacterId": "maya",
+          "locationId": "flowerpot-corner",
+          "state": "Held upward, sending two unanswered blinks."
+        }
+      ],
+      "storyEvent": "The star tucks its points against Maya's thumb. She notices the wall hides the wider sky.",
+      "sequentialActions": [
+        "The star tucks its points against Maya's thumb",
+        "She notices the wall hides the wider sky"
+      ],
+      "illustrationMoment": "The star tucks its points against Maya's thumb while she notices the wall hides the wider sky",
+      "montage": false,
+      "characterInstances": {
+        "maya": 1
+      },
+      "lockedIdentities": {
+        "maya": {
+          "characterId": "maya",
+          "name": "Maya",
+          "origin": "canonical",
+          "type": "human",
+          "species": "human",
+          "face": "round face, warm brown eyes, soft eyebrows",
+          "head": "",
+          "body": "school-age child, not a toddler and not a teen",
+          "relativeSize": "average for about seven, a little shorter than Leo",
+          "covering": "",
+          "colouring": "medium brown",
+          "markings": "",
+          "eyes": "",
+          "ears": "",
+          "horns": "",
+          "tail": "",
+          "distinctiveFeatures": [
+            "long dark curls",
+            "yellow cardigan",
+            "green hair clip",
+            "white socks"
+          ],
+          "accessories": [
+            "green hair clip"
+          ],
+          "visualIdentifiers": [
+            "long dark curls",
+            "yellow cardigan",
+            "green hair clip",
+            "white socks"
+          ],
+          "ageAppearance": "about seven, school age",
+          "skinTone": "medium brown",
+          "hair": "long dark curls",
+          "defaultClothing": "yellow cardigan, white shirt, blue skirt, white socks",
+          "footwear": "navy shoes"
+        }
+      },
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "flowerpot-corner",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "hidden-star"
+            ],
+            "emotion": "Quiet concern",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clay-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+          },
+          {
+            "entityId": "garden-wall",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Blocking most of the sky above the corner."
+          },
+          {
+            "entityId": "hidden-star",
+            "ownerCharacterId": "maya",
+            "locationId": "flowerpot-corner",
+            "state": "Tucked against Maya's thumb after receiving no answer."
+          }
+        ]
+      },
+      "entitiesRequired": [
+        "clay-flowerpot",
+        "garden-wall",
+        "hidden-star"
+      ],
+      "visualFocus": "The wall separating their signal from the open view.",
+      "shotType": "overhead",
+      "cameraAngle": "overhead",
+      "compositionIntent": "Show the sheltered corner and nearby open grass together.",
+      "emotion": "Quiet concern",
+      "lighting": "evening light, quiet contrast, warm points of light",
+      "style": {
+        "styleId": "wondii-picture-book",
+        "scope": "book",
+        "illustrator": {
+          "rendering": "soft painted picture-book",
+          "characterRendering": "the same painted construction for every person and creature",
+          "shapeLanguage": "clear rounded shapes",
+          "edge": "soft painted edges",
+          "texture": "light painted texture",
+          "material": "painted surfaces",
+          "detail": "readable picture-book detail",
+          "depth": "gentle painted depth",
+          "facialRendering": "expressive painted faces with one construction",
+          "proportions": "storybook proportions",
+          "environmentRendering": "painted places, whatever the place contains",
+          "lightingPhilosophy": "painted light that follows the scene",
+          "colourTreatment": "harmonised painted colour",
+          "finish": "one picture-book finish"
+        },
+        "atmosphere": {
+          "mood": "evening light, quiet contrast, warm points of light",
+          "palette": "",
+          "brightness": "",
+          "timeOfDay": "",
+          "weather": "",
+          "atmosphere": "A sheltered corner beneath a tall garden wall, with one clay flowerpot and soft evening shadows.",
+          "warmth": "",
+          "tension": "",
+          "glow": ""
+        }
+      },
+      "textSafeRegion": "upper-left",
+      "layout": "text-left",
+      "openingState": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "flowerpot-corner",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "hidden-star"
+            ],
+            "emotion": "Waiting",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clay-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+          },
+          {
+            "entityId": "garden-wall",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Blocking most of the sky above the corner."
+          },
+          {
+            "entityId": "hidden-star",
+            "ownerCharacterId": "maya",
+            "locationId": "flowerpot-corner",
+            "state": "Held upward, sending two unanswered blinks."
+          }
+        ]
+      },
+      "continuityFromPrevious": "p6",
+      "requirementsForNext": {
+        "spreadId": "p8",
+        "mustMatch": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "flowerpot-corner",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [
+                "hidden-star"
+              ],
+              "emotion": "Quiet concern",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "clay-flowerpot",
+              "ownerCharacterId": null,
+              "locationId": "flowerpot-corner",
+              "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+            },
+            {
+              "entityId": "garden-wall",
+              "ownerCharacterId": null,
+              "locationId": "flowerpot-corner",
+              "state": "Blocking most of the sky above the corner."
+            },
+            {
+              "entityId": "hidden-star",
+              "ownerCharacterId": "maya",
+              "locationId": "flowerpot-corner",
+              "state": "Tucked against Maya's thumb after receiving no answer."
+            }
+          ]
+        }
+      },
+      "prose": ""
+    },
+    {
+      "spreadId": "p8",
+      "beatId": "b8",
+      "role": "approach",
+      "locationId": "open-garden",
+      "charactersPresent": [
+        "maya"
+      ],
+      "characterStateBefore": [
+        {
+          "characterId": "maya",
+          "locationId": "flowerpot-corner",
+          "clothing": "yellow cardigan, white shirt, blue skirt",
+          "carriedEntities": [
+            "hidden-star"
+          ],
+          "emotion": "Quiet concern",
+          "storyRole": "friend"
+        }
+      ],
+      "entityStateBefore": [
+        {
+          "entityId": "clay-flowerpot",
+          "ownerCharacterId": null,
+          "locationId": "flowerpot-corner",
+          "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+        },
+        {
+          "entityId": "garden-wall",
+          "ownerCharacterId": null,
+          "locationId": "flowerpot-corner",
+          "state": "Blocking most of the sky above the corner."
+        },
+        {
+          "entityId": "hidden-star",
+          "ownerCharacterId": "maya",
+          "locationId": "flowerpot-corner",
+          "state": "Tucked against Maya's thumb after receiving no answer."
+        }
+      ],
+      "storyEvent": "Maya carries the star into the open garden. She keeps one hand beside it beneath the wider sky.",
+      "sequentialActions": [
+        "Maya carries the star into the open garden",
+        "She keeps one hand beside it beneath the wider sky"
+      ],
+      "illustrationMoment": "Maya carries the star into the open garden while she keeps one hand beside it beneath the wider sky",
+      "montage": false,
+      "characterInstances": {
+        "maya": 1
+      },
+      "lockedIdentities": {
+        "maya": {
+          "characterId": "maya",
+          "name": "Maya",
+          "origin": "canonical",
+          "type": "human",
+          "species": "human",
+          "face": "round face, warm brown eyes, soft eyebrows",
+          "head": "",
+          "body": "school-age child, not a toddler and not a teen",
+          "relativeSize": "average for about seven, a little shorter than Leo",
+          "covering": "",
+          "colouring": "medium brown",
+          "markings": "",
+          "eyes": "",
+          "ears": "",
+          "horns": "",
+          "tail": "",
+          "distinctiveFeatures": [
+            "long dark curls",
+            "yellow cardigan",
+            "green hair clip",
+            "white socks"
+          ],
+          "accessories": [
+            "green hair clip"
+          ],
+          "visualIdentifiers": [
+            "long dark curls",
+            "yellow cardigan",
+            "green hair clip",
+            "white socks"
+          ],
+          "ageAppearance": "about seven, school age",
+          "skinTone": "medium brown",
+          "hair": "long dark curls",
+          "defaultClothing": "yellow cardigan, white shirt, blue skirt, white socks",
+          "footwear": "navy shoes"
+        }
+      },
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "open-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "hidden-star"
+            ],
+            "emotion": "Supported hesitation",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clay-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+          },
+          {
+            "entityId": "garden-wall",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Blocking most of the sky above the corner."
+          },
+          {
+            "entityId": "hidden-star",
+            "ownerCharacterId": "maya",
+            "locationId": "open-garden",
+            "state": "Carried into the clearing, sheltered on one side by Maya's hand."
+          },
+          {
+            "entityId": "sky-stars",
+            "ownerCharacterId": null,
+            "locationId": "night-sky",
+            "state": "Visible above the clearing as scattered steady lights."
+          }
+        ]
+      },
+      "entitiesRequired": [
+        "clay-flowerpot",
+        "garden-wall",
+        "hidden-star",
+        "sky-stars"
+      ],
+      "visualFocus": "Her white shirt, blue skirt, and steady hands beneath distant lights.",
+      "shotType": "medium",
+      "cameraAngle": "medium",
+      "compositionIntent": "Open the space while preserving the shelter of Maya's hand.",
+      "emotion": "Supported hesitation",
+      "lighting": "evening light, quiet contrast, warm points of light",
+      "style": {
+        "styleId": "wondii-picture-book",
+        "scope": "book",
+        "illustrator": {
+          "rendering": "soft painted picture-book",
+          "characterRendering": "the same painted construction for every person and creature",
+          "shapeLanguage": "clear rounded shapes",
+          "edge": "soft painted edges",
+          "texture": "light painted texture",
+          "material": "painted surfaces",
+          "detail": "readable picture-book detail",
+          "depth": "gentle painted depth",
+          "facialRendering": "expressive painted faces with one construction",
+          "proportions": "storybook proportions",
+          "environmentRendering": "painted places, whatever the place contains",
+          "lightingPhilosophy": "painted light that follows the scene",
+          "colourTreatment": "harmonised painted colour",
+          "finish": "one picture-book finish"
+        },
+        "atmosphere": {
+          "mood": "evening light, quiet contrast, warm points of light",
+          "palette": "",
+          "brightness": "",
+          "timeOfDay": "",
+          "weather": "",
+          "atmosphere": "A small grassy clearing beyond the wall's shadow, with an unobstructed view overhead.",
+          "warmth": "",
+          "tension": "",
+          "glow": ""
+        }
+      },
+      "textSafeRegion": "upper-right",
+      "layout": "image-left",
+      "openingState": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "flowerpot-corner",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "hidden-star"
+            ],
+            "emotion": "Quiet concern",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clay-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+          },
+          {
+            "entityId": "garden-wall",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Blocking most of the sky above the corner."
+          },
+          {
+            "entityId": "hidden-star",
+            "ownerCharacterId": "maya",
+            "locationId": "flowerpot-corner",
+            "state": "Tucked against Maya's thumb after receiving no answer."
+          }
+        ]
+      },
+      "continuityFromPrevious": "p7",
+      "requirementsForNext": {
+        "spreadId": "p9",
+        "mustMatch": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "open-garden",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [
+                "hidden-star"
+              ],
+              "emotion": "Supported hesitation",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "clay-flowerpot",
+              "ownerCharacterId": null,
+              "locationId": "flowerpot-corner",
+              "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+            },
+            {
+              "entityId": "garden-wall",
+              "ownerCharacterId": null,
+              "locationId": "flowerpot-corner",
+              "state": "Blocking most of the sky above the corner."
+            },
+            {
+              "entityId": "hidden-star",
+              "ownerCharacterId": "maya",
+              "locationId": "open-garden",
+              "state": "Carried into the clearing, sheltered on one side by Maya's hand."
+            },
+            {
+              "entityId": "sky-stars",
+              "ownerCharacterId": null,
+              "locationId": "night-sky",
+              "state": "Visible above the clearing as scattered steady lights."
+            }
+          ]
+        }
+      },
+      "prose": ""
+    },
+    {
+      "spreadId": "p9",
+      "beatId": "b9",
+      "role": "wonder",
+      "locationId": "open-garden",
+      "charactersPresent": [
+        "maya"
+      ],
+      "characterStateBefore": [
+        {
+          "characterId": "maya",
+          "locationId": "open-garden",
+          "clothing": "yellow cardigan, white shirt, blue skirt",
+          "carriedEntities": [
+            "hidden-star"
+          ],
+          "emotion": "Supported hesitation",
+          "storyRole": "friend"
+        }
+      ],
+      "entityStateBefore": [
+        {
+          "entityId": "clay-flowerpot",
+          "ownerCharacterId": null,
+          "locationId": "flowerpot-corner",
+          "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+        },
+        {
+          "entityId": "garden-wall",
+          "ownerCharacterId": null,
+          "locationId": "flowerpot-corner",
+          "state": "Blocking most of the sky above the corner."
+        },
+        {
+          "entityId": "hidden-star",
+          "ownerCharacterId": "maya",
+          "locationId": "open-garden",
+          "state": "Carried into the clearing, sheltered on one side by Maya's hand."
+        },
+        {
+          "entityId": "sky-stars",
+          "ownerCharacterId": null,
+          "locationId": "night-sky",
+          "state": "Visible above the clearing as scattered steady lights."
+        }
+      ],
+      "storyEvent": "The star tries two blinks from Maya's palm. Above them, two distant lights blink in reply.",
+      "sequentialActions": [
+        "The star tries two blinks from Maya's palm",
+        "Above them",
+        "two distant lights blink in reply"
+      ],
+      "illustrationMoment": "The star above them while two distant lights blink in reply",
+      "montage": false,
+      "characterInstances": {
+        "maya": 1
+      },
+      "lockedIdentities": {
+        "maya": {
+          "characterId": "maya",
+          "name": "Maya",
+          "origin": "canonical",
+          "type": "human",
+          "species": "human",
+          "face": "round face, warm brown eyes, soft eyebrows",
+          "head": "",
+          "body": "school-age child, not a toddler and not a teen",
+          "relativeSize": "average for about seven, a little shorter than Leo",
+          "covering": "",
+          "colouring": "medium brown",
+          "markings": "",
+          "eyes": "",
+          "ears": "",
+          "horns": "",
+          "tail": "",
+          "distinctiveFeatures": [
+            "long dark curls",
+            "yellow cardigan",
+            "green hair clip",
+            "white socks"
+          ],
+          "accessories": [
+            "green hair clip"
+          ],
+          "visualIdentifiers": [
+            "long dark curls",
+            "yellow cardigan",
+            "green hair clip",
+            "white socks"
+          ],
+          "ageAppearance": "about seven, school age",
+          "skinTone": "medium brown",
+          "hair": "long dark curls",
+          "defaultClothing": "yellow cardigan, white shirt, blue skirt, white socks",
+          "footwear": "navy shoes"
+        }
+      },
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "open-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "hidden-star"
+            ],
+            "emotion": "Quiet recognition",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clay-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+          },
+          {
+            "entityId": "garden-wall",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Blocking most of the sky above the corner."
+          },
+          {
+            "entityId": "hidden-star",
+            "ownerCharacterId": "maya",
+            "locationId": "open-garden",
+            "state": "Unfolding while sending two blinks from Maya's palm."
+          },
+          {
+            "entityId": "sky-stars",
+            "ownerCharacterId": null,
+            "locationId": "night-sky",
+            "state": "Two lights answering the small star's blinking pattern."
+          }
+        ]
+      },
+      "entitiesRequired": [
+        "clay-flowerpot",
+        "garden-wall",
+        "hidden-star",
+        "sky-stars"
+      ],
+      "visualFocus": "A matching blink pattern across the dark space.",
+      "shotType": "reveal",
+      "cameraAngle": "reveal",
+      "compositionIntent": "Link the small palm light to two distant answering lights.",
+      "emotion": "Quiet recognition",
+      "lighting": "evening light, quiet contrast, warm points of light",
+      "style": {
+        "styleId": "wondii-picture-book",
+        "scope": "book",
+        "illustrator": {
+          "rendering": "soft painted picture-book",
+          "characterRendering": "the same painted construction for every person and creature",
+          "shapeLanguage": "clear rounded shapes",
+          "edge": "soft painted edges",
+          "texture": "light painted texture",
+          "material": "painted surfaces",
+          "detail": "readable picture-book detail",
+          "depth": "gentle painted depth",
+          "facialRendering": "expressive painted faces with one construction",
+          "proportions": "storybook proportions",
+          "environmentRendering": "painted places, whatever the place contains",
+          "lightingPhilosophy": "painted light that follows the scene",
+          "colourTreatment": "harmonised painted colour",
+          "finish": "one picture-book finish"
+        },
+        "atmosphere": {
+          "mood": "evening light, quiet contrast, warm points of light",
+          "palette": "",
+          "brightness": "",
+          "timeOfDay": "",
+          "weather": "",
+          "atmosphere": "A small grassy clearing beyond the wall's shadow, with an unobstructed view overhead.",
+          "warmth": "",
+          "tension": "",
+          "glow": ""
+        }
+      },
+      "textSafeRegion": "upper-left",
+      "layout": "large-reveal",
+      "openingState": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "open-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "hidden-star"
+            ],
+            "emotion": "Supported hesitation",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clay-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+          },
+          {
+            "entityId": "garden-wall",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Blocking most of the sky above the corner."
+          },
+          {
+            "entityId": "hidden-star",
+            "ownerCharacterId": "maya",
+            "locationId": "open-garden",
+            "state": "Carried into the clearing, sheltered on one side by Maya's hand."
+          },
+          {
+            "entityId": "sky-stars",
+            "ownerCharacterId": null,
+            "locationId": "night-sky",
+            "state": "Visible above the clearing as scattered steady lights."
+          }
+        ]
+      },
+      "continuityFromPrevious": "p8",
+      "requirementsForNext": {
+        "spreadId": "p10",
+        "mustMatch": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "open-garden",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [
+                "hidden-star"
+              ],
+              "emotion": "Quiet recognition",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "clay-flowerpot",
+              "ownerCharacterId": null,
+              "locationId": "flowerpot-corner",
+              "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+            },
+            {
+              "entityId": "garden-wall",
+              "ownerCharacterId": null,
+              "locationId": "flowerpot-corner",
+              "state": "Blocking most of the sky above the corner."
+            },
+            {
+              "entityId": "hidden-star",
+              "ownerCharacterId": "maya",
+              "locationId": "open-garden",
+              "state": "Unfolding while sending two blinks from Maya's palm."
+            },
+            {
+              "entityId": "sky-stars",
+              "ownerCharacterId": null,
+              "locationId": "night-sky",
+              "state": "Two lights answering the small star's blinking pattern."
+            }
+          ]
+        }
+      },
+      "prose": ""
+    },
+    {
+      "spreadId": "p10",
+      "beatId": "b10",
+      "role": "climax",
+      "locationId": "open-garden",
+      "charactersPresent": [
+        "maya"
+      ],
+      "characterStateBefore": [
+        {
+          "characterId": "maya",
+          "locationId": "open-garden",
+          "clothing": "yellow cardigan, white shirt, blue skirt",
+          "carriedEntities": [
+            "hidden-star"
+          ],
+          "emotion": "Quiet recognition",
+          "storyRole": "friend"
+        }
+      ],
+      "entityStateBefore": [
+        {
+          "entityId": "clay-flowerpot",
+          "ownerCharacterId": null,
+          "locationId": "flowerpot-corner",
+          "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+        },
+        {
+          "entityId": "garden-wall",
+          "ownerCharacterId": null,
+          "locationId": "flowerpot-corner",
+          "state": "Blocking most of the sky above the corner."
+        },
+        {
+          "entityId": "hidden-star",
+          "ownerCharacterId": "maya",
+          "locationId": "open-garden",
+          "state": "Unfolding while sending two blinks from Maya's palm."
+        },
+        {
+          "entityId": "sky-stars",
+          "ownerCharacterId": null,
+          "locationId": "night-sky",
+          "state": "Two lights answering the small star's blinking pattern."
+        }
+      ],
+      "storyEvent": "Maya opens her hands; the star rises into the sky. It keeps blinking, and the distant lights keep answering.",
+      "sequentialActions": [
+        "Maya opens her hands; the star rises into the sky",
+        "It keeps blinking",
+        "the distant lights keep answering"
+      ],
+      "illustrationMoment": "Maya it keeps blinking while the distant lights keep answering",
+      "montage": false,
+      "characterInstances": {
+        "maya": 1
+      },
+      "lockedIdentities": {
+        "maya": {
+          "characterId": "maya",
+          "name": "Maya",
+          "origin": "canonical",
+          "type": "human",
+          "species": "human",
+          "face": "round face, warm brown eyes, soft eyebrows",
+          "head": "",
+          "body": "school-age child, not a toddler and not a teen",
+          "relativeSize": "average for about seven, a little shorter than Leo",
+          "covering": "",
+          "colouring": "medium brown",
+          "markings": "",
+          "eyes": "",
+          "ears": "",
+          "horns": "",
+          "tail": "",
+          "distinctiveFeatures": [
+            "long dark curls",
+            "yellow cardigan",
+            "green hair clip",
+            "white socks"
+          ],
+          "accessories": [
+            "green hair clip"
+          ],
+          "visualIdentifiers": [
+            "long dark curls",
+            "yellow cardigan",
+            "green hair clip",
+            "white socks"
+          ],
+          "ageAppearance": "about seven, school age",
+          "skinTone": "medium brown",
+          "hair": "long dark curls",
+          "defaultClothing": "yellow cardigan, white shirt, blue skirt, white socks",
+          "footwear": "navy shoes"
+        }
+      },
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "open-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Release",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clay-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+          },
+          {
+            "entityId": "garden-wall",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Blocking most of the sky above the corner."
+          },
+          {
+            "entityId": "hidden-star",
+            "ownerCharacterId": null,
+            "locationId": "night-sky",
+            "state": "Returned to the sky, blinking among answering lights."
+          },
+          {
+            "entityId": "sky-stars",
+            "ownerCharacterId": null,
+            "locationId": "night-sky",
+            "state": "Continuing to answer as the returning star joins them."
+          }
+        ]
+      },
+      "entitiesRequired": [
+        "clay-flowerpot",
+        "garden-wall",
+        "hidden-star",
+        "sky-stars"
+      ],
+      "visualFocus": "The star crossing the gap through an unbroken exchange.",
+      "shotType": "high",
+      "cameraAngle": "high",
+      "compositionIntent": "Follow the rising light while retaining Maya's open hands below.",
+      "emotion": "Release",
+      "lighting": "evening light, quiet contrast, warm points of light",
+      "style": {
+        "styleId": "wondii-picture-book",
+        "scope": "book",
+        "illustrator": {
+          "rendering": "soft painted picture-book",
+          "characterRendering": "the same painted construction for every person and creature",
+          "shapeLanguage": "clear rounded shapes",
+          "edge": "soft painted edges",
+          "texture": "light painted texture",
+          "material": "painted surfaces",
+          "detail": "readable picture-book detail",
+          "depth": "gentle painted depth",
+          "facialRendering": "expressive painted faces with one construction",
+          "proportions": "storybook proportions",
+          "environmentRendering": "painted places, whatever the place contains",
+          "lightingPhilosophy": "painted light that follows the scene",
+          "colourTreatment": "harmonised painted colour",
+          "finish": "one picture-book finish"
+        },
+        "atmosphere": {
+          "mood": "evening light, quiet contrast, warm points of light",
+          "palette": "",
+          "brightness": "",
+          "timeOfDay": "",
+          "weather": "",
+          "atmosphere": "A small grassy clearing beyond the wall's shadow, with an unobstructed view overhead.",
+          "warmth": "",
+          "tension": "",
+          "glow": ""
+        }
+      },
+      "textSafeRegion": "upper-right",
+      "layout": "large-reveal",
+      "openingState": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "open-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "hidden-star"
+            ],
+            "emotion": "Quiet recognition",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clay-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+          },
+          {
+            "entityId": "garden-wall",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Blocking most of the sky above the corner."
+          },
+          {
+            "entityId": "hidden-star",
+            "ownerCharacterId": "maya",
+            "locationId": "open-garden",
+            "state": "Unfolding while sending two blinks from Maya's palm."
+          },
+          {
+            "entityId": "sky-stars",
+            "ownerCharacterId": null,
+            "locationId": "night-sky",
+            "state": "Two lights answering the small star's blinking pattern."
+          }
+        ]
+      },
+      "continuityFromPrevious": "p9",
+      "requirementsForNext": {
+        "spreadId": "p11",
+        "mustMatch": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "open-garden",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Release",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "clay-flowerpot",
+              "ownerCharacterId": null,
+              "locationId": "flowerpot-corner",
+              "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+            },
+            {
+              "entityId": "garden-wall",
+              "ownerCharacterId": null,
+              "locationId": "flowerpot-corner",
+              "state": "Blocking most of the sky above the corner."
+            },
+            {
+              "entityId": "hidden-star",
+              "ownerCharacterId": null,
+              "locationId": "night-sky",
+              "state": "Returned to the sky, blinking among answering lights."
+            },
+            {
+              "entityId": "sky-stars",
+              "ownerCharacterId": null,
+              "locationId": "night-sky",
+              "state": "Continuing to answer as the returning star joins them."
+            }
+          ]
+        }
+      },
+      "prose": ""
+    },
+    {
+      "spreadId": "p11",
+      "beatId": "b11",
+      "role": "resolution",
+      "locationId": "open-garden",
+      "charactersPresent": [
+        "maya"
+      ],
+      "characterStateBefore": [
+        {
+          "characterId": "maya",
+          "locationId": "open-garden",
+          "clothing": "yellow cardigan, white shirt, blue skirt",
+          "carriedEntities": [],
+          "emotion": "Release",
+          "storyRole": "friend"
+        }
+      ],
+      "entityStateBefore": [
+        {
+          "entityId": "clay-flowerpot",
+          "ownerCharacterId": null,
+          "locationId": "flowerpot-corner",
+          "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+        },
+        {
+          "entityId": "garden-wall",
+          "ownerCharacterId": null,
+          "locationId": "flowerpot-corner",
+          "state": "Blocking most of the sky above the corner."
+        },
+        {
+          "entityId": "hidden-star",
+          "ownerCharacterId": null,
+          "locationId": "night-sky",
+          "state": "Returned to the sky, blinking among answering lights."
+        },
+        {
+          "entityId": "sky-stars",
+          "ownerCharacterId": null,
+          "locationId": "night-sky",
+          "state": "Continuing to answer as the returning star joins them."
+        }
+      ],
+      "storyEvent": "Maya opens and closes her empty hands once more. One star blinks back above her yellow sleeves.",
+      "sequentialActions": [
+        "Maya opens and closes her empty hands once more",
+        "One star blinks back above her yellow sleeves"
+      ],
+      "illustrationMoment": "Maya opens and closes her empty hands once more while one star blinks back above her yellow sleeves",
+      "montage": false,
+      "characterInstances": {
+        "maya": 1
+      },
+      "lockedIdentities": {
+        "maya": {
+          "characterId": "maya",
+          "name": "Maya",
+          "origin": "canonical",
+          "type": "human",
+          "species": "human",
+          "face": "round face, warm brown eyes, soft eyebrows",
+          "head": "",
+          "body": "school-age child, not a toddler and not a teen",
+          "relativeSize": "average for about seven, a little shorter than Leo",
+          "covering": "",
+          "colouring": "medium brown",
+          "markings": "",
+          "eyes": "",
+          "ears": "",
+          "horns": "",
+          "tail": "",
+          "distinctiveFeatures": [
+            "long dark curls",
+            "yellow cardigan",
+            "green hair clip",
+            "white socks"
+          ],
+          "accessories": [
+            "green hair clip"
+          ],
+          "visualIdentifiers": [
+            "long dark curls",
+            "yellow cardigan",
+            "green hair clip",
+            "white socks"
+          ],
+          "ageAppearance": "about seven, school age",
+          "skinTone": "medium brown",
+          "hair": "long dark curls",
+          "defaultClothing": "yellow cardigan, white shirt, blue skirt, white socks",
+          "footwear": "navy shoes"
+        }
+      },
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "open-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Bedtime stillness",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clay-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+          },
+          {
+            "entityId": "garden-wall",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Blocking most of the sky above the corner."
+          },
+          {
+            "entityId": "hidden-star",
+            "ownerCharacterId": null,
+            "locationId": "night-sky",
+            "state": "Returned to the sky, blinking among answering lights."
+          },
+          {
+            "entityId": "sky-stars",
+            "ownerCharacterId": null,
+            "locationId": "night-sky",
+            "state": "Continuing to answer as the returning star joins them."
+          }
+        ]
+      },
+      "entitiesRequired": [
+        "clay-flowerpot",
+        "garden-wall",
+        "hidden-star",
+        "sky-stars"
+      ],
+      "visualFocus": "Yellow sleeves, open palms, and a familiar blink overhead.",
+      "shotType": "vignette",
+      "cameraAngle": "vignette",
+      "compositionIntent": "Settle on empty hands below one small answering light.",
+      "emotion": "Bedtime stillness",
+      "lighting": "evening light, quiet contrast, warm points of light",
+      "style": {
+        "styleId": "wondii-picture-book",
+        "scope": "book",
+        "illustrator": {
+          "rendering": "soft painted picture-book",
+          "characterRendering": "the same painted construction for every person and creature",
+          "shapeLanguage": "clear rounded shapes",
+          "edge": "soft painted edges",
+          "texture": "light painted texture",
+          "material": "painted surfaces",
+          "detail": "readable picture-book detail",
+          "depth": "gentle painted depth",
+          "facialRendering": "expressive painted faces with one construction",
+          "proportions": "storybook proportions",
+          "environmentRendering": "painted places, whatever the place contains",
+          "lightingPhilosophy": "painted light that follows the scene",
+          "colourTreatment": "harmonised painted colour",
+          "finish": "one picture-book finish"
+        },
+        "atmosphere": {
+          "mood": "evening light, quiet contrast, warm points of light",
+          "palette": "",
+          "brightness": "",
+          "timeOfDay": "",
+          "weather": "",
+          "atmosphere": "A small grassy clearing beyond the wall's shadow, with an unobstructed view overhead.",
+          "warmth": "",
+          "tension": "",
+          "glow": ""
+        }
+      },
+      "textSafeRegion": "upper-left",
+      "layout": "caption-bleed",
+      "openingState": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "open-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Release",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clay-flowerpot",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Standing beside the wall, with a sheltered gap beneath its rim."
+          },
+          {
+            "entityId": "garden-wall",
+            "ownerCharacterId": null,
+            "locationId": "flowerpot-corner",
+            "state": "Blocking most of the sky above the corner."
+          },
+          {
+            "entityId": "hidden-star",
+            "ownerCharacterId": null,
+            "locationId": "night-sky",
+            "state": "Returned to the sky, blinking among answering lights."
+          },
+          {
+            "entityId": "sky-stars",
+            "ownerCharacterId": null,
+            "locationId": "night-sky",
+            "state": "Continuing to answer as the returning star joins them."
+          }
+        ]
+      },
+      "continuityFromPrevious": "p10",
+      "requirementsForNext": null,
+      "prose": ""
+    }
+  ],
+  "proofSpreadIds": [
+    "p2",
+    "p5",
+    "p10"
+  ],
+  "cover": {
+    "pageId": "cover",
+    "separateFrom": "p1",
+    "generated": false
+  }
+}

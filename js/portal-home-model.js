@@ -123,7 +123,7 @@
         type: "Story",
         title: book.title,
         meta: bookMeta(book),
-        href: "games/storybook.html?book=" + encodeURIComponent(book.id),
+        href: "games/book-prototype/?book=" + encodeURIComponent(book.id),
         cover: book.cover || "",
         action: "Continue"
       });
@@ -174,7 +174,7 @@
         type: "Story",
         title: book.title,
         meta: bookMeta(book),
-        href: "games/storybook.html?book=" + encodeURIComponent(book.id),
+        href: "games/book-prototype/?book=" + encodeURIComponent(book.id),
         cover: book.cover || "",
         action: "Open"
       });
@@ -297,7 +297,7 @@
       hits.push(item);
     }
     (source.books || []).forEach(function (book) {
-      add({ title: book.title, type: "Story", href: "games/storybook.html?book=" + encodeURIComponent(book.id || "") });
+      add({ title: book.title, type: "Story", href: "games/book-prototype/?book=" + encodeURIComponent(book.id || "") });
     });
     (source.games || []).forEach(function (game) {
       add({ title: game.title, type: "Game", meta: game.desc || "", href: game.href });

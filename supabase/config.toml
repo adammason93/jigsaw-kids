@@ -28,3 +28,16 @@ verify_jwt = true
 
 [functions.learn-visuals]
 verify_jwt = true
+
+[functions.child-art]
+# Browser preflight has no JWT, so the gateway does not verify it.
+# child-art rejects missing, anon, and service-role bearers itself.
+# Do not deploy until this review is approved. Do not enable pairing for the deploy.
+verify_jwt = false
+
+[functions.child-pair]
+# A device has no user session yet. It posts the public anon key plus one pairing code.
+# The function redeems that code with the service role. Do not deploy until
+# 20261008220000 through 20261008250000 are applied. Leave CHILD_PAIRING_ENABLED
+# unset for the public rollout. Set it to 1 only for the controlled pairing test.
+verify_jwt = false

@@ -1,0 +1,5321 @@
+{
+  "status": "REVIEWABLE",
+  "request": {
+    "castIds": [
+      "wondii-maya",
+      "wondii-leo"
+    ],
+    "idea": "Maya and Leo discover a mysterious pathway behind a waterfall that leads them into a hidden world.",
+    "ageBand": "7-9",
+    "length": "storybook",
+    "tone": "adventure",
+    "pageCount": 12
+  },
+  "modelCalls": 5,
+  "bible": {
+    "title": "The Water That Made Steps",
+    "yearGroup": "",
+    "ageBand": "7-9",
+    "readerAge": "7–9",
+    "readerStage": "ages-7-9",
+    "narrativeComplexity": "a problem with a consequence the reader can connect, with a feeling allowed under the action",
+    "tone": "adventure",
+    "targetLength": "storybook",
+    "pageCount": 12,
+    "userIdea": "Maya and Leo discover a mysterious pathway behind a waterfall that leads them into a hidden world.",
+    "castIds": [
+      "wondii-maya",
+      "wondii-leo"
+    ],
+    "identityRegistry": [
+      {
+        "characterId": "wondii-maya",
+        "journeyId": "wondii-maya",
+        "bibleId": "maya",
+        "name": "Maya",
+        "source": "wondii-crew",
+        "portrait": "games/images/characters/crew/wondii-maya.jpg",
+        "approvedReference": "games/images/characters/maya-v1.jpg",
+        "reference": "games/images/characters/maya-v1.jpg",
+        "referenceApproved": true,
+        "lockedSheet": true,
+        "sheet": "maya-v1",
+        "reliable": true,
+        "proposed": false,
+        "locked": true,
+        "personality": [
+          "observant",
+          "inquisitive",
+          "enthusiastic about discovering things"
+        ],
+        "appearance": "Approved sheet maya-v1. Portrait games/images/characters/crew/wondii-maya.jpg.",
+        "clothing": "as shown in games/images/characters/maya-v1.jpg",
+        "distinctive": [
+          "Curious"
+        ],
+        "role": "selected",
+        "pages": [],
+        "limitation": "",
+        "appearanceSpec": {
+          "source": "approved-sheet",
+          "file": "games/images/characters/maya-v1.jpg",
+          "face": "",
+          "hair": "",
+          "clothing": "as shown in games/images/characters/maya-v1.jpg",
+          "colours": [],
+          "proportions": "",
+          "distinctive": [
+            "Curious"
+          ],
+          "matchPortrait": false,
+          "consistencyPromised": false
+        },
+        "blocksGeneration": false,
+        "referenceVersion": "maya-v1"
+      },
+      {
+        "characterId": "wondii-leo",
+        "journeyId": "wondii-leo",
+        "bibleId": "leo",
+        "name": "Leo",
+        "source": "wondii-crew",
+        "portrait": "games/images/characters/crew/wondii-leo.jpg",
+        "approvedReference": "",
+        "reference": "games/images/characters/crew/wondii-leo.jpg",
+        "referenceApproved": false,
+        "lockedSheet": false,
+        "sheet": "portrait-only",
+        "reliable": false,
+        "proposed": true,
+        "locked": true,
+        "personality": [
+          "courageous",
+          "positive",
+          "willing to take the first step"
+        ],
+        "appearance": "Match the portrait exactly. No written clothing description is stored for this portrait.",
+        "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+        "distinctive": [
+          "Brave"
+        ],
+        "role": "selected",
+        "pages": [],
+        "limitation": "Portrait only. This portrait is the reference. Visual consistency is not guaranteed.",
+        "appearanceSpec": {
+          "source": "portrait",
+          "file": "games/images/characters/crew/wondii-leo.jpg",
+          "face": "",
+          "hair": "",
+          "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+          "colours": [],
+          "proportions": "",
+          "distinctive": [
+            "Brave"
+          ],
+          "matchPortrait": true,
+          "consistencyPromised": false
+        },
+        "blocksGeneration": false,
+        "referenceVersion": "portrait:games/images/characters/crew/wondii-leo.jpg"
+      }
+    ],
+    "storyCast": [],
+    "visualStyle": "wondii-picture-book",
+    "premise": "When maya and Leo discover a mysterious pathway behind a waterfall, its shining steps lead them to a water divider. Moving its stone leads into trouble in a hidden world where their route home depends on flowing water.",
+    "hook": "Maya follows a golden flash through falling water while Leo anchors her hand.",
+    "goal": "Repair the water divider before their shining route home disappears.",
+    "centralProblem": "Maya removes a fitted stone to investigate its socket, flooding the crossing and drying the steps home.",
+    "stakes": "They could lose their way home, and their repair breaks the useful shell they found.",
+    "climaxBeatId": "b11",
+    "resolutionBeatId": "b12",
+    "emotionalArc": [
+      "Maya reaches toward the unknown while Leo checks their footing.",
+      "Maya's investigation puts their return route at risk.",
+      "Leo answers Maya's mistake with help rather than blame.",
+      "They save different parts of their broken plan.",
+      "Maya leaves a handprint instead of taking a keepsake."
+    ],
+    "motif": "Water makes hidden stone shine.",
+    "locations": [
+      {
+        "locationId": "waterfall-ledge",
+        "name": "Waterfall Ledge",
+        "connectedTo": [
+          "shining-passage"
+        ],
+        "visualIdentity": "White spray briefly exposes a golden foothold in dark rock.",
+        "setting": "a rock ledge beside falling water",
+        "zones": [
+          "spray edge"
+        ],
+        "persistentObjects": []
+      },
+      {
+        "locationId": "shining-passage",
+        "name": "Shining Passage",
+        "connectedTo": [
+          "waterfall-ledge",
+          "water-terrace"
+        ],
+        "visualIdentity": "A shallow stream illuminates golden steps beneath a curved ceiling.",
+        "setting": "a narrow water-lit rock passage",
+        "zones": [
+          "wet steps"
+        ],
+        "persistentObjects": []
+      },
+      {
+        "locationId": "water-terrace",
+        "name": "Water Terrace",
+        "connectedTo": [
+          "shining-passage"
+        ],
+        "visualIdentity": "Branching channels surround a low bridge and a triangular water divider.",
+        "setting": "an open stone terrace beneath a pearly sky",
+        "zones": [
+          "channel rim",
+          "low bridge",
+          "socket ledge"
+        ],
+        "persistentObjects": []
+      }
+    ],
+    "entities": [
+      {
+        "entityId": "gold-step-path",
+        "name": "water-lit steps",
+        "identity": "Fixed steps glow gold when wet and blend into surrounding rock when dry.",
+        "landmark": false,
+        "ownerCharacterId": null,
+        "locationId": "shining-passage",
+        "state": "Wet and glowing again.",
+        "introducedAt": "b1"
+      },
+      {
+        "entityId": "silt-stream",
+        "name": "channel water",
+        "identity": "Clear water carries fine golden silt from the terrace toward the passage.",
+        "landmark": false,
+        "ownerCharacterId": null,
+        "locationId": "water-terrace",
+        "state": "Flows toward the passage again.",
+        "introducedAt": "b2"
+      },
+      {
+        "entityId": "pearl-shell",
+        "name": "shell bowl",
+        "identity": "An empty broad pearly shell has a thin rim and curved scooping edges.",
+        "landmark": false,
+        "ownerCharacterId": null,
+        "locationId": "water-terrace",
+        "state": "Both broken pieces rest beside the repaired socket.",
+        "introducedAt": "b3"
+      },
+      {
+        "entityId": "blue-divider",
+        "name": "fitted stone",
+        "identity": "A dense blue stone has a triangular point matching the divider socket.",
+        "landmark": false,
+        "ownerCharacterId": null,
+        "locationId": "water-terrace",
+        "state": "Firmly seated in the socket.",
+        "introducedAt": "b4"
+      },
+      {
+        "entityId": "pale-crossing",
+        "name": "low bridge",
+        "identity": "A narrow pale stone crossing has one sharp raised corner.",
+        "landmark": false,
+        "ownerCharacterId": null,
+        "locationId": "water-terrace",
+        "state": "Exposed as the flood drains.",
+        "introducedAt": "b3"
+      },
+      {
+        "entityId": "triangle-socket",
+        "name": "stone socket",
+        "identity": "A triangular hollow directs the water toward the passage when sealed.",
+        "landmark": false,
+        "ownerCharacterId": null,
+        "locationId": "water-terrace",
+        "state": "Cleared and sealed.",
+        "introducedAt": "b4"
+      }
+    ],
+    "beats": [
+      {
+        "beatId": "b1",
+        "role": "hook",
+        "locationId": "waterfall-ledge",
+        "charactersPresent": [
+          "wondii-maya",
+          "wondii-leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "wondii-maya",
+            "trait": "curious",
+            "shows": "Leans into the cold spray to trace the flash instead of watching from the dry ledge."
+          },
+          {
+            "characterId": "wondii-leo",
+            "trait": "careful",
+            "shows": "Tests his footing, braces against the rock, and offers Maya his hand."
+          }
+        ],
+        "problemFamily": "",
+        "because": "",
+        "resolvesProblem": false,
+        "action": "Maya reaches through the waterfall and traces a golden foothold into an opening. Leo tests his footing before anchoring her hand.",
+        "emotion": "",
+        "entitiesRequired": [
+          "gold-step-path"
+        ],
+        "visualFocus": "Maya's fingers finding the foothold.",
+        "shotType": "establishing",
+        "compositionIntent": "Contrast the broad water curtain with one narrow golden invitation.",
+        "textPurpose": "Open with a discovery caused by the children's choices.",
+        "pageTurnHook": "The golden foothold continues beyond the falling water.",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "waterfall-ledge",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "waterfall-ledge",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": []
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "waterfall-ledge",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "waterfall-ledge",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "gold-step-path",
+              "ownerCharacterId": null,
+              "locationId": "waterfall-ledge",
+              "state": "The first wet step shines through the spray."
+            }
+          ]
+        },
+        "locationZone": "spray edge",
+        "worldState": "Spray exposes a golden foothold.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Find what flashed through the water.",
+        "obstacleNow": "The water hides the rock.",
+        "discoveryNow": "",
+        "consequenceNow": "Maya discovers an opening.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "",
+        "entryFrom": "",
+        "exitToward": "shining-passage",
+        "destinationHint": ""
+      },
+      {
+        "beatId": "b2",
+        "role": "discovery",
+        "locationId": "shining-passage",
+        "charactersPresent": [
+          "wondii-maya",
+          "wondii-leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "wondii-leo",
+            "trait": "careful",
+            "shows": "Splashes one step, checks its edges with his toe, and points out the secure place for Maya."
+          }
+        ],
+        "problemFamily": "uncertain-footing",
+        "because": "b1",
+        "resolvesProblem": false,
+        "action": "Leo splashes a dark step and watches it turn gold. He tests its edge before showing Maya where to stand.",
+        "emotion": "",
+        "entitiesRequired": [
+          "gold-step-path",
+          "silt-stream"
+        ],
+        "visualFocus": "Gold spreading beneath Leo's toe.",
+        "shotType": "close",
+        "compositionIntent": "Make the boundary between wet and dry stone readable.",
+        "textPurpose": "Plant the rule that will govern the problem and solution.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "waterfall-ledge",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "waterfall-ledge",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "gold-step-path",
+              "ownerCharacterId": null,
+              "locationId": "waterfall-ledge",
+              "state": "The first wet step shines through the spray."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "shining-passage",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "shining-passage",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "gold-step-path",
+              "ownerCharacterId": null,
+              "locationId": "waterfall-ledge",
+              "state": "The first wet step shines through the spray."
+            },
+            {
+              "entityId": "silt-stream",
+              "ownerCharacterId": null,
+              "locationId": "shining-passage",
+              "state": "Keeps the steps wet and visible."
+            }
+          ]
+        },
+        "locationZone": "wet steps",
+        "worldState": "Water illuminates steps through dark rock.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Identify safe footholds.",
+        "obstacleNow": "Dry edges are almost invisible.",
+        "discoveryNow": "",
+        "consequenceNow": "Leo discovers how to reveal a step.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "",
+        "entryFrom": "waterfall-ledge",
+        "exitToward": "water-terrace",
+        "destinationHint": ""
+      },
+      {
+        "beatId": "b3",
+        "role": "world",
+        "locationId": "water-terrace",
+        "charactersPresent": [
+          "wondii-maya",
+          "wondii-leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "wondii-maya",
+            "trait": "curious",
+            "shows": "Kneels to follow each water branch with her finger and asks which one feeds their steps."
+          },
+          {
+            "characterId": "wondii-leo",
+            "trait": "careful",
+            "shows": "Clears the cloudy patch Maya is trying to examine."
+          }
+        ],
+        "problemFamily": "clouded-channel",
+        "because": "b2",
+        "resolvesProblem": false,
+        "action": "Maya traces the branching water while Leo clears a cloudy patch with an empty shell bowl. The emptied shell floats.",
+        "emotion": "",
+        "entitiesRequired": [
+          "gold-step-path",
+          "silt-stream",
+          "pearl-shell",
+          "pale-crossing"
+        ],
+        "visualFocus": "The floating shell beside branching water.",
+        "shotType": "reveal",
+        "compositionIntent": "Reveal the broad sky while keeping the shell and bridge legible.",
+        "textPurpose": "Expand the world and establish the repair resource.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "shining-passage",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "shining-passage",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "gold-step-path",
+              "ownerCharacterId": null,
+              "locationId": "waterfall-ledge",
+              "state": "The first wet step shines through the spray."
+            },
+            {
+              "entityId": "silt-stream",
+              "ownerCharacterId": null,
+              "locationId": "shining-passage",
+              "state": "Keeps the steps wet and visible."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "gold-step-path",
+              "ownerCharacterId": null,
+              "locationId": "waterfall-ledge",
+              "state": "The first wet step shines through the spray."
+            },
+            {
+              "entityId": "silt-stream",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Branches around the bridge and flows toward the passage."
+            },
+            {
+              "entityId": "pearl-shell",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Floating after scooping silt."
+            },
+            {
+              "entityId": "pale-crossing",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Dry above shallow water, with its raised corner visible."
+            }
+          ]
+        },
+        "locationZone": "channel rim",
+        "worldState": "The passage opens beneath an enormous pearly sky.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Trace the water to its source.",
+        "obstacleNow": "Silt clouds the branching channels.",
+        "discoveryNow": "",
+        "consequenceNow": "They discover a shell can scoop silt and float.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "",
+        "entryFrom": "shining-passage",
+        "exitToward": "",
+        "destinationHint": ""
+      },
+      {
+        "beatId": "b4",
+        "role": "exploration",
+        "locationId": "water-terrace",
+        "charactersPresent": [
+          "wondii-maya",
+          "wondii-leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "wondii-maya",
+            "trait": "curious",
+            "shows": "Asks what the fitted stone hides, then lifts it to inspect the hollow beneath."
+          }
+        ],
+        "problemFamily": "sealed-hollow",
+        "because": "b3",
+        "resolvesProblem": false,
+        "action": "They cross the bridge, and Maya lifts the blue stone to inspect its socket. Water presses through the opening.",
+        "emotion": "",
+        "entitiesRequired": [
+          "gold-step-path",
+          "silt-stream",
+          "pearl-shell",
+          "pale-crossing",
+          "blue-divider",
+          "triangle-socket"
+        ],
+        "visualFocus": "Water escaping beneath the lifted stone.",
+        "shotType": "medium",
+        "compositionIntent": "Show the matching stone and socket together.",
+        "textPurpose": "Cause the central problem through Maya's investigation.",
+        "pageTurnHook": "The trickle spreads toward their crossing.",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "gold-step-path",
+              "ownerCharacterId": null,
+              "locationId": "waterfall-ledge",
+              "state": "The first wet step shines through the spray."
+            },
+            {
+              "entityId": "silt-stream",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Branches around the bridge and flows toward the passage."
+            },
+            {
+              "entityId": "pearl-shell",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Floating after scooping silt."
+            },
+            {
+              "entityId": "pale-crossing",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Dry above shallow water, with its raised corner visible."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [
+                "blue-divider"
+              ],
+              "emotion": "steady",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "gold-step-path",
+              "ownerCharacterId": null,
+              "locationId": "waterfall-ledge",
+              "state": "The first wet step shines through the spray."
+            },
+            {
+              "entityId": "silt-stream",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Branches around the bridge and flows toward the passage."
+            },
+            {
+              "entityId": "pearl-shell",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Floating after scooping silt."
+            },
+            {
+              "entityId": "pale-crossing",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Dry above shallow water, with its raised corner visible."
+            },
+            {
+              "entityId": "blue-divider",
+              "ownerCharacterId": "wondii-maya",
+              "locationId": "water-terrace",
+              "state": "Lifted from the socket."
+            },
+            {
+              "entityId": "triangle-socket",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Open and releasing water toward the bridge."
+            }
+          ]
+        },
+        "locationZone": "socket ledge",
+        "worldState": "A fitted blue stone seals the water divider.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Find what lies beneath the stone.",
+        "obstacleNow": "The stone conceals the socket.",
+        "discoveryNow": "",
+        "consequenceNow": "Removing it releases water toward the bridge.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "",
+        "entryFrom": "",
+        "exitToward": "",
+        "destinationHint": ""
+      },
+      {
+        "beatId": "b5",
+        "role": "consequence",
+        "locationId": "water-terrace",
+        "charactersPresent": [
+          "wondii-maya",
+          "wondii-leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "wondii-leo",
+            "trait": "kind",
+            "shows": "Stops on the last dry foothold to help Maya across instead of leaving her behind."
+          }
+        ],
+        "problemFamily": "flooded-return",
+        "because": "b4",
+        "resolvesProblem": false,
+        "action": "Leo helps Maya across the last dry foothold before water covers the bridge. Their homeward steps begin fading.",
+        "emotion": "Maya grips the stone against her shirt.",
+        "entitiesRequired": [
+          "gold-step-path",
+          "silt-stream",
+          "pearl-shell",
+          "pale-crossing",
+          "blue-divider",
+          "triangle-socket"
+        ],
+        "visualFocus": "The fading passage entrance.",
+        "shotType": "high",
+        "compositionIntent": "Separate the children from the socket with the flooded crossing.",
+        "textPurpose": "Make losing the route home an immediate consequence.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [
+                "blue-divider"
+              ],
+              "emotion": "steady",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "gold-step-path",
+              "ownerCharacterId": null,
+              "locationId": "waterfall-ledge",
+              "state": "The first wet step shines through the spray."
+            },
+            {
+              "entityId": "silt-stream",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Branches around the bridge and flows toward the passage."
+            },
+            {
+              "entityId": "pearl-shell",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Floating after scooping silt."
+            },
+            {
+              "entityId": "pale-crossing",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Dry above shallow water, with its raised corner visible."
+            },
+            {
+              "entityId": "blue-divider",
+              "ownerCharacterId": "wondii-maya",
+              "locationId": "water-terrace",
+              "state": "Lifted from the socket."
+            },
+            {
+              "entityId": "triangle-socket",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Open and releasing water toward the bridge."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [
+                "blue-divider"
+              ],
+              "emotion": "Maya grips the stone against her shirt.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya grips the stone against her shirt.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "gold-step-path",
+              "ownerCharacterId": null,
+              "locationId": "shining-passage",
+              "state": "Drying and fading."
+            },
+            {
+              "entityId": "silt-stream",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Floods the crossing instead of feeding the passage."
+            },
+            {
+              "entityId": "pearl-shell",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Floating after scooping silt."
+            },
+            {
+              "entityId": "pale-crossing",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Submerged beneath ankle-deep moving water."
+            },
+            {
+              "entityId": "blue-divider",
+              "ownerCharacterId": "wondii-maya",
+              "locationId": "water-terrace",
+              "state": "Lifted from the socket."
+            },
+            {
+              "entityId": "triangle-socket",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Open and releasing water toward the bridge."
+            }
+          ]
+        },
+        "locationZone": "channel rim",
+        "worldState": "Diverted water is covering the bridge.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Reach the passage before the crossing floods.",
+        "obstacleNow": "Water rises around their feet.",
+        "discoveryNow": "",
+        "consequenceNow": "They reach the rim, but their route home begins fading.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "",
+        "entryFrom": "",
+        "exitToward": "",
+        "destinationHint": ""
+      },
+      {
+        "beatId": "b6",
+        "role": "relationship",
+        "locationId": "water-terrace",
+        "charactersPresent": [
+          "wondii-maya",
+          "wondii-leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "wondii-maya",
+            "trait": "brave",
+            "shows": "Faces the flooded bridge and volunteers to return the stone despite her shaking hands."
+          },
+          {
+            "characterId": "wondii-leo",
+            "trait": "kind",
+            "shows": "Supports her shaking hand and offers to share the repair instead of blaming her."
+          }
+        ],
+        "problemFamily": "repair-decision",
+        "because": "b5",
+        "resolvesProblem": false,
+        "action": "Maya says, “My hands are shaking, but I'll put it back.” Leo supports her hand: “We'll use the shell together.”",
+        "emotion": "",
+        "entitiesRequired": [
+          "gold-step-path",
+          "silt-stream",
+          "pearl-shell",
+          "pale-crossing",
+          "blue-divider",
+          "triangle-socket"
+        ],
+        "visualFocus": "Leo supporting Maya's hand.",
+        "shotType": "reaction",
+        "compositionIntent": "Connect their joined hands with the nearby floating shell.",
+        "textPurpose": "Make responsibility and support change their next decision.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [
+                "blue-divider"
+              ],
+              "emotion": "Maya grips the stone against her shirt.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya grips the stone against her shirt.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "gold-step-path",
+              "ownerCharacterId": null,
+              "locationId": "shining-passage",
+              "state": "Drying and fading."
+            },
+            {
+              "entityId": "silt-stream",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Floods the crossing instead of feeding the passage."
+            },
+            {
+              "entityId": "pearl-shell",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Floating after scooping silt."
+            },
+            {
+              "entityId": "pale-crossing",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Submerged beneath ankle-deep moving water."
+            },
+            {
+              "entityId": "blue-divider",
+              "ownerCharacterId": "wondii-maya",
+              "locationId": "water-terrace",
+              "state": "Lifted from the socket."
+            },
+            {
+              "entityId": "triangle-socket",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Open and releasing water toward the bridge."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [
+                "blue-divider"
+              ],
+              "emotion": "Maya grips the stone against her shirt.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya grips the stone against her shirt.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "gold-step-path",
+              "ownerCharacterId": null,
+              "locationId": "shining-passage",
+              "state": "Drying and fading."
+            },
+            {
+              "entityId": "silt-stream",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Floods the crossing instead of feeding the passage."
+            },
+            {
+              "entityId": "pearl-shell",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Floating after scooping silt."
+            },
+            {
+              "entityId": "pale-crossing",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Submerged beneath ankle-deep moving water."
+            },
+            {
+              "entityId": "blue-divider",
+              "ownerCharacterId": "wondii-maya",
+              "locationId": "water-terrace",
+              "state": "Lifted from the socket."
+            },
+            {
+              "entityId": "triangle-socket",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Open and releasing water toward the bridge."
+            }
+          ]
+        },
+        "locationZone": "channel rim",
+        "worldState": "Repair requires returning across the flooded bridge.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Choose how to return the stone.",
+        "obstacleNow": "Carrying it would occupy hands needed for balance.",
+        "discoveryNow": "",
+        "consequenceNow": "Maya commits to returning; Leo offers the shell as a carrier.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "",
+        "entryFrom": "",
+        "exitToward": "",
+        "destinationHint": ""
+      },
+      {
+        "beatId": "b7",
+        "role": "setup",
+        "locationId": "water-terrace",
+        "charactersPresent": [
+          "wondii-maya",
+          "wondii-leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "wondii-leo",
+            "trait": "careful",
+            "shows": "Adjusts the stone a finger-width at a time and waits until both shell rims float level."
+          }
+        ],
+        "problemFamily": "unstable-load",
+        "because": "b6",
+        "resolvesProblem": false,
+        "action": "Leo centers the stone in the shell and waits until both rims float level. Maya takes the opposite rim.",
+        "emotion": "",
+        "entitiesRequired": [
+          "gold-step-path",
+          "silt-stream",
+          "pearl-shell",
+          "pale-crossing",
+          "blue-divider",
+          "triangle-socket"
+        ],
+        "visualFocus": "The blue stone balanced inside the shell.",
+        "shotType": "overhead",
+        "compositionIntent": "Make the centered load and paired hands clear.",
+        "textPurpose": "Turn Leo's testing into a workable transport plan.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [
+                "blue-divider"
+              ],
+              "emotion": "Maya grips the stone against her shirt.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya grips the stone against her shirt.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "gold-step-path",
+              "ownerCharacterId": null,
+              "locationId": "shining-passage",
+              "state": "Drying and fading."
+            },
+            {
+              "entityId": "silt-stream",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Floods the crossing instead of feeding the passage."
+            },
+            {
+              "entityId": "pearl-shell",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Floating after scooping silt."
+            },
+            {
+              "entityId": "pale-crossing",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Submerged beneath ankle-deep moving water."
+            },
+            {
+              "entityId": "blue-divider",
+              "ownerCharacterId": "wondii-maya",
+              "locationId": "water-terrace",
+              "state": "Lifted from the socket."
+            },
+            {
+              "entityId": "triangle-socket",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Open and releasing water toward the bridge."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya grips the stone against her shirt.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya grips the stone against her shirt.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "gold-step-path",
+              "ownerCharacterId": null,
+              "locationId": "shining-passage",
+              "state": "Drying and fading."
+            },
+            {
+              "entityId": "silt-stream",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Floods the crossing instead of feeding the passage."
+            },
+            {
+              "entityId": "pearl-shell",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Carries the centered stone while both children guide its rims."
+            },
+            {
+              "entityId": "pale-crossing",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Submerged beneath ankle-deep moving water."
+            },
+            {
+              "entityId": "blue-divider",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Balanced inside the floating shell."
+            },
+            {
+              "entityId": "triangle-socket",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Open and releasing water toward the bridge."
+            }
+          ]
+        },
+        "locationZone": "channel rim",
+        "worldState": "The floating shell can carry the stone.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Balance the load before crossing.",
+        "obstacleNow": "The stone tips the shell when placed off-center.",
+        "discoveryNow": "",
+        "consequenceNow": "Leo finds a stable position.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "",
+        "entryFrom": "",
+        "exitToward": "",
+        "destinationHint": ""
+      },
+      {
+        "beatId": "b8",
+        "role": "attempt",
+        "locationId": "water-terrace",
+        "charactersPresent": [
+          "wondii-maya",
+          "wondii-leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "wondii-maya",
+            "trait": "brave",
+            "shows": "Steps onto the submerged bridge first and leads toward the repair rather than retreating."
+          }
+        ],
+        "problemFamily": "concealed-corner",
+        "because": "b7",
+        "resolvesProblem": false,
+        "action": "Maya leads onto the submerged bridge while they guide the shell between them. Her forward push catches its rim on the hidden corner.",
+        "emotion": "",
+        "entitiesRequired": [
+          "gold-step-path",
+          "silt-stream",
+          "pearl-shell",
+          "pale-crossing",
+          "blue-divider",
+          "triangle-socket"
+        ],
+        "visualFocus": "The cracking shell rim.",
+        "shotType": "action",
+        "compositionIntent": "Show the bridge beneath the water and the shell striking its corner.",
+        "textPurpose": "Give their repair attempt a specific cost.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya grips the stone against her shirt.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya grips the stone against her shirt.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "gold-step-path",
+              "ownerCharacterId": null,
+              "locationId": "shining-passage",
+              "state": "Drying and fading."
+            },
+            {
+              "entityId": "silt-stream",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Floods the crossing instead of feeding the passage."
+            },
+            {
+              "entityId": "pearl-shell",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Carries the centered stone while both children guide its rims."
+            },
+            {
+              "entityId": "pale-crossing",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Submerged beneath ankle-deep moving water."
+            },
+            {
+              "entityId": "blue-divider",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Balanced inside the floating shell."
+            },
+            {
+              "entityId": "triangle-socket",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Open and releasing water toward the bridge."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya grips the stone against her shirt.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya grips the stone against her shirt.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "gold-step-path",
+              "ownerCharacterId": null,
+              "locationId": "shining-passage",
+              "state": "Drying and fading."
+            },
+            {
+              "entityId": "silt-stream",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Floods the crossing instead of feeding the passage."
+            },
+            {
+              "entityId": "pearl-shell",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Cracking against the raised bridge corner."
+            },
+            {
+              "entityId": "pale-crossing",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Submerged beneath ankle-deep moving water."
+            },
+            {
+              "entityId": "blue-divider",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Balanced inside the floating shell."
+            },
+            {
+              "entityId": "triangle-socket",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Open and releasing water toward the bridge."
+            }
+          ]
+        },
+        "locationZone": "low bridge",
+        "worldState": "The bridge remains passable beneath shallow water.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Guide the loaded shell to the socket ledge.",
+        "obstacleNow": "Water conceals the raised corner.",
+        "discoveryNow": "",
+        "consequenceNow": "Maya's forward push cracks the shell.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "",
+        "entryFrom": "",
+        "exitToward": "",
+        "destinationHint": ""
+      },
+      {
+        "beatId": "b9",
+        "role": "setback",
+        "locationId": "water-terrace",
+        "charactersPresent": [
+          "wondii-maya",
+          "wondii-leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "wondii-leo",
+            "trait": "careful",
+            "shows": "Catches the stone and waits on the final foothold until Maya can step beside him."
+          },
+          {
+            "characterId": "wondii-maya",
+            "trait": "brave",
+            "shows": "Reaches into the moving water to rescue the shell pieces before the current takes them."
+          }
+        ],
+        "problemFamily": "broken-carrier",
+        "because": "b8",
+        "resolvesProblem": false,
+        "action": "Leo catches the stone, and Maya reaches into the current for both shell pieces. They step onto the socket ledge together.",
+        "emotion": "Maya studies the broken rims in her hands.",
+        "entitiesRequired": [
+          "gold-step-path",
+          "silt-stream",
+          "pearl-shell",
+          "pale-crossing",
+          "blue-divider",
+          "triangle-socket"
+        ],
+        "visualFocus": "Their different catches completing one rescue.",
+        "shotType": "low",
+        "compositionIntent": "Keep the rescued objects above the current and the ledge within reach.",
+        "textPurpose": "Preserve useful remnants without undoing the breakage.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya grips the stone against her shirt.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya grips the stone against her shirt.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "gold-step-path",
+              "ownerCharacterId": null,
+              "locationId": "shining-passage",
+              "state": "Drying and fading."
+            },
+            {
+              "entityId": "silt-stream",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Floods the crossing instead of feeding the passage."
+            },
+            {
+              "entityId": "pearl-shell",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Cracking against the raised bridge corner."
+            },
+            {
+              "entityId": "pale-crossing",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Submerged beneath ankle-deep moving water."
+            },
+            {
+              "entityId": "blue-divider",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Balanced inside the floating shell."
+            },
+            {
+              "entityId": "triangle-socket",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Open and releasing water toward the bridge."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [
+                "pearl-shell"
+              ],
+              "emotion": "Maya studies the broken rims in her hands.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [
+                "blue-divider"
+              ],
+              "emotion": "Maya studies the broken rims in her hands.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "gold-step-path",
+              "ownerCharacterId": null,
+              "locationId": "shining-passage",
+              "state": "Drying and fading."
+            },
+            {
+              "entityId": "silt-stream",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Floods the crossing instead of feeding the passage."
+            },
+            {
+              "entityId": "pearl-shell",
+              "ownerCharacterId": "wondii-maya",
+              "locationId": "water-terrace",
+              "state": "Broken into two curved pieces."
+            },
+            {
+              "entityId": "pale-crossing",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Submerged beneath ankle-deep moving water."
+            },
+            {
+              "entityId": "blue-divider",
+              "ownerCharacterId": "wondii-leo",
+              "locationId": "water-terrace",
+              "state": "Caught before sinking."
+            },
+            {
+              "entityId": "triangle-socket",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Open and releasing water toward the bridge."
+            }
+          ]
+        },
+        "locationZone": "socket ledge",
+        "worldState": "The shell splits near the far end of the bridge.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Save the stone and reach the ledge.",
+        "obstacleNow": "The broken carrier releases its load.",
+        "discoveryNow": "",
+        "consequenceNow": "Their separate catches save the stone and both shell pieces.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "",
+        "entryFrom": "",
+        "exitToward": "",
+        "destinationHint": ""
+      },
+      {
+        "beatId": "b10",
+        "role": "reveal",
+        "locationId": "water-terrace",
+        "charactersPresent": [
+          "wondii-maya",
+          "wondii-leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "wondii-maya",
+            "trait": "curious",
+            "shows": "Peers beneath the wobbling stone, probes the obstruction, and compares it with the shell's curved edge."
+          },
+          {
+            "characterId": "wondii-leo",
+            "trait": "careful",
+            "shows": "Lifts the stone away rather than forcing it into the blocked socket."
+          }
+        ],
+        "problemFamily": "packed-socket",
+        "because": "b9",
+        "resolvesProblem": false,
+        "action": "The stone wobbles on packed silt, so Leo lifts it clear. Maya probes with a shell edge: “This still scoops.”",
+        "emotion": "",
+        "entitiesRequired": [
+          "gold-step-path",
+          "silt-stream",
+          "pearl-shell",
+          "pale-crossing",
+          "blue-divider",
+          "triangle-socket"
+        ],
+        "visualFocus": "Golden silt beneath the stone's point.",
+        "shotType": "close",
+        "compositionIntent": "Place the curved shell edge beside the obstructed triangular hollow.",
+        "textPurpose": "Connect the solution to the shell's earlier use.",
+        "pageTurnHook": "The broken shell has one more job.",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [
+                "pearl-shell"
+              ],
+              "emotion": "Maya studies the broken rims in her hands.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [
+                "blue-divider"
+              ],
+              "emotion": "Maya studies the broken rims in her hands.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "gold-step-path",
+              "ownerCharacterId": null,
+              "locationId": "shining-passage",
+              "state": "Drying and fading."
+            },
+            {
+              "entityId": "silt-stream",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Floods the crossing instead of feeding the passage."
+            },
+            {
+              "entityId": "pearl-shell",
+              "ownerCharacterId": "wondii-maya",
+              "locationId": "water-terrace",
+              "state": "Broken into two curved pieces."
+            },
+            {
+              "entityId": "pale-crossing",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Submerged beneath ankle-deep moving water."
+            },
+            {
+              "entityId": "blue-divider",
+              "ownerCharacterId": "wondii-leo",
+              "locationId": "water-terrace",
+              "state": "Caught before sinking."
+            },
+            {
+              "entityId": "triangle-socket",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Open and releasing water toward the bridge."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [
+                "pearl-shell"
+              ],
+              "emotion": "Maya studies the broken rims in her hands.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [
+                "blue-divider"
+              ],
+              "emotion": "Maya studies the broken rims in her hands.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "gold-step-path",
+              "ownerCharacterId": null,
+              "locationId": "shining-passage",
+              "state": "Drying and fading."
+            },
+            {
+              "entityId": "silt-stream",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Floods the crossing instead of feeding the passage."
+            },
+            {
+              "entityId": "pearl-shell",
+              "ownerCharacterId": "wondii-maya",
+              "locationId": "water-terrace",
+              "state": "Broken into two curved pieces."
+            },
+            {
+              "entityId": "pale-crossing",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Submerged beneath ankle-deep moving water."
+            },
+            {
+              "entityId": "blue-divider",
+              "ownerCharacterId": "wondii-leo",
+              "locationId": "water-terrace",
+              "state": "Caught before sinking."
+            },
+            {
+              "entityId": "triangle-socket",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Packed with silt deposited by the diverted water."
+            }
+          ]
+        },
+        "locationZone": "socket ledge",
+        "worldState": "The flood has packed silt into the open socket.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Make the stone fit securely.",
+        "obstacleNow": "Silt prevents its point from seating.",
+        "discoveryNow": "",
+        "consequenceNow": "Maya identifies another use for the broken shell.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "",
+        "entryFrom": "",
+        "exitToward": "",
+        "destinationHint": ""
+      },
+      {
+        "beatId": "b11",
+        "role": "climax",
+        "locationId": "water-terrace",
+        "charactersPresent": [
+          "wondii-maya",
+          "wondii-leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "wondii-maya",
+            "trait": "brave",
+            "shows": "Keeps her hands in the pressing water and scoops until the stone can fit."
+          },
+          {
+            "characterId": "wondii-leo",
+            "trait": "careful",
+            "shows": "Waits for Maya's fingers to clear, lowers the stone, and checks that it no longer wobbles."
+          }
+        ],
+        "problemFamily": "restoring-flow",
+        "because": "b10",
+        "resolvesProblem": false,
+        "action": "Maya scoops the socket clean, and Leo seats the stone after her fingers clear. The bridge drains; the pathway shines again.",
+        "emotion": "",
+        "entitiesRequired": [
+          "gold-step-path",
+          "silt-stream",
+          "pearl-shell",
+          "pale-crossing",
+          "blue-divider",
+          "triangle-socket"
+        ],
+        "visualFocus": "The seated blue stone and returning stream.",
+        "shotType": "overhead",
+        "compositionIntent": "Show the repaired divider sending water back toward the passage.",
+        "textPurpose": "Resolve the central problem through the planted tool and both children's choices.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [
+                "pearl-shell"
+              ],
+              "emotion": "Maya studies the broken rims in her hands.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [
+                "blue-divider"
+              ],
+              "emotion": "Maya studies the broken rims in her hands.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "gold-step-path",
+              "ownerCharacterId": null,
+              "locationId": "shining-passage",
+              "state": "Drying and fading."
+            },
+            {
+              "entityId": "silt-stream",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Floods the crossing instead of feeding the passage."
+            },
+            {
+              "entityId": "pearl-shell",
+              "ownerCharacterId": "wondii-maya",
+              "locationId": "water-terrace",
+              "state": "Broken into two curved pieces."
+            },
+            {
+              "entityId": "pale-crossing",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Submerged beneath ankle-deep moving water."
+            },
+            {
+              "entityId": "blue-divider",
+              "ownerCharacterId": "wondii-leo",
+              "locationId": "water-terrace",
+              "state": "Caught before sinking."
+            },
+            {
+              "entityId": "triangle-socket",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Packed with silt deposited by the diverted water."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya studies the broken rims in her hands.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya studies the broken rims in her hands.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "gold-step-path",
+              "ownerCharacterId": null,
+              "locationId": "shining-passage",
+              "state": "Wet and glowing again."
+            },
+            {
+              "entityId": "silt-stream",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Flows toward the passage again."
+            },
+            {
+              "entityId": "pearl-shell",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Both broken pieces rest beside the repaired socket."
+            },
+            {
+              "entityId": "pale-crossing",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Exposed as the flood drains."
+            },
+            {
+              "entityId": "blue-divider",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Firmly seated in the socket."
+            },
+            {
+              "entityId": "triangle-socket",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Cleared and sealed."
+            }
+          ]
+        },
+        "locationZone": "socket ledge",
+        "worldState": "The shell pieces can clear the blocked divider.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Restore water to the passage.",
+        "obstacleNow": "Water presses through the socket as Maya works.",
+        "discoveryNow": "",
+        "consequenceNow": "The seated stone restores the route home.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "",
+        "entryFrom": "",
+        "exitToward": "shining-passage",
+        "destinationHint": ""
+      },
+      {
+        "beatId": "b12",
+        "role": "resolution",
+        "locationId": "shining-passage",
+        "charactersPresent": [
+          "wondii-maya",
+          "wondii-leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "wondii-maya",
+            "trait": "curious",
+            "shows": "Studies a loose stone without lifting it, then tests a wet palm against the wall instead."
+          },
+          {
+            "characterId": "wondii-leo",
+            "trait": "kind",
+            "shows": "Adds his handprint beside hers and offers his hand for the final steps."
+          }
+        ],
+        "problemFamily": "",
+        "because": "b11",
+        "resolvesProblem": true,
+        "action": "Behind the waterfall, Maya leaves the loose stones untouched and presses her wet palm against the wall. Leo adds a gold handprint beside hers.",
+        "emotion": "",
+        "entitiesRequired": [
+          "gold-step-path",
+          "silt-stream",
+          "pearl-shell",
+          "pale-crossing",
+          "blue-divider",
+          "triangle-socket"
+        ],
+        "visualFocus": "Paired golden handprints on dark rock.",
+        "shotType": "vignette",
+        "compositionIntent": "Frame the bright exit with two shining handprints.",
+        "textPurpose": "End with a changed choice and a memorable image.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya studies the broken rims in her hands.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "water-terrace",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya studies the broken rims in her hands.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "gold-step-path",
+              "ownerCharacterId": null,
+              "locationId": "shining-passage",
+              "state": "Wet and glowing again."
+            },
+            {
+              "entityId": "silt-stream",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Flows toward the passage again."
+            },
+            {
+              "entityId": "pearl-shell",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Both broken pieces rest beside the repaired socket."
+            },
+            {
+              "entityId": "pale-crossing",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Exposed as the flood drains."
+            },
+            {
+              "entityId": "blue-divider",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Firmly seated in the socket."
+            },
+            {
+              "entityId": "triangle-socket",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Cleared and sealed."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "shining-passage",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya studies the broken rims in her hands.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "shining-passage",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya studies the broken rims in her hands.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "gold-step-path",
+              "ownerCharacterId": null,
+              "locationId": "shining-passage",
+              "state": "Wet and glowing again."
+            },
+            {
+              "entityId": "silt-stream",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Flows toward the passage again."
+            },
+            {
+              "entityId": "pearl-shell",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Both broken pieces rest beside the repaired socket."
+            },
+            {
+              "entityId": "pale-crossing",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Exposed as the flood drains."
+            },
+            {
+              "entityId": "blue-divider",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Firmly seated in the socket."
+            },
+            {
+              "entityId": "triangle-socket",
+              "ownerCharacterId": null,
+              "locationId": "water-terrace",
+              "state": "Cleared and sealed."
+            }
+          ]
+        },
+        "locationZone": "wet steps",
+        "worldState": "Golden steps lead toward the water curtain.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Leave without disturbing the route.",
+        "obstacleNow": "",
+        "discoveryNow": "",
+        "consequenceNow": "The children leave shining marks instead of taking keepsakes.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "",
+        "entryFrom": "water-terrace",
+        "exitToward": "waterfall-ledge",
+        "destinationHint": ""
+      }
+    ],
+    "journey": [
+      {
+        "section": "Finding the concealed entrance",
+        "locationId": "waterfall-ledge",
+        "purpose": "Let the children's different choices uncover the entrance.",
+        "objective": "Find the source of the golden flash.",
+        "discoveryOrObstacle": "Falling water conceals a foothold and an opening.",
+        "change": "Maya reaches through the spray while Leo secures her footing.",
+        "leadsTo": "shining-passage",
+        "knownPlace": true
+      },
+      {
+        "section": "Learning the shining rule",
+        "locationId": "shining-passage",
+        "purpose": "Establish the rule that their return will depend upon.",
+        "objective": "Find safe steps through the rock.",
+        "discoveryOrObstacle": "Wet stone shines, but dry steps blend into the walls.",
+        "change": "Leo tests the rule, and they follow the water toward its source.",
+        "leadsTo": "water-terrace",
+        "knownPlace": true
+      },
+      {
+        "section": "Exploration becomes responsibility",
+        "locationId": "water-terrace",
+        "purpose": "Turn Maya's investigation into a costly repair requiring both children.",
+        "objective": "Explore the divider, then restore the interrupted stream.",
+        "discoveryOrObstacle": "Removing its stone floods the crossing; their shell carrier breaks and silt blocks the socket.",
+        "change": "They reuse the broken shell's scooping edges to clear the socket and restore the water.",
+        "leadsTo": "shining-passage",
+        "knownPlace": true
+      },
+      {
+        "section": "Leaving a different trace",
+        "locationId": "shining-passage",
+        "purpose": "Show Maya choosing a harmless way to mark their discovery.",
+        "objective": "Follow the restored steps toward the exit.",
+        "discoveryOrObstacle": "Wet palms can make the wall shine without removing anything.",
+        "change": "They leave paired handprints rather than taking stones.",
+        "leadsTo": "waterfall-ledge",
+        "knownPlace": true
+      }
+    ],
+    "adventureNotes": []
+  },
+  "storyProblems": [],
+  "planProblems": [],
+  "textProblems": [],
+  "pages": [
+    {
+      "pageId": "p1",
+      "beatId": "b1",
+      "locationId": "waterfall-ledge",
+      "charactersPresent": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "waterfall-ledge",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "waterfall-ledge",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": []
+      },
+      "action": "Maya reaches through the waterfall and traces a golden foothold into an opening. Leo tests his footing before anchoring her hand.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "waterfall-ledge",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "waterfall-ledge",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-ledge",
+            "state": "The first wet step shines through the spray."
+          }
+        ]
+      },
+      "emotion": "",
+      "entitiesRequired": [
+        "gold-step-path"
+      ],
+      "visualFocus": "Maya's fingers finding the foothold.",
+      "shotType": "establishing",
+      "compositionIntent": "Contrast the broad water curtain with one narrow golden invitation.",
+      "textPurpose": "Open with a discovery caused by the children's choices.",
+      "pageTurnHook": "The golden foothold continues beyond the falling water.",
+      "needsFromPrevious": null,
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "waterfall-ledge",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "waterfall-ledge",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-ledge",
+            "state": "The first wet step shines through the spray."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "On the Waterfall Ledge, Maya reached through the falling water.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Her fingers traced a wet, golden foothold into an opening.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Leo tested the step with his foot, then held her hand firmly.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"It keeps going,\" Maya said, reaching beyond the spray.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "SETUP",
+      "locationZone": "spray edge",
+      "pageTurnIntent": "CONTINUE",
+      "layoutIntent": "SINGLE_PAGE_SCENE",
+      "progressionReason": "opening",
+      "worldState": "Spray exposes a golden foothold.",
+      "visualNoveltyReason": "opening",
+      "prose": "On the Waterfall Ledge, Maya reached through the falling water. Her fingers traced a wet, golden foothold into an opening. Leo tested the step with his foot, then held her hand firmly. \"It keeps going,\" Maya said, reaching beyond the spray."
+    },
+    {
+      "pageId": "p2",
+      "beatId": "b2",
+      "locationId": "shining-passage",
+      "charactersPresent": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "waterfall-ledge",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "waterfall-ledge",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-ledge",
+            "state": "The first wet step shines through the spray."
+          }
+        ]
+      },
+      "action": "Leo splashes a dark step and watches it turn gold. He tests its edge before showing Maya where to stand.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "shining-passage",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "shining-passage",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-ledge",
+            "state": "The first wet step shines through the spray."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Keeps the steps wet and visible."
+          }
+        ]
+      },
+      "emotion": "",
+      "entitiesRequired": [
+        "gold-step-path",
+        "silt-stream"
+      ],
+      "visualFocus": "Gold spreading beneath Leo's toe.",
+      "shotType": "close",
+      "compositionIntent": "Make the boundary between wet and dry stone readable.",
+      "textPurpose": "Plant the rule that will govern the problem and solution.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "waterfall-ledge",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "waterfall-ledge",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-ledge",
+            "state": "The first wet step shines through the spray."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "shining-passage",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "shining-passage",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-ledge",
+            "state": "The first wet step shines through the spray."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Keeps the steps wet and visible."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Inside the Shining Passage, Leo splashed water from the stream onto a dark step.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Gold spread across it.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "He pressed his foot against its edge before beckoning Maya.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"Here. Put your foot where mine is.\"",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "DISCOVERY",
+      "locationZone": "wet steps",
+      "pageTurnIntent": "CONTINUE",
+      "layoutIntent": "PAGE_PAIR",
+      "progressionReason": "location, goal, obstacle, action, consequence, discovery, world_state, entity_state, information",
+      "worldState": "Water illuminates steps through dark rock.",
+      "visualNoveltyReason": "location, goal, obstacle, action, consequence, discovery, world_state, entity_state, information",
+      "prose": "Inside the Shining Passage, Leo splashed water from the stream onto a dark step. Gold spread across it. He pressed his foot against its edge before beckoning Maya. \"Here. Put your foot where mine is.\""
+    },
+    {
+      "pageId": "p3",
+      "beatId": "b3",
+      "locationId": "water-terrace",
+      "charactersPresent": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "shining-passage",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "shining-passage",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-ledge",
+            "state": "The first wet step shines through the spray."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Keeps the steps wet and visible."
+          }
+        ]
+      },
+      "action": "Maya traces the branching water while Leo clears a cloudy patch with an empty shell bowl. The emptied shell floats.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-ledge",
+            "state": "The first wet step shines through the spray."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Branches around the bridge and flows toward the passage."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floating after scooping silt."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Dry above shallow water, with its raised corner visible."
+          }
+        ]
+      },
+      "emotion": "",
+      "entitiesRequired": [
+        "gold-step-path",
+        "silt-stream",
+        "pearl-shell",
+        "pale-crossing"
+      ],
+      "visualFocus": "The floating shell beside branching water.",
+      "shotType": "reveal",
+      "compositionIntent": "Reveal the broad sky while keeping the shell and bridge legible.",
+      "textPurpose": "Expand the world and establish the repair resource.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "shining-passage",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "shining-passage",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-ledge",
+            "state": "The first wet step shines through the spray."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Keeps the steps wet and visible."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-ledge",
+            "state": "The first wet step shines through the spray."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Branches around the bridge and flows toward the passage."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floating after scooping silt."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Dry above shallow water, with its raised corner visible."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "On the Water Terrace, Maya traced the stream as it branched around a pale bridge.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "One corner stuck up above the shallow water.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Leo scooped a cloudy patch with an empty shell bowl.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "He tipped out the silt, and the shell floated.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "SETUP",
+      "locationZone": "channel rim",
+      "pageTurnIntent": "CONTINUE",
+      "layoutIntent": "PAGE_PAIR",
+      "progressionReason": "location, goal, obstacle, action, consequence, discovery, world_state, entity_state, information",
+      "worldState": "The passage opens beneath an enormous pearly sky.",
+      "visualNoveltyReason": "location, goal, obstacle, action, consequence, discovery, world_state, entity_state, information",
+      "prose": "On the Water Terrace, Maya traced the stream as it branched around a pale bridge. One corner stuck up above the shallow water. Leo scooped a cloudy patch with an empty shell bowl. He tipped out the silt, and the shell floated."
+    },
+    {
+      "pageId": "p4",
+      "beatId": "b4",
+      "locationId": "water-terrace",
+      "charactersPresent": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-ledge",
+            "state": "The first wet step shines through the spray."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Branches around the bridge and flows toward the passage."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floating after scooping silt."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Dry above shallow water, with its raised corner visible."
+          }
+        ]
+      },
+      "action": "They cross the bridge, and Maya lifts the blue stone to inspect its socket. Water presses through the opening.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [
+              "blue-divider"
+            ],
+            "emotion": "steady",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-ledge",
+            "state": "The first wet step shines through the spray."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Branches around the bridge and flows toward the passage."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floating after scooping silt."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Dry above shallow water, with its raised corner visible."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "state": "Lifted from the socket."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Open and releasing water toward the bridge."
+          }
+        ]
+      },
+      "emotion": "",
+      "entitiesRequired": [
+        "gold-step-path",
+        "silt-stream",
+        "pearl-shell",
+        "pale-crossing",
+        "blue-divider",
+        "triangle-socket"
+      ],
+      "visualFocus": "Water escaping beneath the lifted stone.",
+      "shotType": "medium",
+      "compositionIntent": "Show the matching stone and socket together.",
+      "textPurpose": "Cause the central problem through Maya's investigation.",
+      "pageTurnHook": "The trickle spreads toward their crossing.",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-ledge",
+            "state": "The first wet step shines through the spray."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Branches around the bridge and flows toward the passage."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floating after scooping silt."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Dry above shallow water, with its raised corner visible."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [
+              "blue-divider"
+            ],
+            "emotion": "steady",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-ledge",
+            "state": "The first wet step shines through the spray."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Branches around the bridge and flows toward the passage."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floating after scooping silt."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Dry above shallow water, with its raised corner visible."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "state": "Lifted from the socket."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Open and releasing water toward the bridge."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Maya and Leo crossed the bridge on the Water Terrace.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "A blue stone sat snugly in a triangular socket.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Maya lifted it and bent to look underneath.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Water pressed through the opening, spreading toward the bridge.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "ATTEMPT",
+      "locationZone": "socket ledge",
+      "pageTurnIntent": "CONTINUE",
+      "layoutIntent": "PAGE_PAIR",
+      "progressionReason": "location, goal, obstacle, action, consequence, discovery, world_state, entity_state, information",
+      "worldState": "A fitted blue stone seals the water divider.",
+      "visualNoveltyReason": "location, goal, obstacle, action, consequence, discovery, world_state, entity_state, information",
+      "prose": "Maya and Leo crossed the bridge on the Water Terrace. A blue stone sat snugly in a triangular socket. Maya lifted it and bent to look underneath. Water pressed through the opening, spreading toward the bridge."
+    },
+    {
+      "pageId": "p5",
+      "beatId": "b5",
+      "locationId": "water-terrace",
+      "charactersPresent": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [
+              "blue-divider"
+            ],
+            "emotion": "steady",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-ledge",
+            "state": "The first wet step shines through the spray."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Branches around the bridge and flows toward the passage."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floating after scooping silt."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Dry above shallow water, with its raised corner visible."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "state": "Lifted from the socket."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Open and releasing water toward the bridge."
+          }
+        ]
+      },
+      "action": "Leo helps Maya across the last dry foothold before water covers the bridge. Their homeward steps begin fading.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [
+              "blue-divider"
+            ],
+            "emotion": "Maya grips the stone against her shirt.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya grips the stone against her shirt.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Drying and fading."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floods the crossing instead of feeding the passage."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floating after scooping silt."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Submerged beneath ankle-deep moving water."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "state": "Lifted from the socket."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Open and releasing water toward the bridge."
+          }
+        ]
+      },
+      "emotion": "Maya grips the stone against her shirt.",
+      "entitiesRequired": [
+        "gold-step-path",
+        "silt-stream",
+        "pearl-shell",
+        "pale-crossing",
+        "blue-divider",
+        "triangle-socket"
+      ],
+      "visualFocus": "The fading passage entrance.",
+      "shotType": "high",
+      "compositionIntent": "Separate the children from the socket with the flooded crossing.",
+      "textPurpose": "Make losing the route home an immediate consequence.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [
+              "blue-divider"
+            ],
+            "emotion": "steady",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-ledge",
+            "state": "The first wet step shines through the spray."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Branches around the bridge and flows toward the passage."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floating after scooping silt."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Dry above shallow water, with its raised corner visible."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "state": "Lifted from the socket."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Open and releasing water toward the bridge."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [
+              "blue-divider"
+            ],
+            "emotion": "Maya grips the stone against her shirt.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya grips the stone against her shirt.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Drying and fading."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floods the crossing instead of feeding the passage."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floating after scooping silt."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Submerged beneath ankle-deep moving water."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "state": "Lifted from the socket."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Open and releasing water toward the bridge."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "On the Water Terrace, water rushed from the open socket toward the bridge.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Leo braced himself on the last dry foothold and pulled Maya across.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Moving water covered the bridge, washing around their ankles.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Maya turned toward their homeward steps; the gold was fading.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "ESCALATION",
+      "locationZone": "channel rim",
+      "pageTurnIntent": "CONTINUE",
+      "layoutIntent": "PAGE_PAIR",
+      "progressionReason": "location, goal, obstacle, action, consequence, world_state, entity_state, information",
+      "worldState": "Diverted water is covering the bridge.",
+      "visualNoveltyReason": "location, goal, obstacle, action, consequence, world_state, entity_state, information",
+      "prose": "On the Water Terrace, water rushed from the open socket toward the bridge. Leo braced himself on the last dry foothold and pulled Maya across. Moving water covered the bridge, washing around their ankles. Maya turned toward their homeward steps; the gold was fading."
+    },
+    {
+      "pageId": "p6",
+      "beatId": "b6",
+      "locationId": "water-terrace",
+      "charactersPresent": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [
+              "blue-divider"
+            ],
+            "emotion": "Maya grips the stone against her shirt.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya grips the stone against her shirt.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Drying and fading."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floods the crossing instead of feeding the passage."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floating after scooping silt."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Submerged beneath ankle-deep moving water."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "state": "Lifted from the socket."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Open and releasing water toward the bridge."
+          }
+        ]
+      },
+      "action": "Maya says, “My hands are shaking, but I'll put it back.” Leo supports her hand: “We'll use the shell together.”",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [
+              "blue-divider"
+            ],
+            "emotion": "Maya grips the stone against her shirt.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya grips the stone against her shirt.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Drying and fading."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floods the crossing instead of feeding the passage."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floating after scooping silt."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Submerged beneath ankle-deep moving water."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "state": "Lifted from the socket."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Open and releasing water toward the bridge."
+          }
+        ]
+      },
+      "emotion": "",
+      "entitiesRequired": [
+        "gold-step-path",
+        "silt-stream",
+        "pearl-shell",
+        "pale-crossing",
+        "blue-divider",
+        "triangle-socket"
+      ],
+      "visualFocus": "Leo supporting Maya's hand.",
+      "shotType": "reaction",
+      "compositionIntent": "Connect their joined hands with the nearby floating shell.",
+      "textPurpose": "Make responsibility and support change their next decision.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [
+              "blue-divider"
+            ],
+            "emotion": "Maya grips the stone against her shirt.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya grips the stone against her shirt.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Drying and fading."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floods the crossing instead of feeding the passage."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floating after scooping silt."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Submerged beneath ankle-deep moving water."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "state": "Lifted from the socket."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Open and releasing water toward the bridge."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [
+              "blue-divider"
+            ],
+            "emotion": "Maya grips the stone against her shirt.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya grips the stone against her shirt.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Drying and fading."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floods the crossing instead of feeding the passage."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floating after scooping silt."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Submerged beneath ankle-deep moving water."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "state": "Lifted from the socket."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Open and releasing water toward the bridge."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "At the Water Terrace's channel rim, Maya gripped the blue stone with both hands.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"My hands are shaking, but I'll put it back.\"",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Leo slipped his hand beneath hers.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"We'll use the shell together.\"",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "COMMITMENT",
+      "locationZone": "channel rim",
+      "pageTurnIntent": "CONTINUE",
+      "layoutIntent": "PAGE_PAIR",
+      "progressionReason": "goal, obstacle, action, consequence, world_state, information",
+      "worldState": "Repair requires returning across the flooded bridge.",
+      "visualNoveltyReason": "goal, obstacle, action, consequence, world_state, information",
+      "prose": "At the Water Terrace's channel rim, Maya gripped the blue stone with both hands. \"My hands are shaking, but I'll put it back.\" Leo slipped his hand beneath hers. \"We'll use the shell together.\""
+    },
+    {
+      "pageId": "p7",
+      "beatId": "b7",
+      "locationId": "water-terrace",
+      "charactersPresent": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [
+              "blue-divider"
+            ],
+            "emotion": "Maya grips the stone against her shirt.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya grips the stone against her shirt.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Drying and fading."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floods the crossing instead of feeding the passage."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floating after scooping silt."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Submerged beneath ankle-deep moving water."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "state": "Lifted from the socket."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Open and releasing water toward the bridge."
+          }
+        ]
+      },
+      "action": "Leo centers the stone in the shell and waits until both rims float level. Maya takes the opposite rim.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya grips the stone against her shirt.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya grips the stone against her shirt.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Drying and fading."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floods the crossing instead of feeding the passage."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Carries the centered stone while both children guide its rims."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Submerged beneath ankle-deep moving water."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Balanced inside the floating shell."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Open and releasing water toward the bridge."
+          }
+        ]
+      },
+      "emotion": "",
+      "entitiesRequired": [
+        "gold-step-path",
+        "silt-stream",
+        "pearl-shell",
+        "pale-crossing",
+        "blue-divider",
+        "triangle-socket"
+      ],
+      "visualFocus": "The blue stone balanced inside the shell.",
+      "shotType": "overhead",
+      "compositionIntent": "Make the centered load and paired hands clear.",
+      "textPurpose": "Turn Leo's testing into a workable transport plan.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [
+              "blue-divider"
+            ],
+            "emotion": "Maya grips the stone against her shirt.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya grips the stone against her shirt.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Drying and fading."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floods the crossing instead of feeding the passage."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floating after scooping silt."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Submerged beneath ankle-deep moving water."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "state": "Lifted from the socket."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Open and releasing water toward the bridge."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya grips the stone against her shirt.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya grips the stone against her shirt.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Drying and fading."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floods the crossing instead of feeding the passage."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Carries the centered stone while both children guide its rims."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Submerged beneath ankle-deep moving water."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Balanced inside the floating shell."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Open and releasing water toward the bridge."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Beside the flooded bridge on the Water Terrace, Leo lowered the stone into the floating shell.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "He nudged it toward the center.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Then he waited until both rims floated level.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Maya took the opposite rim without tipping it.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "DISCOVERY",
+      "locationZone": "channel rim",
+      "pageTurnIntent": "CONTINUE",
+      "layoutIntent": "PAGE_PAIR",
+      "progressionReason": "goal, obstacle, action, consequence, world_state, entity_state, information",
+      "worldState": "The floating shell can carry the stone.",
+      "visualNoveltyReason": "goal, obstacle, action, consequence, world_state, entity_state, information",
+      "prose": "Beside the flooded bridge on the Water Terrace, Leo lowered the stone into the floating shell. He nudged it toward the center. Then he waited until both rims floated level. Maya took the opposite rim without tipping it."
+    },
+    {
+      "pageId": "p8",
+      "beatId": "b8",
+      "locationId": "water-terrace",
+      "charactersPresent": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya grips the stone against her shirt.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya grips the stone against her shirt.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Drying and fading."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floods the crossing instead of feeding the passage."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Carries the centered stone while both children guide its rims."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Submerged beneath ankle-deep moving water."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Balanced inside the floating shell."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Open and releasing water toward the bridge."
+          }
+        ]
+      },
+      "action": "Maya leads onto the submerged bridge while they guide the shell between them. Her forward push catches its rim on the hidden corner.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya grips the stone against her shirt.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya grips the stone against her shirt.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Drying and fading."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floods the crossing instead of feeding the passage."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Cracking against the raised bridge corner."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Submerged beneath ankle-deep moving water."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Balanced inside the floating shell."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Open and releasing water toward the bridge."
+          }
+        ]
+      },
+      "emotion": "",
+      "entitiesRequired": [
+        "gold-step-path",
+        "silt-stream",
+        "pearl-shell",
+        "pale-crossing",
+        "blue-divider",
+        "triangle-socket"
+      ],
+      "visualFocus": "The cracking shell rim.",
+      "shotType": "action",
+      "compositionIntent": "Show the bridge beneath the water and the shell striking its corner.",
+      "textPurpose": "Give their repair attempt a specific cost.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya grips the stone against her shirt.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya grips the stone against her shirt.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Drying and fading."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floods the crossing instead of feeding the passage."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Carries the centered stone while both children guide its rims."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Submerged beneath ankle-deep moving water."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Balanced inside the floating shell."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Open and releasing water toward the bridge."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya grips the stone against her shirt.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya grips the stone against her shirt.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Drying and fading."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floods the crossing instead of feeding the passage."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Cracking against the raised bridge corner."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Submerged beneath ankle-deep moving water."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Balanced inside the floating shell."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Open and releasing water toward the bridge."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Maya stepped onto the submerged bridge on the Water Terrace.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The shell floated between them as Leo followed.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "She pushed forward, and its rim caught on the hidden corner.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "A crack ran through the shell.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "ATTEMPT",
+      "locationZone": "low bridge",
+      "pageTurnIntent": "CONTINUE",
+      "layoutIntent": "PAGE_PAIR",
+      "progressionReason": "location, goal, obstacle, action, consequence, world_state, information",
+      "worldState": "The bridge remains passable beneath shallow water.",
+      "visualNoveltyReason": "location, goal, obstacle, action, consequence, world_state, information",
+      "prose": "Maya stepped onto the submerged bridge on the Water Terrace. The shell floated between them as Leo followed. She pushed forward, and its rim caught on the hidden corner. A crack ran through the shell."
+    },
+    {
+      "pageId": "p9",
+      "beatId": "b9",
+      "locationId": "water-terrace",
+      "charactersPresent": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya grips the stone against her shirt.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya grips the stone against her shirt.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Drying and fading."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floods the crossing instead of feeding the passage."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Cracking against the raised bridge corner."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Submerged beneath ankle-deep moving water."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Balanced inside the floating shell."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Open and releasing water toward the bridge."
+          }
+        ]
+      },
+      "action": "Leo catches the stone, and Maya reaches into the current for both shell pieces. They step onto the socket ledge together.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [
+              "pearl-shell"
+            ],
+            "emotion": "Maya studies the broken rims in her hands.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [
+              "blue-divider"
+            ],
+            "emotion": "Maya studies the broken rims in her hands.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Drying and fading."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floods the crossing instead of feeding the passage."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "state": "Broken into two curved pieces."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Submerged beneath ankle-deep moving water."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "state": "Caught before sinking."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Open and releasing water toward the bridge."
+          }
+        ]
+      },
+      "emotion": "Maya studies the broken rims in her hands.",
+      "entitiesRequired": [
+        "gold-step-path",
+        "silt-stream",
+        "pearl-shell",
+        "pale-crossing",
+        "blue-divider",
+        "triangle-socket"
+      ],
+      "visualFocus": "Their different catches completing one rescue.",
+      "shotType": "low",
+      "compositionIntent": "Keep the rescued objects above the current and the ledge within reach.",
+      "textPurpose": "Preserve useful remnants without undoing the breakage.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya grips the stone against her shirt.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya grips the stone against her shirt.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Drying and fading."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floods the crossing instead of feeding the passage."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Cracking against the raised bridge corner."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Submerged beneath ankle-deep moving water."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Balanced inside the floating shell."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Open and releasing water toward the bridge."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [
+              "pearl-shell"
+            ],
+            "emotion": "Maya studies the broken rims in her hands.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [
+              "blue-divider"
+            ],
+            "emotion": "Maya studies the broken rims in her hands.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Drying and fading."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floods the crossing instead of feeding the passage."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "state": "Broken into two curved pieces."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Submerged beneath ankle-deep moving water."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "state": "Caught before sinking."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Open and releasing water toward the bridge."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "The shell split in two on the Water Terrace.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Leo caught the blue stone before it sank.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Maya reached into the current and grabbed both curved pieces.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Together, they stepped onto the ledge beside the open socket.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "SETBACK",
+      "locationZone": "socket ledge",
+      "pageTurnIntent": "CONTINUE",
+      "layoutIntent": "PAGE_PAIR",
+      "progressionReason": "location, goal, obstacle, action, consequence, world_state, entity_state, information",
+      "worldState": "The shell splits near the far end of the bridge.",
+      "visualNoveltyReason": "location, goal, obstacle, action, consequence, world_state, entity_state, information",
+      "prose": "The shell split in two on the Water Terrace. Leo caught the blue stone before it sank. Maya reached into the current and grabbed both curved pieces. Together, they stepped onto the ledge beside the open socket."
+    },
+    {
+      "pageId": "p10",
+      "beatId": "b10",
+      "locationId": "water-terrace",
+      "charactersPresent": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [
+              "pearl-shell"
+            ],
+            "emotion": "Maya studies the broken rims in her hands.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [
+              "blue-divider"
+            ],
+            "emotion": "Maya studies the broken rims in her hands.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Drying and fading."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floods the crossing instead of feeding the passage."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "state": "Broken into two curved pieces."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Submerged beneath ankle-deep moving water."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "state": "Caught before sinking."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Open and releasing water toward the bridge."
+          }
+        ]
+      },
+      "action": "The stone wobbles on packed silt, so Leo lifts it clear. Maya probes with a shell edge: “This still scoops.”",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [
+              "pearl-shell"
+            ],
+            "emotion": "Maya studies the broken rims in her hands.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [
+              "blue-divider"
+            ],
+            "emotion": "Maya studies the broken rims in her hands.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Drying and fading."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floods the crossing instead of feeding the passage."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "state": "Broken into two curved pieces."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Submerged beneath ankle-deep moving water."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "state": "Caught before sinking."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Packed with silt deposited by the diverted water."
+          }
+        ]
+      },
+      "emotion": "",
+      "entitiesRequired": [
+        "gold-step-path",
+        "silt-stream",
+        "pearl-shell",
+        "pale-crossing",
+        "blue-divider",
+        "triangle-socket"
+      ],
+      "visualFocus": "Golden silt beneath the stone's point.",
+      "shotType": "close",
+      "compositionIntent": "Place the curved shell edge beside the obstructed triangular hollow.",
+      "textPurpose": "Connect the solution to the shell's earlier use.",
+      "pageTurnHook": "The broken shell has one more job.",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [
+              "pearl-shell"
+            ],
+            "emotion": "Maya studies the broken rims in her hands.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [
+              "blue-divider"
+            ],
+            "emotion": "Maya studies the broken rims in her hands.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Drying and fading."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floods the crossing instead of feeding the passage."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "state": "Broken into two curved pieces."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Submerged beneath ankle-deep moving water."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "state": "Caught before sinking."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Open and releasing water toward the bridge."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [
+              "pearl-shell"
+            ],
+            "emotion": "Maya studies the broken rims in her hands.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [
+              "blue-divider"
+            ],
+            "emotion": "Maya studies the broken rims in her hands.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Drying and fading."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floods the crossing instead of feeding the passage."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "state": "Broken into two curved pieces."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Submerged beneath ankle-deep moving water."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "state": "Caught before sinking."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Packed with silt deposited by the diverted water."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "At the Water Terrace's socket, Leo tried lowering the stone into place.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "It wobbled on silt packed inside by the rushing water.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "He lifted it clear while Maya probed the silt with a broken shell edge.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"This still scoops.\"",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "REVELATION",
+      "locationZone": "socket ledge",
+      "pageTurnIntent": "REVEAL",
+      "layoutIntent": "REVEAL_TURN",
+      "progressionReason": "goal, obstacle, action, consequence, world_state, information",
+      "worldState": "The flood has packed silt into the open socket.",
+      "visualNoveltyReason": "goal, obstacle, action, consequence, world_state, information",
+      "prose": "At the Water Terrace's socket, Leo tried lowering the stone into place. It wobbled on silt packed inside by the rushing water. He lifted it clear while Maya probed the silt with a broken shell edge. \"This still scoops.\""
+    },
+    {
+      "pageId": "p11",
+      "beatId": "b11",
+      "locationId": "water-terrace",
+      "charactersPresent": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [
+              "pearl-shell"
+            ],
+            "emotion": "Maya studies the broken rims in her hands.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [
+              "blue-divider"
+            ],
+            "emotion": "Maya studies the broken rims in her hands.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Drying and fading."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floods the crossing instead of feeding the passage."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "state": "Broken into two curved pieces."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Submerged beneath ankle-deep moving water."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "state": "Caught before sinking."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Packed with silt deposited by the diverted water."
+          }
+        ]
+      },
+      "action": "Maya scoops the socket clean, and Leo seats the stone after her fingers clear. The bridge drains; the pathway shines again.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya studies the broken rims in her hands.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya studies the broken rims in her hands.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Wet and glowing again."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Flows toward the passage again."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Both broken pieces rest beside the repaired socket."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Exposed as the flood drains."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Firmly seated in the socket."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Cleared and sealed."
+          }
+        ]
+      },
+      "emotion": "",
+      "entitiesRequired": [
+        "gold-step-path",
+        "silt-stream",
+        "pearl-shell",
+        "pale-crossing",
+        "blue-divider",
+        "triangle-socket"
+      ],
+      "visualFocus": "The seated blue stone and returning stream.",
+      "shotType": "overhead",
+      "compositionIntent": "Show the repaired divider sending water back toward the passage.",
+      "textPurpose": "Resolve the central problem through the planted tool and both children's choices.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [
+              "pearl-shell"
+            ],
+            "emotion": "Maya studies the broken rims in her hands.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [
+              "blue-divider"
+            ],
+            "emotion": "Maya studies the broken rims in her hands.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Drying and fading."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Floods the crossing instead of feeding the passage."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "state": "Broken into two curved pieces."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Submerged beneath ankle-deep moving water."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "state": "Caught before sinking."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Packed with silt deposited by the diverted water."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya studies the broken rims in her hands.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya studies the broken rims in her hands.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Wet and glowing again."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Flows toward the passage again."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Both broken pieces rest beside the repaired socket."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Exposed as the flood drains."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Firmly seated in the socket."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Cleared and sealed."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "At the Water Terrace's socket, Maya scooped out the last silt with the broken shell.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "She lifted her fingers clear, and Leo pressed the blue stone firmly into place.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The stream returned to its old course.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Water drained from the bridge, and the steps shone gold again.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Both shell pieces rested beside the sealed socket.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "CLIMAX",
+      "locationZone": "socket ledge",
+      "pageTurnIntent": "CONTINUE",
+      "layoutIntent": "DOUBLE_PAGE_SPREAD",
+      "progressionReason": "goal, obstacle, action, consequence, world_state, entity_state, information",
+      "worldState": "The shell pieces can clear the blocked divider.",
+      "visualNoveltyReason": "goal, obstacle, action, consequence, world_state, entity_state, information",
+      "prose": "At the Water Terrace's socket, Maya scooped out the last silt with the broken shell. She lifted her fingers clear, and Leo pressed the blue stone firmly into place. The stream returned to its old course. Water drained from the bridge, and the steps shone gold again. Both shell pieces rested beside the sealed socket."
+    },
+    {
+      "pageId": "p12",
+      "beatId": "b12",
+      "locationId": "shining-passage",
+      "charactersPresent": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya studies the broken rims in her hands.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya studies the broken rims in her hands.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Wet and glowing again."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Flows toward the passage again."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Both broken pieces rest beside the repaired socket."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Exposed as the flood drains."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Firmly seated in the socket."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Cleared and sealed."
+          }
+        ]
+      },
+      "action": "Behind the waterfall, Maya leaves the loose stones untouched and presses her wet palm against the wall. Leo adds a gold handprint beside hers.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "shining-passage",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya studies the broken rims in her hands.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "shining-passage",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya studies the broken rims in her hands.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Wet and glowing again."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Flows toward the passage again."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Both broken pieces rest beside the repaired socket."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Exposed as the flood drains."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Firmly seated in the socket."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Cleared and sealed."
+          }
+        ]
+      },
+      "emotion": "",
+      "entitiesRequired": [
+        "gold-step-path",
+        "silt-stream",
+        "pearl-shell",
+        "pale-crossing",
+        "blue-divider",
+        "triangle-socket"
+      ],
+      "visualFocus": "Paired golden handprints on dark rock.",
+      "shotType": "vignette",
+      "compositionIntent": "Frame the bright exit with two shining handprints.",
+      "textPurpose": "End with a changed choice and a memorable image.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya studies the broken rims in her hands.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "water-terrace",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya studies the broken rims in her hands.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Wet and glowing again."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Flows toward the passage again."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Both broken pieces rest beside the repaired socket."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Exposed as the flood drains."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Firmly seated in the socket."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Cleared and sealed."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "shining-passage",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya studies the broken rims in her hands.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "shining-passage",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya studies the broken rims in her hands.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "gold-step-path",
+            "ownerCharacterId": null,
+            "locationId": "shining-passage",
+            "state": "Wet and glowing again."
+          },
+          {
+            "entityId": "silt-stream",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Flows toward the passage again."
+          },
+          {
+            "entityId": "pearl-shell",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Both broken pieces rest beside the repaired socket."
+          },
+          {
+            "entityId": "pale-crossing",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Exposed as the flood drains."
+          },
+          {
+            "entityId": "blue-divider",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Firmly seated in the socket."
+          },
+          {
+            "entityId": "triangle-socket",
+            "ownerCharacterId": null,
+            "locationId": "water-terrace",
+            "state": "Cleared and sealed."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Back in the Shining Passage, behind the waterfall, Maya passed the loose stones without touching them.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "She pressed her wet palm against the wall.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Leo added a gold handprint beside hers.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Two golden hands gleamed above the shining steps.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "RESOLUTION",
+      "locationZone": "wet steps",
+      "pageTurnIntent": "RESOLVE",
+      "layoutIntent": "SINGLE_PAGE_SCENE",
+      "progressionReason": "location, goal, action, consequence, world_state, information",
+      "worldState": "Golden steps lead toward the water curtain.",
+      "visualNoveltyReason": "location, goal, action, consequence, world_state, information",
+      "prose": "Back in the Shining Passage, behind the waterfall, Maya passed the loose stones without touching them. She pressed her wet palm against the wall. Leo added a gold handprint beside hers. Two golden hands gleamed above the shining steps."
+    }
+  ],
+  "imageCalls": 0,
+  "traitLabelNote": "The plan used character ids as trait labels. Those labels were mapped to each child's catalogue traits from the behaviour already written. The events were not rewritten."
+}

@@ -1,0 +1,655 @@
+{
+  "calls": {
+    "text": 0,
+    "image": 13,
+    "vision": 13
+  },
+  "listedUsd": 0.51932,
+  "gbpPerUsd": 0.754,
+  "listedGbp": 0.391567,
+  "ledger": [
+    {
+      "kind": "image",
+      "purpose": "",
+      "label": "wondii-maya+wondii-leo",
+      "http": 200,
+      "usd": 0.037736,
+      "usage": {
+        "present": true,
+        "perReference": false,
+        "reason": "aggregate-only",
+        "model": "gpt-image-2.5-sunburst",
+        "inputTokens": 3646,
+        "imageInputTokens": 3072,
+        "textInputTokens": 574,
+        "outputTokens": 343,
+        "imageOutputTokens": 343
+      }
+    },
+    {
+      "kind": "vision",
+      "purpose": "",
+      "label": "p1",
+      "http": 200,
+      "usd": 0.001427,
+      "usage": {
+        "prompt_tokens": 8768,
+        "completion_tokens": 187,
+        "total_tokens": 8955,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "image",
+      "purpose": "",
+      "label": "wondii-maya+wondii-leo",
+      "http": 200,
+      "usd": 0.038306,
+      "usage": {
+        "present": true,
+        "perReference": false,
+        "reason": "aggregate-only",
+        "model": "gpt-image-2.5-sunburst",
+        "inputTokens": 3760,
+        "imageInputTokens": 3072,
+        "textInputTokens": 688,
+        "outputTokens": 343,
+        "imageOutputTokens": 343
+      }
+    },
+    {
+      "kind": "vision",
+      "purpose": "",
+      "label": "p2",
+      "http": 200,
+      "usd": 0.001426,
+      "usage": {
+        "prompt_tokens": 8759,
+        "completion_tokens": 187,
+        "total_tokens": 8946,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "image",
+      "purpose": "",
+      "label": "wondii-maya+wondii-leo",
+      "http": 200,
+      "usd": 0.038406,
+      "usage": {
+        "present": true,
+        "perReference": false,
+        "reason": "aggregate-only",
+        "model": "gpt-image-2.5-sunburst",
+        "inputTokens": 3780,
+        "imageInputTokens": 3072,
+        "textInputTokens": 708,
+        "outputTokens": 343,
+        "imageOutputTokens": 343
+      }
+    },
+    {
+      "kind": "vision",
+      "purpose": "",
+      "label": "p3",
+      "http": 200,
+      "usd": 0.001428,
+      "usage": {
+        "prompt_tokens": 8774,
+        "completion_tokens": 187,
+        "total_tokens": 8961,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "image",
+      "purpose": "",
+      "label": "wondii-maya+wondii-leo",
+      "http": 200,
+      "usd": 0.038271,
+      "usage": {
+        "present": true,
+        "perReference": false,
+        "reason": "aggregate-only",
+        "model": "gpt-image-2.5-sunburst",
+        "inputTokens": 3753,
+        "imageInputTokens": 3072,
+        "textInputTokens": 681,
+        "outputTokens": 343,
+        "imageOutputTokens": 343
+      }
+    },
+    {
+      "kind": "vision",
+      "purpose": "",
+      "label": "p4",
+      "http": 200,
+      "usd": 0.001427,
+      "usage": {
+        "prompt_tokens": 8768,
+        "completion_tokens": 187,
+        "total_tokens": 8955,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "image",
+      "purpose": "",
+      "label": "wondii-maya+wondii-leo",
+      "http": 200,
+      "usd": 0.038356,
+      "usage": {
+        "present": true,
+        "perReference": false,
+        "reason": "aggregate-only",
+        "model": "gpt-image-2.5-sunburst",
+        "inputTokens": 3770,
+        "imageInputTokens": 3072,
+        "textInputTokens": 698,
+        "outputTokens": 343,
+        "imageOutputTokens": 343
+      }
+    },
+    {
+      "kind": "vision",
+      "purpose": "",
+      "label": "p5",
+      "http": 200,
+      "usd": 0.001426,
+      "usage": {
+        "prompt_tokens": 8761,
+        "completion_tokens": 187,
+        "total_tokens": 8948,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "image",
+      "purpose": "",
+      "label": "wondii-maya+wondii-leo",
+      "http": 200,
+      "usd": 0.038381,
+      "usage": {
+        "present": true,
+        "perReference": false,
+        "reason": "aggregate-only",
+        "model": "gpt-image-2.5-sunburst",
+        "inputTokens": 3775,
+        "imageInputTokens": 3072,
+        "textInputTokens": 703,
+        "outputTokens": 343,
+        "imageOutputTokens": 343
+      }
+    },
+    {
+      "kind": "vision",
+      "purpose": "",
+      "label": "p6",
+      "http": 200,
+      "usd": 0.001426,
+      "usage": {
+        "prompt_tokens": 8760,
+        "completion_tokens": 187,
+        "total_tokens": 8947,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "image",
+      "purpose": "",
+      "label": "wondii-maya+wondii-leo",
+      "http": 200,
+      "usd": 0.038426,
+      "usage": {
+        "present": true,
+        "perReference": false,
+        "reason": "aggregate-only",
+        "model": "gpt-image-2.5-sunburst",
+        "inputTokens": 3784,
+        "imageInputTokens": 3072,
+        "textInputTokens": 712,
+        "outputTokens": 343,
+        "imageOutputTokens": 343
+      }
+    },
+    {
+      "kind": "vision",
+      "purpose": "",
+      "label": "p7",
+      "http": 200,
+      "usd": 0.001427,
+      "usage": {
+        "prompt_tokens": 8768,
+        "completion_tokens": 187,
+        "total_tokens": 8955,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "image",
+      "purpose": "",
+      "label": "wondii-maya+wondii-leo",
+      "http": 200,
+      "usd": 0.038771,
+      "usage": {
+        "present": true,
+        "perReference": false,
+        "reason": "aggregate-only",
+        "model": "gpt-image-2.5-sunburst",
+        "inputTokens": 3853,
+        "imageInputTokens": 3072,
+        "textInputTokens": 781,
+        "outputTokens": 343,
+        "imageOutputTokens": 343
+      }
+    },
+    {
+      "kind": "vision",
+      "purpose": "",
+      "label": "p8",
+      "http": 200,
+      "usd": 0.001427,
+      "usage": {
+        "prompt_tokens": 8762,
+        "completion_tokens": 187,
+        "total_tokens": 8949,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "image",
+      "purpose": "",
+      "label": "wondii-maya+wondii-leo",
+      "http": 200,
+      "usd": 0.038746,
+      "usage": {
+        "present": true,
+        "perReference": false,
+        "reason": "aggregate-only",
+        "model": "gpt-image-2.5-sunburst",
+        "inputTokens": 3848,
+        "imageInputTokens": 3072,
+        "textInputTokens": 776,
+        "outputTokens": 343,
+        "imageOutputTokens": 343
+      }
+    },
+    {
+      "kind": "vision",
+      "purpose": "",
+      "label": "p9",
+      "http": 200,
+      "usd": 0.001404,
+      "usage": {
+        "prompt_tokens": 8761,
+        "completion_tokens": 149,
+        "total_tokens": 8910,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "image",
+      "purpose": "",
+      "label": "wondii-maya+wondii-leo",
+      "http": 200,
+      "usd": 0.039031,
+      "usage": {
+        "present": true,
+        "perReference": false,
+        "reason": "aggregate-only",
+        "model": "gpt-image-2.5-sunburst",
+        "inputTokens": 3905,
+        "imageInputTokens": 3072,
+        "textInputTokens": 833,
+        "outputTokens": 343,
+        "imageOutputTokens": 343
+      }
+    },
+    {
+      "kind": "vision",
+      "purpose": "",
+      "label": "p9",
+      "http": 200,
+      "usd": 0.001426,
+      "usage": {
+        "prompt_tokens": 8761,
+        "completion_tokens": 187,
+        "total_tokens": 8948,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "image",
+      "purpose": "",
+      "label": "wondii-maya+wondii-leo",
+      "http": 200,
+      "usd": 0.038796,
+      "usage": {
+        "present": true,
+        "perReference": false,
+        "reason": "aggregate-only",
+        "model": "gpt-image-2.5-sunburst",
+        "inputTokens": 3858,
+        "imageInputTokens": 3072,
+        "textInputTokens": 786,
+        "outputTokens": 343,
+        "imageOutputTokens": 343
+      }
+    },
+    {
+      "kind": "vision",
+      "purpose": "",
+      "label": "p10",
+      "http": 200,
+      "usd": 0.001428,
+      "usage": {
+        "prompt_tokens": 8771,
+        "completion_tokens": 187,
+        "total_tokens": 8958,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "image",
+      "purpose": "",
+      "label": "wondii-maya+wondii-leo",
+      "http": 200,
+      "usd": 0.038791,
+      "usage": {
+        "present": true,
+        "perReference": false,
+        "reason": "aggregate-only",
+        "model": "gpt-image-2.5-sunburst",
+        "inputTokens": 3857,
+        "imageInputTokens": 3072,
+        "textInputTokens": 785,
+        "outputTokens": 343,
+        "imageOutputTokens": 343
+      }
+    },
+    {
+      "kind": "vision",
+      "purpose": "",
+      "label": "p11",
+      "http": 200,
+      "usd": 0.001427,
+      "usage": {
+        "prompt_tokens": 8765,
+        "completion_tokens": 187,
+        "total_tokens": 8952,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "image",
+      "purpose": "",
+      "label": "wondii-maya+wondii-leo",
+      "http": 200,
+      "usd": 0.038776,
+      "usage": {
+        "present": true,
+        "perReference": false,
+        "reason": "aggregate-only",
+        "model": "gpt-image-2.5-sunburst",
+        "inputTokens": 3854,
+        "imageInputTokens": 3072,
+        "textInputTokens": 782,
+        "outputTokens": 343,
+        "imageOutputTokens": 343
+      }
+    },
+    {
+      "kind": "vision",
+      "purpose": "",
+      "label": "p12",
+      "http": 200,
+      "usd": 0.001428,
+      "usage": {
+        "prompt_tokens": 8769,
+        "completion_tokens": 187,
+        "total_tokens": 8956,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    }
+  ],
+  "stage": "illustrations-complete",
+  "resumed": true,
+  "textCalls": 0,
+  "title": "The Lantern’s Missing Path",
+  "pages": [
+    {
+      "page": 1,
+      "spreadId": "p1",
+      "ok": true,
+      "repairs": 0,
+      "reason": "",
+      "problems": [],
+      "file": "docs/agent/book-v2/castle-lost-lanterns/images/p1.jpg"
+    },
+    {
+      "page": 2,
+      "spreadId": "p2",
+      "ok": true,
+      "repairs": 0,
+      "reason": "",
+      "problems": [],
+      "file": "docs/agent/book-v2/castle-lost-lanterns/images/p2.jpg"
+    },
+    {
+      "page": 3,
+      "spreadId": "p3",
+      "ok": true,
+      "repairs": 0,
+      "reason": "",
+      "problems": [],
+      "file": "docs/agent/book-v2/castle-lost-lanterns/images/p3.jpg"
+    },
+    {
+      "page": 4,
+      "spreadId": "p4",
+      "ok": true,
+      "repairs": 0,
+      "reason": "",
+      "problems": [],
+      "file": "docs/agent/book-v2/castle-lost-lanterns/images/p4.jpg"
+    },
+    {
+      "page": 5,
+      "spreadId": "p5",
+      "ok": true,
+      "repairs": 0,
+      "reason": "",
+      "problems": [],
+      "file": "docs/agent/book-v2/castle-lost-lanterns/images/p5.jpg"
+    },
+    {
+      "page": 6,
+      "spreadId": "p6",
+      "ok": true,
+      "repairs": 0,
+      "reason": "",
+      "problems": [],
+      "file": "docs/agent/book-v2/castle-lost-lanterns/images/p6.jpg"
+    },
+    {
+      "page": 7,
+      "spreadId": "p7",
+      "ok": true,
+      "repairs": 0,
+      "reason": "",
+      "problems": [],
+      "file": "docs/agent/book-v2/castle-lost-lanterns/images/p7.jpg"
+    },
+    {
+      "page": 8,
+      "spreadId": "p8",
+      "ok": true,
+      "repairs": 0,
+      "reason": "",
+      "problems": [],
+      "file": "docs/agent/book-v2/castle-lost-lanterns/images/p8.jpg"
+    },
+    {
+      "page": 9,
+      "spreadId": "p9",
+      "ok": true,
+      "repairs": 1,
+      "reason": "repaired",
+      "problems": [],
+      "file": "docs/agent/book-v2/castle-lost-lanterns/images/p9.jpg"
+    },
+    {
+      "page": 10,
+      "spreadId": "p10",
+      "ok": true,
+      "repairs": 0,
+      "reason": "",
+      "problems": [],
+      "file": "docs/agent/book-v2/castle-lost-lanterns/images/p10.jpg"
+    },
+    {
+      "page": 11,
+      "spreadId": "p11",
+      "ok": true,
+      "repairs": 0,
+      "reason": "",
+      "problems": [],
+      "file": "docs/agent/book-v2/castle-lost-lanterns/images/p11.jpg"
+    },
+    {
+      "page": 12,
+      "spreadId": "p12",
+      "ok": true,
+      "repairs": 0,
+      "reason": "",
+      "problems": [],
+      "file": "docs/agent/book-v2/castle-lost-lanterns/images/p12.jpg"
+    }
+  ],
+  "save": {
+    "ok": true,
+    "claimed": false,
+    "duplicate": true,
+    "readerPages": 12,
+    "reopenedPages": 12,
+    "missingArt": 0,
+    "textsMatch": true
+  }
+}

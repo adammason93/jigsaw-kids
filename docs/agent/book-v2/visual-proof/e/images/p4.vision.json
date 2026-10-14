@@ -1,0 +1,44 @@
+{
+  "observations": "The illustration shows a child named Maya with long dark curls, medium brown skin, and warm brown eyes, sitting in a sheltered corner beneath a tall garden wall. She is wearing a yellow cardigan, a white shirt, a blue skirt, white socks, and navy shoes. Maya is cupping her hands around a small warm white star that is unfolding and blinking against her fingers. The surrounding area features a round clay flowerpot, soft evening shadows, and flowers near the pot. The hidden star appears recognizable in her hands.",
+  "characters": [
+    {
+      "characterId": "maya",
+      "identityMatch": true,
+      "outfitMatch": true,
+      "count": 1
+    }
+  ],
+  "entities": [
+    {
+      "entityId": "clay-flowerpot",
+      "status": "confirmed",
+      "seen": "A round clay pot with a dark gap beneath its rim is visible beside Maya."
+    },
+    {
+      "entityId": "garden-wall",
+      "status": "confirmed",
+      "seen": "A tall pale wall blocks the sky from the sheltered corner where Maya is sitting."
+    },
+    {
+      "entityId": "hidden-star",
+      "status": "confirmed",
+      "seen": "The small five-pointed star is visible in Maya's hands, unfolding and blinking."
+    }
+  ],
+  "locationMatch": true,
+  "prematureResult": false,
+  "textDetected": false,
+  "anatomyOk": true,
+  "textSafeUsable": true,
+  "duplicateCharacter": false,
+  "momentMatch": true,
+  "montageShown": false,
+  "style": {
+    "rendering": "painted",
+    "characterRendering": "painted",
+    "proportions": "picture-book",
+    "edge": "soft",
+    "texture": "painted",
+    "finish": "picture-book"
+  }
+}

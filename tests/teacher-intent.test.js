@@ -218,6 +218,38 @@ assert.strictEqual(brief.system.toLowerCase().indexOf("speech marks"), -1);
 assert.strictEqual(brief.system.toLowerCase().indexOf("backbone"), -1);
 assert.strictEqual(brief.system.toLowerCase().indexOf("solids, liquids"), -1);
 assert.ok(brief.user.indexOf("Do not reteach the three states") !== -1);
+assert.ok(brief.system.indexOf("unless the teacher asked for that count") !== -1);
+
+var dinoRequest = "Year 3 science. Teach children about dinosaurs.";
+var inventedCount = Brain.normaliseTeacherIntent({
+  yearGroup: "Year 3",
+  subject: "Science",
+  subjectConfidence: "explicit",
+  learningGoal: "Students will understand the different types of dinosaurs and their characteristics.",
+  requiredEvidence: "Students can identify and describe at least three different types of dinosaurs and their features.",
+  focusConcepts: ["dinosaurs"],
+  priorKnowledge: [],
+  exclusions: [],
+  preferences: [],
+  durationMinutes: null
+}, ctxFor(dinoRequest, { yearGroup: "Year 3", subject: "Science" }));
+assert.strictEqual(inventedCount.ok, true);
+assert.strictEqual(inventedCount.requiredEvidence.indexOf("three"), -1, inventedCount.requiredEvidence);
+assert.ok(/types/.test(inventedCount.requiredEvidence) && /features/.test(inventedCount.requiredEvidence));
+var askedCount = Brain.normaliseTeacherIntent({
+  yearGroup: "Year 3",
+  subject: "Science",
+  subjectConfidence: "explicit",
+  learningGoal: "Students will name three types of dinosaurs and one feature of each.",
+  requiredEvidence: "Students can identify and describe at least three different types of dinosaurs and their features.",
+  focusConcepts: ["dinosaurs"],
+  priorKnowledge: [],
+  exclusions: [],
+  preferences: [],
+  durationMinutes: null
+}, ctxFor("Year 3 science. Teach three types of dinosaurs.", { yearGroup: "Year 3", subject: "Science" }));
+assert.strictEqual(askedCount.ok, true);
+assert.ok(askedCount.requiredEvidence.indexOf("three") !== -1, "a count the teacher asked for stays");
 
 var legacy = Brain.conceptCoverageIssues("the class talks about rivers", {
   topic: "weather and climate",
