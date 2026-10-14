@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import "../../../js/lesson-brain.js";
+import { readPublishableKey } from "../_shared/service-key.mjs";
 
 const brain = (globalThis as { WondiiLessonBrain?: any }).WondiiLessonBrain;
 const corsHeaders = {
@@ -93,7 +94,7 @@ Deno.serve(async (req) => {
   }
   const apiKey = (Deno.env.get("OPENAI_API_KEY") ?? "").trim();
   const base = (Deno.env.get("SUPABASE_URL") ?? "").replace(/\/$/, "");
-  const anon = (Deno.env.get("SUPABASE_ANON_KEY") ?? "").trim();
+  const anon = readPublishableKey((name) => Deno.env.get(name)).key;
   const model = (Deno.env.get("LESSON_MODEL") ?? "").trim() || "gpt-4o-mini";
   if (!apiKey || !base || !anon) {
     logMeta({ category: "unconfigured", ms: Date.now() - started });

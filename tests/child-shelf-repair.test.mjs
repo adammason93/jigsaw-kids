@@ -74,7 +74,7 @@ const fetchAt = sw.indexOf('self.addEventListener("fetch"');
 const bypassAt = sw.indexOf("if (isPrivateContentRequest(e.request)) return;");
 const respondAt = sw.indexOf("e.respondWith", fetchAt);
 assert.ok(fetchAt > 0 && bypassAt > fetchAt && respondAt > bypassAt);
-assert.match(sw, /jigsaw-kids-v460/);
+assert.match(sw, /jigsaw-kids-v461/);
 assert.match(sw, /supabase\.co/);
 assert.equal(sw.includes("caches.put"), false);
 

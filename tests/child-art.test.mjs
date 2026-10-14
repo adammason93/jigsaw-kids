@@ -277,6 +277,17 @@ assert.equal(anonKeyRes.status, 401);
 assert.equal(anon.calls.length, 0);
 const serviceRes = await handleChildArt(request(picture, env.serviceKey), env, anon.fetchImpl);
 assert.equal(serviceRes.status, 401);
+const roleBody = Buffer.from(JSON.stringify({ role: "service_role" })).toString("base64").replace(/=+$/, "");
+const roleRes = await handleChildArt(request(picture, "eyJhbGciOiJub25lIn0." + roleBody + ".sig"), env, anon.fetchImpl);
+assert.equal(roleRes.status, 401);
+const blocked = world({ access: { allowed: true, childId: CHILD } });
+const legacyRes = await handleChildArt(
+  request(picture, "legacy-service-jwt"),
+  { ...env, blockedKeys: ["legacy-service-jwt"] },
+  blocked.fetchImpl
+);
+assert.equal(legacyRes.status, 401);
+assert.equal(blocked.calls.length, 0);
 assert.equal((await serviceRes.text()).includes("service-test-key"), false);
 assert.equal(anon.calls.length, 0);
 

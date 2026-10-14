@@ -1,7 +1,11 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { readPublishableKey, readServiceKey, serviceClientFetch } from "../_shared/service-key.mjs";
 import { childDeviceEmail, normalisePairingCode, pairingClientAddress, pairingCodeIsShape } from "./pairing.mjs";
+
+readServiceKey((name) => Deno.env.get(name));
+readPublishableKey((name) => Deno.env.get(name));
 
 /* Redeems one pairing code and returns a child session.
    Not deployed. The service role stays in this function. */
@@ -56,8 +60,8 @@ Deno.serve(async (req) => {
   }
 
   const url = (Deno.env.get("SUPABASE_URL") || "").trim();
-  const serviceKey = (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "").trim();
-  const anonKey = (Deno.env.get("SUPABASE_ANON_KEY") || "").trim();
+  const serviceKey = readServiceKey((name) => Deno.env.get(name)).key;
+  const anonKey = readPublishableKey((name) => Deno.env.get(name)).key;
   if (!url || !serviceKey || !anonKey) {
     return json(req, { allowed: false, reason: "unavailable" }, 503);
   }
@@ -68,6 +72,7 @@ Deno.serve(async (req) => {
 
   const admin = createClient(url, serviceKey, {
     auth: { persistSession: false, autoRefreshToken: false },
+    global: { fetch: serviceClientFetch(serviceKey) },
   });
   const gate = await admin.rpc("pairing_attempt_allowed", { p_bucket: await pairingBucket(req) });
   if (gate.error || !gate.data || gate.data.allowed !== true) {

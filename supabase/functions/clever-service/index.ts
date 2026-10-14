@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
+import { readPublishableKey, readServiceKey, serviceAuthHeaders, serviceClientFetch } from "../_shared/service-key.mjs";
 import {
   addressesArePublic,
   assessProxyUrl,
@@ -2214,29 +2215,15 @@ function jsonResponse(body: unknown, status = 200) {
 
 /**
  * Secret API key for Storage + service-role DB (bypasses RLS).
- * Prefers JWT Signing Keys (**`SUPABASE_SECRET_KEYS`**) per Supabase defaults; falls back to legacy **`SUPABASE_SERVICE_ROLE_KEY`**.
+ * Uses the named key `cursornew` from `SUPABASE_SECRET_KEYS`.
+ * Falls back to the legacy service-role JWT only when that name is absent.
  */
 function supabaseSecretApiKey(): string | undefined {
-  const forkOverride = Deno.env.get("STORYBOOK_SUPABASE_SERVICE_ROLE_KEY")?.trim();
-  if (forkOverride) return forkOverride;
-
-  const raw = Deno.env.get("SUPABASE_SECRET_KEYS")?.trim();
-  if (raw) {
-    try {
-      const dict = JSON.parse(raw) as Record<string, string>;
-      const def = dict["default"]?.trim();
-      if (def) return def;
-      for (const v of Object.values(dict)) {
-        if (typeof v === "string" && v.length > 20) return v.trim();
-      }
-    } catch {
-      console.warn("[clever-service] SUPABASE_SECRET_KEYS JSON parse failed");
-    }
-  }
-
-  const legacy = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim();
-  return legacy || undefined;
+  const resolved = readServiceKey((name) => Deno.env.get(name));
+  return resolved.key || undefined;
 }
+
+readServiceKey((name) => Deno.env.get(name));
 
 /** When `FAL_KEY` is set, illustration failures must not fall back to DALL·E (avoids mixed-style books). */
 class FalImageError extends Error {
@@ -3648,7 +3635,7 @@ async function uploadPngToStorybookImages(
   const key = supabaseSecretApiKey() ?? "";
   if (!url || !key) {
     throw new Error(
-      "storage_misconfigured: SUPABASE_URL or secret key (SUPABASE_SECRET_KEYS / SUPABASE_SERVICE_ROLE_KEY)",
+      "storage_misconfigured: SUPABASE_URL or the cursornew secret key",
     );
   }
   const cleanName = name.replace(/[^a-zA-Z0-9._-]/g, "");
@@ -3656,12 +3643,10 @@ async function uploadPngToStorybookImages(
   const upUrl = `${url.replace(/\/+$/, "")}/storage/v1/object/${GPT_IMAGE_BUCKET}/${path}`;
   const r = await fetch(upUrl, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${key}`,
-      apikey: key,
+    headers: serviceAuthHeaders(key, {
       "Content-Type": "image/png",
       "x-upsert": "true",
-    },
+    }),
     body: new Blob([bytes as unknown as BlobPart], { type: "image/png" }),
   });
   if (!r.ok) {
@@ -3941,6 +3926,7 @@ function serviceRoleSupabase(): SupabaseClient | null {
       autoRefreshToken: false,
       detectSessionInUrl: false,
     },
+    global: { fetch: serviceClientFetch(key) },
   });
 }
 
@@ -6042,7 +6028,7 @@ async function claimChildGeneration(
 ): Promise<{ proceed: boolean; response?: Response; childId?: string; key?: string }> {
   const token = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "").trim();
   const url = storybookJobSupabaseUrl();
-  const anon = Deno.env.get("SUPABASE_ANON_KEY")?.trim();
+  const anon = readPublishableKey((name) => Deno.env.get(name)).key;
   if (!url || !anon || !token) return { proceed: true };
   const userClient = createClient(url, anon, {
     global: { headers: { Authorization: `Bearer ${token}` } },
@@ -6221,7 +6207,7 @@ Deno.serve(async (req) => {
         {
           error: "storybook_async_unconfigured",
           msg:
-            "Async storybook jobs need SUPABASE_URL (or STORYBOOK_SUPABASE_URL) and a secret API key: hosted functions usually provide SUPABASE_SECRET_KEYS automatically; otherwise set SUPABASE_SERVICE_ROLE_KEY or STORYBOOK_SUPABASE_SERVICE_ROLE_KEY, plus migration storybook_generation_jobs.",
+            "Async storybook jobs need SUPABASE_URL and the cursornew secret key, plus migration storybook_generation_jobs.",
         },
         501,
       );

@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import "../../../js/visual-adventure.js";
+import { readServiceKey, serviceAuthHeaders } from "../_shared/service-key.mjs";
 
 type VisualApi = {
   PROTOTYPE: string;
@@ -45,18 +46,10 @@ function json(body: unknown, status = 200): Response {
 }
 
 function secretKey(): string {
-  const raw = Deno.env.get("SUPABASE_SECRET_KEYS")?.trim();
-  if (raw) {
-    try {
-      const dict = JSON.parse(raw) as Record<string, string>;
-      if (dict.default) return dict.default.trim();
-      for (const value of Object.values(dict)) {
-        if (typeof value === "string" && value.length > 20) return value.trim();
-      }
-    } catch (_error) { /* fall through */ }
-  }
-  return Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim() || "";
+  return readServiceKey((name) => Deno.env.get(name)).key;
 }
+
+readServiceKey((name) => Deno.env.get(name));
 
 function openAiHeaders(apiKey: string, jsonBody: boolean): Record<string, string> {
   const headers: Record<string, string> = { Authorization: "Bearer " + apiKey };
@@ -164,7 +157,7 @@ async function openaiImage(apiKey: string, prompt: string, references: ImageRef[
 }
 
 async function storageFetch(base: string, key: string, path: string, method: string, body?: Uint8Array): Promise<Response> {
-  const headers: Record<string, string> = { Authorization: "Bearer " + key, apikey: key };
+  const headers: Record<string, string> = serviceAuthHeaders(key);
   if (method === "POST" || method === "PUT") {
     headers["Content-Type"] = "image/jpeg";
     headers["x-upsert"] = "true";

@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import handle from "./handle.mjs";
+import { readPublishableKey } from "../_shared/service-key.mjs";
 
 /* Book V2 plan check. The bundled handler is scripts/book/handle-request.js.
    It does not call a story model, draw pictures, or read a provider key.
@@ -33,11 +34,13 @@ function json(req: Request, body: unknown, status: number): Response {
 async function signedInUser(req: Request): Promise<string> {
   const url = Deno.env.get("SUPABASE_URL") || "";
   const anon = Deno.env.get("SUPABASE_ANON_KEY") || "";
+  const clientKey = readPublishableKey((name) => Deno.env.get(name)).key || anon;
   const header = req.headers.get("Authorization") || "";
   const token = header.replace(/^Bearer\s+/i, "").trim();
-  if (!url || !anon || !token || token === anon) return "";
-  const client = createClient(url, anon, {
+  if (!url || !clientKey || !token || token === anon || token === clientKey) return "";
+  const client = createClient(url, clientKey, {
     auth: { persistSession: false, autoRefreshToken: false },
+    global: { headers: { Authorization: `Bearer ${token}` } },
   });
   const result = await client.auth.getUser(token);
   const user = result.data && result.data.user;

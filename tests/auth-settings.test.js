@@ -54,7 +54,7 @@ pages.forEach(function (file) {
   assert.ok(html.toLowerCase().indexOf("family password") < 0, rel);
 });
 
-assert.ok(sw.indexOf("jigsaw-kids-v460") >= 0);
+assert.ok(sw.indexOf("jigsaw-kids-v461") >= 0);
 assert.ok(sw.indexOf('cache: "reload"') >= 0);
 assert.ok(sw.indexOf("gamePage") >= 0);
 

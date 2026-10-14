@@ -1,3 +1,5 @@
+import { readPublishableKey, readServiceKey } from "../_shared/service-key.mjs";
+
 /**
  * Make a 3D Game (`game-maker`, deployed as `dynamic-action`).
  *
@@ -118,9 +120,9 @@ function decodeJwtPayload(token: string): Record<string, unknown> | null {
 /** True when the token is missing, not a JWT, or a non-user key (anon / service role). */
 function isNonUserToken(token: string, getEnv: EnvGet): boolean {
   if (!token) return true;
-  const anon = (getEnv("SUPABASE_ANON_KEY") ?? "").trim();
-  const service = (getEnv("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
-  if ((anon && token === anon) || (service && token === service)) return true;
+  const published = readPublishableKey(getEnv).key;
+  const named = readServiceKey(getEnv).key;
+  if ((published && token === published) || (named && token === named)) return true;
   const payload = decodeJwtPayload(token);
   if (!payload) return true;
   const role = typeof payload.role === "string" ? payload.role : "";
@@ -132,12 +134,8 @@ function supabaseUrl(getEnv: EnvGet): string {
 }
 
 function supabaseApiKey(getEnv: EnvGet, req: Request): string {
-  const fromEnv = (
-    getEnv("SUPABASE_ANON_KEY") ??
-    getEnv("SUPABASE_PUBLISHABLE_KEY") ??
-    ""
-  ).trim();
-  if (fromEnv) return fromEnv;
+  const published = readPublishableKey(getEnv).key;
+  if (published) return published;
   return (req.headers.get("apikey") ?? "").trim();
 }
 

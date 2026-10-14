@@ -97,6 +97,30 @@ export function parseLibraryObject(raw) {
   };
 }
 
+function tokenRole(token) {
+  const part = String(token || "").split(".")[1] || "";
+  if (!part) return "";
+  try {
+    const padded = part.replace(/-/g, "+").replace(/_/g, "/") + "=".repeat((4 - (part.length % 4)) % 4);
+    const json = JSON.parse(atob(padded));
+    return json && json.role ? String(json.role) : "";
+  } catch (e) {
+    return "";
+  }
+}
+
+function presentedServiceKey(env, token) {
+  const role = tokenRole(token);
+  if (role === "service_role" || role === "anon") return true;
+  if (env.serviceKey && token === env.serviceKey) return true;
+  const extra = env.blockedKeys;
+  if (!extra) return false;
+  for (let i = 0; i < extra.length; i++) {
+    if (extra[i] && token === extra[i]) return true;
+  }
+  return false;
+}
+
 function bearer(req) {
   const header = String(req.headers.get("authorization") || "");
   const match = /^Bearer\s+(\S+)$/i.exec(header);
@@ -300,8 +324,8 @@ export async function handleChildArt(req, env, fetchImpl) {
   const objectInfo = parseLibraryObject(libraryPathFromRequest(req.url));
   if (!objectInfo) return reply(req, 400, "invalid");
   const token = bearer(req);
-  if (!token || token === env.anonKey || token === env.serviceKey) return reply(req, 401, "sign_in_required");
-  if (!env.supabaseUrl || !env.anonKey || !env.serviceKey) return reply(req, 503, "unavailable");
+  if (!token || token === env.anonKey || presentedServiceKey(env, token)) return reply(req, 401, "sign_in_required");
+  if (!env.supabaseUrl || !env.anonKey) return reply(req, 503, "unavailable");
   const decision = await authorise(env, token, objectInfo, fetchImpl);
   if (!decision.allow) return reply(req, decision.status || 403, decision.reason || "unavailable");
   const file = await readPrivateObject(env, objectInfo.objectPath, fetchImpl);
