@@ -4,6 +4,7 @@
    Paid writing stays in generate.js and is not invoked from here. */
 
 var Adapter = require("../../js/book-v2-adapter.js");
+var Budget = require("../../js/book-v2-budget.js");
 
 function names(body, planned) {
   var fromMembers = (body && body.members || []).map(function (member) {
@@ -93,6 +94,15 @@ function handleBookV2(body) {
       bibleIds: (planned.identities || []).map(function (row) { return row.bibleId; }),
       identities: planned.identities || [],
       message: "Book V2 accepted the plan. The story model was not called, and no pictures were drawn.",
+      generation: Budget.authorise({
+        approved: true,
+        accountId: "ignored",
+        accountKind: body && body.accountKind,
+        childPermitted: true,
+        allowanceReserved: true,
+        budgetUsd: body && body.budgetUsd,
+        calls: { text: 100, image: 100, vision: 100 }
+      }),
       preview: previewShelf(body, planned)
     }
   };

@@ -1128,7 +1128,7 @@
           setStatus(body.message || "The story plan could not start. Nothing was saved.");
           return;
         }
-        if (body.generated) {
+        if (body.generated || (body.generation && body.generation.authorised)) {
           nextBtn.disabled = false;
           setStatus("Book V2 tried to write the story before that was approved. Nothing was saved.");
           return;
