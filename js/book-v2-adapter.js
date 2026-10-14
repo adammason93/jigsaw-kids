@@ -1,6 +1,6 @@
-/* Development adapter from the story journey to Book V2.
-   The journey still calls clever-service unless a localhost flag asks for this path.
-   This file does not call a model, read an API key, or open the Node proof scripts. */
+/* Maps a story-journey request onto Book V2.
+   The browser does not call a model. The local Book V2 server does the planning.
+   This file does not read an API key or open the paid proof scripts. */
 (function (root, factory) {
   var api = factory(root);
   if (typeof module === "object" && module.exports) module.exports = api;
@@ -9,9 +9,9 @@
   "use strict";
 
   var FAMILY_AGE = {
-    "4-6": "5-6",
-    "7-9": "7-8",
-    "10-12": "9-10"
+    "4-6": "4-6",
+    "7-9": "7-9",
+    "10-12": "10-12"
   };
   var V2_AGE = { "3-4": 1, "5-6": 1, "7-8": 1, "9-10": 1, "11-12": 1 };
   var LENGTHS = { short: "quick", medium: "storybook", long: "adventure" };
@@ -104,6 +104,11 @@
         problems: []
       };
     }
+    return planRequest(source);
+  }
+
+  function planRequest(input) {
+    var source = input || {};
     var age = mapAge(source);
     if (!age) {
       return {
@@ -116,6 +121,7 @@
         message: "Choose an age band before this book can be planned."
       };
     }
+    var profile = brain().readerProfile({ ageBand: age.ageBand });
     var members = Array.isArray(source.members) ? source.members : [];
     var castIds = members.map(function (member) { return member && member.id ? String(member.id) : ""; }).filter(Boolean);
     var ask = {
@@ -141,6 +147,7 @@
         cast: accepted.cast,
         familyAgeBand: age.familyAgeBand,
         ageBand: age.ageBand,
+        constraintYear: profile && profile.constraintYear || "",
         place: source.place || "",
         illustrationStyle: style,
         message: "The story plan could not start. Nothing was saved."
@@ -157,6 +164,7 @@
       cast: accepted.cast,
       familyAgeBand: age.familyAgeBand,
       ageBand: age.ageBand,
+      constraintYear: profile && profile.constraintYear || "",
       place: source.place || "",
       illustrationStyle: style,
       message: "Book V2 is ready to plan. The story model has not been called."
@@ -248,6 +256,7 @@
     enabled: enabled,
     mapAge: mapAge,
     prepare: prepare,
+    planRequest: planRequest,
     readerPlan: readerPlan,
     shelfFromProof: shelfFromProof
   };

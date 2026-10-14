@@ -81,7 +81,11 @@
     "5-6": { stage: "year1", constraintYear: "Year 1", ageRange: "5–6", narrativeComplexity: "a simple cause the reader can follow" },
     "7-8": { stage: "year3", constraintYear: "Year 3", ageRange: "7–8", narrativeComplexity: "a problem with a consequence the reader can connect" },
     "9-10": { stage: "year5", constraintYear: "Year 5", ageRange: "9–10", narrativeComplexity: "a question that can last across the book" },
-    "11-12": { stage: "year6", constraintYear: "Year 6", ageRange: "11–12", narrativeComplexity: "mixed feelings and a little inference" }
+    "11-12": { stage: "year6", constraintYear: "Year 6", ageRange: "11–12", narrativeComplexity: "mixed feelings and a little inference" },
+    /* Family bands keep the older child's level. 7–9 is not written as 7–8, and 10–12 is not written as 9–10. */
+    "4-6": { stage: "year1", constraintYear: "Year 1", ageRange: "4–6", narrativeComplexity: "a simple cause the reader can follow" },
+    "7-9": { stage: "year5", constraintYear: "Year 5", ageRange: "7–9", narrativeComplexity: "a question that can last across the book" },
+    "10-12": { stage: "year6", constraintYear: "Year 6", ageRange: "10–12", narrativeComplexity: "mixed feelings and a little inference" }
   };
 
   var YEAR_STAGE = {

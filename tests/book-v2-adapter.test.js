@@ -24,10 +24,10 @@ assert.strictEqual(off.route, "clever-service");
 assert.strictEqual(off.active, false);
 assert.strictEqual(off.generated, false);
 
-assert.deepStrictEqual(Adapter.mapAge({ familyAgeBand: "4-6" }), { familyAgeBand: "4-6", ageBand: "5-6" });
-assert.deepStrictEqual(Adapter.mapAge({ familyAgeBand: "7-9" }), { familyAgeBand: "7-9", ageBand: "7-8" });
-assert.deepStrictEqual(Adapter.mapAge({ familyAgeBand: "10-12" }), { familyAgeBand: "10-12", ageBand: "9-10" });
-assert.strictEqual(Adapter.mapAge({ ageBand: "10-12" }).ageBand, "9-10");
+assert.deepStrictEqual(Adapter.mapAge({ familyAgeBand: "4-6" }), { familyAgeBand: "4-6", ageBand: "4-6" });
+assert.deepStrictEqual(Adapter.mapAge({ familyAgeBand: "7-9" }), { familyAgeBand: "7-9", ageBand: "7-9" });
+assert.deepStrictEqual(Adapter.mapAge({ familyAgeBand: "10-12" }), { familyAgeBand: "10-12", ageBand: "10-12" });
+assert.strictEqual(Adapter.mapAge({ ageBand: "10-12" }).ageBand, "10-12");
 assert.strictEqual(Adapter.mapAge({}), null);
 
 var missingAge = Adapter.prepare(local({
@@ -51,8 +51,9 @@ var older = Adapter.prepare(local({
   theme: "Mystery"
 }));
 assert.strictEqual(older.ok, true, older.problems.join(", "));
-assert.strictEqual(older.ageBand, "9-10");
-assert.notStrictEqual(older.ageBand, "5-6");
+assert.strictEqual(older.ageBand, "10-12");
+assert.strictEqual(older.constraintYear, "Year 6");
+assert.notStrictEqual(older.constraintYear, "Year 1");
 assert.deepStrictEqual(older.request.castIds, ["wondii-maya", "wondii-leo"]);
 assert.strictEqual(older.request.length, "storybook");
 assert.strictEqual(older.request.tone, "mystery");
@@ -99,7 +100,8 @@ var saved = Adapter.prepare(local({
   theme: "Adventure"
 }));
 assert.strictEqual(saved.ok, true, saved.problems.join(", "));
-assert.strictEqual(saved.ageBand, "5-6");
+assert.strictEqual(saved.ageBand, "4-6");
+assert.strictEqual(saved.constraintYear, "Year 1");
 assert.strictEqual(saved.request.idea, "A story set in the castle.");
 assert.ok(saved.request.idea.indexOf("forest") < 0);
 assert.deepStrictEqual(saved.request.castIds, ["wondii-maya", "char_hugo"]);
