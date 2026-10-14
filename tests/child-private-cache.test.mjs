@@ -7,6 +7,7 @@ import { PRIVATE_OBJECT_CACHE, sharedCacheMayStore, storageBinaryCacheControl, s
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const library = fs.readFileSync(path.join(root, "js/child-library.js"), "utf8");
 const story = fs.readFileSync(path.join(root, "games/storybook.js"), "utf8");
+const reader = fs.readFileSync(path.join(root, "games/book-prototype/book-data.js"), "utf8");
 const cloud = fs.readFileSync(path.join(root, "js/score-cloud.js"), "utf8");
 const sw = fs.readFileSync(path.join(root, "sw.js"), "utf8");
 
@@ -54,7 +55,10 @@ assert.match(stayBlock, /bootParams\.get\("sharedChar"\)/);
 assert.match(stayBlock, /bootParams\.get\("sample"\)/);
 assert.match(stayBlock, /bootParams\.get\("demo"\)/);
 assert.match(story, /function openPrivateFromUrl/);
-assert.match(story, /loadSharedBook/);
+assert.match(story, /"book-prototype\/\?book=" \+ encodeURIComponent\(shared\) \+ "&shared=1"/);
+assert.match(reader, /ChildLibrary\.loadSharedBook\(id, cb\)/);
+assert.equal(story.includes("loadSharedBook"), false);
+assert.equal(reader.includes("/storage/v1/object/"), false);
 
 const fetchAt = sw.indexOf('self.addEventListener("fetch"');
 const bypassAt = sw.indexOf("if (isPrivateContentRequest(e.request)) return;");
