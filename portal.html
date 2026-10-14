@@ -13,7 +13,7 @@
   <link rel="icon" type="image/svg+xml" href="games/images/brand/wondi-mark.svg" />
   <link rel="stylesheet" href="js/kids-core.css" />
   <link rel="stylesheet" href="home.css" />
-  <link rel="stylesheet" href="portal-app.css?v=6" />
+  <link rel="stylesheet" href="portal-app.css?v=7" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
@@ -207,7 +207,14 @@
           <h1 class="p-h1" id="storiesTitle">Stories</h1>
           <p class="p-sub">Magical stories for curious minds.</p>
           <div class="p-chips" id="storyChips" role="group" aria-label="Story types"></div>
-          <div class="p-feature" id="storyFeature"></div>
+          <div class="p-feature" id="storyFeature" hidden></div>
+          <section class="p-explore" id="exploreShelf" aria-labelledby="exploreShelfTitle" hidden>
+            <div class="p-head">
+              <h2 class="p-h2" id="exploreShelfTitle">Explore Wondii — Sample Books</h2>
+            </div>
+            <p class="p-sub">Stories from Wondii. They stay here, and they are not copied onto your shelf.</p>
+            <ul class="p-cards p-cards--books" id="exploreGrid" role="list"></ul>
+          </section>
           <section class="p-make" aria-labelledby="makeTitle">
             <div class="p-make__copy">
               <p class="p-make__emoji" aria-hidden="true">📖✨</p>
@@ -216,8 +223,8 @@
             </div>
             <div class="p-make__actions">
               <a class="p-make__go" href="games/storybook.html?create=1">Create a story</a>
-              <a class="p-make__ghost" href="games/book-prototype/?sample=1">Preview sample book</a>
-              <p class="p-make__hint">Uses the same two-page layout as a real story. Arrows move one spread at a time.</p>
+              <a class="p-make__ghost" href="games/book-prototype/?book=the-rain-that-rose">Preview sample book</a>
+              <p class="p-make__hint">Opens The Rain That Rose in the illustrated 3D book.</p>
             </div>
           </section>
           <div class="p-head">
@@ -438,7 +445,8 @@
   <script src="js/account-context.js?v=2" defer></script>
   <script src="js/character-store.js?v=5" defer></script>
   <script src="games/game-platform.js?v=1" defer></script>
-  <script src="portal.js?v=11" defer></script>
+  <script src="js/book-showcase.js?v=3" defer></script>
+  <script src="portal.js?v=12" defer></script>
   <script src="home-cast.js?v=4" defer></script>
   <script src="js/portal-shell.js?v=1" defer></script>
   <script src="js/organisation.js?v=15" defer></script>
@@ -451,7 +459,6 @@
   <script src="js/wondii-crew.js?v=1" defer></script>
   <script src="js/character-library.js?v=1" defer></script>
   <script src="schools/learn/character-portal.js?v=10" defer></script>
-  <script src="js/book-showcase.js?v=2" defer></script>
   <script src="js/portal-home-model.js?v=1" defer></script>
   <script src="js/portal-home.js?v=5" defer></script>
   <script src="schools/learn/home.js?v=20" defer></script>

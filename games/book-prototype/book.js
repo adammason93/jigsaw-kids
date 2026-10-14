@@ -1594,20 +1594,22 @@ function savedAssets(plan) {
 }
 
 const bookData = window.WondiiBookData;
-const requestedBook = bookData && bookData.requestedId ? bookData.requestedId() : null;
-if (requestedBook !== null) progress.textContent = "Opening this book…";
+const showcaseRequest = bookData && bookData.showcaseRequest ? bookData.showcaseRequest() : "";
+if (showcaseRequest) progress.textContent = "Opening this book…";
 
-const opening = !bookData || requestedBook === null
+const opening = !bookData || !showcaseRequest
   ? sampleAssets()
   : bookData.load().then(function (result) {
     if (!result || !result.ok || !result.plan) {
-      holdClosed(bookData.message(result && result.reason));
+      var reason = result && result.reason;
+      if (reason) console.warn("book-load", reason);
+      holdClosed(bookData.message(reason));
       return;
     }
     return savedAssets(result.plan);
   });
 
-opening.catch(function (error) {
-  holdClosed("This book could not be opened.");
-  console.error(error);
+opening.catch(function () {
+  console.warn("book-load", "pictures");
+  holdClosed(bookData && bookData.message ? bookData.message("pictures") : "This book could not be opened.");
 });

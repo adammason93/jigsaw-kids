@@ -55,9 +55,23 @@ assert.strictEqual(Showcase.publishState("the-lanterns-missing-path"), "awaiting
 assert.strictEqual(Showcase.publishState("the-rain-that-rose"), "published");
 
 assert.strictEqual(Showcase.canOpen("the-lanterns-missing-path", null).reason, "unauthorised");
-assert.strictEqual(Showcase.canOpen("the-lanterns-missing-path", { userId: "teacher-1", workspaceKind: "school" }).ok, true);
-assert.strictEqual(Showcase.canOpen("the-lanterns-missing-path", { userId: "family-1", workspaceKind: "family" }).review, true);
+assert.strictEqual(Showcase.canOpen("the-lanterns-missing-path", { userId: "teacher-1", workspaceKind: "school", role: "teacher" }).reason, "unpublished");
+assert.strictEqual(Showcase.canOpen("the-lanterns-missing-path", { userId: "family-1", workspaceKind: "family", role: "owner" }).reason, "unpublished");
+assert.strictEqual(Showcase.canOpen("the-lanterns-missing-path", { userId: "admin-1", workspaceKind: "school", role: "school_admin" }).review, true);
 assert.strictEqual(Showcase.canOpen("missing", { userId: "family-1", workspaceKind: "family" }).reason, "unavailable");
+var familyShelf = Showcase.storyShelf({ userId: "family-1", workspaceKind: "family", role: "owner" });
+assert.strictEqual(familyShelf.length, 2);
+assert.strictEqual(familyShelf[0].id, "the-lanterns-missing-path");
+assert.strictEqual(familyShelf[0].href, "");
+assert.strictEqual(familyShelf[0].meta, "Awaiting approval");
+assert.strictEqual(familyShelf[1].id, "the-rain-that-rose");
+assert.strictEqual(familyShelf[1].href, "games/book-prototype/?book=the-rain-that-rose");
+assert.strictEqual(familyShelf[1].meta, "Available to read");
+assert.strictEqual(familyShelf[1].action, "Read book");
+var adminShelf = Showcase.storyShelf({ userId: "admin-1", workspaceKind: "school", role: "owner" });
+assert.strictEqual(adminShelf[0].href, "games/book-prototype/?book=the-lanterns-missing-path");
+assert.strictEqual(adminShelf[0].action, "Preview");
+assert.strictEqual(Showcase.storyShelf({ workspaceKind: "signed-out" }).length, 0);
 
 var store = Shelf.memoryStore();
 var refused = Shelf.commitBook({
@@ -98,10 +112,11 @@ assert.ok(portal.indexOf("isShowcase") >= 0);
 var sandbox = {
   console: console,
   URLSearchParams: URLSearchParams,
-  fetch: function () {
+  fetch: function (url) {
+    var body = String(url).indexOf("the-rain-that-rose") >= 0 ? rainRecord : record;
     return Promise.resolve({
       ok: true,
-      json: function () { return Promise.resolve(record); }
+      json: function () { return Promise.resolve(body); }
     });
   }
 };
@@ -122,18 +137,52 @@ setTimeout(function () {
   sandbox.WondiiSession.subscribe = function (fn) {
     fn({ userId: "family-1", status: "ready" });
   };
-  var opened = null;
-  sandbox.WondiiBookData.load().then(function (result) { opened = result; });
+  var held = null;
+  sandbox.WondiiBookData.load().then(function (result) { held = result; });
   setTimeout(function () {
-    assert.strictEqual(opened.ok, true, JSON.stringify(opened));
-    assert.strictEqual(opened.kind, "showcase");
-    assert.strictEqual(opened.readOnly, true);
-    assert.strictEqual(opened.plan.pages.length, 12);
-    assert.strictEqual(opened.plan.pages[0].text, castle.pages[0].prose);
-    assert.ok(opened.plan.pages[0].imageSrc.indexOf("/games/showcase/") === 0);
-    var personal = [{ id: "mine", title: "My story" }];
-    assert.ok(!personal.some(function (book) { return book.id === "the-lanterns-missing-path"; }));
-    assert.strictEqual(crypto.createHash("sha1").update(reader).digest("hex"), "bcadc75b5f7fbccc90f2651bcabf44d6e489fbd3");
-    console.log("book-showcase.test.js ok");
+    assert.strictEqual(held.reason, "unpublished");
+    sandbox.WondiiSession.current = function () {
+      return {
+        from: function () {
+          return {
+            select: function () {
+              return {
+                eq: function () {
+                  return {
+                    eq: function () {
+                      return Promise.resolve({ data: [{ role: "school_admin" }] });
+                    }
+                  };
+                }
+              };
+            }
+          };
+        }
+      };
+    };
+    var opened = null;
+    sandbox.WondiiBookData.load().then(function (result) { opened = result; });
+    setTimeout(function () {
+      assert.strictEqual(opened.ok, true, JSON.stringify(opened));
+      assert.strictEqual(opened.kind, "showcase");
+      assert.strictEqual(opened.readOnly, true);
+      assert.strictEqual(opened.plan.pages.length, 12);
+      assert.strictEqual(opened.plan.pages[0].text, castle.pages[0].prose);
+      assert.ok(opened.plan.pages[0].imageSrc.indexOf("/games/showcase/") === 0);
+      sandbox.location.search = "?sample=1";
+      var sample = null;
+      sandbox.WondiiBookData.load().then(function (result) { sample = result; });
+      setTimeout(function () {
+        assert.strictEqual(sample.ok, true, JSON.stringify(sample));
+        assert.strictEqual(sample.plan.title, "The Rain That Rose");
+        assert.strictEqual(sample.plan.pages.length, 12);
+        assert.strictEqual(sandbox.WondiiBookData.message("file").indexOf("book file") > 0, true);
+        assert.strictEqual(sandbox.WondiiBookData.message("unpublished"), "This book is not available to read yet.");
+        var personal = [{ id: "mine", title: "My story" }];
+        assert.ok(!personal.some(function (book) { return book.id === "the-lanterns-missing-path"; }));
+        assert.strictEqual(crypto.createHash("sha1").update(reader).digest("hex"), "3992bf4449a45851754911ccb912829951620d3c");
+        console.log("book-showcase.test.js ok");
+      }, 30);
+    }, 30);
   }, 30);
 }, 30);

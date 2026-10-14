@@ -20,7 +20,7 @@ test("the closed cover uses the saved title and nothing else in the reader moved
     )
     .replace("    closedCoverTitle = String(plan.title || \"Untitled story\").trim() || \"Untitled story\";\n", "");
   const sha = createHash("sha1").update(restored).digest("hex");
-  assert.equal(sha, "44d8680d9fea2941ff15f30be4a312ee6f71a18e");
+  assert.equal(sha, "e569e0574ac3978a54fa78b5ad10a84dc7940e54");
   assert.match(book, /closedCoverTitle = String\(plan\.title \|\| "Untitled story"\)/);
   assert.match(book, /OPEN_COVER = -Math\.PI/);
   assert.match(book, /const TURN_MS = 880/);
@@ -50,7 +50,9 @@ test("saved-book links open the 3D reader and keep creation on the journey", () 
   assert.match(story, /function getSelectedFamilyPeople\(\) \{\s*return journeyFamilyPeople\.slice\(\);\s*\}/);
   assert.match(story, /book-prototype\/\?" \+ \(bootParams\.get\("demo"\) === "1" \? "demo=1" : "sample=1"\)/);
   const portalPage = text("portal.html");
-  assert.equal(portalPage.includes("games/book-prototype/?sample=1"), true);
+  assert.equal(portalPage.includes("games/book-prototype/?book=the-rain-that-rose"), true);
+  assert.equal(portalPage.includes("Explore Wondii — Sample Books"), true);
+  assert.equal(portalPage.includes("games/book-prototype/?sample=1"), false);
   assert.equal(portalPage.includes('games/book-prototype/">'), false);
 });
 

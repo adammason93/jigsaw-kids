@@ -49,13 +49,22 @@
     return who.workspaceKind === "school" || who.workspaceKind === "family";
   }
 
+  function canPreview(viewer) {
+    var who = viewer || {};
+    if (!signedIn(who)) return false;
+    if (who.canPreviewUnpublished === true) return true;
+    return who.workspaceKind === "school" && (who.role === "school_admin" || who.role === "owner");
+  }
+
   function canOpen(id, viewer) {
     var book = find(id);
     if (!book) return { ok: false, reason: "unavailable" };
     if (!signedIn(viewer)) return { ok: false, reason: "unauthorised" };
-    if (book.publishState === "published" || book.publishState === "awaiting-visual-approval") {
-      return { ok: true, review: book.publishState !== "published", book: book };
+    if (book.publishState === "published") return { ok: true, review: false, book: book };
+    if (book.publishState === "awaiting-visual-approval" && canPreview(viewer)) {
+      return { ok: true, review: true, book: book };
     }
+    if (book.publishState === "awaiting-visual-approval") return { ok: false, reason: "unpublished" };
     return { ok: false, reason: "unavailable" };
   }
 
@@ -79,7 +88,37 @@
     if (who.workspaceKind !== "school" && who.workspaceKind !== "family") return [];
     return (records || BOOKS).filter(function (book) {
       return book && book.publishState === "published" && book.systemOwned === true;
-    }).map(card);
+    }).map(function (book) {
+      var item = card(book);
+      item.meta = "Available to read";
+      item.action = "Read book";
+      return item;
+    });
+  }
+
+  /* Stories shelf. Published books are readable. An unpublished book is visible,
+     but only a school admin can open it. */
+  function storyShelf(viewer) {
+    if (!signedIn(viewer)) return [];
+    var preview = canPreview(viewer);
+    return BOOKS.filter(function (book) {
+      return book.publishState === "published" || book.publishState === "awaiting-visual-approval";
+    }).map(function (book) {
+      var item = card(book);
+      if (book.publishState === "published") {
+        item.meta = "Available to read";
+        item.action = "Read book";
+        return item;
+      }
+      item.meta = "Awaiting approval";
+      if (preview) {
+        item.action = "Preview";
+        return item;
+      }
+      item.action = "";
+      item.href = "";
+      return item;
+    });
   }
 
   function isShowcase(id) {
@@ -105,6 +144,8 @@
     find: find,
     canOpen: canOpen,
     publicList: publicList,
+    storyShelf: storyShelf,
+    canPreview: canPreview,
     isShowcase: isShowcase,
     reservedKey: reservedKey,
     publishState: publishState,

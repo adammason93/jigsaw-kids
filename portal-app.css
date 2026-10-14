@@ -508,6 +508,12 @@ body.page-portal {
   box-shadow: var(--shadow-lg);
 }
 
+.p-card--held,
+.p-card--held:hover {
+  transform: none;
+  cursor: default;
+}
+
 .p-card__link {
   display: flex;
   flex-direction: column;
@@ -702,6 +708,11 @@ body.page-portal {
 }
 
 /* ---------- Stories feature ---------- */
+
+.p-feature[hidden],
+.p-explore[hidden] {
+  display: none !important;
+}
 
 .p-feature {
   position: relative;

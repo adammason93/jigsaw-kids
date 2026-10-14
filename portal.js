@@ -389,28 +389,91 @@
     $("favEmpty").hidden = list.length > 0;
   }
 
+  function currentViewer() {
+    var session = window.WondiiSession && window.WondiiSession.get ? window.WondiiSession.get() : {};
+    var org = window.WondiiOrg && window.WondiiOrg.get ? window.WondiiOrg.get() : {};
+    var Account = window.WondiiAccount;
+    var space = Account && Account.workspaceFrom
+      ? Account.workspaceFrom({
+          userId: session.userId || org.userId || "",
+          organisation: org.organisation,
+          organisationId: org.organisationId,
+          role: org.role || "",
+          organisationName: org.organisationName
+        })
+      : { kind: session.userId ? "family" : "signed-out", userId: session.userId || "" };
+    return {
+      userId: space.userId || "",
+      workspaceKind: space.kind || "signed-out",
+      role: org.organisationId ? (org.role || "") : ""
+    };
+  }
+
+  function exploreCard(item) {
+    var li = document.createElement("li");
+    var openable = !!item.href;
+    li.className = "p-card p-card--book" + (openable ? "" : " p-card--held");
+    var a = document.createElement(openable ? "a" : "div");
+    a.className = "p-card__link";
+    if (openable) a.href = item.href;
+    var holder = document.createElement("span");
+    holder.className = "p-card__img p-card__img--book";
+    fillCover(holder, { id: item.id, title: item.title, sceneUrlFallback: item.cover });
+    var body = document.createElement("span");
+    body.className = "p-card__body";
+    var t = document.createElement("b");
+    t.className = "p-card__title";
+    t.textContent = String(item.title || "Sample book");
+    body.appendChild(t);
+    if (item.meta) {
+      var meta = document.createElement("span");
+      meta.className = "p-card__desc";
+      meta.textContent = item.meta;
+      body.appendChild(meta);
+    }
+    if (openable && item.action) {
+      var go = document.createElement("span");
+      go.className = "p-card__desc";
+      go.textContent = item.action;
+      body.appendChild(go);
+    }
+    a.appendChild(holder);
+    a.appendChild(body);
+    li.appendChild(a);
+    return li;
+  }
+
+  function renderExplore() {
+    var shelf = $("exploreShelf");
+    var grid = $("exploreGrid");
+    if (!shelf || !grid) return;
+    var Showcase = window.WondiiBookShowcase;
+    var items = Showcase && Showcase.storyShelf ? Showcase.storyShelf(currentViewer()) : [];
+    grid.textContent = "";
+    items.forEach(function (item) { grid.appendChild(exploreCard(item)); });
+    shelf.hidden = items.length === 0;
+  }
+
   function renderStoryFeature() {
     var el = $("storyFeature");
     var b = books[0];
     el.textContent = "";
     el.className = "p-feature";
+    if (!b) {
+      el.hidden = true;
+      return;
+    }
+    el.hidden = false;
     var art = document.createElement("span");
     art.className = "p-feature__art";
     var copy = document.createElement("div");
     copy.className = "p-feature__copy";
-    if (b) {
-      fillCover(art, b);
-      copy.innerHTML =
-        '<p class="p-feature__kicker">Your newest story</p><h2 class="p-feature__title"></h2>' +
-        '<p class="p-feature__meta"><span>Story</span><span>' + pageCount(b) + "</span></p>" +
-        '<a class="p-feature__go" href="' + READ_URL + "?book=" + encodeURIComponent(b.id) + '">Read now</a>';
-      copy.querySelector(".p-feature__title").textContent = String(b.title || "My Story");
-    } else {
-      copy.innerHTML =
-        '<p class="p-feature__kicker">Welcome to Wondii</p><h2 class="p-feature__title">Let’s create your first adventure</h2>' +
-        '<p class="p-feature__meta"><span>Your books will appear here</span></p>' +
-        '<a class="p-feature__go" href="' + STORY_URL + '?create=1">Create a story</a>';
-    }
+    fillCover(art, b);
+    copy.innerHTML =
+      '<p class="p-feature__kicker">Your newest story</p><h2 class="p-feature__title"></h2>' +
+      '<p class="p-feature__meta"><span>Story</span><span>' + pageCount(b) + "</span></p>" +
+      '<a class="p-feature__go" href="' + READ_URL + "?book=" + encodeURIComponent(b.id) + '">Read now</a>';
+    copy.querySelector(".p-feature__title").textContent = String(b.title || "My Story");
     el.appendChild(art);
     el.appendChild(copy);
   }
@@ -425,12 +488,16 @@
       renderStories();
     });
     $("storyChips").hidden = chips.length < 2;
+    renderExplore();
     renderStoryFeature();
     var re = null;
     STORY_CHIPS.forEach(function (c) {
       if (c[0] === storyFilter) re = c[2];
     });
-    var list = books.filter(function (b) { return !re || re.test(bookText(b)); });
+    var list = books.filter(function (b) {
+      if (window.WondiiBookShowcase && window.WondiiBookShowcase.isShowcase(b.id)) return false;
+      return !re || re.test(bookText(b));
+    });
     var grid = $("storyGrid");
     grid.textContent = "";
     list.forEach(function (b) { grid.appendChild(bookCard(b)); });
@@ -837,6 +904,7 @@
     renderFavourites();
   });
   document.addEventListener("wondii-org", refreshBooks);
+  document.addEventListener("wondii-session", function () { renderStories(); });
   document.addEventListener("visibilitychange", function () {
     if (document.visibilityState === "visible") refreshBooks();
   });

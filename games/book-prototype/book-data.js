@@ -1,8 +1,9 @@
 /* Turns a saved Wondii book into the content the 3D reader already draws.
    It does not draw, animate, or store books. A book id is accepted only from
-   the signed-in shelf, a parent's read of that child's book, or a child's
-   shared copy. The sample is reached only when this page was opened with
-   sample=1 or demo=1 and no book id. A failed load never becomes the sample. */
+   the signed-in shelf, a parent's read of that child's book, a child's
+   shared copy, or a system showcase book the viewer is allowed to open.
+   sample=1 and demo=1 open The Rain That Rose. A failed load never becomes
+   the old prototype sample. */
 (function (root) {
   "use strict";
 
@@ -10,6 +11,9 @@
     missing: "This link does not name a book.",
     unauthorised: "Sign in to open this book. It stays on the account that saved it.",
     unavailable: "This book is not on your shelf.",
+    unpublished: "This book is not available to read yet.",
+    file: "This book could not be opened. The book file did not load.",
+    pictures: "This book could not be opened. Its pictures did not load.",
     closed: "This book could not be opened.",
     empty: "This book has no pages yet."
   };
@@ -41,6 +45,24 @@
     }
     if (!params.has("book")) return null;
     return String(params.get("book") || "").trim();
+  }
+
+  function sampleRequested() {
+    try {
+      var params = new URLSearchParams(root.location.search);
+      return params.get("sample") === "1" || params.get("demo") === "1";
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /* The old sample flag opened prototype art that is not on the public site.
+     It now opens the published showcase book instead. */
+  function showcaseRequest() {
+    var id = requestedId();
+    if (id) return id;
+    if (sampleRequested()) return "the-rain-that-rose";
+    return "";
   }
 
   function classify(id, userId, books) {
@@ -230,26 +252,52 @@
     return null;
   }
 
+  function previewViewer(id, viewer) {
+    var Showcase = root.WondiiBookShowcase;
+    if (!viewer || !viewer.userId || !Showcase || Showcase.publishState(id) !== "awaiting-visual-approval") {
+      return Promise.resolve(viewer);
+    }
+    var session = root.WondiiSession;
+    var client = session && typeof session.current === "function" ? session.current() : null;
+    if (!client || typeof client.from !== "function") return Promise.resolve(viewer);
+    return client.from("organisation_members").select("role").eq("user_id", viewer.userId).eq("status", "active").then(function (res) {
+      var rows = (res && res.data) || [];
+      var role = "";
+      rows.forEach(function (row) {
+        if (row && (row.role === "owner" || row.role === "school_admin")) role = row.role;
+      });
+      if (!role) return viewer;
+      return { userId: viewer.userId, workspaceKind: "school", role: role };
+    }).catch(function () {
+      return viewer;
+    });
+  }
+
   function loadShowcase(id, viewer) {
     var Showcase = root.WondiiBookShowcase;
-    var gate = Showcase.canOpen(id, viewer);
-    if (!gate.ok) return Promise.resolve({ ok: false, reason: gate.reason });
-    return fetch(Showcase.recordUrl(id)).then(function (res) {
-      if (!res.ok) return { ok: false, reason: "closed" };
-      return res.json().then(function (record) {
-        if (!record || record.id !== id || record.readOnly !== true) return { ok: false, reason: "unavailable" };
-        if (record.publishState !== Showcase.publishState(id)) return { ok: false, reason: "unavailable" };
-        var reading = plan(record);
-        if (!reading.pages.length) return { ok: false, reason: "empty" };
-        return { ok: true, kind: "showcase", plan: reading, readOnly: true };
+    return previewViewer(id, viewer).then(function (who) {
+      var gate = Showcase.canOpen(id, who);
+      if (!gate.ok) return { ok: false, reason: gate.reason };
+      return fetch(Showcase.recordUrl(id), { cache: "no-store" }).then(function (res) {
+        if (!res.ok) return { ok: false, reason: "file" };
+        return res.json().then(function (record) {
+          if (!record || record.id !== id || record.readOnly !== true) return { ok: false, reason: "unavailable" };
+          if (record.publishState !== Showcase.publishState(id)) return { ok: false, reason: "unavailable" };
+          var reading = plan(record);
+          if (!reading.pages.length) return { ok: false, reason: "empty" };
+          return { ok: true, kind: "showcase", plan: reading, readOnly: true };
+        }).catch(function () {
+          return { ok: false, reason: "file" };
+        });
+      }).catch(function () {
+        return { ok: false, reason: "file" };
       });
-    }).catch(function () {
-      return { ok: false, reason: "closed" };
     });
   }
 
   function load() {
     var id = requestedId();
+    if ((id == null || !id) && sampleRequested()) id = "the-rain-that-rose";
     if (id == null) return Promise.resolve({ ok: true, kind: "sample" });
     if (!id) return Promise.resolve({ ok: false, reason: "missing" });
     if (root.WondiiBookShowcase && root.WondiiBookShowcase.isShowcase(id)) {
@@ -292,6 +340,8 @@
   root.WondiiBookData = {
     prepareReader: prepareReader,
     requestedId: requestedId,
+    sampleRequested: sampleRequested,
+    showcaseRequest: showcaseRequest,
     classify: classify,
     plan: plan,
     load: load,

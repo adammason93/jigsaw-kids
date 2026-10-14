@@ -70,6 +70,6 @@ var source = fs.readFileSync(path.join(root, "scripts/book/castle-book-run.js"),
 assert.ok(source.indexOf('process.argv.indexOf("--illustrate")') >= 0);
 assert.ok(source.indexOf("require.main === module") >= 0);
 var reader = crypto.createHash("sha1").update(fs.readFileSync(path.join(root, "games/book-prototype/book.js"))).digest("hex");
-assert.strictEqual(reader, "bcadc75b5f7fbccc90f2651bcabf44d6e489fbd3");
+assert.strictEqual(reader, "3992bf4449a45851754911ccb912829951620d3c");
 
 console.log("castle resume checks ok");
