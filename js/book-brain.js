@@ -1066,7 +1066,12 @@ function applyTextEdit(book, pageId, text) {
         if (!(id && known[id])) problems.push(problem);
       });
     }
-    problems = problems.concat(lengthShape(incoming, profile));
+    var shape = profile;
+    if (profile && ask.pageCount > 0 && ask.pageCount >= profile.minSpreads && ask.pageCount <= profile.maxSpreads) {
+      shape = clone(profile);
+      shape.exactPages = ask.pageCount;
+    }
+    problems = problems.concat(lengthShape(incoming, shape));
     if (problems.length) return { ok: false, problems: problems, bible: null };
 
     var locations = (source.locations || []).map(function (place) {

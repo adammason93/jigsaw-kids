@@ -114,7 +114,7 @@
     var coverSrc = source.sceneDataUrl ? String(source.sceneDataUrl) : "";
     if (!coverSrc && source.sceneUrlFallback) coverSrc = String(source.sceneUrlFallback);
     if (!coverSrc && pages[0] && pages[0].imageSrc) coverSrc = pages[0].imageSrc;
-    return {
+    var reading = {
       id: String(source.id || ""),
       title: String(source.title || "Untitled story"),
       author: String(source.author || "Wondii"),
@@ -127,6 +127,50 @@
       storyLength: source.storyLength || "",
       spreadCount: 1 + Math.ceil(pages.length / 2)
     };
+    if (source.artDirection) applyArt(reading, source.artDirection);
+    return reading;
+  }
+
+  function artUrl(recordUrl) {
+    return String(recordUrl || "").replace(/\.json(?=$|\?)/, ".art.json");
+  }
+
+  function applyArt(reading, art) {
+    if (!art || (art.schema !== "wondii-art-direction/1" && art.schema !== "wondii-art-direction/2") || !reading) return reading;
+    var byNumber = {};
+    (art.pages || []).forEach(function (page) {
+      if (page && page.number) byNumber[page.number] = page;
+    });
+    reading.artDirection = {
+      schema: art.schema,
+      identity: art.identity || null,
+      limitations: art.limitations || [],
+      spreads: art.spreads || []
+    };
+    (reading.pages || []).forEach(function (page) {
+      var planned = byNumber[page.number];
+      if (!planned || !planned.layout) return;
+      var treatments = (planned.treatments || []).filter(function (mark) {
+        return mark && mark.text && String(page.text || "").indexOf(mark.text) >= 0;
+      });
+      page.direction = {};
+      Object.keys(planned).forEach(function (key) {
+        page.direction[key] = planned[key];
+      });
+      page.direction.treatments = treatments;
+    });
+    return reading;
+  }
+
+  function withArt(reading, recordUrl) {
+    var url = artUrl(recordUrl);
+    if (!url || url === recordUrl || !root.fetch) return Promise.resolve(reading);
+    return root.fetch(url, { cache: "no-store" }).then(function (res) {
+      if (!res.ok) return reading;
+      return res.json().then(function (art) {
+        return applyArt(reading, art);
+      }).catch(function () { return reading; });
+    }).catch(function () { return reading; });
   }
 
   function localFixture() {
@@ -296,7 +340,9 @@
           if (record.publishState !== Showcase.publishState(id)) return { ok: false, reason: "unavailable" };
           var reading = plan(record);
           if (!reading.pages.length) return { ok: false, reason: "empty" };
-          return { ok: true, kind: "showcase", plan: reading, readOnly: true };
+          return withArt(reading, Showcase.recordUrl(id)).then(function (directed) {
+            return { ok: true, kind: "showcase", plan: directed, readOnly: true };
+          });
         }).catch(function () {
           return { ok: false, reason: "file" };
         });

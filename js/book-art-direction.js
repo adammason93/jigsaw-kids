@@ -114,7 +114,7 @@
 
   function quotesIn(text) {
     var found = [];
-    var re = /"[^"]+"/g;
+    var re = /["“][^"”]+["”]/g;
     var match;
     while ((match = re.exec(text))) found.push(match[0]);
     return found;
@@ -133,8 +133,8 @@
     var marks = [];
     var seen = {};
     function add(kind, phrase, reason) {
-      var exact = String(phrase || "");
-      if (!exact || text.indexOf(exact) < 0 || seen[exact]) return;
+      var exact = String(phrase || "").trim();
+      if (!exact || !/[A-Za-z0-9]/.test(exact) || text.indexOf(exact) < 0 || seen[exact]) return;
       if (kind === "impact" && !/^(SPLASH|BOOM|CRASH|WHOOSH|POP|CRACK)!$/i.test(exact)) return;
       seen[exact] = true;
       marks.push({ kind: kind, text: exact, reason: reason });

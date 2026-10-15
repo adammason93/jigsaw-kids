@@ -44,6 +44,8 @@
     if (!title) return "incomplete";
     var pages = book.pages || [];
     if (!pages.length) return "incomplete";
+    var wanted = Number(book.bible && book.bible.pageCount || 0);
+    if (wanted > 0 && pages.length !== wanted) return "page-count";
     var missing = pages.some(function (page) {
       return !page || !String(page.text || page.prose || "").trim() || !privatePicture(imageOf(page));
     });
@@ -65,10 +67,20 @@
     });
   }
 
+  function storedArt(art) {
+    if (!art || (art.schema !== "wondii-art-direction/1" && art.schema !== "wondii-art-direction/2")) return null;
+    if (!art.pages || !art.pages.length) return null;
+    return {
+      schema: art.schema,
+      pages: art.pages,
+      spreads: art.spreads || []
+    };
+  }
+
   function toShelf(result, id, owner, key) {
     var pages = shelfPages(result);
     var cover = pages[0] && (pages[0].imageDataUrl || pages[0].imageUrlFallback) || null;
-    return {
+    var book = {
       id: id,
       title: String(result.bible.title).trim(),
       author: "",
@@ -84,6 +96,11 @@
       sceneDataUrl: cover && cover.indexOf("data:image/") === 0 ? cover : null,
       sceneUrlFallback: cover && cover.indexOf("wondii-private:") === 0 ? cover : null
     };
+    var count = Number(result.bible && result.bible.pageCount || 0);
+    if (count > 0) book.pageCount = count;
+    var art = storedArt(result.artDirection);
+    if (art) book.artDirection = art;
+    return book;
   }
 
   function bookId(owner, key) {

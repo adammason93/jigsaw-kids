@@ -85,12 +85,30 @@
     sceneKind: "place",
     justJoined: "",
     moreIdeas: false,
-    pendingStar: ""
+    pendingStar: "",
+    pageCount: 0
   };
   var library = { mine: [], shared: [], mineState: "idle", sharedState: "idle" };
   var portraits = {};
   var remembered = {};
   var castTouched = false;
+  if (exactTestPages() === 12) {
+    state.pageCount = 12;
+    state.ageBand = "4-6";
+    state.place = "woods";
+    state.theme = "Adventure";
+    state.length = "medium";
+    state.idea = "Maya, Isaac and Sofia find a tiny blue boat caught in the reeds by the stream. The boat is trying to reach the lantern tree before the evening wind stops. They walk with it through the meadow, lift it over a fallen branch, and wait with it while the first lantern lights. The boat gets there, and the three of them walk home together.";
+    state.ids = ["wondii-maya", "wondii-sofia"];
+    castTouched = true;
+  }
+
+  function exactTestPages() {
+    try {
+      if (new URLSearchParams(window.location.search).get("pages") === "12") return 12;
+    } catch (ePages) {}
+    return 0;
+  }
 
   function motionOk() {
     try {
@@ -1190,7 +1208,8 @@
           length: state.length,
           theme: state.theme,
           familyAgeBand: state.ageBand,
-          creationKey: key
+          creationKey: key,
+          pageCount: state.pageCount || undefined
         })
       }).then(function (response) {
         return response.text().then(function (raw) {
@@ -1461,6 +1480,7 @@
     if (!book || book.generated !== true || book.recordKind === "plan" || !book.id) return false;
     var pages = book.pages || [];
     if (!pages.length) return false;
+    if (Number(book.pageCount) > 0 && pages.length !== Number(book.pageCount)) return false;
     return pages.every(function (page) {
       if (!page) return false;
       var text = String(page.text || page.prose || "").trim();
@@ -1542,6 +1562,7 @@
             theme: state.theme,
             length: state.length,
             ageBand: state.ageBand,
+            pageCount: state.pageCount || undefined,
             members: state.ids.slice()
           },
           job: job || null,

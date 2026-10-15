@@ -681,7 +681,7 @@ var require_book_art_direction = __commonJS({
       }
       function quotesIn(text) {
         var found = [];
-        var re = /"[^"]+"/g;
+        var re = /["“][^"”]+["”]/g;
         var match;
         while (match = re.exec(text)) found.push(match[0]);
         return found;
@@ -697,8 +697,8 @@ var require_book_art_direction = __commonJS({
         var marks = [];
         var seen = {};
         function add(kind, phrase, reason) {
-          var exact = String(phrase || "");
-          if (!exact || text.indexOf(exact) < 0 || seen[exact]) return;
+          var exact = String(phrase || "").trim();
+          if (!exact || !/[A-Za-z0-9]/.test(exact) || text.indexOf(exact) < 0 || seen[exact]) return;
           if (kind === "impact" && !/^(SPLASH|BOOM|CRASH|WHOOSH|POP|CRACK)!$/i.test(exact)) return;
           seen[exact] = true;
           marks.push({ kind, text: exact, reason });
@@ -6752,7 +6752,12 @@ var require_book_brain = __commonJS({
             if (!(id && known[id])) problems.push(problem);
           });
         }
-        problems = problems.concat(lengthShape(incoming, profile));
+        var shape = profile;
+        if (profile && ask.pageCount > 0 && ask.pageCount >= profile.minSpreads && ask.pageCount <= profile.maxSpreads) {
+          shape = clone(profile);
+          shape.exactPages = ask.pageCount;
+        }
+        problems = problems.concat(lengthShape(incoming, shape));
         if (problems.length) return { ok: false, problems, bible: null };
         var locations = (source.locations || []).map(function(place) {
           return {
@@ -8341,6 +8346,8 @@ var require_book_v2_shelf = __commonJS({
         if (!title) return "incomplete";
         var pages = book.pages || [];
         if (!pages.length) return "incomplete";
+        var wanted = Number(book.bible && book.bible.pageCount || 0);
+        if (wanted > 0 && pages.length !== wanted) return "page-count";
         var missing = pages.some(function(page) {
           return !page || !String(page.text || page.prose || "").trim() || !privatePicture(imageOf(page));
         });
@@ -8360,10 +8367,19 @@ var require_book_v2_shelf = __commonJS({
           };
         });
       }
+      function storedArt(art) {
+        if (!art || art.schema !== "wondii-art-direction/1" && art.schema !== "wondii-art-direction/2") return null;
+        if (!art.pages || !art.pages.length) return null;
+        return {
+          schema: art.schema,
+          pages: art.pages,
+          spreads: art.spreads || []
+        };
+      }
       function toShelf(result, id, owner, key) {
         var pages = shelfPages(result);
         var cover = pages[0] && (pages[0].imageDataUrl || pages[0].imageUrlFallback) || null;
-        return {
+        var book = {
           id,
           title: String(result.bible.title).trim(),
           author: "",
@@ -8379,6 +8395,11 @@ var require_book_v2_shelf = __commonJS({
           sceneDataUrl: cover && cover.indexOf("data:image/") === 0 ? cover : null,
           sceneUrlFallback: cover && cover.indexOf("wondii-private:") === 0 ? cover : null
         };
+        var count = Number(result.bible && result.bible.pageCount || 0);
+        if (count > 0) book.pageCount = count;
+        var art = storedArt(result.artDirection);
+        if (art) book.artDirection = art;
+        return book;
       }
       function bookId(owner, key) {
         var who = String(owner.userId || "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 24);
@@ -9418,7 +9439,12 @@ var require_produce = __commonJS({
                     bible: book.bible,
                     pages,
                     textProblems: book.textProblems || [],
-                    storyProblems: book.storyProblems || []
+                    storyProblems: book.storyProblems || [],
+                    artDirection: {
+                      schema: directed.schema,
+                      pages: directed.pages,
+                      spreads: directed.spreads || []
+                    }
                   };
                   var saved = Shelf.commitBook({
                     result,
@@ -9430,7 +9456,8 @@ var require_produce = __commonJS({
                     creationKey: key
                   }, { store, allowance: ports.allowance });
                   if (!saved.ok || !saved.book) {
-                    return stop("save", saved.reason || "save", "The book could not be saved. No story allowance was used.", directed);
+                    var saveMessage = saved.reason === "page-count" ? "The story did not come back with the requested number of pages, so the book was not saved." : "The book could not be saved. No story allowance was used.";
+                    return stop("save", saved.reason || "save", saveMessage, directed);
                   }
                   saved.book.generated = true;
                   saved.book.recordKind = "book";

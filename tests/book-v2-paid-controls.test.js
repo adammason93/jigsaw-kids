@@ -3,10 +3,13 @@
 var assert = require("assert");
 var fs = require("fs");
 var path = require("path");
+var vm = require("vm");
 var Produce = require("../scripts/book/produce.js");
 var Handle = require("../scripts/book/handle-request.js");
 var Shelf = require("../js/book-v2-shelf.js");
 var Cost = require("../js/book-v2-cost.js");
+var Brain = require("../js/book-brain.js");
+var Art = require("../js/book-art-direction.js");
 
 var root = path.join(__dirname, "..");
 var account = "user-1";
@@ -121,8 +124,18 @@ function bodyFor(extra) {
     idea: "Maya, Isaac and Sofia follow a paper lantern through the castle.",
     place: "castle",
     length: "medium",
-    theme: "Magic"
+    theme: "Magic",
+    pageCount: 12
   }, extra || {});
+}
+
+function readerPlan(book) {
+  var sandbox = { console: console };
+  sandbox.window = sandbox;
+  sandbox.globalThis = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(fs.readFileSync(path.join(root, "games/book-prototype/book-data.js"), "utf8"), sandbox);
+  return sandbox.WondiiBookData.plan(book);
 }
 
 function diskJobs(disk) {
@@ -246,6 +259,55 @@ assert.ok(provider.indexOf("wondii-sofia") >= 0);
 assert.ok(produceSource.indexOf("api.openai.com") < 0);
 assert.ok(produceSource.indexOf("OPENAI") < 0);
 
+var journey = fs.readFileSync(path.join(root, "games/story-journey.js"), "utf8");
+var readerJs = fs.readFileSync(path.join(root, "games/book-prototype/book.js"), "utf8");
+assert.ok(journey.indexOf('get("pages") === "12"') >= 0);
+assert.ok(journey.indexOf("pageCount: state.pageCount || undefined") >= 0);
+assert.ok(readerJs.indexOf("const TURN_MS = 880") >= 0);
+assert.ok(readerJs.indexOf("const OPEN_COVER = -Math.PI") >= 0);
+assert.ok(readerJs.indexOf("const OPEN_MS = 1200") >= 0);
+assert.ok(readerJs.indexOf("function drawDirectedPage") >= 0);
+assert.ok(readerJs.indexOf('const title = "The End"') >= 0);
+assert.ok(fs.readFileSync(path.join(root, "games/book-prototype/index.html"), "utf8").indexOf("book-art-direction.js") >= 0);
+
+var twelveAsk = {
+  castIds: ["maya"],
+  idea: "Maya finds a tiny blue boat by the stream.",
+  ageBand: "4-6",
+  length: "storybook",
+  context: "family",
+  pageCount: 12
+};
+var shortDraft = {
+  title: "Too short",
+  beats: [
+    { role: "hook", action: "Maya finds the boat." },
+    { role: "climax", action: "The boat reaches the tree." },
+    { role: "resolution", action: "They walk home." }
+  ]
+};
+var shortBook = Brain.compileStory(shortDraft, twelveAsk);
+assert.strictEqual(shortBook.ok, false);
+assert.ok(shortBook.problems.indexOf("page-count") >= 0);
+var bandAsk = Object.assign({}, twelveAsk);
+delete bandAsk.pageCount;
+var bandBook = Brain.compileStory(shortDraft, bandAsk);
+assert.ok(bandBook.problems.indexOf("page-count") < 0);
+
+var wrongCount = Shelf.commitBook({
+  creationKey: "bookplan000000000099",
+  owner: { userId: account, accountKind: "adult" },
+  result: {
+    status: "REVIEWABLE",
+    illustrationStyle: "wondii-picture-book",
+    bible: { title: "Short", pageCount: 12 },
+    pages: [{ text: "Only one page.", imageDataUrl: "data:image/gif;base64,QQ==" }]
+  }
+}, { store: Shelf.memoryStore(), allowance: Shelf.memoryAllowance() });
+assert.strictEqual(wrongCount.ok, false);
+assert.strictEqual(wrongCount.reason, "page-count");
+assert.strictEqual(wrongCount.saved, false);
+
 var blocked = Handle.handleBookV2(Object.assign(bodyFor(), { approved: true, budgetUsd: 50 }));
 assert.strictEqual(blocked.body.generation.authorised, false);
 assert.strictEqual(blocked.body.generated, false);
@@ -304,6 +366,26 @@ Promise.resolve().then(function () {
   return Produce.run(null, bodyFor(), ports).then(function (made) {
     assert.strictEqual(made.ok, true, made.job && made.job.message);
     assert.strictEqual(made.book.pages.length, 12);
+    assert.strictEqual(made.book.pageCount, 12);
+    assert.strictEqual(made.book.generated, true);
+    assert.strictEqual(made.book.recordKind, "book");
+    assert.strictEqual(made.book.recordKind === "plan", false);
+    assert.strictEqual(made.book.artDirection.schema, "wondii-art-direction/2");
+    var layouts = made.book.artDirection.pages.map(function (page) { return page.layout; });
+    assert.strictEqual(layouts.length, 12);
+    assert.ok(layouts.indexOf("full-bleed") >= 0);
+    assert.ok(layouts.filter(function (layout, index) { return layouts.indexOf(layout) === index; }).length > 1);
+    assert.ok(made.book.artDirection.pages.some(function (page) { return page.treatments && page.treatments.length; }));
+    var reading = readerPlan(made.book);
+    assert.strictEqual(reading.pages.length, 12);
+    assert.ok(reading.pages[0].direction.layout === "full-bleed" || reading.pages.some(function (page) { return page.direction && page.direction.layout === "full-bleed"; }));
+    assert.ok(reading.pages.every(function (page) { return page.direction && page.direction.layout; }));
+    var bleed = reading.pages.filter(function (page) { return page.direction.layout === "full-bleed"; })[0];
+    var placed = Art.compose(bleed.direction, 1200, 1800, 1536, 1024, "left", 180);
+    assert.strictEqual(placed.image.x, 0);
+    assert.ok(placed.text.y >= placed.image.y + placed.image.h);
+    var plain = readerPlan({ id: "old", title: "Saved earlier", pages: [{ text: "An older page.", imageDataUrl: "data:image/gif;base64,QQ==" }] });
+    assert.ok(!plain.pages[0].direction);
     assert.strictEqual(made.book.ownerUserId, account);
     assert.ok(made.spend.listedUsd > 0);
     assert.ok(made.spend.listedUsd <= 2 || made.spend.listedUsd <= ports.budgetUsd);

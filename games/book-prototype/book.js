@@ -379,7 +379,38 @@ function emphasisWord(word) {
   return /^(blink|blinks|blinked|blinking|oh)$/i.test(bare);
 }
 
-function richParagraphs(g, lines, max, size) {
+function markKind(line, wordStart, treatments) {
+  let kind = "";
+  (treatments || []).forEach(function (mark) {
+    if (!mark || !mark.text) return;
+    const at = line.indexOf(mark.text);
+    if (at < 0) return;
+    if (wordStart >= at && wordStart < at + mark.text.length) kind = mark.kind;
+  });
+  return kind;
+}
+
+function lineKind(line, treatments) {
+  let kind = "";
+  (treatments || []).forEach(function (mark) {
+    if (mark && mark.text && line.trim() === String(mark.text).trim()) kind = mark.kind;
+  });
+  return kind;
+}
+
+function styleFor(kind, size, quote, word) {
+  if (kind === "impact") return { font: "650 " + Math.round(size * 1.55) + "px Fredoka, Nunito, sans-serif", emphasis: true };
+  if (kind === "spoken") return { font: "650 " + Math.round(size * 1.7) + "px Fredoka, Nunito, sans-serif", emphasis: true };
+  if (kind === "motion") return { font: "italic 650 " + Math.round(size * 1.85) + "px Fraunces, Georgia, serif", emphasis: true };
+  if (kind === "dialogue") return { font: "italic 650 " + Math.round(size * 1.38) + "px Fraunces, Georgia, serif", emphasis: true };
+  if (kind === "magic") return { font: "italic 650 " + Math.round(size * 1.42) + "px Fraunces, Georgia, serif", emphasis: true };
+  if (kind === "whisper" || kind === "quiet") return { font: "italic 560 " + size + "px Fraunces, Georgia, serif", soft: true };
+  if (emphasisWord(word)) return { font: "600 " + Math.round(size * 1.28) + "px Fredoka, Nunito, sans-serif", emphasis: true };
+  if (quote) return { font: "italic 560 " + size + "px Fraunces, Georgia, serif" };
+  return { font: "560 " + size + "px Fraunces, Georgia, serif" };
+}
+
+function richParagraphs(g, lines, max, size, treatments) {
   const spaceFont = "560 " + size + "px Fraunces, Georgia, serif";
   return lines.map(function (line) {
     const quote = /^[“"]/.test(line);
@@ -387,35 +418,53 @@ function richParagraphs(g, lines, max, size) {
     const rows = [];
     let row = [];
     let width = 0;
+    let searchFrom = 0;
     words.forEach(function (word) {
-      const emphasis = emphasisWord(word);
-      const font = emphasis
-        ? "600 " + Math.round(size * 1.28) + "px Fredoka, Nunito, sans-serif"
-        : (quote ? "italic " : "") + "560 " + size + "px Fraunces, Georgia, serif";
-      g.font = font;
+      const wordStart = line.indexOf(word, searchFrom);
+      const at = wordStart < 0 ? searchFrom : wordStart;
+      const kind = markKind(line, at, treatments);
+      const style = styleFor(kind, size, quote, word);
+      g.font = style.font;
       const wordWidth = g.measureText(word).width;
       g.font = spaceFont;
       const gap = row.length ? g.measureText(" ").width : 0;
+      const part = { text: word, font: style.font, emphasis: !!style.emphasis, soft: !!style.soft, width: wordWidth };
       if (row.length && width + gap + wordWidth > max) {
         rows.push(row);
-        row = [{ text: word, font: font, emphasis: emphasis, width: wordWidth }];
+        row = [part];
         width = wordWidth;
       } else {
-        row.push({ text: word, font: font, emphasis: emphasis, width: wordWidth });
+        row.push(part);
         width += gap + wordWidth;
       }
+      searchFrom = at + word.length;
     });
     if (row.length) rows.push(row);
     if (rows.length > 1 && rows[rows.length - 1].length === 1 && rows[rows.length - 2].length > 2) {
       rows[rows.length - 1].unshift(rows[rows.length - 2].pop());
     }
+    rows.kind = lineKind(line, treatments);
     return rows;
   });
 }
 
-function blockHeight(paragraphs, leading) {
+function paragraphGap(rows, leading, index) {
+  let gap = index ? Math.round(leading * 0.55) : 0;
+  if (rows && (rows.kind === "pause" || rows.kind === "motion" || rows.kind === "spoken")) gap += Math.round(leading * 0.95);
+  else if (rows && (rows.kind === "whisper" || rows.kind === "quiet" || rows.kind === "magic" || rows.kind === "dialogue")) gap += Math.round(leading * 0.45);
+  return gap;
+}
+
+function lineBox(rows, size) {
+  const kind = rows && rows.kind;
+  const scale = kind === "motion" ? 1.85 : (kind === "spoken" ? 1.7 : (kind === "magic" ? 1.42 : (kind === "dialogue" ? 1.38 : (kind === "impact" ? 1.55 : 1))));
+  return Math.round(size * 1.45 * scale);
+}
+
+function blockHeight(paragraphs, size) {
+  const body = Math.round(size * 1.45);
   return paragraphs.reduce(function (sum, rows, index) {
-    return sum + rows.length * leading + (index ? Math.round(leading * 0.55) : 0);
+    return sum + rows.length * lineBox(rows, size) + paragraphGap(rows, body, index);
   }, 0);
 }
 
@@ -424,44 +473,57 @@ function layoutCopy(g, lines, zone) {
     return "560 " + size + "px Fraunces, Georgia, serif";
   };
   let size = zone.size || zone.maxSize;
-  let paragraphs = richParagraphs(g, lines, zone.w, size);
+  let paragraphs = richParagraphs(g, lines, zone.w, size, zone.marks);
   let leading = Math.round(size * 1.45);
-  let height = blockHeight(paragraphs, leading);
+  let height = blockHeight(paragraphs, size);
   while (height > zone.h && size > zone.minSize) {
     size -= 2;
     leading = Math.round(size * 1.45);
-    paragraphs = richParagraphs(g, lines, zone.w, size);
-    height = blockHeight(paragraphs, leading);
+    paragraphs = richParagraphs(g, lines, zone.w, size, zone.marks);
+    height = blockHeight(paragraphs, size);
   }
   const textRows = paragraphs.reduce(function (sum, rows) { return sum + rows.length; }, 0);
   const sparse = zone.anchor !== "start" && !zone.align && textRows <= 4 && height < zone.h * 0.62;
   const align = zone.align || (sparse ? "center" : "left");
   const middle = zone.valign === "middle" || sparse;
-  let y = (middle ? zone.y + Math.max(0, (zone.h - height) / 2) : zone.y) + leading * 0.82;
+  const firstBox = paragraphs.length ? lineBox(paragraphs[0], size) : leading;
+  let y = (middle ? zone.y + Math.max(0, (zone.h - height) / 2) : zone.y) + firstBox * 0.78;
   const ink = zone.color || "#2a241c";
   const accent = zone.accent || (ink === "#fffaf2" ? "#ffe7a8" : "#6d28d9");
   g.shadowBlur = zone.color ? g.shadowBlur : 0;
   g.textAlign = "left";
   paragraphs.forEach(function (rows, index) {
-    if (index) y += Math.round(leading * 0.55);
+    y += paragraphGap(rows, leading, index);
+    const rowLeading = lineBox(rows, size);
     rows.forEach(function (row) {
       let width = 0;
       row.forEach(function (part, i) {
         g.font = spaceFont(size);
         width += part.width + (i ? g.measureText(" ").width : 0);
       });
-      let x = align === "center" ? zone.x + (zone.w - width) / 2 : zone.x;
+      let x = align === "center" ? zone.x + Math.max(0, (zone.w - width) / 2) : zone.x;
       row.forEach(function (part, i) {
         g.font = spaceFont(size);
         if (i) x += g.measureText(" ").width;
         g.font = part.font;
-        g.fillStyle = part.emphasis ? accent : ink;
+        g.fillStyle = part.soft ? "#3d342c" : (part.emphasis ? accent : ink);
         g.fillText(part.text, x, y);
         x += part.width;
       });
-      y += leading;
+      y += rowLeading;
     });
   });
+}
+
+function roundedPath(g, x, y, w, h, r) {
+  const radius = Math.min(r, w / 2, h / 2);
+  g.beginPath();
+  g.moveTo(x + radius, y);
+  g.arcTo(x + w, y, x + w, y + h, radius);
+  g.arcTo(x + w, y + h, x, y + h, radius);
+  g.arcTo(x, y + h, x, y, radius);
+  g.arcTo(x, y, x + w, y, radius);
+  g.closePath();
 }
 
 function paintFolio(g, folio, side, ink) {
@@ -480,10 +542,9 @@ function paperPage() {
   return c;
 }
 
-function measureCopy(g, lines, width, size) {
-  const paragraphs = richParagraphs(g, lines, width, size);
-  const leading = Math.round(size * 1.45);
-  return { height: blockHeight(paragraphs, leading), size: size };
+function measureCopy(g, lines, width, size, treatments) {
+  const paragraphs = richParagraphs(g, lines, width, size, treatments);
+  return { height: blockHeight(paragraphs, size), size: size };
 }
 
 function fitTypeSize(g, pages, layouts) {
@@ -498,11 +559,19 @@ function fitTypeSize(g, pages, layouts) {
     const side = index % 2 ? "right" : "left";
     let trial = size;
     if (page.image) {
-      const probe = pageComposition(layout, pageW, pageH, page.image.width, page.image.height, side, 0);
+      const directed = page.direction && page.direction.layout && window.WondiiArtDirection;
+      const linesForFit = directed ? displayLines(page.text, page.direction.treatments) : lines;
+      const probe = directed
+        ? window.WondiiArtDirection.compose(page.direction, pageW, pageH, page.image.width, page.image.height, side, 0)
+        : pageComposition(layout, pageW, pageH, page.image.width, page.image.height, side, 0);
+      const bodyFloor = Math.round(pageW * 0.04);
       while (trial > minSize) {
-        const measured = measureCopy(g, lines, probe.text.w, trial);
-        const placed = pageComposition(layout, pageW, pageH, page.image.width, page.image.height, side, measured.height);
+        const measured = measureCopy(g, linesForFit, probe.text.w, trial, directed ? page.direction.treatments : null);
+        const placed = directed
+          ? window.WondiiArtDirection.compose(page.direction, pageW, pageH, page.image.width, page.image.height, side, measured.height)
+          : pageComposition(layout, pageW, pageH, page.image.width, page.image.height, side, measured.height);
         if (measured.height <= placed.text.h && placed.text.y + measured.height <= pageH - placed.folio) break;
+        if (directed && trial <= bodyFloor) break;
         trial -= 2;
       }
     } else {
@@ -856,8 +925,99 @@ function storyLines(text) {
   return parts.length ? parts : [" "];
 }
 
+function displayLines(text, treatments) {
+  const lines = storyLines(text);
+  const marks = (treatments || []).filter(function (mark) {
+    return mark && mark.text && (mark.kind === "pause" || mark.kind === "motion" || mark.kind === "spoken" || mark.kind === "whisper" || mark.kind === "quiet" || mark.kind === "impact" || mark.kind === "magic" || mark.kind === "dialogue");
+  });
+  if (!marks.length) return lines;
+  return lines.reduce(function (out, line) {
+    let pieces = [line];
+    marks.forEach(function (mark) {
+      const next = [];
+      pieces.forEach(function (piece) {
+        const at = piece.indexOf(mark.text);
+        if (at < 0) {
+          next.push(piece);
+          return;
+        }
+        const before = piece.slice(0, at).trim();
+        const after = piece.slice(at + mark.text.length).trim();
+        if (before) next.push(before);
+        next.push(mark.text);
+        if (after) next.push(after);
+      });
+      pieces = next;
+    });
+    pieces.forEach(function (piece) {
+      if (piece.trim()) out.push(piece.trim());
+    });
+    return out;
+  }, []);
+}
+
+function fadePlate(g, box, amount) {
+  g.save();
+  g.globalCompositeOperation = "destination-out";
+  const bands = [
+    [box.x, box.y, box.x + amount, box.y, box.x, box.y, amount, box.h],
+    [box.x + box.w, box.y, box.x + box.w - amount, box.y, box.x + box.w - amount, box.y, amount, box.h],
+    [box.x, box.y, box.x, box.y + amount, box.x, box.y, box.w, amount],
+    [box.x, box.y + box.h, box.x, box.y + box.h - amount, box.x, box.y + box.h - amount, box.w, amount]
+  ];
+  bands.forEach(function (band) {
+    const grad = g.createLinearGradient(band[0], band[1], band[2], band[3]);
+    grad.addColorStop(0, "rgba(0, 0, 0, 0.55)");
+    grad.addColorStop(1, "rgba(0, 0, 0, 0)");
+    g.fillStyle = grad;
+    g.fillRect(band[4], band[5], band[6], band[7]);
+  });
+  g.restore();
+}
+
+function drawDirectedImage(g, image, placed) {
+  const box = placed.image;
+  g.save();
+  if (placed.radius) {
+    roundedPath(g, box.x, box.y, box.w, box.h, placed.radius);
+    g.clip();
+  }
+  g.drawImage(image, box.sx, box.sy, box.sw, box.sh, box.x, box.y, box.w, box.h);
+  if (placed.feather) fadePlate(g, box, Math.max(12, Math.round(Math.min(box.w, box.h) * 0.045)));
+  g.restore();
+}
+
+function drawDirectedPage(image, lines, folio, side, typeSize, direction) {
+  const c = paperPage();
+  const g = c.getContext("2d");
+  const art = window.WondiiArtDirection;
+  const size = typeSize || Math.round(c.width * 0.046);
+  const probe = art.compose(direction, c.width, c.height, image.width, image.height, side, 0);
+  const measured = measureCopy(g, lines, probe.text.w, size, direction.treatments);
+  const placed = art.compose(direction, c.width, c.height, image.width, image.height, side, measured.height);
+  drawDirectedImage(g, image, placed);
+  layoutCopy(g, lines, {
+    x: placed.text.x,
+    y: placed.text.y,
+    w: placed.text.w,
+    h: placed.text.h,
+    maxSize: size,
+    minSize: Math.round(c.width * 0.03),
+    size: size,
+    anchor: "start",
+    align: placed.align,
+    marks: direction.treatments || [],
+    accent: direction.accent || "#143d4f"
+  });
+  paintFolio(g, folio, side);
+  gutterShade(g, side);
+  return c;
+}
+
 function paintPage(page, side, typeSize, layout) {
-  const lines = storyLines(page.text);
+  const directed = page.direction && page.direction.layout && window.WondiiArtDirection;
+  const lines = directed ? displayLines(page.text, page.direction.treatments) : storyLines(page.text);
+  if (page.image && directed) return drawDirectedPage(page.image, lines, String(page.number), side, typeSize, page.direction);
   if (page.image) return drawFramedPage(page.image, lines, String(page.number), side, typeSize, layout || "above");
   if (page.missingArt) lines.push("The picture for this page is not on this book yet.");
   return drawProsePage(lines, String(page.number), side, typeSize);
@@ -866,6 +1026,7 @@ function paintPage(page, side, typeSize, layout) {
 function paintSavedSpreads(plan) {
   const pages = plan.pages || [];
   const layouts = choosePageLayouts(pages);
+  const directed = pages.some(function (page) { return page.direction && page.direction.layout; });
   const measurer = pageCanvas().getContext("2d");
   const typeSize = fitTypeSize(measurer, pages, layouts);
   const painted = [{
@@ -878,7 +1039,7 @@ function paintSavedSpreads(plan) {
     const left = pages[i];
     const right = pages[i + 1];
     painted.push({
-      label: layouts[i] === "spread" ? "Aligned spread" : "Story",
+      label: !directed && layouts[i] === "spread" ? "Aligned spread" : "Story",
       left: paintPage(left, "left", typeSize, layouts[i]),
       right: right ? paintPage(right, "right", typeSize, layouts[i + 1]) : drawBlankLeaf(),
       text: [left.text, right && right.text].filter(Boolean).join(" ")

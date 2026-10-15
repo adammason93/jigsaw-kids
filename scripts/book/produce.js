@@ -600,7 +600,12 @@ function runLoaded(prior, source, ports, store, jobs, accountId, key) {
           bible: book.bible,
           pages: pages,
           textProblems: book.textProblems || [],
-          storyProblems: book.storyProblems || []
+          storyProblems: book.storyProblems || [],
+          artDirection: {
+            schema: directed.schema,
+            pages: directed.pages,
+            spreads: directed.spreads || []
+          }
         };
         var saved = Shelf.commitBook({
           result: result,
@@ -612,7 +617,10 @@ function runLoaded(prior, source, ports, store, jobs, accountId, key) {
           creationKey: key
         }, { store: store, allowance: ports.allowance });
         if (!saved.ok || !saved.book) {
-          return stop("save", saved.reason || "save", "The book could not be saved. No story allowance was used.", directed);
+          var saveMessage = saved.reason === "page-count"
+            ? "The story did not come back with the requested number of pages, so the book was not saved."
+            : "The book could not be saved. No story allowance was used.";
+          return stop("save", saved.reason || "save", saveMessage, directed);
         }
         saved.book.generated = true;
         saved.book.recordKind = "book";
