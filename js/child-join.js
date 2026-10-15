@@ -213,13 +213,19 @@
     return box;
   }
 
+  function isStoryPlan(book) {
+    if (!book || book.generated === true || book.recordKind === "book") return false;
+    return book.recordKind === "plan" || book.simulated === true;
+  }
+
   function bookGrid(rows, hrefFor, artFor, withHeart) {
     var list = node("ul", "family-books");
     rows.forEach(function (book) {
       var title = book.title || "Untitled";
-      var item = node("li", "family-book");
-      var open = node("a", "family-book__open", "");
-      open.href = hrefFor(book);
+      var planned = isStoryPlan(book);
+      var item = node("li", "family-book" + (planned ? " family-book--plan" : ""));
+      var open = planned ? node("div", "family-book__open", "") : node("a", "family-book__open", "");
+      if (!planned) open.href = hrefFor(book);
       var cover = node("span", "family-book__cover");
       cover.style.setProperty("--hue", String((title.charCodeAt(0) * 47) % 360));
       cover.appendChild(artImage(artFor(book), title));
@@ -228,6 +234,7 @@
       cover.appendChild(mark);
       open.appendChild(cover);
       open.appendChild(node("span", "family-book__title", title));
+      if (planned) open.appendChild(node("span", "family-note", "Story idea saved. The illustrated book is not ready."));
       item.appendChild(open);
       if (withHeart) {
         var heart = node("button", "family-heart" + (book.favourite ? " is-on" : ""), book.favourite ? "Loved" : "Favourite");
@@ -333,11 +340,13 @@
     mine.appendChild(node("h2", null, "My books"));
     if (data.continueId) {
       var current = (data.books || []).filter(function (book) { return book && book.id === data.continueId; })[0];
-      var cont = node("a", "family-continue", "");
-      cont.href = "games/book-prototype/?book=" + encodeURIComponent(data.continueId);
-      cont.appendChild(node("span", "family-kicker", "Continue reading"));
-      cont.appendChild(node("span", "family-continue__title", current && current.title ? current.title : "Your book"));
-      mine.appendChild(cont);
+      if (!current || !isStoryPlan(current)) {
+        var cont = node("a", "family-continue", "");
+        cont.href = "games/book-prototype/?book=" + encodeURIComponent(data.continueId);
+        cont.appendChild(node("span", "family-kicker", "Continue reading"));
+        cont.appendChild(node("span", "family-continue__title", current && current.title ? current.title : "Your book"));
+        mine.appendChild(cont);
+      }
     }
     if (!Array.isArray(data.books) || !data.books.length) {
       mine.appendChild(emptyState("Your books will appear here.", "games/storybook.html", "Create a book"));

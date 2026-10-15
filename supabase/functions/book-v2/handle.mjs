@@ -7120,27 +7120,22 @@ var require_handle_request = __commonJS({
     }
     function previewShelf(body, planned) {
       var who = names(body, planned);
-      var place = planned.request && planned.request.idea ? planned.request.idea : "";
-      var writing = (planned.familyAgeBand || planned.ageBand || "unspecified") + (planned.constraintYear ? ", written at " + planned.constraintYear : "");
-      var first = "Book V2 accepted this plan. The story model was not called, and no pictures were drawn.\n\n" + who.join(", ") + ". " + writing + ". " + place;
-      var second = "Picture consistency is not solved. Maya's approved sheet is maya-v1. Other selected characters still need their own approved reference sheets.";
+      var idea = planned.request && planned.request.idea ? String(planned.request.idea) : "";
       return {
         id: "book-v2-local-preview",
-        title: "Local preview \u2014 not a finished book",
+        recordKind: "plan",
+        title: "Story idea \u2014 not a finished book",
         author: "",
-        readerArtLayout: "duplex",
-        storyTextMode: "prose",
-        storyLength: "medium",
         v2: true,
         simulated: true,
-        pages: [
-          { text: first, imageDataUrl: null, imageUrlFallback: null },
-          { text: "", imageDataUrl: null, imageUrlFallback: null },
-          { text: second, imageDataUrl: null, imageUrlFallback: null },
-          { text: "", imageDataUrl: null, imageUrlFallback: null }
-        ],
-        sceneDataUrl: null,
-        sceneUrlFallback: null
+        generated: false,
+        pages: [],
+        request: {
+          idea,
+          names: who,
+          familyAgeBand: planned.familyAgeBand || "",
+          ageBand: planned.ageBand || ""
+        }
       };
     }
     function handleBookV2(body) {

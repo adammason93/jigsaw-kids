@@ -1015,6 +1015,69 @@
     setStatus("Nothing has been created yet.");
   }
 
+  function showPlanSaved(onAccount) {
+    state.planOnAccount = !!onAccount;
+    nextBtn.disabled = false;
+    go("saved");
+  }
+
+  function paintSaved() {
+    var names = state.ids.map(function (id) {
+      var row = person(id);
+      return row ? row[1] : "";
+    }).filter(Boolean);
+    var who = names.length ? names.join(", ") : "Your characters";
+    title.textContent = "Your story idea is saved";
+    crumbs("Story plan");
+    backBtn.textContent = "Make another story";
+    nextBtn.textContent = "Back to my bookshelf";
+    nextBtn.disabled = false;
+    var dock = document.createElement("div");
+    dock.className = "sj-dock sj-saved";
+    dock.appendChild(Object.assign(document.createElement("p"), {
+      className: "sj-preview__flag",
+      textContent: "Story plan. This is not a finished book."
+    }));
+    var card = document.createElement("div");
+    card.className = "sj-saved-card";
+    card.appendChild(Object.assign(document.createElement("h2"), {
+      textContent: plannedTitle(state.idea)
+    }));
+    card.appendChild(Object.assign(document.createElement("p"), {
+      className: "sj-ready__idea",
+      textContent: state.idea.trim() || "A gentle adventure, ready when story writing begins."
+    }));
+    card.appendChild(Object.assign(document.createElement("p"), {
+      className: "sj-saved-note",
+      textContent: state.planOnAccount
+        ? who + " — this idea is saved on your account. The illustrated book has not been made yet."
+        : "This idea was checked on this computer. Sign in to keep it. The illustrated book has not been made yet."
+    }));
+    var steps = document.createElement("ol");
+    steps.className = "sj-progress";
+    [
+      ["Story plan", "Saved"],
+      ["Story writing", "Waiting"],
+      ["Art direction", "Waiting"],
+      ["Pictures", "Waiting"],
+      ["Finished book", "Not ready"]
+    ].forEach(function (row, index) {
+      var item = document.createElement("li");
+      item.className = index === 0 ? "is-done" : "is-waiting";
+      item.appendChild(document.createElement("strong")).textContent = row[0];
+      item.appendChild(document.createElement("span")).textContent = row[1];
+      steps.appendChild(item);
+    });
+    card.appendChild(steps);
+    dock.appendChild(card);
+    dock.appendChild(Object.assign(document.createElement("p"), {
+      className: "sj-whisper",
+      textContent: "No pictures were drawn, and no story allowance was used. This plan can continue when story writing is turned on."
+    }));
+    stage.appendChild(stageShell(dock));
+    setStatus("");
+  }
+
   function paint() {
     stage.innerHTML = "";
     journey.classList.add("sj-shell", "sj-v3");
@@ -1022,10 +1085,12 @@
     journey.classList.toggle("sj-on-world", step === "world");
     journey.classList.toggle("sj-on-idea", step === "idea");
     journey.classList.toggle("sj-on-review", step !== "cast" && step !== "world" && step !== "idea");
+    journey.classList.toggle("sj-on-saved", step === "saved");
     applyScene(sceneArt());
     if (step === "cast") paintCast();
     else if (step === "world") paintWorld();
     else if (step === "idea") paintIdea();
+    else if (step === "saved") paintSaved();
     else paintSummary();
   }
 
@@ -1036,7 +1101,8 @@
   }
 
   backBtn.addEventListener("click", function () {
-    if (step === "cast") showWelcome();
+    if (step === "saved") go("cast");
+    else if (step === "cast") showWelcome();
     else if (step === "world") go("cast");
     else if (step === "idea") go("world");
     else go("idea");
@@ -1044,6 +1110,10 @@
 
   nextBtn.addEventListener("click", function () {
     if (nextBtn.disabled) return;
+    if (step === "saved") {
+      showWelcome();
+      return;
+    }
     if (step === "cast") {
       if (!state.ids.length) {
         setStatus("Choose a star before you continue.");
@@ -1133,7 +1203,7 @@
           setStatus("Book V2 tried to write the story before that was approved. Nothing was saved.");
           return;
         }
-        if (body.saved && body.book && body.book.id) {
+        if (body.saved && body.book && body.book.id && body.book.generated === true && body.book.recordKind !== "plan") {
           window.location.assign("book-prototype/?book=" + encodeURIComponent(body.book.id));
           return;
         }
@@ -1155,8 +1225,11 @@
         }
         if (userId) {
           keepPlannedBook(body.preview, key, accountId || userId, state.idea).then(function (book) {
-            setStatus(body.message || "Opening your story plan.");
-            window.location.assign("book-prototype/?book=" + encodeURIComponent(book.id));
+            if (book && book.generated === true && book.recordKind !== "plan") {
+              window.location.assign("book-prototype/?book=" + encodeURIComponent(book.id));
+              return;
+            }
+            showPlanSaved(true);
           }).catch(function (err) {
             nextBtn.disabled = false;
             var reason = err && err.message ? String(err.message) : "";
@@ -1180,18 +1253,7 @@
           });
           return;
         }
-        try {
-          sessionStorage.setItem("wondii-reader-fixture", JSON.stringify({
-            userId: "local-fixture",
-            books: [body.preview]
-          }));
-        } catch (eStore) {
-          nextBtn.disabled = false;
-          setStatus("The preview could not be opened on this device. Nothing was saved.");
-          return;
-        }
-        setStatus(body.message || "Opening the local preview.");
-        window.location.assign("book-prototype/?book=" + encodeURIComponent(body.preview.id || "book-v2-local-preview"));
+        showPlanSaved(false);
       }).catch(function () {
         nextBtn.disabled = false;
         setStatus(local
@@ -1381,6 +1443,14 @@
           creationKey: String(key),
           owner: { userId: String(userId), accountKind: "adult" },
           preview: preview,
+          request: {
+            idea: state.idea.trim(),
+            place: state.place,
+            theme: state.theme,
+            length: state.length,
+            ageBand: state.ageBand,
+            members: state.ids.slice()
+          },
           title: plannedTitle(idea),
           shelf: merged,
           savedAt: new Date().toISOString()

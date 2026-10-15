@@ -629,7 +629,20 @@
     });
   }
 
+  function isStoryPlan(book) {
+    if (!book || book.generated === true || book.recordKind === "book") return false;
+    return book.recordKind === "plan" || book.simulated === true;
+  }
+
   function bookPiece(childId, book) {
+    if (isStoryPlan(book)) {
+      var held = el("div", { className: "family-piece family-piece--plan" });
+      var heldCopy = el("span", { className: "family-piece__copy" });
+      heldCopy.appendChild(el("span", { className: "family-piece__title" }, book.title || "Story idea"));
+      heldCopy.appendChild(el("span", { className: "family-note" }, "Story idea saved. The illustrated book is not ready."));
+      held.appendChild(heldCopy);
+      return held;
+    }
     var link = el("a", {
       className: "family-piece",
       href: "games/book-prototype/?book=" + encodeURIComponent(book.id) + "&child=" + encodeURIComponent(childId)
@@ -749,7 +762,7 @@
       }, "Share " + character.name));
     });
     adultBooks.forEach(function (book) {
-      if (!book || !book.id || !book.title) return;
+      if (!book || !book.id || !book.title || isStoryPlan(book)) return;
       tray.appendChild(el("button", {
         type: "button",
         className: "family-btn family-btn--ghost",

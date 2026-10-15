@@ -47,6 +47,17 @@ assert.strictEqual(Data.classify("", "user-1", shelf).reason, "missing");
 assert.strictEqual(Data.classify("oak", "", shelf).reason, "unauthorised");
 assert.strictEqual(Data.classify("missing-id", "user-1", shelf).reason, "unavailable");
 assert.strictEqual(Data.classify("oak", "user-1", [{ id: "oak", pages: [] }]).reason, "empty");
+var savedIdea = book("idea", "A lost star", 2);
+savedIdea.simulated = true;
+savedIdea.generated = false;
+savedIdea.pages[0].text = "Book V2 accepted this plan. The story model was not called.";
+assert.strictEqual(Data.classify("idea", "user-1", [savedIdea]).reason, "plan");
+assert.ok(Data.message("plan").indexOf("illustrated book has not been made yet") >= 0);
+var finishedBook = book("done", "The Castle Light", 2);
+finishedBook.generated = true;
+finishedBook.recordKind = "book";
+assert.strictEqual(Data.classify("done", "user-1", [finishedBook]).ok, true);
+assert.strictEqual(Data.classify("done", "user-1", [finishedBook]).kind, "saved");
 
 var oak = Data.plan(Data.classify("oak", "user-1", shelf).book);
 var river = Data.plan(Data.classify("river", "user-1", shelf).book);

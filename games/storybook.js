@@ -3911,7 +3911,7 @@
 
     var tap = document.createElement("span");
     tap.className = "sb-library-cover__tap";
-    tap.textContent = "TAP TO OPEN";
+    tap.textContent = face.getAttribute("data-tap") || "TAP TO OPEN";
 
     titles.appendChild(spark);
     titles.appendChild(tit);
@@ -3921,6 +3921,11 @@
     root.appendChild(spine);
     root.appendChild(panel);
     face.appendChild(root);
+  }
+
+  function isSavedPlan(item) {
+    if (!item || item.generated === true || item.recordKind === "book") return false;
+    return item.recordKind === "plan" || item.simulated === true;
   }
 
   function createCoverCardWrap(item) {
@@ -3937,9 +3942,14 @@
       (coverSrc ? " sb-cover-card--has-art" : " sb-cover-card--placeholder");
     openBtn.style.setProperty("--sb-h", String(meta.hue));
     openBtn.setAttribute("role", "listitem");
-    openBtn.setAttribute("aria-label", "Open book: " + item.title);
+    var planned = isSavedPlan(item);
+    openBtn.setAttribute("aria-label", planned
+      ? "Story idea saved: " + item.title + ". The illustrated book is not ready."
+      : "Open book: " + item.title);
+    if (planned) openBtn.className += " sb-cover-card--plan";
     var face = document.createElement("span");
     face.className = "sb-cover-card__face";
+    if (planned) face.setAttribute("data-tap", "SAVED IDEA");
 
     function finishCoverFallback() {
       openBtn.className =
@@ -3985,9 +3995,13 @@
     }
 
     openBtn.appendChild(wrapShelfCoverLibraryFlat(face));
-    openBtn.addEventListener("click", function () {
-      openShelfBook(item.id);
-    });
+    if (!planned) {
+      openBtn.addEventListener("click", function () {
+        openShelfBook(item.id);
+      });
+    } else {
+      openBtn.setAttribute("aria-disabled", "true");
+    }
     var rm = document.createElement("button");
     rm.type = "button";
     rm.className = "sb-shelf-remove";

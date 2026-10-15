@@ -15,8 +15,14 @@
     file: "This book could not be opened. The book file did not load.",
     pictures: "This book could not be opened. Its pictures did not load.",
     closed: "This book could not be opened.",
-    empty: "This book has no pages yet."
+    empty: "This book has no pages yet.",
+    plan: "This story idea is saved. The illustrated book has not been made yet."
   };
+
+  function isStoryPlan(book) {
+    if (!book || book.generated === true || book.recordKind === "book") return false;
+    return book.recordKind === "plan" || book.simulated === true;
+  }
 
   function prepareReader() {
     var params;
@@ -76,6 +82,7 @@
       if (list[i] && String(list[i].id) === wanted) found = list[i];
     }
     if (!found) return { ok: false, reason: "unavailable" };
+    if (isStoryPlan(found)) return { ok: false, reason: "plan" };
     if (!found.pages || !found.pages.length) return { ok: false, reason: "empty" };
     return { ok: true, kind: "saved", book: found };
   }
@@ -212,6 +219,10 @@
         loader(function (err, item) {
           if (err || !item) {
             finish({ ok: false, reason: "closed" });
+            return;
+          }
+          if (isStoryPlan(item)) {
+            finish({ ok: false, reason: "plan" });
             return;
           }
           var reading = plan(item);

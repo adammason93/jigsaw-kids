@@ -213,18 +213,31 @@
     };
   }
 
-  function planPages(preview) {
-    return (preview && preview.pages || []).map(function (page) {
-      return {
-        text: page && page.text ? String(page.text) : "",
-        imageDataUrl: null,
-        imageUrlFallback: null
-      };
-    });
+  /* A saved plan is not a book. A finished book keeps its pages and can open. */
+  function isStoryPlan(book) {
+    if (!book || book.generated === true || book.recordKind === "book") return false;
+    return book.recordKind === "plan" || book.simulated === true;
   }
 
   function isPlanRecord(book) {
-    return !!(book && book.simulated === true && book.generated !== true);
+    return isStoryPlan(book);
+  }
+
+  function planRequest(source, preview) {
+    var request = (source && source.request) || (preview && preview.request) || {};
+    var members = Array.isArray(request.members) ? request.members : [];
+    return {
+      idea: String(request.idea || (source && source.idea) || "").trim(),
+      place: String(request.place || (source && source.place) || ""),
+      theme: String(request.theme || (source && source.theme) || ""),
+      length: String(request.length || (source && source.length) || ""),
+      ageBand: String(request.ageBand || (source && source.ageBand) || ""),
+      names: Array.isArray(request.names) ? request.names.map(function (name) { return String(name || ""); }).filter(Boolean) : [],
+      members: members.map(function (member) {
+        if (!member) return "";
+        return String(member.id || member);
+      }).filter(Boolean)
+    };
   }
 
   /* One story plan on this account's shelf.
@@ -245,8 +258,7 @@
     if (preview.generated === true) return fail("generated");
     var title = String(source.title || "").trim();
     if (!title) return fail("incomplete");
-    var pages = planPages(preview);
-    if (!pages.some(function (page) { return page.text.trim(); })) return fail("incomplete");
+    var request = planRequest(source, preview);
 
     var id = bookId(owner, key);
     var snapshot = shelf.slice();
@@ -289,23 +301,21 @@
 
     var planned = {
       id: id,
+      recordKind: "plan",
+      status: "saved-plan",
+      openable: false,
       title: title,
       author: "",
-      readerArtLayout: "duplex",
-      storyTextMode: "prose",
-      storyLength: "medium",
       creationKey: key,
       ownerUserId: userId,
       ownerId: userId,
       childId: owner.accountKind === "child" ? owner.childId : "",
-      illustrationStyle: "wondii-picture-book",
       v2: true,
       simulated: true,
       generated: false,
       savedAt: source.savedAt || new Date().toISOString(),
-      pages: pages,
-      sceneDataUrl: null,
-      sceneUrlFallback: null
+      request: request,
+      pages: []
     };
     next.unshift(planned);
     return {
@@ -316,8 +326,8 @@
       reason: replaced ? "already-saved" : "saved",
       book: planned,
       shelf: next,
-      reader: "book-prototype/?book=" + encodeURIComponent(planned.id),
-      message: replaced ? "This story plan is already on the shelf." : "The story plan is on your shelf."
+      reader: "",
+      message: replaced ? "This story idea is already saved." : "The story idea is saved. The illustrated book has not been made yet."
     };
   }
 
@@ -348,6 +358,7 @@
 
   return {
     commitBook: commitBook,
+    isStoryPlan: isStoryPlan,
     placePlan: placePlan,
     mergeOwned: mergeOwned,
     memoryStore: memoryStore,

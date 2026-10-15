@@ -96,9 +96,20 @@
     return bank[at];
   }
 
+  function isStoryPlan(book) {
+    if (!book || book.generated === true || book.recordKind === "book") return false;
+    return book.recordKind === "plan" || book.simulated === true;
+  }
+
   function bookMeta(book) {
+    if (isStoryPlan(book)) return "Illustrated book not ready";
     var pages = book && Array.isArray(book.pages) ? book.pages.length : 0;
     return pages ? pages + (pages === 1 ? " page" : " pages") : "Story";
+  }
+
+  function bookHref(book) {
+    if (isStoryPlan(book)) return "games/storybook.html";
+    return "games/book-prototype/?book=" + encodeURIComponent(book.id);
   }
 
   function continueItems(input) {
@@ -120,12 +131,12 @@
       if (!book || !book.id || !book.title) return;
       items.push({
         id: "book:" + book.id,
-        type: "Story",
+        type: isStoryPlan(book) ? "Story idea" : "Story",
         title: book.title,
         meta: bookMeta(book),
-        href: "games/book-prototype/?book=" + encodeURIComponent(book.id),
+        href: bookHref(book),
         cover: book.cover || "",
-        action: "Continue"
+        action: isStoryPlan(book) ? "Saved" : "Continue"
       });
     });
     (source.adventures || []).forEach(function (item) {
@@ -171,12 +182,12 @@
       if (!book || !book.id || !book.title) return;
       items.push({
         id: book.id,
-        type: "Story",
+        type: isStoryPlan(book) ? "Story idea" : "Story",
         title: book.title,
         meta: bookMeta(book),
-        href: "games/book-prototype/?book=" + encodeURIComponent(book.id),
+        href: bookHref(book),
         cover: book.cover || "",
-        action: "Open"
+        action: isStoryPlan(book) ? "Saved" : "Open"
       });
     });
     (source.adventures || []).forEach(function (item) {
@@ -269,7 +280,7 @@
   function contextStats(input) {
     var source = input || {};
     var stats = [];
-    var books = source.books || [];
+    var books = (source.books || []).filter(function (book) { return book && !isStoryPlan(book); });
     var adventures = source.adventures || [];
     if (books.length) stats.push(books.length + (books.length === 1 ? " story" : " stories"));
     if (adventures.length) stats.push(adventures.length + (adventures.length === 1 ? " adventure" : " adventures"));
@@ -297,7 +308,11 @@
       hits.push(item);
     }
     (source.books || []).forEach(function (book) {
-      add({ title: book.title, type: "Story", href: "games/book-prototype/?book=" + encodeURIComponent(book.id || "") });
+      add({
+        title: book.title,
+        type: isStoryPlan(book) ? "Story idea" : "Story",
+        href: bookHref(book)
+      });
     });
     (source.games || []).forEach(function (game) {
       add({ title: game.title, type: "Game", meta: game.desc || "", href: game.href });

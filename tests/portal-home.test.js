@@ -75,7 +75,16 @@ var going = Model.continueItems({
 });
 assert.strictEqual(going[0].title, "The Lost Dragon Egg");
 assert.strictEqual(going[0].meta, "4 pages");
+assert.ok(going[0].href.indexOf("book-prototype/?book=b1") >= 0);
 assert.ok(going[0].meta.indexOf(" of ") < 0);
+var held = Model.continueItems({
+  books: [{ id: "plan-1", title: "A lost star", recordKind: "plan", simulated: true, generated: false, pages: [{ text: "Book V2 accepted this plan." }] }],
+  adventures: [],
+  sessions: []
+});
+assert.strictEqual(held[0].type, "Story idea");
+assert.ok(held[0].href.indexOf("book-prototype") < 0);
+assert.ok(held[0].meta.indexOf("not ready") >= 0);
 assert.strictEqual(Model.continueItems({ books: [], adventures: [], sessions: [{ title: "Demo", demo: true }] }).length, 0);
 
 /* 8–9. Character shelf uses the canonical crew ids and stays inside the lists it is given. */
