@@ -308,3 +308,37 @@
 .crew-card.is-reduced.is-selected { transform: none; }
 .crew-card.is-reduced .crew-figure,
 .crew-card.is-reduced .crew-figure__arm { transform: none; }
+
+.personality-step { display: grid; gap: 0.85rem; }
+.personality-lead { margin: 0; color: #5c6284; }
+.personality-preview {
+  width: 8.5rem;
+  height: 8.5rem;
+  object-fit: contain;
+  justify-self: center;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(246, 196, 69, 0.45), transparent 42%),
+    linear-gradient(160deg, #fff 0%, #f4f0ff 100%);
+  box-shadow: 0 10px 24px rgba(20, 27, 77, 0.08);
+}
+.personality-traits { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+.personality-traits button {
+  min-height: 2.4rem;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid rgba(20, 27, 77, 0.12);
+  border-radius: 999px;
+  background: #fff;
+  color: #141b4d;
+  font-family: Fredoka, Nunito, sans-serif;
+  font-size: 0.98rem;
+  cursor: pointer;
+}
+.personality-traits button[aria-pressed="true"] {
+  background: #141b4d;
+  color: #fff;
+  border-color: #141b4d;
+}
+.personality-traits button:focus-visible { outline: 3px solid #7c4dff; outline-offset: 2px; }
+.personality-count { margin: 0; color: #5c6284; font-size: 0.92rem; }
+.personality-note { width: 100%; min-height: 4.5rem; resize: vertical; }

@@ -91,6 +91,7 @@ function draft() {
         entityState: []
       };
       if (index === 0) beat.expresses.push({ characterId: "wondii-maya", trait: "curious", shows: "She kneels and listens at the gate." });
+      if (index === 2) beat.expresses.push({ characterId: "wondii-sofia", trait: "cheerful", shows: "She smiles and waves the others on." });
       if (index === 1) beat.entityState.push({ entityId: "lantern", introduce: true, ownerCharacterId: null, locationId: "gate", state: "caught" });
       if (index === 5) beat.entityState.push({ entityId: "lantern", ownerCharacterId: "char_isaac", locationId: "stair", state: "carried" });
       if (index === 10) beat.entityState.push({ entityId: "lantern", ownerCharacterId: "wondii-sofia", locationId: "tower", state: "steady" });
@@ -511,6 +512,56 @@ Promise.resolve().then(function () {
         assert.strictEqual(owned.textCalls(), 0);
         assert.strictEqual(shelf.readShelf(account)[0].title, "Already saved");
         assert.strictEqual(shelf.readShelf(account)[0].pages[0].text, "old page");
+      });
+    });
+  });
+}).then(function () {
+  var disk = {};
+  var ports = portsFor(disk, { budgetUsd: 8 });
+  ports.chunked = true;
+  var reuseKey = "bookreuse0000000001";
+  disk[account + ":" + reuseKey] = JSON.stringify({
+    status: "interrupted",
+    reason: "story",
+    attempts: 3,
+    calls: { text: 4, image: 0, vision: 0 },
+    checkpoint: {
+      writer: {
+        stage: "bible-repair",
+        tries: 1,
+        problems: ["personality-unused:char_isaac"],
+        draft: draft()
+      },
+      spend: { listedUsd: 0.2, entries: [{ id: "kept", kind: "text", status: "settled", listedUsd: 0.2 }] },
+      failures: [{ reason: "story", problems: ["personality-unused:char_isaac"] }],
+      references: {},
+      pictures: {},
+      repairs: {}
+    }
+  });
+  return Produce.run(null, bodyFor({ creationKey: reuseKey }), ports).then(function (resumed) {
+    assert.strictEqual(resumed.reason, "continue", resumed.job && resumed.job.message);
+    assert.strictEqual(ports.textCalls(), 0);
+    assert.strictEqual(ports.draws.length, 0);
+    var stored = JSON.parse(disk[account + ":" + reuseKey]);
+    assert.strictEqual(stored.checkpoint.writer.reusedDraft, true);
+    assert.strictEqual(stored.checkpoint.writer.stage, "prose");
+    assert.strictEqual(stored.checkpoint.failures[0].problems[0], "personality-unused:char_isaac");
+    assert.strictEqual(stored.checkpoint.failures[1].kept, "saved-draft");
+    assert.strictEqual(stored.checkpoint.spend.entries[0].id, "kept");
+    var chunkKey = "bookchunk0000000001";
+    var chunkPorts = portsFor(disk, { budgetUsd: 8 });
+    chunkPorts.chunked = true;
+    return Produce.run(null, bodyFor({ creationKey: chunkKey }), chunkPorts).then(function (chunk) {
+      assert.strictEqual(chunk.reason, "continue", chunk.job && chunk.job.message);
+      assert.strictEqual(chunkPorts.textCalls(), 1);
+      assert.strictEqual(chunkPorts.draws.length, 0);
+      assert.strictEqual(JSON.parse(disk[account + ":" + chunkKey]).checkpoint.writer.stage, "prose");
+      return Produce.run(null, bodyFor({ creationKey: chunkKey }), chunkPorts).then(function (drawn) {
+        assert.strictEqual(drawn.ok, true, drawn.job && drawn.job.message);
+        assert.strictEqual(drawn.book.pages.length, 12);
+        assert.ok(chunkPorts.draws.length >= 12);
+        assert.strictEqual(chunkPorts.textCalls(), 2);
       });
     });
   });

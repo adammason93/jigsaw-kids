@@ -442,6 +442,7 @@
           type: record.type || "buddy",
           createdAt: record.createdAt || new Date().toISOString()
         };
+        if (record && record.personality) saved.personality = record.personality;
         global.ChildLibrary.storeCharacterArt(saved.id, pngBlob, function (artErr) {
           if (artErr) {
             cb(fail("save_failed", "That picture was not saved."));

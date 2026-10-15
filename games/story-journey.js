@@ -88,7 +88,7 @@
     pendingStar: "",
     pageCount: 0
   };
-  var library = { mine: [], shared: [], mineState: "idle", sharedState: "idle" };
+  var library = { mine: [], shared: [], personalities: {}, mineState: "idle", sharedState: "idle" };
   var portraits = {};
   var remembered = {};
   var castTouched = false;
@@ -498,10 +498,12 @@
           return;
         }
         library.mine = [];
+        library.personalities = {};
         (list || []).forEach(function (row) {
           if (!row || !row.id || !row.name) return;
           var id = String(row.id);
           library.mine.push([id, String(row.name).slice(0, 40)]);
+          library.personalities[id] = row.personality || null;
           if (lib.characterArtUrl) {
             lib.characterArtUrl(row.id, function (artErr, url) {
               if (!artErr) storePortrait(id, url);
@@ -528,10 +530,12 @@
         return;
       }
       library.mine = [];
+      library.personalities = {};
       (list || []).forEach(function (row) {
         if (!row || !row.id || !row.name) return;
         var id = String(row.id);
         library.mine.push([id, String(row.name).slice(0, 40)]);
+        library.personalities[id] = row.personality || null;
         if (store.getCharacterSignedUrl) {
           store.getCharacterSignedUrl(row.id, function (urlErr, url) {
             if (!urlErr) storePortrait(id, url);
@@ -1196,28 +1200,74 @@
         return;
       }
       var key = creationKey();
-      fetch(endpoint, {
-        method: "POST",
-        headers: planHeaders(view),
-        body: JSON.stringify({
-          members: members,
-          savedReferences: savedArt(members, userId),
-          sharedCharacters: sharedArt(members),
-          idea: state.idea.trim(),
-          place: state.place,
-          length: state.length,
-          theme: state.theme,
-          familyAgeBand: state.ageBand,
-          creationKey: key,
-          pageCount: state.pageCount || undefined
-        })
-      }).then(function (response) {
-        return response.text().then(function (raw) {
-          var body = {};
-          try { body = raw ? JSON.parse(raw) : {}; } catch (eParse) { body = {}; }
-          return { ok: response.ok, status: response.status, body: body };
+      var payload = {
+        members: members,
+        savedReferences: savedArt(members, userId),
+        sharedCharacters: sharedArt(members),
+        idea: state.idea.trim(),
+        place: state.place,
+        length: state.length,
+        theme: state.theme,
+        familyAgeBand: state.ageBand,
+        creationKey: key,
+        pageCount: state.pageCount || undefined,
+        background: true
+      };
+      function followBook(send) {
+        var kicked = "";
+        var polls = 0;
+        setStatus("The story is being made.");
+        var timer = window.setInterval(function () {
+          polls += 1;
+          if (polls > 240) {
+            window.clearInterval(timer);
+            nextBtn.disabled = false;
+            setStatus("The story is still being made. You can leave this page and come back. Nothing extra was started.");
+            return;
+          }
+          send({ watch: true, background: false }).then(function (watched) {
+            var job = watched.body && watched.body.job || {};
+            var reason = String(job.reason || "");
+            if (job.status === "complete" && job.reader) {
+              window.clearInterval(timer);
+              window.location.assign(job.reader);
+              return;
+            }
+            var stopped = {
+              story: 1, picture: 1, budget: 1, artwork: 1, plan: 1,
+              "call-cap": 1, "page-count": 1, save: 1, "model-timeout": 1
+            };
+            if (stopped[reason]) {
+              window.clearInterval(timer);
+              nextBtn.disabled = false;
+              setStatus(job.message || "The story stopped. Nothing else was started.");
+              return;
+            }
+            var mark = String(job.attempts || 0) + ":" + reason + ":" + String(job.startedAt || "");
+            var leaseOpen = job.status === "running" && job.startedAt && (Date.now() - Number(job.startedAt)) < 180000;
+            var resume = reason === "continue" && job.status !== "running";
+            var abandoned = job.status === "running" && job.startedAt && !leaseOpen;
+            if ((resume || abandoned) && kicked !== mark) {
+              kicked = mark;
+              send({ background: true });
+            }
+          }).catch(function () {});
+        }, 4000);
+      }
+      function sendBook(extra) {
+        return fetch(endpoint, {
+          method: "POST",
+          headers: planHeaders(view),
+          body: JSON.stringify(Object.assign({}, payload, extra || {}))
+        }).then(function (response) {
+          return response.text().then(function (raw) {
+            var body = {};
+            try { body = raw ? JSON.parse(raw) : {}; } catch (eParse) { body = {}; }
+            return { ok: response.ok, status: response.status, body: body };
+          });
         });
-      }).then(function (result) {
+      }
+      sendBook().then(function (result) {
         var body = result.body || {};
         if (result.status === 404 || body.code === "NOT_FOUND") {
           nextBtn.disabled = false;
@@ -1227,6 +1277,10 @@
         if (result.status === 401 || result.status === 403) {
           nextBtn.disabled = false;
           setStatus("Sign in again before this story can be planned. Nothing was saved.");
+          return;
+        }
+        if (result.status === 202 || body.background === true) {
+          followBook(sendBook);
           return;
         }
         if (!result.ok || !body.ok) {
@@ -1351,6 +1405,9 @@
         ownerId: userId || ""
       };
       if (reference && reference.indexOf((userId || "") + "/characters/" + member.id + ".png") === 0) row.reference = reference;
+      var personality = window.WondiiPersonality;
+      var packed = personality ? personality.pack(library.personalities[member.id]) : null;
+      if (packed) row.personality = packed;
       return row;
     });
   }

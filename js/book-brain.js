@@ -12,6 +12,11 @@
     return require("./character-bible.js");
   }
 
+  function personalityApi() {
+    if (root && root.WondiiPersonality) return root.WondiiPersonality;
+    return require("./character-personality.js");
+  }
+
   function crewApi() {
     if (root && root.WondiiCrew) return root.WondiiCrew;
     return require("./wondii-crew.js");
@@ -451,6 +456,14 @@
         });
       });
       if (character && character.personality.length && !expressed) problems.push("personality-unused:" + id);
+    });
+    beats.forEach(function (beat) {
+      (beat.expresses || []).forEach(function (note) {
+        if (!note || !note.characterId || !note.trait) return;
+        var who = catalogueCharacter(note.characterId, book.identityRegistry);
+        var allowed = who && who.personality || [];
+        if (allowed.indexOf(note.trait) < 0) problems.push("personality-mismatch:" + note.characterId);
+      });
     });
 
     var exact = ask.pageCount || book.pageCount || 0;
@@ -1142,9 +1155,10 @@ function applyTextEdit(book, pageId, text) {
         if (present.indexOf(id) < 0 && !(raw.absent && raw.absent[id])) problems.push("cast-missing:" + id);
       });
       (raw.expresses || []).forEach(function (note) {
-        if (storyIds.indexOf(note.characterId) >= 0) return;
+        if (!note || storyIds.indexOf(note.characterId) >= 0) return;
         var character = catalogueCharacter(note.characterId, registry);
-        if (!character || character.personality.indexOf(note.trait) < 0) problems.push("personality-unused:" + note.characterId);
+        var traits = character && character.personality || [];
+        if (note.trait && traits.indexOf(note.trait) < 0) problems.push("personality-mismatch:" + note.characterId);
         if (!note.shows || TOLD_TRAIT.test(note.shows) || String(note.shows).toLowerCase() === String(note.trait).toLowerCase()) {
           problems.push("trait-told:" + beatId);
         }
@@ -1342,8 +1356,16 @@ function applyTextEdit(book, pageId, text) {
     var row = (registry || []).filter(function (item) {
       return item && (item.characterId === id || item.journeyId === id);
     })[0];
-    if (row && row.bibleId) return characterApi().getCharacter(row.bibleId);
-    return null;
+    if (row && row.bibleId) {
+      var paired = characterApi().getCharacter(row.bibleId);
+      if (paired) return paired;
+    }
+    if (!row) return null;
+    return {
+      characterId: String(row.characterId || id),
+      name: String(row.name || ""),
+      personality: personalityApi().traitsOf(row.personality)
+    };
   }
 
   function charState(id, locationId, emotion, role, carried, registry) {

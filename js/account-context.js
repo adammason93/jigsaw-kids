@@ -1,11 +1,17 @@
 /* Which workspace owns the signed-in session.
    A school membership never falls through to a family library. */
 (function (root, factory) {
-  var api = factory();
+  var api = factory(root);
   if (typeof module === "object" && module.exports) module.exports = api;
   if (root) root.WondiiAccount = api;
-})(typeof globalThis !== "undefined" ? globalThis : this, function () {
+})(typeof globalThis !== "undefined" ? globalThis : this, function (root) {
   "use strict";
+
+  function personalityApi() {
+    if (root && root.WondiiPersonality) return root.WondiiPersonality;
+    if (typeof require === "function") return require("./character-personality.js");
+    return null;
+  }
 
   function workspaceFrom(input) {
     var source = input || {};
@@ -51,7 +57,9 @@
   function stampRecord(record, workspace) {
     var source = record || {};
     var id = String(source.id || "");
-    return {
+    var personality = personalityApi();
+    var packed = personality ? personality.pack(source.personality) : null;
+    var stamped = {
       id: id,
       name: String(source.name || "").slice(0, 60),
       type: source.type === "buddy" ? "buddy" : "hero",
@@ -62,6 +70,8 @@
       createdBy: String(source.createdBy || workspace.userId || ""),
       reference: String(source.reference || (id ? "characters/" + id + ".png" : ""))
     };
+    if (packed) stamped.personality = packed;
+    return stamped;
   }
 
   function normalizeRecord(record, workspace) {

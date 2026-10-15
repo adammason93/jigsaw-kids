@@ -31,6 +31,32 @@ function json(req: Request, body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), { status, headers });
 }
 
+function publicJob(job: Record<string, unknown> | null): Record<string, unknown> {
+  const copy = Object.assign({}, job || {});
+  delete copy.checkpoint;
+  return copy;
+}
+
+async function readOwnJob(req: Request, userId: string, creationKey: string): Promise<Record<string, unknown> | null> {
+  if (!/^[A-Za-z0-9_-]{8,80}$/.test(creationKey)) return null;
+  const base = Deno.env.get("SUPABASE_URL") || "";
+  const clientKey = readPublishableKey((name) => Deno.env.get(name)).key || Deno.env.get("SUPABASE_ANON_KEY") || "";
+  const token = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "").trim();
+  if (!base || !clientKey || !token) return null;
+  const url = base.replace(/\/$/, "") + "/storage/v1/object/storybook_room/" +
+    userId + "/storybook/jobs/" + creationKey + ".json?t=" + Date.now();
+  const res = await fetch(url, {
+    headers: { apikey: clientKey, Authorization: "Bearer " + token, "Cache-Control": "no-cache" }
+  });
+  if (!res.ok) return null;
+  try {
+    const job = await res.json();
+    return job && typeof job === "object" ? publicJob(job as Record<string, unknown>) : null;
+  } catch (_error) {
+    return null;
+  }
+}
+
 async function signedInUser(req: Request): Promise<{ id: string; accountKind: string }> {
   const url = Deno.env.get("SUPABASE_URL") || "";
   const anon = Deno.env.get("SUPABASE_ANON_KEY") || "";
@@ -86,6 +112,17 @@ Deno.serve(async (req) => {
     body.childPermitted = false;
     body.allowanceReserved = false;
   }
+  if (body.watch === true) {
+    const watched = await readOwnJob(req, user.id, String(body.creationKey || ""));
+    return json(req, {
+      ok: true,
+      watch: true,
+      generated: false,
+      accountId: user.id,
+      job: watched,
+      message: watched && watched.message ? watched.message : "The story progress was read. No new writing was started."
+    }, 200);
+  }
   const paid = paidJobAllowed({
     accountId: user.id,
     accountKind: user.accountKind,
@@ -107,10 +144,26 @@ Deno.serve(async (req) => {
     });
     if (!ports || ports.approved !== true) ports = undefined;
   }
-  const result = await Promise.resolve(handle.handleBookV2(body, ports));
-  if (ports && typeof ports.finish === "function") {
-    try { await ports.finish(); } catch (_error) { /* pictures already stored stay on the job record */ }
+  const work = Promise.resolve(handle.handleBookV2(body, ports)).then(async (result) => {
+    if (ports && typeof ports.finish === "function") {
+      try { await ports.finish(); } catch (_error) { /* pictures already stored stay on the job record */ }
+    }
+    return result;
+  });
+  const background = paid.ok && ports && body.background === true;
+  const edge = (globalThis as { EdgeRuntime?: { waitUntil: (promise: Promise<unknown>) => void } }).EdgeRuntime;
+  if (background && edge && typeof edge.waitUntil === "function") {
+    edge.waitUntil(work);
+    return json(req, {
+      ok: true,
+      accepted: true,
+      background: true,
+      generated: false,
+      accountId: user.id,
+      message: "The story is being made. This page can check its progress."
+    }, 202);
   }
+  const result = await work;
   const planned = result.body && typeof result.body === "object" ? result.body as Record<string, unknown> : {};
   const userId = user.id;
   return json(req, { ...planned, accountId: userId }, result.status);

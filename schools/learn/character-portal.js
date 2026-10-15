@@ -10,7 +10,8 @@
   var token = 0;
   var making = false;
   var renaming = null;
-  var maker = { type: "hero", photo: "", image: "", busy: false, error: "", name: "" };
+  var personalityEdit = null;
+  var maker = { type: "hero", photo: "", image: "", busy: false, error: "", name: "", personalityOpen: false, traits: [], description: "" };
   var coarse = false;
   var showTools = true;
 
@@ -212,11 +213,18 @@
     return card;
   }
 
+  function personalityApi() {
+    return window.WondiiPersonality || null;
+  }
+
   function characterBlurb(row) {
+    var personality = personalityApi();
+    var traits = personality ? personality.traitsOf(row && row.personality) : [];
+    var note = personality ? personality.descriptionOf(row && row.personality) : "";
+    if (note) return note;
+    if (traits.length) return traits.map(function (trait) { return personality.label(trait); }).join(", ");
     var description = row && row.description ? String(row.description) : "";
-    var personality = row && row.personality ? String(row.personality) : "";
-    if (description && personality && personality !== description) return description + " " + personality;
-    return personality || description || "Ready for your stories.";
+    return description || "Ready for your stories.";
   }
 
   function inviteButton(title, detail, onClick) {
@@ -261,11 +269,16 @@
     edit.type = "button";
     edit.setAttribute("aria-label", "Edit " + name);
     edit.addEventListener("click", function () { openRename(row); });
+    var personality = el("button", "w-btn w-btn--quiet", "Edit personality");
+    personality.type = "button";
+    personality.setAttribute("aria-label", "Edit personality for " + name);
+    personality.addEventListener("click", function () { openPersonality(row); });
     var remove = el("button", "w-btn w-btn--quiet", "Delete");
     remove.type = "button";
     remove.setAttribute("aria-label", "Delete " + name);
     remove.addEventListener("click", function () { removeCharacter(row); });
     tools.appendChild(edit);
+    tools.appendChild(personality);
     tools.appendChild(remove);
     copy.appendChild(tools);
     if (featured) {
@@ -364,6 +377,7 @@
     root.appendChild(meet);
     if (making) root.appendChild(makerDialog());
     if (renaming) root.appendChild(renameDialog(renaming));
+    if (personalityEdit) root.appendChild(personalityDialog(personalityEdit));
     return root;
   }
 
@@ -397,7 +411,7 @@
 
   function openMaker() {
     making = true;
-    maker = { type: "hero", photo: "", image: "", busy: false, error: "", name: "" };
+    maker = { type: "hero", photo: "", image: "", busy: false, error: "", name: "", personalityOpen: false, traits: [], description: "" };
     render();
   }
 
@@ -461,6 +475,7 @@
       maker.image = image;
       maker.busy = false;
       maker.error = "";
+      maker.personalityOpen = true;
       render();
     }).catch(function (err) {
       if (gate && gate.key && childMaker()) window.ChildLibrary.refund(gate.key);
@@ -472,10 +487,19 @@
     });
   }
 
-  function persist(name) {
+  function characterRecord(name, personalityInput) {
+    var record = { name: name, type: maker.type, createdAt: new Date().toISOString() };
+    var personality = personalityApi();
+    var packed = personality ? personality.pack(personalityInput) : null;
+    if (packed) record.personality = packed;
+    return record;
+  }
+
+  function persist(name, personalityInput) {
     var store = window.CharacterStore;
     var space = workspace();
     var blob = store && store.dataUrlToBlob(maker.image);
+    var record = characterRecord(name, personalityInput);
     if (childMaker()) {
       if (!store || !store.saveCharacter || !blob) {
         maker.busy = false;
@@ -483,15 +507,15 @@
         render();
         return;
       }
-      store.saveCharacter({ name: name, type: maker.type, createdAt: new Date().toISOString() }, blob, function (err, record) {
+      store.saveCharacter(record, blob, function (err, savedRecord) {
         maker.busy = false;
-        if (err || !record) {
+        if (err || !savedRecord) {
           maker.error = (err && err.message) || "The character was not saved.";
           render();
           return;
         }
         making = false;
-        saved = [Object.assign({ artwork: maker.image }, record)].concat(saved.filter(function (row) { return row.id !== record.id; }));
+        saved = [Object.assign({ artwork: maker.image }, savedRecord)].concat(saved.filter(function (row) { return row.id !== savedRecord.id; }));
         status = "ready";
         render();
       });
@@ -509,9 +533,9 @@
       render();
       return;
     }
-    store.saveCharacter({ name: name, type: maker.type, createdAt: new Date().toISOString() }, blob, function (err, record) {
+    store.saveCharacter(record, blob, function (err, savedRecord) {
       maker.busy = false;
-      if (err || !record) {
+      if (err || !savedRecord) {
         console.error("character save failed", err);
         maker.error = (err && err.message) || "The character was not saved.";
         render();
@@ -519,13 +543,88 @@
       }
       making = false;
       loadError = "";
-      saved = [Object.assign({ artwork: maker.image }, record)].concat(saved.filter(function (row) { return row.id !== record.id; }));
+      saved = [Object.assign({ artwork: maker.image }, savedRecord)].concat(saved.filter(function (row) { return row.id !== savedRecord.id; }));
       status = "ready";
       render();
     });
   }
 
+  function traitButtons(selected, onChange) {
+    var personality = personalityApi();
+    var wrap = el("div", "personality-traits");
+    (personality ? personality.choices() : []).forEach(function (trait) {
+      var button = el("button", "", personality.label(trait));
+      button.type = "button";
+      button.setAttribute("aria-pressed", selected.indexOf(trait) >= 0 ? "true" : "false");
+      button.addEventListener("click", function () { onChange(personality.toggle(selected, trait)); });
+      wrap.appendChild(button);
+    });
+    return wrap;
+  }
+
+  function personalityMakerDialog() {
+    var dialog = document.createElement("dialog");
+    dialog.className = "w-dialog w-dialog--wide";
+    var form = el("form", "w-dialog__body personality-step");
+    form.appendChild(el("h2", "w-h2", "What makes your character special?"));
+    form.appendChild(el("p", "personality-lead", "Choose up to three traits. You can skip this and add them later."));
+    if (maker.error) form.appendChild(el("p", "w-error", maker.error));
+    if (maker.image) {
+      var preview = document.createElement("img");
+      preview.className = "personality-preview";
+      preview.alt = maker.name ? maker.name + "'s portrait" : "";
+      preview.src = maker.image;
+      form.appendChild(preview);
+    }
+    var note = document.createElement("textarea");
+    note.className = "w-input personality-note";
+    note.maxLength = 180;
+    note.rows = 3;
+    note.placeholder = "Something only they would do";
+    note.value = maker.description || "";
+    form.appendChild(traitButtons(maker.traits || [], function (traits) {
+      maker.traits = traits;
+      maker.description = note.value;
+      render();
+    }));
+    form.appendChild(el("p", "personality-count", (maker.traits || []).length + " of 3"));
+    var field = el("label", "w-field");
+    field.appendChild(el("span", "", "A short note, if you want one"));
+    field.appendChild(note);
+    form.appendChild(field);
+    var actions = el("div", "w-dialog__actions");
+    var skip = el("button", "w-btn w-btn--quiet", "Skip for now");
+    skip.type = "button";
+    skip.addEventListener("click", function () {
+      if (maker.busy) return;
+      maker.busy = true;
+      maker.error = "";
+      render();
+      persist(maker.name, null);
+    });
+    var save = el("button", "w-btn w-btn--primary", "Save character");
+    save.type = "submit";
+    if (maker.busy) save.classList.add("is-loading");
+    actions.appendChild(skip);
+    actions.appendChild(save);
+    form.appendChild(actions);
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      if (maker.busy) return;
+      maker.description = note.value;
+      maker.busy = true;
+      maker.error = "";
+      render();
+      persist(maker.name, { traits: maker.traits, description: maker.description });
+    });
+    dialog.appendChild(form);
+    dialog.addEventListener("cancel", function (event) { event.preventDefault(); closeMaker(); });
+    setTimeout(function () { if (dialog.showModal && !dialog.open) { try { dialog.showModal(); } catch (e) {} } }, 0);
+    return dialog;
+  }
+
   function makerDialog() {
+    if (maker.image && maker.personalityOpen) return personalityMakerDialog();
     var dialog = document.createElement("dialog");
     dialog.className = "w-dialog w-dialog--wide";
     var form = el("form", "w-dialog__body");
@@ -574,7 +673,7 @@
     var cancel = el("button", "w-btn w-btn--quiet", "Cancel");
     cancel.type = "button";
     cancel.addEventListener("click", closeMaker);
-    var save = el("button", "w-btn w-btn--primary", maker.image ? "Save character" : "Generate");
+    var save = el("button", "w-btn w-btn--primary", maker.image ? "Continue" : "Generate");
     save.type = "submit";
     if (maker.busy) save.classList.add("is-loading");
     actions.appendChild(cancel);
@@ -593,16 +692,135 @@
       }
       maker.name = typed;
       maker.error = "";
-      maker.busy = true;
+      if (!maker.image) {
+        maker.busy = true;
+        render();
+        generate(typed);
+        return;
+      }
+      maker.personalityOpen = true;
       render();
-      if (!maker.image) generate(typed);
-      else persist(typed);
     });
     dialog.appendChild(form);
     dialog.addEventListener("cancel", function (event) { event.preventDefault(); closeMaker(); });
     setTimeout(function () {
       if (dialog.showModal && !dialog.open) { try { dialog.showModal(); } catch (e) {} }
     }, 0);
+    return dialog;
+  }
+
+  function openPersonality(row) {
+    var personality = personalityApi();
+    personalityEdit = {
+      id: row.id,
+      name: row.name || "Character",
+      artwork: row.artwork || "",
+      traits: personality ? personality.traitsOf(row.personality) : [],
+      description: personality ? personality.descriptionOf(row.personality) : ""
+    };
+    renaming = null;
+    render();
+  }
+
+  function savePersonality(row, traits, description) {
+    var store = window.CharacterStore;
+    var personality = personalityApi();
+    if (!store || !store.loadCharacters || !store.saveCharactersIndex || !personality) {
+      loadError = "The personality was not saved.";
+      personalityEdit = null;
+      render();
+      return;
+    }
+    store.loadCharacters(function (err, list) {
+      if (err || !Array.isArray(list)) {
+        loadError = "The personality was not saved.";
+        personalityEdit = null;
+        render();
+        return;
+      }
+      var found = false;
+      var next = list.map(function (item) {
+        if (!item || item.id !== row.id) return item;
+        found = true;
+        var copy = Object.assign({}, item);
+        var packed = personality.pack({ traits: traits, description: description });
+        if (packed) copy.personality = packed;
+        else delete copy.personality;
+        copy.updatedAt = new Date().toISOString();
+        return copy;
+      });
+      if (!found) {
+        loadError = "This character could not be edited.";
+        personalityEdit = null;
+        render();
+        return;
+      }
+      store.saveCharactersIndex(next, function (saveErr) {
+        if (saveErr) {
+          console.error("character personality failed", saveErr);
+          loadError = "The personality was not saved.";
+        } else {
+          saved = saved.map(function (item) {
+            if (!item || item.id !== row.id) return item;
+            var copy = Object.assign({}, item);
+            var packed = personality.pack({ traits: traits, description: description });
+            if (packed) copy.personality = packed;
+            else delete copy.personality;
+            return copy;
+          });
+        }
+        personalityEdit = null;
+        render();
+      });
+    });
+  }
+
+  function personalityDialog(row) {
+    var dialog = document.createElement("dialog");
+    dialog.className = "w-dialog w-dialog--wide";
+    var form = el("form", "w-dialog__body personality-step");
+    form.appendChild(el("h2", "w-h2", "What makes " + row.name + " special?"));
+    form.appendChild(el("p", "personality-lead", "Choose up to three traits. Their picture stays the same."));
+    if (row.artwork) {
+      var preview = document.createElement("img");
+      preview.className = "personality-preview";
+      preview.alt = row.name + "'s portrait";
+      preview.src = row.artwork;
+      form.appendChild(preview);
+    }
+    var note = document.createElement("textarea");
+    note.className = "w-input personality-note";
+    note.maxLength = 180;
+    note.rows = 3;
+    note.placeholder = "Something only they would do";
+    note.value = row.description || "";
+    var chosen = (row.traits || []).slice();
+    form.appendChild(traitButtons(chosen, function (traits) {
+      personalityEdit.traits = traits;
+      personalityEdit.description = note.value;
+      render();
+    }));
+    form.appendChild(el("p", "personality-count", chosen.length + " of 3"));
+    var field = el("label", "w-field");
+    field.appendChild(el("span", "", "A short note, if you want one"));
+    field.appendChild(note);
+    form.appendChild(field);
+    var actions = el("div", "w-dialog__actions");
+    var cancel = el("button", "w-btn w-btn--quiet", "Cancel");
+    cancel.type = "button";
+    cancel.addEventListener("click", function () { personalityEdit = null; render(); });
+    var save = el("button", "w-btn w-btn--primary", "Save");
+    save.type = "submit";
+    actions.appendChild(cancel);
+    actions.appendChild(save);
+    form.appendChild(actions);
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      savePersonality(row, personalityEdit.traits || chosen, note.value);
+    });
+    dialog.appendChild(form);
+    dialog.addEventListener("cancel", function (event) { event.preventDefault(); personalityEdit = null; render(); });
+    setTimeout(function () { if (dialog.showModal && !dialog.open) { try { dialog.showModal(); } catch (e) {} } }, 0);
     return dialog;
   }
 

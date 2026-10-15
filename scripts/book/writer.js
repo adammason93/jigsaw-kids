@@ -6,6 +6,7 @@
 
 var Book = require("../../js/book-brain.js");
 var Cast = require("../../js/character-bible.js");
+var Personality = require("../../js/character-personality.js");
 
 var SHAPE = {
   quick: "Aim for 6 to 8 spreads. Keep it complete: a hook, a discovery, an attempt, a change, a climax, and a resolution. Concise, not unfinished.",
@@ -59,6 +60,13 @@ function registryRow(ask, id) {
   })[0] || null;
 }
 
+function storedTraits(ask, id) {
+  var row = registryRow(ask, id);
+  var character = Cast.getCharacter((row && row.bibleId) || id) || Cast.getCharacter(id);
+  if (character && character.personality && character.personality.length) return character.personality.slice();
+  return Personality.traitsOf(row && row.personality);
+}
+
 function castBrief(ask) {
   return (ask.castIds || []).map(function (id) {
     var row = registryRow(ask, id);
@@ -74,12 +82,17 @@ function castBrief(ask) {
       ].join(" ");
     }
     if (row) {
+      var traits = storedTraits(ask, row.characterId || id);
+      var note = Personality.descriptionOf(row.personality);
       return [
         row.characterId + " (" + row.name + ")",
         "Locked selected character. Match the saved portrait. Do not invent a new face, hair, or outfit.",
         "Appearance: " + (row.appearance || ""),
         "Clothing: " + (row.clothing || ""),
-        row.personality && row.personality.length ? "Show these through what they do, and never name the words: " + row.personality.join(", ") + "." : ""
+        traits.length
+          ? "Show these through an action, a choice, or a line of dialogue, and never name the words: " + traits.join(", ") + ". " + traits.map(Personality.hint).filter(Boolean).join(". ") + "."
+          : "No personality traits are stored. Do not invent one.",
+        (row.personalityNote || note) ? "A private note, meaning only, never copied as a sentence: " + (row.personalityNote || note) : ""
       ].filter(Boolean).join(" ");
     }
     return id + ": unknown";
@@ -118,8 +131,7 @@ function bibleBrief(ask) {
   var reader = Book.readerProfile(ask);
   var limits = reader ? reader.limits : null;
   var words = Book.contentWords(ask.idea).join(", ");
-  var sample = Cast.getCharacter(ask.castIds[0]) || { characterId: "child", name: "Child", personality: ["kind"] };
-  var sampleTrait = sample.personality[0];
+  var sampleTrait = "kind";
   return {
     system: [
       "You plan a Wondii children's picture book. Return one JSON object and nothing else.",
@@ -136,7 +148,7 @@ function bibleBrief(ask) {
       "A recurring creature who is not one of the selected children belongs in storyCast, with one locked look, and then in charactersPresent. Do not invent an extra person. If the story needs no recurring creature, storyCast is an empty array.",
       "The climax settles the central problem by using something that happened earlier. It is not a new obstacle.",
       "The resolution shows what changed: a behaviour, a final image, or a callback. It must not explain the climax again, name the feeling, or say that everyone was happy.",
-      "Selected children must change what happens. Give every selected child at least one expresses note.",
+      "Selected children must change what happens. A child with traits listed below needs one expresses note, and the trait must be one of those listed words. Show it once, through what they do or decide. A curious child might investigate something unusual. A kind child might help someone. A playful child might make a game out of an obstacle. Do not repeat the trait, and do not give every page a personality sentence. A child with no traits listed still takes part in the action. Do not invent a trait word for them, and do not add an expresses note for them.",
       "expresses.shows is a behaviour, such as kneeling to listen. It must not be the personality word, and it must not say 'was curious' or 'felt brave'.",
       "Do not add a person who is not in the cast. A creature, object, place, or force is an entity.",
       "If an object matters later, introduce it with introduce:true on the beat it first appears. Leave it out of later entityState arrays unless its owner or state changes.",
@@ -194,9 +206,9 @@ function bibleBrief(ask) {
       '    "pageTurnIntent": "",',
       '    "entryFrom": "",',
       '    "exitToward": "",',
-      '    "charactersPresent": ["' + sample.characterId + '"],',
+      '    "charactersPresent": ["example-child"],',
       '    "absent": {},',
-      '    "expresses": [{ "characterId": "' + sample.characterId + '", "trait": "' + sampleTrait + '", "shows": "A behaviour, never the trait word." }],',
+      '    "expresses": [{ "characterId": "example-child", "trait": "' + sampleTrait + '", "shows": "A behaviour, never the trait word." }],',
       '    "problemFamily": "",',
       '    "action": "",',
       '    "emotion": "",',
@@ -208,23 +220,32 @@ function bibleBrief(ask) {
       '    "entityState": [{ "entityId": "story-thing", "introduce": true, "ownerCharacterId": null, "locationId": "place-a", "state": "here" }]',
       "  }]",
       "}",
-      "Do not reuse story-thing, place-a, or the sample behaviour. Invent this idea only.",
+      "Do not reuse story-thing, place-a, example-child, or the sample behaviour. example-child is not in this cast. Invent this idea only.",
       "locationId and entityId are lowercase slugs. A location name should be the phrase spoken on pages set there, and should not be a short word that other pages will need.",
       "Allowed shotType values: " + Book.SHOTS.join(", ") + ".",
       "charactersPresent may contain only: " + ask.castIds.join(", ") + ".",
       "If a selected child is off a beat, charactersPresent omits them and absent explains why, for example { \"leo\": \"waiting upstairs\" }.",
       "traits allowed: " + ask.castIds.map(function (id) {
-        var row = registryRow(ask, id);
-        var character = Cast.getCharacter((row && row.bibleId) || id) || Cast.getCharacter(id);
-        return id + " " + (character ? character.personality.join("/") : "");
+        var traits = storedTraits(ask, id);
+        return id + " " + (traits.length ? traits.join("/") : "(none stored)");
       }).join("; ") + "."
     ].join("\n")
   };
 }
 
+function personalityOnly(problems) {
+  return unique(problems).length > 0 && unique(problems).every(function (problem) {
+    return /^(?:personality-unused|personality-mismatch|trait-told):/.test(String(problem));
+  });
+}
+
 function repairBibleBrief(ask, draft, problems) {
   var base = bibleBrief(ask);
-  base.system += " The previous plan failed. Return a full replacement in the same shape. Keep the teacher's idea and the same cast. Change what the failed checks require.";
+  if (personalityOnly(problems)) {
+    base.system += " The previous plan failed only on personality notes. Return the same JSON. Change only the expresses notes named by the failed checks. Keep every action, place, beat, page count, and entity.";
+  } else {
+    base.system += " The previous plan failed. Return a full replacement in the same shape. Keep the teacher's idea and the same cast. Change what the failed checks require.";
+  }
   base.user += "\n\nFailed checks:\n" + unique(problems).join("\n") + "\n\nPrevious JSON:\n" + JSON.stringify(unwrap(draft));
   return base;
 }
@@ -379,7 +400,110 @@ function failingStage(problems) {
   return "prose";
 }
 
+async function generateBookChunked(request, ports) {
+  var source = request || {};
+  var ask = Book.publicRequest(source);
+  var briefAsk = Object.assign({}, ask, { identityRegistry: source.identityRegistry || [] });
+  var state = Object.assign({ stage: "bible", tries: 0, repairs: [] }, ports.writerState || {});
+  var repairs = Array.isArray(state.repairs) ? state.repairs.slice() : [];
+  var modelName = ports.model || "gpt-6.1-sol";
+  var bibleTokens = ask.length === "adventure" ? 10000 : ask.length === "storybook" ? 8000 : 6000;
+  var proseTokens = ask.length === "adventure" ? 8000 : ask.length === "storybook" ? 6000 : 4000;
+  if (!Book.lengthProfile(ask.length) || !Book.readerProfile(ask) || !ask.idea || ask.castIds.length < 1) {
+    return result("NOT_REVIEWABLE", { ok: false, problems: ["request"], bible: null }, null, null, null);
+  }
+
+  async function model(brief, purpose, tokens) {
+    try {
+      return await ports.callModel(brief, {
+        purpose: purpose,
+        maxTokens: tokens,
+        model: modelName,
+        effort: ports.effort || "low"
+      });
+    } catch (error) {
+      if (error && error.code === "model-timeout") throw error;
+      return { __error: String(error && error.message || error) };
+    }
+  }
+  function cont(stage, extra) {
+    return { status: "CONTINUE", writer: Object.assign({ stage: stage, repairs: repairs }, extra || {}) };
+  }
+  function reviewable(bible, attached) {
+    return {
+      status: "REVIEWABLE",
+      bible: bible,
+      pages: attached.pages,
+      textProblems: unique(attached.problems),
+      storyProblems: [],
+      writer: null
+    };
+  }
+
+  if (state.stage === "bible") {
+    var draft = await model(bibleBrief(briefAsk), "book-bible", bibleTokens);
+    var compiled = compileOrFail(draft, source);
+    if (!compiled.ok) return cont("bible-repair", { draft: draft, problems: unique(compiled.problems), tries: 0 });
+    var planned = Book.planPages(compiled.bible);
+    if (!planned.ok) return cont("page-plan-repair", { draft: draft, problems: unique(planned.problems), tries: 0 });
+    return cont("prose", { bible: compiled.bible, pages: planned.pages });
+  }
+
+  function acceptSaved(draft) {
+    var compiled = compileOrFail(draft, source);
+    if (!compiled.ok) return null;
+    var planned = Book.planPages(compiled.bible);
+    if (!planned.ok) return null;
+    return { bible: compiled.bible, pages: planned.pages };
+  }
+
+  if (state.stage === "bible-repair" || state.stage === "page-plan-repair") {
+    var kept = acceptSaved(state.draft);
+    if (kept) return cont("prose", { bible: kept.bible, pages: kept.pages, reusedDraft: true, priorProblems: unique(state.problems) });
+    var tries = Number(state.tries) || 0;
+    if (tries >= Book.MAX_REPAIRS) return result("NOT_REVIEWABLE", { ok: false, problems: state.problems || ["story"], bible: null }, null, null, null);
+    repairs.push({ stage: state.stage === "page-plan-repair" ? "page-plan" : "bible", problems: unique(state.problems) });
+    draft = await model(repairBibleBrief(briefAsk, state.draft, state.problems || []), state.stage === "page-plan-repair" ? "page-plan-repair" : "book-bible-repair", bibleTokens);
+    compiled = compileOrFail(draft, source);
+    if (!compiled.ok) return cont(state.stage, { draft: draft, problems: unique(compiled.problems), tries: tries + 1 });
+    planned = Book.planPages(compiled.bible);
+    if (!planned.ok) return cont("page-plan-repair", { draft: draft, problems: unique(planned.problems), tries: 0 });
+    return cont("prose", { bible: compiled.bible, pages: planned.pages });
+  }
+
+  if (state.stage === "prose") {
+    var spoken = await model(proseBrief(state.bible, state.pages, null), "book-prose", proseTokens);
+    var attached = Book.attachSpokenProse(state.bible, state.pages, pagesOf(spoken));
+    if (!attached.ok) return cont("prose-repair", { bible: state.bible, pages: state.pages, spoken: spoken, problems: unique(attached.problems), tries: 0 });
+    return reviewable(state.bible, attached);
+  }
+
+  if (state.stage === "prose-repair") {
+    tries = Number(state.tries) || 0;
+    if (tries >= Book.MAX_REPAIRS) return result("NOT_REVIEWABLE", { ok: false, problems: state.problems || ["prose"], bible: state.bible }, null, null, null);
+    repairs.push({ stage: failingStage(state.problems), problems: unique(state.problems) });
+    var patch = await model(repairProseBrief(state.bible, state.pages, state.spoken, state.problems || []), "book-prose-repair", proseTokens);
+    spoken = mergeSpoken(state.spoken, patch);
+    attached = Book.attachSpokenProse(state.bible, state.pages, spoken);
+    if (!attached.ok) return cont("prose-repair", { bible: state.bible, pages: state.pages, spoken: spoken, problems: unique(attached.problems), tries: tries + 1 });
+    return reviewable(state.bible, attached);
+  }
+
+  return result("NOT_REVIEWABLE", { ok: false, problems: ["story"], bible: null }, null, null, null);
+
+  function result(status, story, plan, text, images) {
+    return {
+      status: status,
+      bible: story && story.bible,
+      pages: text && text.pages ? text.pages : (plan && plan.pages) || null,
+      textProblems: unique(text && text.problems),
+      storyProblems: unique(story && story.problems)
+    };
+  }
+}
+
 async function generateBook(request, ports) {
+  if (ports && ports.oneCall === true) return generateBookChunked(request, ports);
   var source = request || {};
   var ask = Book.publicRequest(source);
   var briefAsk = Object.assign({}, ask, { identityRegistry: source.identityRegistry || [] });
@@ -405,6 +529,7 @@ async function generateBook(request, ports) {
         effort: ports.effort || "low"
       });
     } catch (error) {
+      if (error && error.code === "model-timeout") throw error;
       return { __error: String(error && error.message || error) };
     }
   }

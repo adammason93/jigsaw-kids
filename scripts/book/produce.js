@@ -31,6 +31,15 @@ function publicJob(job) {
   return copy;
 }
 
+function uniqueProblems(list) {
+  var seen = {};
+  return (list || []).map(function (item) { return String(item || ""); }).filter(function (item) {
+    if (!item || seen[item]) return false;
+    seen[item] = true;
+    return true;
+  });
+}
+
 function named(registry, characterId) {
   var row = (registry || []).filter(function (entry) { return entry.characterId === characterId; })[0];
   return row && row.name ? row.name : characterId;
@@ -410,6 +419,8 @@ function runLoaded(prior, source, ports, store, jobs, accountId, key) {
   var bookPromise = checkpoint.story && checkpoint.story.status === "REVIEWABLE" && checkpoint.story.pages
     ? Promise.resolve(checkpoint.story)
     : Writer.generateBook(planned.request, {
+      oneCall: ports.chunked === true,
+      writerState: checkpoint.writer || null,
       callModel: function (brief, opts) {
         var upper = Cost.textBound(brief, opts && opts.maxTokens);
         return reserve("text", upper, { purpose: opts && opts.purpose || "story" }).then(function (heldCall) {
@@ -434,9 +445,27 @@ function runLoaded(prior, source, ports, store, jobs, accountId, key) {
         ? "This book would cost more than its budget. Nothing more was started, and the book was not saved."
         : "This book would take more story calls than Wondii allows. The book was not saved.");
     }
-    if (!book || book.status !== "REVIEWABLE" || !(book.pages || []).length) {
-      return stop("story", "story", "The story was not finished, so no pictures were drawn and nothing was saved.");
+    if (book && book.status === "CONTINUE" && book.writer) {
+      if (book.writer.reusedDraft) {
+        checkpoint.failures = Array.isArray(checkpoint.failures) ? checkpoint.failures : [];
+        checkpoint.failures.push({
+          reason: "rechecked",
+          problems: book.writer.priorProblems || [],
+          kept: "saved-draft"
+        });
+      }
+      checkpoint.writer = book.writer;
+      return stop("story", "continue", "The story is still being written.");
     }
+    if (!book || book.status !== "REVIEWABLE" || !(book.pages || []).length) {
+      var unresolved = uniqueProblems(book && (book.storyProblems || book.problems));
+      checkpoint.failures = Array.isArray(checkpoint.failures) ? checkpoint.failures : [];
+      checkpoint.failures.push({ reason: "story", problems: unresolved });
+      return stop("story", "story", unresolved.length
+        ? "The story stopped because " + unresolved.join(", ") + ". No pictures were drawn and nothing was saved."
+        : "The story was not finished, so no pictures were drawn and nothing was saved.");
+    }
+    checkpoint.writer = null;
     checkpoint.story = {
       status: book.status,
       bible: book.bible,
@@ -444,6 +473,7 @@ function runLoaded(prior, source, ports, store, jobs, accountId, key) {
       textProblems: book.textProblems || [],
       storyProblems: book.storyProblems || []
     };
+    return persist().then(function () {
     var pages = book.pages;
     var registryBuilt = Identity.buildRegistry({
       members: source.members || [],
@@ -674,6 +704,7 @@ function runLoaded(prior, source, ports, store, jobs, accountId, key) {
         });
       });
     });
+  });
   }).catch(function (error) {
     var code = error && error.code || "story";
     var stage = checkpoint.story ? "pictures" : "story";
@@ -682,7 +713,9 @@ function runLoaded(prior, source, ports, store, jobs, accountId, key) {
       ? "This book would cost more than its budget. Nothing more was started, and the book was not saved."
       : code === "call-cap"
         ? "This book would take more picture checks than Wondii allows. The book was not saved."
-        : "The story stopped before it was finished. Nothing was saved.";
+        : code === "model-timeout"
+          ? "The story writer took too long, so this step was saved and no further call was made."
+          : "The story stopped before it was finished. Nothing was saved.";
     return stop(stage, code, message);
   });
   });

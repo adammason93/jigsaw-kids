@@ -52,6 +52,25 @@ function previewShelf(body, planned) {
 }
 
 function handleBookV2(body, ports) {
+  if (body && body.watch === true) {
+    var read = ports && ports.jobs && ports.jobs.read
+      ? ports.jobs.read(body.accountId, body.creationKey)
+      : null;
+    return Promise.resolve(read).then(function (job) {
+      var copy = Object.assign({}, job || {});
+      delete copy.checkpoint;
+      return {
+        status: 200,
+        body: {
+          ok: true,
+          watch: true,
+          generated: false,
+          job: copy,
+          message: copy.message || "The story progress was read. No new writing was started."
+        }
+      };
+    });
+  }
   var planned = Adapter.planRequest(body || {});
   if (!planned.ok) {
     return {

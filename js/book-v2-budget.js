@@ -14,7 +14,7 @@
   var IMAGE_USD = 0.039657;
   var VISION_USD = 0.001472;
   var GBP_PER_USD = 0.754;
-  var MAX_TEXT = 8;
+  var MAX_TEXT = 12;
   var MAX_IMAGE = 24;
   var MAX_VISION = 24;
   var BUDGET_USD = 1.2;

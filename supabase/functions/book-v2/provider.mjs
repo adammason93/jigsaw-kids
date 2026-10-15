@@ -29,8 +29,8 @@ function storageUrl(base, bucket, path) {
 }
 
 async function readJson(base, publishable, token, path) {
-  const res = await fetch(storageUrl(base, "storybook_room", path), {
-    headers: authHeaders(publishable, token)
+  const res = await fetch(storageUrl(base, "storybook_room", path) + "?t=" + Date.now(), {
+    headers: authHeaders(publishable, token, { "Cache-Control": "no-cache" })
   });
   if (res.status === 404 || res.status === 400) return null;
   if (!res.ok) return null;
@@ -42,7 +42,8 @@ async function writeJson(base, publishable, token, path, value) {
     method: "POST",
     headers: authHeaders(publishable, token, {
       "Content-Type": "application/json",
-      "x-upsert": "true"
+      "x-upsert": "true",
+      "Cache-Control": "no-cache"
     }),
     body: JSON.stringify(value)
   });
@@ -123,11 +124,17 @@ async function callModel(key, brief, opts) {
   }, reasoning
     ? { reasoning_effort: (opts && opts.effort) || "low", max_completion_tokens: (opts && opts.maxTokens) || 4000 }
     : { temperature: 0.7, max_tokens: (opts && opts.maxTokens) || 4000 });
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" },
-    body: JSON.stringify(body)
-  });
+  let res;
+  try {
+    res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(90000)
+    });
+  } catch (_error) {
+    throw Object.assign(new Error("model-timeout"), { code: "model-timeout" });
+  }
   const payload = await res.json();
   if (!res.ok) throw new Error("story");
   const content = payload && payload.choices && payload.choices[0] && payload.choices[0].message && payload.choices[0].message.content || "";
@@ -245,6 +252,7 @@ export async function portsFor(req, grant) {
   const budgetUsd = allowed.budgetUsd;
   return {
     approved: true,
+    chunked: true,
     model: TEXT_MODEL,
     budgetUsd: budgetUsd,
     store: store,

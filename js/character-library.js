@@ -89,6 +89,7 @@
       description: "",
       clothing: "",
       reference: reference,
+      personality: record.personality || null,
       type: record.type === "hero" || record.type === "buddy" ? record.type : "",
       createdAt: record.createdAt || "",
       eligibleForBooks: !!(id && reference),

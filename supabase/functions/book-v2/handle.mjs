@@ -256,6 +256,122 @@ var require_wondii_crew = __commonJS({
   }
 });
 
+// js/character-personality.js
+var require_character_personality = __commonJS({
+  "js/character-personality.js"(exports, module) {
+    (function(root, factory) {
+      var api = factory();
+      if (typeof module === "object" && module.exports) module.exports = api;
+      if (root) root.WondiiPersonality = api;
+    })(typeof globalThis !== "undefined" ? globalThis : exports, function() {
+      "use strict";
+      var CHOICES = [
+        "brave",
+        "curious",
+        "kind",
+        "funny",
+        "adventurous",
+        "shy",
+        "clever",
+        "playful",
+        "creative",
+        "helpful",
+        "gentle",
+        "confident",
+        "mischievous",
+        "thoughtful",
+        "energetic",
+        "imaginative"
+      ];
+      var HINTS = {
+        brave: "they might step forward when something is uncertain",
+        curious: "they might investigate something unusual",
+        kind: "they might help another character",
+        funny: "they might lighten a worry",
+        adventurous: "they might choose the unexplored way",
+        shy: "they might hang back, then join when they feel safe",
+        clever: "they might notice a useful detail",
+        playful: "they might make a game out of an obstacle",
+        creative: "they might try an unusual solution",
+        helpful: "they might take on a job for someone else",
+        gentle: "they might move carefully around something small",
+        confident: "they might decide and invite the others",
+        mischievous: "they might try a cheeky shortcut",
+        thoughtful: "they might pause and consider the others",
+        energetic: "they might be the first to move",
+        imaginative: "they might picture a way the others had not"
+      };
+      function choices() {
+        return CHOICES.slice();
+      }
+      function label(trait) {
+        var word = String(trait || "");
+        return word ? word.charAt(0).toUpperCase() + word.slice(1) : "";
+      }
+      function cleanTraits(list) {
+        var out = [];
+        (Array.isArray(list) ? list : []).forEach(function(item) {
+          var word = String(item || "").trim().toLowerCase();
+          if (CHOICES.indexOf(word) < 0 || out.indexOf(word) >= 0 || out.length >= 3) return;
+          out.push(word);
+        });
+        return out;
+      }
+      function cleanDescription(text) {
+        return String(text || "").replace(/\s+/g, " ").trim().slice(0, 180);
+      }
+      function pack(input) {
+        var traits = cleanTraits(Array.isArray(input) ? input : input && input.traits);
+        var description = cleanDescription(input && !Array.isArray(input) ? input.description : "");
+        if (!traits.length && !description) return null;
+        return { traits, description };
+      }
+      function traitsOf(value) {
+        if (!value) return [];
+        if (Array.isArray(value)) {
+          return value.map(function(item) {
+            return String(item || "").trim();
+          }).filter(Boolean);
+        }
+        if (Array.isArray(value.traits)) {
+          return value.traits.map(function(item) {
+            return String(item || "").trim();
+          }).filter(Boolean);
+        }
+        return [];
+      }
+      function descriptionOf(value) {
+        if (!value || Array.isArray(value)) return "";
+        return cleanDescription(value.description);
+      }
+      function toggle(selected, trait) {
+        var next = cleanTraits(selected);
+        var word = String(trait || "").trim().toLowerCase();
+        var at = next.indexOf(word);
+        if (at >= 0) {
+          next.splice(at, 1);
+          return next;
+        }
+        if (next.length >= 3 || CHOICES.indexOf(word) < 0) return next;
+        next.push(word);
+        return next;
+      }
+      function hint(trait) {
+        return HINTS[String(trait || "").trim().toLowerCase()] || "";
+      }
+      return {
+        choices,
+        label,
+        pack,
+        traitsOf,
+        descriptionOf,
+        toggle,
+        hint
+      };
+    });
+  }
+});
+
 // js/character-bible.js
 var require_character_bible = __commonJS({
   "js/character-bible.js"(exports, module) {
@@ -1302,6 +1418,10 @@ var require_book_v2_identity = __commonJS({
         if (root && root.WondiiCrew) return root.WondiiCrew;
         return require_wondii_crew();
       }
+      function personalityApi() {
+        if (root && root.WondiiPersonality) return root.WondiiPersonality;
+        return require_character_personality();
+      }
       function characterApi() {
         if (root && root.WondiiCharacterBible) return root.WondiiCharacterBible;
         return require_character_bible();
@@ -1468,7 +1588,8 @@ var require_book_v2_identity = __commonJS({
         entry.sheet = "portrait-only";
         entry.proposed = true;
         entry.locked = true;
-        entry.personality = Array.isArray(row.personality) ? row.personality.slice() : [];
+        entry.personality = personalityApi().traitsOf(row && row.personality);
+        entry.personalityNote = personalityApi().descriptionOf(row && row.personality);
         entry.appearance = row.appearance ? String(row.appearance) : "Match the saved portrait exactly.";
         entry.clothing = row.clothing ? String(row.clothing) : "as shown in the saved portrait";
         entry.distinctive = Array.isArray(row.distinctive) ? row.distinctive.slice() : [];
@@ -1510,7 +1631,8 @@ var require_book_v2_identity = __commonJS({
         entry.reference = art;
         entry.locked = true;
         entry.proposed = true;
-        entry.personality = Array.isArray(character.personality) ? character.personality.slice() : [];
+        entry.personality = personalityApi().traitsOf(character && character.personality);
+        entry.personalityNote = personalityApi().descriptionOf(character && character.personality);
         entry.appearance = appearance;
         entry.clothing = String(character.clothing || appearance);
         entry.distinctive = Array.isArray(character.distinctive) ? character.distinctive.slice() : [];
@@ -5640,6 +5762,10 @@ var require_book_brain = __commonJS({
         if (root && root.WondiiCharacterBible) return root.WondiiCharacterBible;
         return require_character_bible();
       }
+      function personalityApi() {
+        if (root && root.WondiiPersonality) return root.WondiiPersonality;
+        return require_character_personality();
+      }
       function crewApi() {
         if (root && root.WondiiCrew) return root.WondiiCrew;
         return require_wondii_crew();
@@ -6098,6 +6224,14 @@ var require_book_brain = __commonJS({
             });
           });
           if (character && character.personality.length && !expressed) problems.push("personality-unused:" + id);
+        });
+        beats.forEach(function(beat) {
+          (beat.expresses || []).forEach(function(note) {
+            if (!note || !note.characterId || !note.trait) return;
+            var who = catalogueCharacter(note.characterId, book.identityRegistry);
+            var allowed = who && who.personality || [];
+            if (allowed.indexOf(note.trait) < 0) problems.push("personality-mismatch:" + note.characterId);
+          });
         });
         var exact = ask.pageCount || book.pageCount || 0;
         var shaped = profile;
@@ -6837,9 +6971,10 @@ var require_book_brain = __commonJS({
             if (present.indexOf(id) < 0 && !(raw.absent && raw.absent[id])) problems.push("cast-missing:" + id);
           });
           (raw.expresses || []).forEach(function(note) {
-            if (storyIds.indexOf(note.characterId) >= 0) return;
+            if (!note || storyIds.indexOf(note.characterId) >= 0) return;
             var character = catalogueCharacter(note.characterId, registry);
-            if (!character || character.personality.indexOf(note.trait) < 0) problems.push("personality-unused:" + note.characterId);
+            var traits = character && character.personality || [];
+            if (note.trait && traits.indexOf(note.trait) < 0) problems.push("personality-mismatch:" + note.characterId);
             if (!note.shows || TOLD_TRAIT.test(note.shows) || String(note.shows).toLowerCase() === String(note.trait).toLowerCase()) {
               problems.push("trait-told:" + beatId);
             }
@@ -7065,8 +7200,16 @@ var require_book_brain = __commonJS({
         var row = (registry || []).filter(function(item) {
           return item && (item.characterId === id || item.journeyId === id);
         })[0];
-        if (row && row.bibleId) return characterApi().getCharacter(row.bibleId);
-        return null;
+        if (row && row.bibleId) {
+          var paired = characterApi().getCharacter(row.bibleId);
+          if (paired) return paired;
+        }
+        if (!row) return null;
+        return {
+          characterId: String(row.characterId || id),
+          name: String(row.name || ""),
+          personality: personalityApi().traitsOf(row.personality)
+        };
       }
       function charState(id, locationId, emotion, role, carried, registry) {
         var character = characterApi().getCharacter(id);
@@ -7711,7 +7854,7 @@ var require_book_v2_budget = __commonJS({
       var IMAGE_USD = 0.039657;
       var VISION_USD = 1472e-6;
       var GBP_PER_USD = 0.754;
-      var MAX_TEXT = 8;
+      var MAX_TEXT = 12;
       var MAX_IMAGE = 24;
       var MAX_VISION = 24;
       var BUDGET_USD = 1.2;
@@ -7841,6 +7984,7 @@ var require_writer = __commonJS({
     "use strict";
     var Book = require_book_brain();
     var Cast = require_character_bible();
+    var Personality = require_character_personality();
     var SHAPE = {
       quick: "Aim for 6 to 8 spreads. Keep it complete: a hook, a discovery, an attempt, a change, a climax, and a resolution. Concise, not unfinished.",
       storybook: "Aim for 10 to 12 spreads, and stay between 9 and 13. This is a full picture book. Use the room for a reaction, a relationship, a setback, and a quiet beat where the story needs them. Do not spend two spreads on one event.",
@@ -7889,6 +8033,12 @@ var require_writer = __commonJS({
         return row && (row.characterId === id || row.journeyId === id || row.bibleId === id);
       })[0] || null;
     }
+    function storedTraits(ask, id) {
+      var row = registryRow(ask, id);
+      var character = Cast.getCharacter(row && row.bibleId || id) || Cast.getCharacter(id);
+      if (character && character.personality && character.personality.length) return character.personality.slice();
+      return Personality.traitsOf(row && row.personality);
+    }
     function castBrief(ask) {
       return (ask.castIds || []).map(function(id) {
         var row = registryRow(ask, id);
@@ -7902,12 +8052,15 @@ var require_writer = __commonJS({
           ].join(" ");
         }
         if (row) {
+          var traits = storedTraits(ask, row.characterId || id);
+          var note = Personality.descriptionOf(row.personality);
           return [
             row.characterId + " (" + row.name + ")",
             "Locked selected character. Match the saved portrait. Do not invent a new face, hair, or outfit.",
             "Appearance: " + (row.appearance || ""),
             "Clothing: " + (row.clothing || ""),
-            row.personality && row.personality.length ? "Show these through what they do, and never name the words: " + row.personality.join(", ") + "." : ""
+            traits.length ? "Show these through an action, a choice, or a line of dialogue, and never name the words: " + traits.join(", ") + ". " + traits.map(Personality.hint).filter(Boolean).join(". ") + "." : "No personality traits are stored. Do not invent one.",
+            row.personalityNote || note ? "A private note, meaning only, never copied as a sentence: " + (row.personalityNote || note) : ""
           ].filter(Boolean).join(" ");
         }
         return id + ": unknown";
@@ -7942,8 +8095,7 @@ var require_writer = __commonJS({
       var reader = Book.readerProfile(ask);
       var limits = reader ? reader.limits : null;
       var words = Book.contentWords(ask.idea).join(", ");
-      var sample = Cast.getCharacter(ask.castIds[0]) || { characterId: "child", name: "Child", personality: ["kind"] };
-      var sampleTrait = sample.personality[0];
+      var sampleTrait = "kind";
       return {
         system: [
           "You plan a Wondii children's picture book. Return one JSON object and nothing else.",
@@ -7960,7 +8112,7 @@ var require_writer = __commonJS({
           "A recurring creature who is not one of the selected children belongs in storyCast, with one locked look, and then in charactersPresent. Do not invent an extra person. If the story needs no recurring creature, storyCast is an empty array.",
           "The climax settles the central problem by using something that happened earlier. It is not a new obstacle.",
           "The resolution shows what changed: a behaviour, a final image, or a callback. It must not explain the climax again, name the feeling, or say that everyone was happy.",
-          "Selected children must change what happens. Give every selected child at least one expresses note.",
+          "Selected children must change what happens. A child with traits listed below needs one expresses note, and the trait must be one of those listed words. Show it once, through what they do or decide. A curious child might investigate something unusual. A kind child might help someone. A playful child might make a game out of an obstacle. Do not repeat the trait, and do not give every page a personality sentence. A child with no traits listed still takes part in the action. Do not invent a trait word for them, and do not add an expresses note for them.",
           "expresses.shows is a behaviour, such as kneeling to listen. It must not be the personality word, and it must not say 'was curious' or 'felt brave'.",
           "Do not add a person who is not in the cast. A creature, object, place, or force is an entity.",
           "If an object matters later, introduce it with introduce:true on the beat it first appears. Leave it out of later entityState arrays unless its owner or state changes.",
@@ -8018,9 +8170,9 @@ var require_writer = __commonJS({
           '    "pageTurnIntent": "",',
           '    "entryFrom": "",',
           '    "exitToward": "",',
-          '    "charactersPresent": ["' + sample.characterId + '"],',
+          '    "charactersPresent": ["example-child"],',
           '    "absent": {},',
-          '    "expresses": [{ "characterId": "' + sample.characterId + '", "trait": "' + sampleTrait + '", "shows": "A behaviour, never the trait word." }],',
+          '    "expresses": [{ "characterId": "example-child", "trait": "' + sampleTrait + '", "shows": "A behaviour, never the trait word." }],',
           '    "problemFamily": "",',
           '    "action": "",',
           '    "emotion": "",',
@@ -8032,22 +8184,30 @@ var require_writer = __commonJS({
           '    "entityState": [{ "entityId": "story-thing", "introduce": true, "ownerCharacterId": null, "locationId": "place-a", "state": "here" }]',
           "  }]",
           "}",
-          "Do not reuse story-thing, place-a, or the sample behaviour. Invent this idea only.",
+          "Do not reuse story-thing, place-a, example-child, or the sample behaviour. example-child is not in this cast. Invent this idea only.",
           "locationId and entityId are lowercase slugs. A location name should be the phrase spoken on pages set there, and should not be a short word that other pages will need.",
           "Allowed shotType values: " + Book.SHOTS.join(", ") + ".",
           "charactersPresent may contain only: " + ask.castIds.join(", ") + ".",
           'If a selected child is off a beat, charactersPresent omits them and absent explains why, for example { "leo": "waiting upstairs" }.',
           "traits allowed: " + ask.castIds.map(function(id) {
-            var row = registryRow(ask, id);
-            var character = Cast.getCharacter(row && row.bibleId || id) || Cast.getCharacter(id);
-            return id + " " + (character ? character.personality.join("/") : "");
+            var traits = storedTraits(ask, id);
+            return id + " " + (traits.length ? traits.join("/") : "(none stored)");
           }).join("; ") + "."
         ].join("\n")
       };
     }
+    function personalityOnly(problems) {
+      return unique(problems).length > 0 && unique(problems).every(function(problem) {
+        return /^(?:personality-unused|personality-mismatch|trait-told):/.test(String(problem));
+      });
+    }
     function repairBibleBrief(ask, draft, problems) {
       var base = bibleBrief(ask);
-      base.system += " The previous plan failed. Return a full replacement in the same shape. Keep the teacher's idea and the same cast. Change what the failed checks require.";
+      if (personalityOnly(problems)) {
+        base.system += " The previous plan failed only on personality notes. Return the same JSON. Change only the expresses notes named by the failed checks. Keep every action, place, beat, page count, and entity.";
+      } else {
+        base.system += " The previous plan failed. Return a full replacement in the same shape. Keep the teacher's idea and the same cast. Change what the failed checks require.";
+      }
       base.user += "\n\nFailed checks:\n" + unique(problems).join("\n") + "\n\nPrevious JSON:\n" + JSON.stringify(unwrap(draft));
       return base;
     }
@@ -8205,7 +8365,101 @@ var require_writer = __commonJS({
       if (/prompt-echo|ending-repeated|emotion-told|reader-address|idea-not-structural|resolution-missing|climax-missing|ending/.test(joined)) return "ending";
       return "prose";
     }
+    async function generateBookChunked(request, ports) {
+      var source = request || {};
+      var ask = Book.publicRequest(source);
+      var briefAsk = Object.assign({}, ask, { identityRegistry: source.identityRegistry || [] });
+      var state = Object.assign({ stage: "bible", tries: 0, repairs: [] }, ports.writerState || {});
+      var repairs = Array.isArray(state.repairs) ? state.repairs.slice() : [];
+      var modelName = ports.model || "gpt-6.1-sol";
+      var bibleTokens = ask.length === "adventure" ? 1e4 : ask.length === "storybook" ? 8e3 : 6e3;
+      var proseTokens = ask.length === "adventure" ? 8e3 : ask.length === "storybook" ? 6e3 : 4e3;
+      if (!Book.lengthProfile(ask.length) || !Book.readerProfile(ask) || !ask.idea || ask.castIds.length < 1) {
+        return result("NOT_REVIEWABLE", { ok: false, problems: ["request"], bible: null }, null, null, null);
+      }
+      async function model(brief, purpose, tokens) {
+        try {
+          return await ports.callModel(brief, {
+            purpose,
+            maxTokens: tokens,
+            model: modelName,
+            effort: ports.effort || "low"
+          });
+        } catch (error) {
+          if (error && error.code === "model-timeout") throw error;
+          return { __error: String(error && error.message || error) };
+        }
+      }
+      function cont(stage, extra) {
+        return { status: "CONTINUE", writer: Object.assign({ stage, repairs }, extra || {}) };
+      }
+      function reviewable(bible, attached2) {
+        return {
+          status: "REVIEWABLE",
+          bible,
+          pages: attached2.pages,
+          textProblems: unique(attached2.problems),
+          storyProblems: [],
+          writer: null
+        };
+      }
+      if (state.stage === "bible") {
+        var draft = await model(bibleBrief(briefAsk), "book-bible", bibleTokens);
+        var compiled = compileOrFail(draft, source);
+        if (!compiled.ok) return cont("bible-repair", { draft, problems: unique(compiled.problems), tries: 0 });
+        var planned = Book.planPages(compiled.bible);
+        if (!planned.ok) return cont("page-plan-repair", { draft, problems: unique(planned.problems), tries: 0 });
+        return cont("prose", { bible: compiled.bible, pages: planned.pages });
+      }
+      function acceptSaved(draft2) {
+        var compiled2 = compileOrFail(draft2, source);
+        if (!compiled2.ok) return null;
+        var planned2 = Book.planPages(compiled2.bible);
+        if (!planned2.ok) return null;
+        return { bible: compiled2.bible, pages: planned2.pages };
+      }
+      if (state.stage === "bible-repair" || state.stage === "page-plan-repair") {
+        var kept = acceptSaved(state.draft);
+        if (kept) return cont("prose", { bible: kept.bible, pages: kept.pages, reusedDraft: true, priorProblems: unique(state.problems) });
+        var tries = Number(state.tries) || 0;
+        if (tries >= Book.MAX_REPAIRS) return result("NOT_REVIEWABLE", { ok: false, problems: state.problems || ["story"], bible: null }, null, null, null);
+        repairs.push({ stage: state.stage === "page-plan-repair" ? "page-plan" : "bible", problems: unique(state.problems) });
+        draft = await model(repairBibleBrief(briefAsk, state.draft, state.problems || []), state.stage === "page-plan-repair" ? "page-plan-repair" : "book-bible-repair", bibleTokens);
+        compiled = compileOrFail(draft, source);
+        if (!compiled.ok) return cont(state.stage, { draft, problems: unique(compiled.problems), tries: tries + 1 });
+        planned = Book.planPages(compiled.bible);
+        if (!planned.ok) return cont("page-plan-repair", { draft, problems: unique(planned.problems), tries: 0 });
+        return cont("prose", { bible: compiled.bible, pages: planned.pages });
+      }
+      if (state.stage === "prose") {
+        var spoken = await model(proseBrief(state.bible, state.pages, null), "book-prose", proseTokens);
+        var attached = Book.attachSpokenProse(state.bible, state.pages, pagesOf(spoken));
+        if (!attached.ok) return cont("prose-repair", { bible: state.bible, pages: state.pages, spoken, problems: unique(attached.problems), tries: 0 });
+        return reviewable(state.bible, attached);
+      }
+      if (state.stage === "prose-repair") {
+        tries = Number(state.tries) || 0;
+        if (tries >= Book.MAX_REPAIRS) return result("NOT_REVIEWABLE", { ok: false, problems: state.problems || ["prose"], bible: state.bible }, null, null, null);
+        repairs.push({ stage: failingStage(state.problems), problems: unique(state.problems) });
+        var patch = await model(repairProseBrief(state.bible, state.pages, state.spoken, state.problems || []), "book-prose-repair", proseTokens);
+        spoken = mergeSpoken(state.spoken, patch);
+        attached = Book.attachSpokenProse(state.bible, state.pages, spoken);
+        if (!attached.ok) return cont("prose-repair", { bible: state.bible, pages: state.pages, spoken, problems: unique(attached.problems), tries: tries + 1 });
+        return reviewable(state.bible, attached);
+      }
+      return result("NOT_REVIEWABLE", { ok: false, problems: ["story"], bible: null }, null, null, null);
+      function result(status, story, plan, text, images) {
+        return {
+          status,
+          bible: story && story.bible,
+          pages: text && text.pages ? text.pages : plan && plan.pages || null,
+          textProblems: unique(text && text.problems),
+          storyProblems: unique(story && story.problems)
+        };
+      }
+    }
     async function generateBook(request, ports) {
+      if (ports && ports.oneCall === true) return generateBookChunked(request, ports);
       var source = request || {};
       var ask = Book.publicRequest(source);
       var briefAsk = Object.assign({}, ask, { identityRegistry: source.identityRegistry || [] });
@@ -8230,6 +8484,7 @@ var require_writer = __commonJS({
             effort: ports.effort || "low"
           });
         } catch (error) {
+          if (error && error.code === "model-timeout") throw error;
           return { __error: String(error && error.message || error) };
         }
       }
@@ -8872,6 +9127,16 @@ var require_produce = __commonJS({
       delete copy.checkpoint;
       return copy;
     }
+    function uniqueProblems(list) {
+      var seen = {};
+      return (list || []).map(function(item) {
+        return String(item || "");
+      }).filter(function(item) {
+        if (!item || seen[item]) return false;
+        seen[item] = true;
+        return true;
+      });
+    }
     function named(registry, characterId) {
       var row = (registry || []).filter(function(entry) {
         return entry.characterId === characterId;
@@ -9232,6 +9497,8 @@ var require_produce = __commonJS({
             if (stopped && stopped.job) return stopped;
             var halt = "";
             var bookPromise = checkpoint.story && checkpoint.story.status === "REVIEWABLE" && checkpoint.story.pages ? Promise.resolve(checkpoint.story) : Writer.generateBook(planned.request, {
+              oneCall: ports.chunked === true,
+              writerState: checkpoint.writer || null,
               callModel: function(brief, opts) {
                 var upper = Cost.textBound(brief, opts && opts.maxTokens);
                 return reserve("text", upper, { purpose: opts && opts.purpose || "story" }).then(function(heldCall) {
@@ -9257,9 +9524,25 @@ var require_produce = __commonJS({
               if (halt === "budget" || halt === "call-cap") {
                 return stop("story", halt, halt === "budget" ? "This book would cost more than its budget. Nothing more was started, and the book was not saved." : "This book would take more story calls than Wondii allows. The book was not saved.");
               }
-              if (!book || book.status !== "REVIEWABLE" || !(book.pages || []).length) {
-                return stop("story", "story", "The story was not finished, so no pictures were drawn and nothing was saved.");
+              if (book && book.status === "CONTINUE" && book.writer) {
+                if (book.writer.reusedDraft) {
+                  checkpoint.failures = Array.isArray(checkpoint.failures) ? checkpoint.failures : [];
+                  checkpoint.failures.push({
+                    reason: "rechecked",
+                    problems: book.writer.priorProblems || [],
+                    kept: "saved-draft"
+                  });
+                }
+                checkpoint.writer = book.writer;
+                return stop("story", "continue", "The story is still being written.");
               }
+              if (!book || book.status !== "REVIEWABLE" || !(book.pages || []).length) {
+                var unresolved = uniqueProblems(book && (book.storyProblems || book.problems));
+                checkpoint.failures = Array.isArray(checkpoint.failures) ? checkpoint.failures : [];
+                checkpoint.failures.push({ reason: "story", problems: unresolved });
+                return stop("story", "story", unresolved.length ? "The story stopped because " + unresolved.join(", ") + ". No pictures were drawn and nothing was saved." : "The story was not finished, so no pictures were drawn and nothing was saved.");
+              }
+              checkpoint.writer = null;
               checkpoint.story = {
                 status: book.status,
                 bible: book.bible,
@@ -9267,249 +9550,251 @@ var require_produce = __commonJS({
                 textProblems: book.textProblems || [],
                 storyProblems: book.storyProblems || []
               };
-              var pages = book.pages;
-              var registryBuilt = Identity.buildRegistry({
-                members: source.members || [],
-                savedReferences: source.savedReferences,
-                sharedCharacters: source.sharedCharacters,
-                storyCharacters: storyRows(book.bible),
-                accountId,
-                pages: pages.map(function(page) {
-                  return { pageId: page.pageId, charactersPresent: page.charactersPresent || [] };
-                })
-              });
-              if (!registryBuilt.ok) {
-                return stop("story", "artwork", "A character reference could not be checked. Nothing was saved.");
-              }
-              var registry = registryBuilt.registry || [];
-              Identity.clearCache();
-              var wanted = {};
-              pages.forEach(function(page) {
-                (page.charactersPresent || []).forEach(function(id) {
-                  wanted[id] = true;
+              return persist().then(function() {
+                var pages = book.pages;
+                var registryBuilt = Identity.buildRegistry({
+                  members: source.members || [],
+                  savedReferences: source.savedReferences,
+                  sharedCharacters: source.sharedCharacters,
+                  storyCharacters: storyRows(book.bible),
+                  accountId,
+                  pages: pages.map(function(page) {
+                    return { pageId: page.pageId, charactersPresent: page.charactersPresent || [] };
+                  })
                 });
-              });
-              var scenes = pages.map(function(page) {
-                return Identity.prepareScene(registry, page.charactersPresent || [], { ownerId: accountId });
-              });
-              if (scenes.some(function(scene) {
-                return scene.blocksGeneration;
-              })) {
-                var blocked = scenes.filter(function(scene) {
+                if (!registryBuilt.ok) {
+                  return stop("story", "artwork", "A character reference could not be checked. Nothing was saved.");
+                }
+                var registry = registryBuilt.registry || [];
+                Identity.clearCache();
+                var wanted = {};
+                pages.forEach(function(page) {
+                  (page.charactersPresent || []).forEach(function(id) {
+                    wanted[id] = true;
+                  });
+                });
+                var scenes = pages.map(function(page) {
+                  return Identity.prepareScene(registry, page.charactersPresent || [], { ownerId: accountId });
+                });
+                if (scenes.some(function(scene) {
                   return scene.blocksGeneration;
-                })[0];
-                var who = (blocked.limitations || []).map(function(item) {
-                  var id = String(item).split(":").pop();
-                  return named(registry, id);
-                }).filter(Boolean)[0] || "A character";
-                return stop("pictures", "artwork", who + " needs their own portrait before pictures can be drawn. Nothing was saved.");
-              }
-              var files = [];
-              scenes.forEach(function(scene) {
-                (scene.files || []).forEach(function(file) {
-                  if (!files.some(function(row) {
-                    return row.characterId === file.characterId;
-                  })) files.push(file);
-                });
-              });
-              var references = checkpoint.references;
-              return fetchFiles(registry, files).then(function(problem) {
-                if (problem) {
-                  return stop("pictures", "artwork", problem + " needs their own portrait before pictures can be drawn. Nothing was saved.");
+                })) {
+                  var blocked = scenes.filter(function(scene) {
+                    return scene.blocksGeneration;
+                  })[0];
+                  var who = (blocked.limitations || []).map(function(item) {
+                    var id = String(item).split(":").pop();
+                    return named(registry, id);
+                  }).filter(Boolean)[0] || "A character";
+                  return stop("pictures", "artwork", who + " needs their own portrait before pictures can be drawn. Nothing was saved.");
                 }
-                checkpoint.references = references;
-                var directed = Art.directBook({
-                  tone: planned.request && planned.request.tone,
-                  pages: pages.map(function(page) {
-                    return {
-                      text: page.prose || page.text || "",
-                      phase: page.narrativePhase || page.phase || "",
-                      shot: page.shotType || page.shot || "",
-                      characters: page.charactersPresent || [],
-                      emotion: page.emotion || ""
-                    };
-                  })
+                var files = [];
+                scenes.forEach(function(scene) {
+                  (scene.files || []).forEach(function(file) {
+                    if (!files.some(function(row) {
+                      return row.characterId === file.characterId;
+                    })) files.push(file);
+                  });
                 });
-                var artCheck = Art.checkBook({
-                  pages: pages.map(function(page) {
-                    return { text: page.prose || page.text || "" };
-                  })
-                }, directed);
-                var artBlocking = (artCheck.issues || []).filter(function(issue) {
-                  return issue.indexOf("text-room:") !== 0;
-                });
-                if (artBlocking.length) {
-                  return stop("art", "art", "The page layouts were not ready, so no pictures were drawn and nothing was saved.", directed);
-                }
-                var contracts = Visual.contractsFor(book.bible, pages, {});
-                var lineup = contracts.visualBible.bookCast && contracts.visualBible.bookCast.members || [];
-                checkpoint.pictures = checkpoint.pictures || {};
-                checkpoint.repairs = checkpoint.repairs || {};
-                var pictures = checkpoint.pictures;
-                var repairs = checkpoint.repairs;
-                return (contracts.spreads || []).reduce(function(chain, spread, index) {
-                  return chain.then(function(failed) {
-                    if (failed) return failed;
-                    var page = pages[index];
-                    var pageId = page.pageId || spread.spreadId;
-                    if (pictures[pageId] && pictures[pageId].accepted) return "";
-                    var note = directed.pages[index] && directed.pages[index].promptNote;
-                    if (note) spread.compositionNote = note;
-                    var prompt = Visual.spreadPrompt(book.bible, spread, lineup);
-                    var refs = (spread.charactersPresent || []).map(function(id) {
-                      return references[id] ? { characterId: id, file: references[id].file, bytes: references[id].bytes } : null;
-                    }).filter(Boolean);
-                    function draw(kind) {
-                      var picturePrompt = kind === "repair" ? Visual.repairPrompt(book.bible, spread, lineup) : prompt;
-                      return reserve("image", Cost.imageBound(picturePrompt, refs.length), { pageId, purpose: kind }).then(function(heldCall) {
-                        if (!heldCall.ok) return Promise.reject(Object.assign(new Error(heldCall.reason), { code: heldCall.reason }));
-                        return Promise.resolve(ports.drawImage({
+                var references = checkpoint.references;
+                return fetchFiles(registry, files).then(function(problem) {
+                  if (problem) {
+                    return stop("pictures", "artwork", problem + " needs their own portrait before pictures can be drawn. Nothing was saved.");
+                  }
+                  checkpoint.references = references;
+                  var directed = Art.directBook({
+                    tone: planned.request && planned.request.tone,
+                    pages: pages.map(function(page) {
+                      return {
+                        text: page.prose || page.text || "",
+                        phase: page.narrativePhase || page.phase || "",
+                        shot: page.shotType || page.shot || "",
+                        characters: page.charactersPresent || [],
+                        emotion: page.emotion || ""
+                      };
+                    })
+                  });
+                  var artCheck = Art.checkBook({
+                    pages: pages.map(function(page) {
+                      return { text: page.prose || page.text || "" };
+                    })
+                  }, directed);
+                  var artBlocking = (artCheck.issues || []).filter(function(issue) {
+                    return issue.indexOf("text-room:") !== 0;
+                  });
+                  if (artBlocking.length) {
+                    return stop("art", "art", "The page layouts were not ready, so no pictures were drawn and nothing was saved.", directed);
+                  }
+                  var contracts = Visual.contractsFor(book.bible, pages, {});
+                  var lineup = contracts.visualBible.bookCast && contracts.visualBible.bookCast.members || [];
+                  checkpoint.pictures = checkpoint.pictures || {};
+                  checkpoint.repairs = checkpoint.repairs || {};
+                  var pictures = checkpoint.pictures;
+                  var repairs = checkpoint.repairs;
+                  return (contracts.spreads || []).reduce(function(chain, spread, index) {
+                    return chain.then(function(failed) {
+                      if (failed) return failed;
+                      var page = pages[index];
+                      var pageId = page.pageId || spread.spreadId;
+                      if (pictures[pageId] && pictures[pageId].accepted) return "";
+                      var note = directed.pages[index] && directed.pages[index].promptNote;
+                      if (note) spread.compositionNote = note;
+                      var prompt = Visual.spreadPrompt(book.bible, spread, lineup);
+                      var refs = (spread.charactersPresent || []).map(function(id) {
+                        return references[id] ? { characterId: id, file: references[id].file, bytes: references[id].bytes } : null;
+                      }).filter(Boolean);
+                      function draw(kind) {
+                        var picturePrompt = kind === "repair" ? Visual.repairPrompt(book.bible, spread, lineup) : prompt;
+                        return reserve("image", Cost.imageBound(picturePrompt, refs.length), { pageId, purpose: kind }).then(function(heldCall) {
+                          if (!heldCall.ok) return Promise.reject(Object.assign(new Error(heldCall.reason), { code: heldCall.reason }));
+                          return Promise.resolve(ports.drawImage({
+                            pageId,
+                            prompt: picturePrompt,
+                            references: refs,
+                            repair: kind === "repair"
+                          })).then(function(out) {
+                            var unpacked = unpackImage(out);
+                            return settle(heldCall.entry, "image", unpacked.usage).then(function() {
+                              return unpacked.image;
+                            });
+                          }, function(error) {
+                            return uncertain(heldCall.entry).then(function() {
+                              throw error;
+                            });
+                          });
+                        });
+                      }
+                      function inspect(image) {
+                        return reserve("vision", Cost.visionBound(), { pageId, purpose: "check" }).then(function(heldCall) {
+                          if (!heldCall.ok) return Promise.reject(Object.assign(new Error(heldCall.reason), { code: heldCall.reason }));
+                          return Promise.resolve(ports.inspectImage({ pageId, image, spread })).then(function(out) {
+                            var unpacked = unpackVision(out);
+                            return settle(heldCall.entry, "vision", unpacked.usage).then(function() {
+                              return { image, report: unpacked.report, verdict: visionReport(unpacked.report, spread) };
+                            });
+                          }, function(error) {
+                            return uncertain(heldCall.entry).then(function() {
+                              throw error;
+                            });
+                          });
+                        });
+                      }
+                      return draw("new").then(inspect).then(function(first) {
+                        if (first.verdict.ok) return first;
+                        if ((repairs[pageId] || 0) >= Visual.MAX_VISUAL_REPAIRS) return first;
+                        repairs[pageId] = (repairs[pageId] || 0) + 1;
+                        return draw("repair").then(inspect);
+                      }).then(function(checked) {
+                        if (!checked.verdict.ok) return pageId;
+                        var stored = ports.storePicture ? ports.storePicture({
+                          accountId,
+                          creationKey: key,
                           pageId,
-                          prompt: picturePrompt,
-                          references: refs,
-                          repair: kind === "repair"
-                        })).then(function(out) {
-                          var unpacked = unpackImage(out);
-                          return settle(heldCall.entry, "image", unpacked.usage).then(function() {
-                            return unpacked.image;
-                          });
-                        }, function(error) {
-                          return uncertain(heldCall.entry).then(function() {
-                            throw error;
-                          });
+                          dataUrl: checked.image
+                        }) : checked.image;
+                        return Promise.resolve(stored).then(function(saved) {
+                          var url = String(saved || "");
+                          if (url.indexOf("data:image/") !== 0) return pageId;
+                          pictures[pageId] = { accepted: true, dataUrl: url, report: checked.report };
+                          page.imageDataUrl = url;
+                          return "";
                         });
-                      });
-                    }
-                    function inspect(image) {
-                      return reserve("vision", Cost.visionBound(), { pageId, purpose: "check" }).then(function(heldCall) {
-                        if (!heldCall.ok) return Promise.reject(Object.assign(new Error(heldCall.reason), { code: heldCall.reason }));
-                        return Promise.resolve(ports.inspectImage({ pageId, image, spread })).then(function(out) {
-                          var unpacked = unpackVision(out);
-                          return settle(heldCall.entry, "vision", unpacked.usage).then(function() {
-                            return { image, report: unpacked.report, verdict: visionReport(unpacked.report, spread) };
-                          });
-                        }, function(error) {
-                          return uncertain(heldCall.entry).then(function() {
-                            throw error;
-                          });
-                        });
-                      });
-                    }
-                    return draw("new").then(inspect).then(function(first) {
-                      if (first.verdict.ok) return first;
-                      if ((repairs[pageId] || 0) >= Visual.MAX_VISUAL_REPAIRS) return first;
-                      repairs[pageId] = (repairs[pageId] || 0) + 1;
-                      return draw("repair").then(inspect);
-                    }).then(function(checked) {
-                      if (!checked.verdict.ok) return pageId;
-                      var stored = ports.storePicture ? ports.storePicture({
-                        accountId,
-                        creationKey: key,
-                        pageId,
-                        dataUrl: checked.image
-                      }) : checked.image;
-                      return Promise.resolve(stored).then(function(saved) {
-                        var url = String(saved || "");
-                        if (url.indexOf("data:image/") !== 0) return pageId;
-                        pictures[pageId] = { accepted: true, dataUrl: url, report: checked.report };
-                        page.imageDataUrl = url;
-                        return "";
                       });
                     });
-                  });
-                }, Promise.resolve("")).then(function(failed) {
-                  checkpoint.pictures = pictures;
-                  checkpoint.repairs = repairs;
-                  if (failed) {
-                    return stop("check", "picture", "A picture did not pass its check, so the book was not saved and no story allowance was used.", directed);
-                  }
-                  var consistency = Visual.characterConsistencyCheckpoint(pages.map(function(page, index) {
-                    var shot = pictures[page.pageId];
-                    return {
-                      page: index + 1,
-                      characters: shot && shot.report && shot.report.characters || []
+                  }, Promise.resolve("")).then(function(failed) {
+                    checkpoint.pictures = pictures;
+                    checkpoint.repairs = repairs;
+                    if (failed) {
+                      return stop("check", "picture", "A picture did not pass its check, so the book was not saved and no story allowance was used.", directed);
+                    }
+                    var consistency = Visual.characterConsistencyCheckpoint(pages.map(function(page, index) {
+                      var shot = pictures[page.pageId];
+                      return {
+                        page: index + 1,
+                        characters: shot && shot.report && shot.report.characters || []
+                      };
+                    }), { humanApproved: false });
+                    if (consistency.problems.length) {
+                      return stop("check", "picture", "A character did not match their own portrait, so the book was not saved.", directed);
+                    }
+                    var result = {
+                      status: "REVIEWABLE",
+                      illustrationStyle: "wondii-picture-book",
+                      bible: book.bible,
+                      pages,
+                      textProblems: book.textProblems || [],
+                      storyProblems: book.storyProblems || [],
+                      artDirection: {
+                        schema: directed.schema,
+                        pages: directed.pages,
+                        spreads: directed.spreads || []
+                      }
                     };
-                  }), { humanApproved: false });
-                  if (consistency.problems.length) {
-                    return stop("check", "picture", "A character did not match their own portrait, so the book was not saved.", directed);
-                  }
-                  var result = {
-                    status: "REVIEWABLE",
-                    illustrationStyle: "wondii-picture-book",
-                    bible: book.bible,
-                    pages,
-                    textProblems: book.textProblems || [],
-                    storyProblems: book.storyProblems || [],
-                    artDirection: {
-                      schema: directed.schema,
-                      pages: directed.pages,
-                      spreads: directed.spreads || []
+                    var saved = Shelf.commitBook({
+                      result,
+                      owner: {
+                        userId: accountId,
+                        accountKind: source.accountKind === "child" ? "child" : "adult",
+                        childId: source.accountKind === "child" ? source.childId : ""
+                      },
+                      creationKey: key
+                    }, { store, allowance: ports.allowance });
+                    if (!saved.ok || !saved.book) {
+                      var saveMessage = saved.reason === "page-count" ? "The story did not come back with the requested number of pages, so the book was not saved." : "The book could not be saved. No story allowance was used.";
+                      return stop("save", saved.reason || "save", saveMessage, directed);
                     }
-                  };
-                  var saved = Shelf.commitBook({
-                    result,
-                    owner: {
-                      userId: accountId,
-                      accountKind: source.accountKind === "child" ? "child" : "adult",
-                      childId: source.accountKind === "child" ? source.childId : ""
-                    },
-                    creationKey: key
-                  }, { store, allowance: ports.allowance });
-                  if (!saved.ok || !saved.book) {
-                    var saveMessage = saved.reason === "page-count" ? "The story did not come back with the requested number of pages, so the book was not saved." : "The book could not be saved. No story allowance was used.";
-                    return stop("save", saved.reason || "save", saveMessage, directed);
-                  }
-                  saved.book.generated = true;
-                  saved.book.recordKind = "book";
-                  saved.book.openable = true;
-                  saved.book.savedAt = (/* @__PURE__ */ new Date()).toISOString();
-                  if (store.writeShelf) {
-                    var list = store.readShelf(accountId) || [];
-                    store.writeShelf(accountId, list.map(function(item) {
-                      return item && item.id === saved.book.id ? saved.book : item;
-                    }));
-                  }
-                  var done = jobFor(source, {
-                    attempts,
-                    calls,
-                    generation: gate,
-                    job: {
-                      stage: "read",
-                      status: "complete",
-                      paid: true,
-                      started: true,
-                      recoverable: false,
-                      budgetUsd,
+                    saved.book.generated = true;
+                    saved.book.recordKind = "book";
+                    saved.book.openable = true;
+                    saved.book.savedAt = (/* @__PURE__ */ new Date()).toISOString();
+                    if (store.writeShelf) {
+                      var list = store.readShelf(accountId) || [];
+                      store.writeShelf(accountId, list.map(function(item) {
+                        return item && item.id === saved.book.id ? saved.book : item;
+                      }));
+                    }
+                    var done = jobFor(source, {
+                      attempts,
                       calls,
-                      spend,
-                      stages: markStages("read", true),
-                      reason: "saved",
-                      message: "The illustrated book is ready.",
-                      layouts: directed.pages.map(function(page) {
-                        return page.layout;
-                      }),
-                      reader: saved.reader || "",
-                      checkpoint: { story: checkpoint.story, pictures: Object.keys(pictures), spend }
-                    }
-                  });
-                  return Promise.resolve(jobs && jobs.write ? jobs.write(accountId, key, snapshot(done)) : null).then(function() {
-                    return {
-                      ok: true,
-                      ran: true,
-                      duplicate: false,
-                      reason: "saved",
-                      job: publicJob(done),
                       generation: gate,
-                      book: saved.book,
-                      reader: saved.reader || "",
-                      art: directed,
-                      claimed: saved.claimed === true,
-                      references: Object.keys(references).map(function(id) {
-                        return { characterId: id, file: references[id].file };
-                      }),
-                      calls,
-                      spend
-                    };
+                      job: {
+                        stage: "read",
+                        status: "complete",
+                        paid: true,
+                        started: true,
+                        recoverable: false,
+                        budgetUsd,
+                        calls,
+                        spend,
+                        stages: markStages("read", true),
+                        reason: "saved",
+                        message: "The illustrated book is ready.",
+                        layouts: directed.pages.map(function(page) {
+                          return page.layout;
+                        }),
+                        reader: saved.reader || "",
+                        checkpoint: { story: checkpoint.story, pictures: Object.keys(pictures), spend }
+                      }
+                    });
+                    return Promise.resolve(jobs && jobs.write ? jobs.write(accountId, key, snapshot(done)) : null).then(function() {
+                      return {
+                        ok: true,
+                        ran: true,
+                        duplicate: false,
+                        reason: "saved",
+                        job: publicJob(done),
+                        generation: gate,
+                        book: saved.book,
+                        reader: saved.reader || "",
+                        art: directed,
+                        claimed: saved.claimed === true,
+                        references: Object.keys(references).map(function(id) {
+                          return { characterId: id, file: references[id].file };
+                        }),
+                        calls,
+                        spend
+                      };
+                    });
                   });
                 });
               });
@@ -9517,7 +9802,7 @@ var require_produce = __commonJS({
               var code = error && error.code || "story";
               var stage = checkpoint.story ? "pictures" : "story";
               if (code === "budget" || code === "call-cap") stage = "pictures";
-              var message = code === "budget" ? "This book would cost more than its budget. Nothing more was started, and the book was not saved." : code === "call-cap" ? "This book would take more picture checks than Wondii allows. The book was not saved." : "The story stopped before it was finished. Nothing was saved.";
+              var message = code === "budget" ? "This book would cost more than its budget. Nothing more was started, and the book was not saved." : code === "call-cap" ? "This book would take more picture checks than Wondii allows. The book was not saved." : code === "model-timeout" ? "The story writer took too long, so this step was saved and no further call was made." : "The story stopped before it was finished. Nothing was saved.";
               return stop(stage, code, message);
             });
           });
@@ -9724,6 +10009,23 @@ var require_handle_request = __commonJS({
       };
     }
     function handleBookV2(body, ports) {
+      if (body && body.watch === true) {
+        var read = ports && ports.jobs && ports.jobs.read ? ports.jobs.read(body.accountId, body.creationKey) : null;
+        return Promise.resolve(read).then(function(job) {
+          var copy = Object.assign({}, job || {});
+          delete copy.checkpoint;
+          return {
+            status: 200,
+            body: {
+              ok: true,
+              watch: true,
+              generated: false,
+              job: copy,
+              message: copy.message || "The story progress was read. No new writing was started."
+            }
+          };
+        });
+      }
       var planned = Adapter.planRequest(body || {});
       if (!planned.ok) {
         return {

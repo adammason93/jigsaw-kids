@@ -19,6 +19,11 @@
     return require("./wondii-crew.js");
   }
 
+  function personalityApi() {
+    if (root && root.WondiiPersonality) return root.WondiiPersonality;
+    return require("./character-personality.js");
+  }
+
   function characterApi() {
     if (root && root.WondiiCharacterBible) return root.WondiiCharacterBible;
     return require("./character-bible.js");
@@ -193,7 +198,8 @@
     entry.sheet = "portrait-only";
     entry.proposed = true;
     entry.locked = true;
-    entry.personality = Array.isArray(row.personality) ? row.personality.slice() : [];
+    entry.personality = personalityApi().traitsOf(row && row.personality);
+    entry.personalityNote = personalityApi().descriptionOf(row && row.personality);
     entry.appearance = row.appearance ? String(row.appearance) : "Match the saved portrait exactly.";
     entry.clothing = row.clothing ? String(row.clothing) : "as shown in the saved portrait";
     entry.distinctive = Array.isArray(row.distinctive) ? row.distinctive.slice() : [];
@@ -236,7 +242,8 @@
     entry.reference = art;
     entry.locked = true;
     entry.proposed = true;
-    entry.personality = Array.isArray(character.personality) ? character.personality.slice() : [];
+    entry.personality = personalityApi().traitsOf(character && character.personality);
+    entry.personalityNote = personalityApi().descriptionOf(character && character.personality);
     entry.appearance = appearance;
     entry.clothing = String(character.clothing || appearance);
     entry.distinctive = Array.isArray(character.distinctive) ? character.distinctive.slice() : [];
