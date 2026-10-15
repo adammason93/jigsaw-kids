@@ -72,12 +72,14 @@ Deno.serve(async (req) => {
   if (!userId) {
     return json(req, { ok: false, message: "Sign in again before this story can be planned. Nothing was saved." }, 401);
   }
-  let body: unknown = {};
+  let body: Record<string, unknown> = {};
   try {
-    body = await req.json();
+    const parsed = await req.json();
+    body = parsed && typeof parsed === "object" ? parsed as Record<string, unknown> : {};
   } catch (_error) {
     return json(req, { ok: false, message: "The story request could not be read." }, 400);
   }
+  body.accountId = userId;
   const result = handle.handleBookV2(body);
   const planned = result.body && typeof result.body === "object" ? result.body as Record<string, unknown> : {};
   return json(req, { ...planned, accountId: userId }, result.status);

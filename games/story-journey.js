@@ -1096,7 +1096,7 @@
         headers: planHeaders(view),
         body: JSON.stringify({
           members: members,
-          savedReferences: savedArt(members),
+          savedReferences: savedArt(members, userId),
           sharedCharacters: sharedArt(members),
           idea: state.idea.trim(),
           place: state.place,
@@ -1208,21 +1208,45 @@
     return "";
   }
 
-  function privateArt(id) {
-    var picture = portraits[id] || "";
-    if (!picture || /^https?:/i.test(picture) || picture.indexOf("data:") === 0) return "";
-    return picture;
+  function stablePortrait(id, picture) {
+    var raw = String(picture || "").trim();
+    if (!raw || raw.indexOf("data:") === 0 || raw.indexOf("blob:") === 0) return "";
+    if (raw.indexOf("images/characters/crew/") === 0 || raw.indexOf("maya-v1") >= 0) return "";
+    var path = raw;
+    if (/^https?:/i.test(raw)) {
+      var match = raw.match(/\/storage\/v1\/object\/(?:sign|authenticated|public)\/characters_room\/([^?#]+)/i);
+      if (!match) return "";
+      try { path = decodeURIComponent(match[1]); } catch (ePath) { path = match[1]; }
+    }
+    path = path.split("?")[0].replace(/^\/+/, "");
+    if (path.indexOf("characters_room/") === 0) path = path.slice("characters_room/".length);
+    if (!path || path.indexOf("..") >= 0 || path.indexOf("\\") >= 0) return "";
+    var file = String(id || "") + ".png";
+    if (!file || file.indexOf("/") >= 0 || path !== path.slice(0, path.length - file.length) + file) return "";
+    if (path.indexOf("/characters/" + file) < 0) return "";
+    return path;
   }
 
-  function savedArt(members) {
-    return members.filter(function (member) { return member.source === "saved" && privateArt(member.id); }).map(function (member) {
-      return { id: member.id, name: member.name, ownerType: "family", ownerId: "session", reference: privateArt(member.id) };
+  function savedArt(members, userId) {
+    return members.filter(function (member) { return member.source === "saved"; }).map(function (member) {
+      var reference = stablePortrait(member.id, portraits[member.id]);
+      var row = {
+        id: member.id,
+        name: member.name,
+        ownerType: "family",
+        ownerId: userId || ""
+      };
+      if (reference && reference.indexOf((userId || "") + "/characters/" + member.id + ".png") === 0) row.reference = reference;
+      return row;
     });
   }
 
   function sharedArt(members) {
-    return members.filter(function (member) { return member.source === "shared" && privateArt(member.id); }).map(function (member) {
-      return { id: member.id, name: member.name, shareId: member.id, reference: privateArt(member.id) };
+    return members.filter(function (member) { return member.source === "shared"; }).map(function (member) {
+      var reference = stablePortrait(member.id, portraits[member.id]);
+      var row = { id: member.id, name: member.name, shareId: member.id };
+      if (reference) row.reference = reference;
+      return row;
     });
   }
 

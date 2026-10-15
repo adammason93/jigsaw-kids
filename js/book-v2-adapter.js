@@ -165,6 +165,33 @@
     };
   }
 
+  function namedCharacters(problems, identities, prefix) {
+    var names = [];
+    (problems || []).forEach(function (problem) {
+      if (String(problem).indexOf(prefix) !== 0) return;
+      var id = String(problem).slice(prefix.length);
+      var row = (identities || []).filter(function (item) {
+        return item && (item.journeyId === id || item.characterId === id);
+      })[0];
+      var name = row && row.name ? String(row.name) : "";
+      if (name && names.indexOf(name) < 0) names.push(name);
+    });
+    if (names.length <= 1) return names[0] || "";
+    if (names.length === 2) return names[0] + " and " + names[1];
+    return names.slice(0, -1).join(", ") + ", and " + names[names.length - 1];
+  }
+
+  function artworkMessage(problems, identities) {
+    var missing = namedCharacters(problems, identities, "missing-artwork:");
+    if (missing) {
+      var several = missing.indexOf(" and ") >= 0 || missing.indexOf(", ") >= 0;
+      return missing + (several ? " need portraits" : " needs a portrait") + " before this story can be planned. Nothing was saved.";
+    }
+    var wrong = namedCharacters(problems, identities, "wrong-artwork:");
+    if (wrong) return "The portrait for " + wrong + " is not available on this account. Nothing was saved.";
+    return "";
+  }
+
   function ideaFor(input) {
     var written = String(input && input.idea || "").trim();
     var place = PLACES[input && input.place] || "";
@@ -223,7 +250,7 @@
         constraintYear: profile && profile.constraintYear || "",
         place: source.place || "",
         illustrationStyle: brain().VISUAL_STYLE,
-        message: "The story plan could not start. Nothing was saved."
+        message: artworkMessage(built.problems, identities) || "The story plan could not start. Nothing was saved."
       };
     }
     var ask = {

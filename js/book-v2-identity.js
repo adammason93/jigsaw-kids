@@ -69,6 +69,32 @@
     return path;
   }
 
+  /* A signed portrait URL expires. Planning keeps the account's own file path. */
+  function portraitPath(reference) {
+    var raw = String(reference || "").trim();
+    if (!raw || raw.indexOf("data:") === 0 || raw.indexOf("blob:") === 0) return "";
+    var path = raw;
+    if (/^https?:/i.test(raw)) {
+      var match = raw.match(/\/storage\/v1\/object\/(?:sign|authenticated|public)\/characters_room\/([^?#]+)/i);
+      if (!match) return "";
+      try { path = decodeURIComponent(match[1]); } catch (ePath) { path = match[1]; }
+    }
+    path = path.split("?")[0].replace(/^\/+/, "");
+    if (path.indexOf("characters_room/") === 0) path = path.slice("characters_room/".length);
+    if (!path || path.indexOf("..") >= 0 || path.indexOf("\\") >= 0) return "";
+    return path;
+  }
+
+  function ownedPortrait(accountId, characterId, reference) {
+    var account = String(accountId || "");
+    var id = String(characterId || "");
+    var path = portraitPath(reference);
+    if (!account || !id || account.indexOf("/") >= 0 || id.indexOf("/") >= 0 || id.indexOf("..") >= 0) return "";
+    if (!path || path.indexOf("maya-v1") >= 0 || path.indexOf("/characters/crew/") >= 0) return "";
+    if (path === account + "/characters/" + id + ".png") return path;
+    return "";
+  }
+
   function blank(kind, id, name) {
     return {
       characterId: id,
@@ -135,12 +161,16 @@
     return { entry: entry, problems: problems };
   }
 
-  function lockRecord(member, kind, row) {
+  function lockRecord(member, kind, row, accountId) {
     var id = String(member.id || "");
     var entry = blank(kind, id, member.name || (row && row.name) || "");
     var problems = [];
     var reference = row && (row.reference || row.portrait) || "";
-    var kept = ownFile(id, reference);
+    var kept = accountId && kind === "saved" ? ownedPortrait(accountId, id, reference) : ownFile(id, reference);
+    if (accountId && kind === "saved" && reference && !kept) {
+      problems.push("wrong-artwork:" + id);
+      return { entry: entry, problems: problems };
+    }
     if (!row || !row.ownerId || (row.ownerType !== "family" && row.ownerType !== "school" && kind !== "shared")) {
       if (kind === "shared" && row && (row.shareId || row.ownerId) && kept) {
         entry.ownerId = String(row.ownerId || row.shareId || "");
@@ -235,9 +265,10 @@
       var sharedRow = savedRow(id, shared);
       var savedRecord = savedRow(id, saved);
       var locked;
+      var accountId = String(source.accountId || "");
       if (kind === "wondii-crew" || (!kind && crew)) locked = lockCrew(member);
-      else if (kind === "shared" || (!kind && sharedRow)) locked = lockRecord(member, "shared", sharedRow || savedRecord);
-      else if (kind === "saved" || (!kind && savedRecord)) locked = lockRecord(member, "saved", savedRecord);
+      else if (kind === "shared" || (!kind && sharedRow)) locked = lockRecord(member, "shared", sharedRow || savedRecord, accountId);
+      else if (kind === "saved" || (!kind && savedRecord)) locked = lockRecord(member, "saved", savedRecord, accountId);
       else if (crew) locked = lockCrew(member);
       else {
         problems.push("unknown-character:" + id);
