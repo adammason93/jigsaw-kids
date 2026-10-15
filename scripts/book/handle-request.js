@@ -5,6 +5,7 @@
 
 var Adapter = require("../../js/book-v2-adapter.js");
 var Budget = require("../../js/book-v2-budget.js");
+var Hosted = require("./hosted-job.js");
 
 function names(body, planned) {
   var fromMembers = (body && body.members || []).map(function (member) {
@@ -96,6 +97,12 @@ function handleBookV2(body) {
         budgetUsd: body && body.budgetUsd,
         calls: { text: 100, image: 100, vision: 100 }
       }),
+      job: Hosted.resume(body && body.job, {
+        creationKey: body && body.creationKey,
+        accountId: body && body.accountId,
+        accountKind: body && body.accountKind,
+        alreadyGenerated: false
+      }).job,
       preview: previewShelf(body, planned)
     }
   };

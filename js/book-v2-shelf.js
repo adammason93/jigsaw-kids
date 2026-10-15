@@ -259,6 +259,20 @@
     var title = String(source.title || "").trim();
     if (!title) return fail("incomplete");
     var request = planRequest(source, preview);
+    var job = source.job && typeof source.job === "object" ? {
+      creationKey: key,
+      accountId: userId,
+      stage: "plan",
+      status: "saved",
+      paid: false,
+      started: false,
+      recoverable: true,
+      attempts: Number(source.job.attempts) || 0,
+      budgetUsd: 1.2,
+      calls: { text: 0, image: 0, vision: 0 },
+      stages: Array.isArray(source.job.stages) ? source.job.stages.slice(0, 8) : [],
+      reason: String(source.job.reason || "paid-generation-not-approved")
+    } : null;
 
     var id = bookId(owner, key);
     var snapshot = shelf.slice();
@@ -315,6 +329,7 @@
       generated: false,
       savedAt: source.savedAt || new Date().toISOString(),
       request: request,
+      job: job,
       pages: []
     };
     next.unshift(planned);

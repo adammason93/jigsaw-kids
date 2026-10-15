@@ -186,6 +186,19 @@ assert.ok(JSON.stringify(firstPlan.book).indexOf("should-not-stick") < 0);
 assert.ok(JSON.stringify(firstPlan.book).indexOf("Book V2 accepted") < 0);
 assert.strictEqual(Shelf.isStoryPlan(firstPlan.book), true);
 assert.strictEqual(Shelf.isStoryPlan(rain), false);
+var withJob = Shelf.placePlan({
+  creationKey: "bookplan000000000004",
+  owner: parent,
+  title: "A paper boat",
+  preview: preview,
+  job: { paid: true, started: true, status: "complete", attempts: 2, stages: [{ id: "plan", label: "Story plan", state: "saved" }] },
+  shelf: [rain]
+});
+assert.strictEqual(withJob.book.job.paid, false);
+assert.strictEqual(withJob.book.job.started, false);
+assert.strictEqual(withJob.book.job.accountId, parent.userId);
+assert.strictEqual(withJob.book.job.calls.text, 0);
+assert.strictEqual(withJob.book.pages.length, 0);
 assert.strictEqual(firstPlan.shelf.length, 2);
 assert.strictEqual(firstPlan.shelf[1].id, rain.id);
 assert.strictEqual(firstPlan.shelf[1].title, rain.title);

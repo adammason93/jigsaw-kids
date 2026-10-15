@@ -1015,10 +1015,18 @@
     setStatus("Nothing has been created yet.");
   }
 
-  function showPlanSaved(onAccount) {
+  function showPlanSaved(onAccount, job) {
     state.planOnAccount = !!onAccount;
+    state.job = job && job.stages ? job : null;
     nextBtn.disabled = false;
     go("saved");
+  }
+
+  function stageWord(stateName) {
+    if (stateName === "saved" || stateName === "done") return stateName === "done" ? "Done" : "Saved";
+    if (stateName === "running") return "Working";
+    if (stateName === "blocked") return "Not ready";
+    return "Waiting";
   }
 
   function paintSaved() {
@@ -1055,17 +1063,21 @@
     }));
     var steps = document.createElement("ol");
     steps.className = "sj-progress";
-    [
-      ["Story plan", "Saved"],
-      ["Story writing", "Waiting"],
-      ["Art direction", "Waiting"],
-      ["Pictures", "Waiting"],
-      ["Finished book", "Not ready"]
-    ].forEach(function (row, index) {
+    var rows = state.job && state.job.stages && state.job.stages.length ? state.job.stages : [
+      { label: "Story plan", state: "saved" },
+      { label: "Story writing", state: "waiting" },
+      { label: "Art direction", state: "waiting" },
+      { label: "Pictures", state: "waiting" },
+      { label: "Picture check", state: "waiting" },
+      { label: "Save the book", state: "waiting" },
+      { label: "Open the book", state: "waiting" }
+    ];
+    rows.forEach(function (row) {
       var item = document.createElement("li");
-      item.className = index === 0 ? "is-done" : "is-waiting";
-      item.appendChild(document.createElement("strong")).textContent = row[0];
-      item.appendChild(document.createElement("span")).textContent = row[1];
+      var name = row.state || "waiting";
+      item.className = name === "saved" || name === "done" ? "is-done" : "is-waiting";
+      item.appendChild(document.createElement("strong")).textContent = row.label;
+      item.appendChild(document.createElement("span")).textContent = stageWord(name);
       steps.appendChild(item);
     });
     card.appendChild(steps);
@@ -1224,12 +1236,12 @@
           return;
         }
         if (userId) {
-          keepPlannedBook(body.preview, key, accountId || userId, state.idea).then(function (book) {
+          keepPlannedBook(body.preview, key, accountId || userId, state.idea, body.job).then(function (book) {
             if (book && book.generated === true && book.recordKind !== "plan") {
               window.location.assign("book-prototype/?book=" + encodeURIComponent(book.id));
               return;
             }
-            showPlanSaved(true);
+            showPlanSaved(true, body.job);
           }).catch(function (err) {
             nextBtn.disabled = false;
             var reason = err && err.message ? String(err.message) : "";
@@ -1253,7 +1265,7 @@
           });
           return;
         }
-        showPlanSaved(false);
+        showPlanSaved(false, body.job);
       }).catch(function () {
         nextBtn.disabled = false;
         setStatus(local
@@ -1403,7 +1415,7 @@
     });
   }
 
-  function keepPlannedBook(preview, key, userId, idea) {
+  function keepPlannedBook(preview, key, userId, idea, job) {
     var Shelf = window.WondiiBookV2Shelf;
     var store = window.StorybookShelfStore;
     if (!Shelf || !Shelf.placePlan || !Shelf.mergeOwned) return Promise.reject(new Error("no_shelf"));
@@ -1451,6 +1463,7 @@
             ageBand: state.ageBand,
             members: state.ids.slice()
           },
+          job: job || null,
           title: plannedTitle(idea),
           shelf: merged,
           savedAt: new Date().toISOString()
