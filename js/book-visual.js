@@ -985,7 +985,8 @@ function spreadPrompt(bible, spread, cast) {
       : spread.lighting) + ".",
     "Do not show a later result that has not happened yet.",
     "Draw each object listed for this picture once. Do not add an object that was left in another place.",
-    pageRoleLine(spread)
+    pageRoleLine(spread),
+    spread.compositionNote ? "Layout for this picture: " + spread.compositionNote : ""
   ].filter(Boolean).join(" ");
 }
 

@@ -361,9 +361,22 @@
     };
   }
 
+  function artApi() {
+    if (root && root.WondiiArtDirection) return root.WondiiArtDirection;
+    try { return require("./book-art-direction.js"); } catch (e) { return null; }
+  }
+
+  function artDirectionFor(pages) {
+    var art = artApi();
+    var hasText = (pages || []).some(function (page) { return page && (page.text || page.prose); });
+    if (!art || !hasText) return null;
+    try { return art.directBook({ pages: pages }); } catch (e) { return null; }
+  }
+
   function illustrationPlan(registry, pages) {
     assignPages(registry, pages);
-    var spreads = (pages || []).map(function (page) {
+    var directed = artDirectionFor(pages);
+    var spreads = (pages || []).map(function (page, index) {
       var present = page && page.charactersPresent || [];
       var refs = pageReferences(registry, present);
       return {
@@ -371,7 +384,8 @@
         charactersPresent: present.slice(),
         references: refs.files,
         limitations: refs.limitations,
-        reliable: refs.reliable
+        reliable: refs.reliable,
+        compositionNote: directed && directed.pages[index] ? directed.pages[index].promptNote : ""
       };
     });
     var selected = (registry || []).filter(function (row) { return row.source !== "story-generated"; });
@@ -394,7 +408,8 @@
       consistencyPromised: false,
       blocksGeneration: selected.some(function (row) { return row.blocksGeneration === true; }) || spreads.some(function (spread) { return spread.limitations.length > 0; }),
       reviewPath: "vision-check-and-one-repair",
-      limitations: limitations
+      limitations: limitations,
+      artDirection: directed
     };
   }
 
@@ -490,6 +505,7 @@
   return {
     BIBLE_PAIR: BIBLE_PAIR,
     SCENE_REFERENCE_LIMIT: SCENE_REFERENCE_LIMIT,
+    ownedPortrait: ownedPortrait,
     buildRegistry: buildRegistry,
     pageReferences: pageReferences,
     illustrationPlan: illustrationPlan,

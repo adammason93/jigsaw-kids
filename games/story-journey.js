@@ -1038,7 +1038,8 @@
     title.textContent = "Your story idea is saved";
     crumbs("Story plan");
     backBtn.textContent = "Make another story";
-    nextBtn.textContent = "Back to my bookshelf";
+    var continuing = state.job && state.job.status === "interrupted" && state.job.recoverable;
+    nextBtn.textContent = continuing ? "Continue this story" : "Back to my bookshelf";
     nextBtn.disabled = false;
     var dock = document.createElement("div");
     dock.className = "sj-dock sj-saved";
@@ -1075,7 +1076,7 @@
     rows.forEach(function (row) {
       var item = document.createElement("li");
       var name = row.state || "waiting";
-      item.className = name === "saved" || name === "done" ? "is-done" : "is-waiting";
+      item.className = name === "saved" || name === "done" ? "is-done" : name === "running" ? "is-running" : name === "blocked" ? "is-blocked" : "is-waiting";
       item.appendChild(document.createElement("strong")).textContent = row.label;
       item.appendChild(document.createElement("span")).textContent = stageWord(name);
       steps.appendChild(item);
@@ -1084,7 +1085,9 @@
     dock.appendChild(card);
     dock.appendChild(Object.assign(document.createElement("p"), {
       className: "sj-whisper",
-      textContent: "No pictures were drawn, and no story allowance was used. This plan can continue when story writing is turned on."
+      textContent: state.job && state.job.status && state.job.status !== "saved" && state.job.message
+        ? state.job.message
+        : "No pictures were drawn, and no story allowance was used. This plan can continue when story writing is turned on."
     }));
     stage.appendChild(stageShell(dock));
     setStatus("");
@@ -1123,8 +1126,10 @@
   nextBtn.addEventListener("click", function () {
     if (nextBtn.disabled) return;
     if (step === "saved") {
-      showWelcome();
-      return;
+      if (!(state.job && state.job.status === "interrupted" && state.job.recoverable)) {
+        showWelcome();
+        return;
+      }
     }
     if (step === "cast") {
       if (!state.ids.length) {
@@ -1210,13 +1215,30 @@
           setStatus(body.message || "The story plan could not start. Nothing was saved.");
           return;
         }
-        if (body.generated || (body.generation && body.generation.authorised)) {
+        var accountId = body.accountId ? String(body.accountId) : "";
+        if ((accountId && accountId !== userId) && !(local && !userId)) {
           nextBtn.disabled = false;
-          setStatus("Book V2 tried to write the story before that was approved. Nothing was saved.");
+          setStatus("This story plan was not tied to your account. Nothing was saved.");
           return;
         }
-        if (body.saved && body.book && body.book.id && body.book.generated === true && body.book.recordKind !== "plan") {
-          window.location.assign("book-prototype/?book=" + encodeURIComponent(body.book.id));
+        if (body.generated || (body.generation && body.generation.authorised)) {
+          if (!(body.saved && body.book && body.book.id && finishedBook(body.book)) && !(body.job && body.job.recoverable && body.job.status !== "saved")) {
+            nextBtn.disabled = false;
+            setStatus("Book V2 tried to write the story before that was approved. Nothing was saved.");
+            return;
+          }
+        }
+        if (body.saved && body.book && body.book.id && finishedBook(body.book)) {
+          keepFinishedBook(body.book, accountId || userId).then(function () {
+            window.location.assign("book-prototype/?book=" + encodeURIComponent(body.book.id));
+          }).catch(function () {
+            nextBtn.disabled = false;
+            setStatus("The illustrated book is ready, but it could not be saved on this device. It was not opened.");
+          });
+          return;
+        }
+        if (body.job && body.job.recoverable && body.job.status !== "saved") {
+          showPlanSaved(!!userId, body.job);
           return;
         }
         if (!body.simulated || !body.preview) {
@@ -1224,7 +1246,6 @@
           setStatus("Book V2 did not return a story plan. Nothing was saved.");
           return;
         }
-        var accountId = body.accountId ? String(body.accountId) : "";
         if (!local && accountId !== userId) {
           nextBtn.disabled = false;
           setStatus("This story plan was not tied to your account. Nothing was saved.");
@@ -1415,6 +1436,86 @@
     });
   }
 
+  function uploadAccountShelf(raw) {
+    var cloud = window.KidsScoreCloud;
+    if (!cloud || !cloud.scheduleStorybookUpload) {
+      if (isLocalHost()) return Promise.resolve();
+      return Promise.reject(new Error("upload"));
+    }
+    return new Promise(function (resolve, reject) {
+      cloud.scheduleStorybookUpload(raw, function (err) {
+        if (!err) {
+          resolve();
+          return;
+        }
+        if (isLocalHost() && localCloudMiss(err)) {
+          resolve();
+          return;
+        }
+        reject(new Error("upload"));
+      });
+    });
+  }
+
+  function finishedBook(book) {
+    if (!book || book.generated !== true || book.recordKind === "plan" || !book.id) return false;
+    var pages = book.pages || [];
+    if (!pages.length) return false;
+    return pages.every(function (page) {
+      if (!page) return false;
+      var text = String(page.text || page.prose || "").trim();
+      var image = String(page.imageDataUrl || page.imageUrlFallback || "");
+      return !!text && image.indexOf("data:image/") === 0;
+    });
+  }
+
+  function keepFinishedBook(book, userId) {
+    var Shelf = window.WondiiBookV2Shelf;
+    var store = window.StorybookShelfStore;
+    if (!Shelf || !Shelf.mergeOwned) return Promise.reject(new Error("no_shelf"));
+    if (!finishedBook(book)) return Promise.reject(new Error("incomplete"));
+    if (!store || !userId || !store.getJson || !store.setJson) return Promise.reject(new Error("no_account"));
+    if (book.ownerUserId && String(book.ownerUserId) !== String(userId)) return Promise.reject(new Error("wrong-shelf"));
+    var bound = store.currentUserId ? String(store.currentUserId() || "") : "";
+    if (bound && bound !== String(userId)) return Promise.reject(new Error("wrong-shelf"));
+    if (!bound && store.bindUser) store.bindUser(userId);
+    var child = window.ChildLibrary && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession();
+    return store.getJson().then(function (local) {
+      return readCloudShelf().then(function (cloud) {
+        var merged = Shelf.mergeOwned(local, cloud);
+        var next = [];
+        var id = String(book.id);
+        var key = String(book.creationKey || "");
+        merged.forEach(function (item) {
+          if (!item) return;
+          var mark = item.ownerUserId || item.ownerId || "";
+          if (mark && String(mark) !== String(userId)) {
+            next.push(item);
+            return;
+          }
+          if (String(item.id || "") === id) return;
+          if (key && String(item.creationKey || "") === key) return;
+          next.push(item);
+        });
+        var copy = Object.assign({}, book, {
+          generated: true,
+          recordKind: "book",
+          openable: true,
+          ownerUserId: String(userId)
+        });
+        next.unshift(copy);
+        return store.setJson(next).then(function () {
+          if (child) return copy;
+          return uploadAccountShelf(JSON.stringify(next)).then(function () {
+            return copy;
+          }).catch(function (err) {
+            return store.setJson(merged).then(function () { throw err; });
+          });
+        });
+      });
+    });
+  }
+
   function keepPlannedBook(preview, key, userId, idea, job) {
     var Shelf = window.WondiiBookV2Shelf;
     var store = window.StorybookShelfStore;
@@ -1428,26 +1529,6 @@
     }
     if (!bound && store.bindUser) store.bindUser(userId);
     var child = window.ChildLibrary && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession();
-    function uploadAccountShelf(raw) {
-      var cloud = window.KidsScoreCloud;
-      if (!cloud || !cloud.scheduleStorybookUpload) {
-        if (isLocalHost()) return Promise.resolve();
-        return Promise.reject(new Error("upload"));
-      }
-      return new Promise(function (resolve, reject) {
-        cloud.scheduleStorybookUpload(raw, function (err) {
-          if (!err) {
-            resolve();
-            return;
-          }
-          if (isLocalHost() && localCloudMiss(err)) {
-            resolve();
-            return;
-          }
-          reject(new Error("upload"));
-        });
-      });
-    }
     return store.getJson().then(function (local) {
       return readCloudShelf().then(function (cloud) {
         var merged = Shelf.mergeOwned(local, cloud);

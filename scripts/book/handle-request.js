@@ -51,7 +51,7 @@ function previewShelf(body, planned) {
   };
 }
 
-function handleBookV2(body) {
+function handleBookV2(body, ports) {
   var planned = Adapter.planRequest(body || {});
   if (!planned.ok) {
     return {
@@ -68,7 +68,7 @@ function handleBookV2(body) {
       }
     };
   }
-  return {
+  var plannedResponse = {
     status: 200,
     body: {
       ok: true,
@@ -106,6 +106,27 @@ function handleBookV2(body) {
       preview: previewShelf(body, planned)
     }
   };
+  if (!ports || ports.approved !== true) return plannedResponse;
+  return Hosted.run(null, body, ports).then(function (run) {
+    var job = run.job || plannedResponse.body.job;
+    var finished = run.book && run.book.generated === true && run.book.recordKind === "book";
+    return {
+      status: 200,
+      body: Object.assign({}, plannedResponse.body, {
+        ok: true,
+        saved: !!finished,
+        generated: !!finished,
+        simulated: !finished,
+        illustrations: finished ? "stored" : "not-run",
+        pictureConsistency: finished ? "checked" : "not-solved",
+        book: finished ? run.book : null,
+        reader: finished ? run.reader : "",
+        job: job,
+        generation: run.generation || plannedResponse.body.generation,
+        message: job && job.message || plannedResponse.body.message
+      })
+    };
+  });
 }
 
 module.exports = { handleBookV2: handleBookV2 };

@@ -570,6 +570,722 @@ var require_character_bible = __commonJS({
   }
 });
 
+// js/book-art-direction.js
+var require_book_art_direction = __commonJS({
+  "js/book-art-direction.js"(exports, module) {
+    (function(root, factory) {
+      var api = factory();
+      if (typeof module === "object" && module.exports) module.exports = api;
+      if (root) root.WondiiArtDirection = api;
+    })(typeof globalThis !== "undefined" ? globalThis : exports, function() {
+      "use strict";
+      var SCHEMA = "wondii-art-direction/2";
+      var LAYOUTS = ["full-bleed", "cinematic", "half", "two-thirds", "beside", "quiet", "text-led", "action", "ending", "spread"];
+      var IMAGE_USD = 0.039657;
+      var VISION_USD = 1472e-6;
+      var GBP_PER_USD = 0.754;
+      var IMPACT = /\b(SPLASH|BOOM|CRASH|WHOOSH|POP|CRACK)!/g;
+      var ACCENT = {
+        "magical-adventure": "#143d4f",
+        funny: "#8a3412",
+        bedtime: "#3d4550",
+        educational: "#1e3a5f",
+        mystery: "#2c2140",
+        story: "#2a241c"
+      };
+      function textOf(page) {
+        return String(page && (page.text || page.prose) || "");
+      }
+      function phaseOf(page) {
+        return String(page && (page.phase || page.narrativePhase) || "").toLowerCase();
+      }
+      function shotOf(page) {
+        return String(page && (page.shot || page.shotType) || "").toLowerCase();
+      }
+      function intentOf(page) {
+        return String(page && page.layoutIntent || "").toUpperCase();
+      }
+      function pagesOf(record) {
+        return (record && record.pages || []).map(function(page, index) {
+          return {
+            number: index + 1,
+            text: textOf(page),
+            phase: phaseOf(page),
+            shot: shotOf(page),
+            intent: intentOf(page),
+            image: String(page && (page.imageUrlFallback || page.image || "") || ""),
+            continuousImage: !!(page && page.continuousImage),
+            characters: page && page.charactersPresent || [],
+            objects: page && page.entitiesRequired || [],
+            emotion: String(page && page.emotion || "")
+          };
+        });
+      }
+      function count(blob, pattern) {
+        return (String(blob).match(pattern) || []).length;
+      }
+      function identityFrom(record) {
+        var pages = pagesOf(record);
+        var blob = pages.map(function(page) {
+          return page.text;
+        }).join("\n");
+        var lower = blob.toLowerCase();
+        var phases = pages.map(function(page) {
+          return page.phase;
+        });
+        var laughs = count(lower, /\b(laugh|laughed|giggle|giggled|silly)\b/g);
+        var whispers = count(lower, /\bwhisper/g);
+        var explains = count(lower, /\b(explained|because|learn|learned)\b/g);
+        var clues = count(lower, /\b(clue|mystery|suspect)\b/g);
+        var adventure = phases.some(function(phase) {
+          return phase === "discovery" || phase === "setback" || phase === "climax" || phase === "escalation";
+        });
+        var tone = String(record && (record.tone || record.request && record.request.tone) || "").toLowerCase();
+        var personality = "story";
+        var because = "The pages do not yet show a stronger genre.";
+        if (tone === "bedtime" || tone === "gentle") {
+          personality = "bedtime";
+          because = "The request asks for a gentle reading.";
+        } else if (tone === "funny" || tone === "humour" || tone === "humor" || laughs >= 3 && !adventure) {
+          personality = "funny";
+          because = laughs >= 3 ? "The story laughs often enough to lead the design." : "The request asks for a funny story.";
+        } else if (tone === "mystery" || clues >= 1 && !adventure) {
+          personality = "mystery";
+          because = "The story is built around a clue.";
+        } else if (tone === "educational" || tone === "learning" || explains >= 2 && !adventure) {
+          personality = "educational";
+          because = "The story stops to explain.";
+        } else if (adventure || tone === "adventure") {
+          personality = "magical-adventure";
+          because = "Discovery, trouble, and a climax ask for a cinematic pace, with a quieter ending where the story resolves.";
+        } else if (whispers || phases.indexOf("resolution") >= 0) {
+          personality = "bedtime";
+          because = "The story spends its time on a quiet ending.";
+        }
+        var pacing = {
+          "magical-adventure": "cinematic",
+          funny: "playful",
+          bedtime: "calm",
+          educational: "clear",
+          mystery: "atmospheric",
+          story: "measured"
+        }[personality];
+        return {
+          personality,
+          tone: tone || personality,
+          ageBand: String(record && (record.ageBand || record.request && record.request.ageBand) || ""),
+          pacing,
+          accent: ACCENT[personality] || ACCENT.story,
+          reason: because
+        };
+      }
+      function quotesIn(text) {
+        var found = [];
+        var re = /"[^"]+"/g;
+        var match;
+        while (match = re.exec(text)) found.push(match[0]);
+        return found;
+      }
+      function sentencesOf(text) {
+        return String(text).match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [];
+      }
+      function wordCount(sentence) {
+        return String(sentence).trim().split(/\s+/).filter(Boolean).length;
+      }
+      function treatmentsFor(page, personality) {
+        var text = page.text;
+        var marks = [];
+        var seen = {};
+        function add(kind, phrase, reason) {
+          var exact = String(phrase || "");
+          if (!exact || text.indexOf(exact) < 0 || seen[exact]) return;
+          if (kind === "impact" && !/^(SPLASH|BOOM|CRASH|WHOOSH|POP|CRACK)!$/i.test(exact)) return;
+          seen[exact] = true;
+          marks.push({ kind, text: exact, reason });
+        }
+        if (personality !== "educational") {
+          (String(text).match(IMPACT) || []).forEach(function(word) {
+            add("impact", word, "This sound is already in the approved sentence.");
+          });
+        }
+        var whispered = /\bwhispered?\b/i.test(text);
+        quotesIn(text).forEach(function(quote) {
+          var inner = quote.slice(1, -1);
+          if (whispered && personality !== "funny") {
+            add("whisper", quote, "The narration says this is whispered.");
+            return;
+          }
+          if (/!$/.test(inner) && personality !== "bedtime") {
+            add("spoken", quote, "A short exclamation can sit apart from the narration.");
+            return;
+          }
+          if ((page.phase === "discovery" || page.phase === "commitment") && personality !== "funny") {
+            add("magic", quote, "This spoken line is a discovery, so the type stays elegant rather than loud.");
+            return;
+          }
+          if (personality === "bedtime" || page.phase === "resolution") {
+            add("whisper", quote, "The ending keeps speech soft.");
+            return;
+          }
+          add("dialogue", quote, "Spoken words stay distinct from the narration.");
+        });
+        if (personality === "bedtime") return marks;
+        sentencesOf(text).forEach(function(sentence, index, all) {
+          var trimmed = sentence.trim();
+          if (seen[trimmed] || trimmed.charAt(0) === '"') return;
+          if (wordCount(trimmed) <= 2 && !/\b(laugh|laughed|said)\b/i.test(trimmed) && page.phase !== "resolution") {
+            if (personality === "bedtime" || personality === "educational") {
+              add("pause", trimmed, "A short sentence holds the beat before the story continues.");
+            } else {
+              add("motion", trimmed, "A sudden short sentence changes scale, without a box around it.");
+            }
+          } else if (index === all.length - 1 && /^Then\b/.test(trimmed) && (page.phase === "escalation" || page.phase === "setback")) {
+            add("pause", trimmed, "The turn of the scene gets room before it.");
+          }
+        });
+        if (page.phase === "resolution") {
+          var last = sentencesOf(text).pop();
+          if (last) add("quiet", last.trim(), "The last sentence stays quiet.");
+        }
+        return marks;
+      }
+      function layoutRole(page, index, total, personality) {
+        var scenic = personality === "magical-adventure" || personality === "mystery";
+        if (index === total - 1 || page.phase === "resolution") return "ending";
+        if (page.intent === "QUIET_PAGE") return "quiet";
+        if (page.shot === "close") return scenic ? "cinematic" : "beside";
+        if (index === 0 || page.shot === "establishing") return "full-bleed";
+        if (page.phase === "climax") return "action";
+        if (page.phase === "setback") return "cinematic";
+        if (page.shot === "reveal") return "half";
+        if (page.shot === "overhead") return scenic ? "full-bleed" : "two-thirds";
+        if (page.shot === "reaction") return "full-bleed";
+        if (page.phase === "commitment" && page.shot === "low") return "text-led";
+        if (page.phase === "escalation" && page.shot === "low") return "half";
+        if (page.shot === "action" && page.phase === "attempt") return "action";
+        if (page.shot === "action") return "half";
+        if (page.shot === "vignette") return "ending";
+        return "half";
+      }
+      function alternate(layout) {
+        var next = {
+          "full-bleed": "cinematic",
+          cinematic: "half",
+          half: "cinematic",
+          "two-thirds": "cinematic",
+          beside: "quiet",
+          quiet: "text-led",
+          "text-led": "half",
+          action: "cinematic",
+          ending: "quiet",
+          spread: "cinematic"
+        };
+        return next[layout] || "half";
+      }
+      function promptNote(layout, half) {
+        if (layout === "spread") {
+          return "Paint one continuous scene across both open pages, at 2:1. Keep faces, hands, and important objects out of the centre fold. Leave a quiet area on each page for type. Do not split this into two unrelated pictures.";
+        }
+        var notes = {
+          "full-bleed": "Compose a 2:3 portrait that can run to the outer edge. Keep faces away from the inner edge. Leave the lower part as open sky, water, or ground for type.",
+          cinematic: "Compose a wide scene for the upper half of a portrait page. Keep the action out of the gutter and leave room below for a paragraph. A 3:2 painting fits this; a 2:3 painting can come closer to the page.",
+          half: "Use about half the page for the scene, at 3:2. Leave the rest quiet for the words. Do not letter the picture.",
+          "two-thirds": "Compose a 2:3 scene for about two thirds of a portrait page, with a short clear area for type.",
+          beside: "Place the subject toward the outer side so words can sit beside the picture. Keep faces out of that text column. A 3:2 painting is enough.",
+          quiet: "A smaller, calmer 3:2 scene with empty space around it.",
+          "text-led": "A supporting 3:2 scene, smaller than the facing picture. Leave most of the page for the words, including one line that can be set larger. Do not letter the picture.",
+          action: "Paint a 3:2 scene that supports one short sentence. Leave clear paper so that sentence can be set much larger than the narration. Do not fill the page.",
+          ending: "A quiet 2:3 closing scene under the words, with room to set the last sentence on its own."
+        };
+        return (notes[layout] || notes.half) + (half ? " This page is the " + half + " half of one continuous painting." : "");
+      }
+      function pagePlan(page, layout, personality) {
+        var spread = layout === "spread";
+        var align = layout === "quiet" || layout === "ending" || layout === "text-led" || layout === "action" || page.placeBelow ? "center" : "left";
+        return {
+          number: page.number,
+          layout,
+          placement: layout === "ending" || page.placeBelow ? "below" : layout === "beside" ? "outer" : "top",
+          aspect: layout === "spread" ? "2:1" : layout === "full-bleed" || layout === "two-thirds" || layout === "ending" ? "2:3" : "3:2",
+          fullBleed: layout === "full-bleed" || spread,
+          doublePage: spread,
+          continuous: spread,
+          half: page.half || "",
+          textPlacement: layout === "beside" ? "beside" : layout === "ending" || page.placeBelow ? "above" : "below",
+          textAlign: align,
+          treatments: treatmentsFor(page, personality),
+          safeText: { region: layout === "beside" ? "beside-illustration" : layout === "ending" || page.placeBelow ? "above-illustration" : "below-illustration", gutter: "clear" },
+          focal: { anchorX: 0.5, anchorY: 0.4, characters: page.characters.slice() },
+          objects: page.objects.slice(),
+          gutter: { inset: 0.08, faces: "away-from-fold" },
+          crop: { maxSide: layout === "full-bleed" || layout === "two-thirds" ? 0.16 : layout === "cinematic" ? 0.12 : 0.08 },
+          background: "paper",
+          edge: layout === "beside" || layout === "quiet" ? "feather" : layout === "full-bleed" || spread ? "bleed" : "inset",
+          readingOrder: layout === "ending" || page.placeBelow ? ["story", "illustration", "folio"] : ["illustration", "story", "folio"],
+          accessibility: { minSizeRatio: 0.03, contrast: "ink-on-paper", motion: "none" },
+          accent: ACCENT[personality] || ACCENT.story,
+          promptNote: promptNote(layout, page.half),
+          reason: page.reason || ""
+        };
+      }
+      function samePicture(left, right) {
+        return !!(left && right && left.image && left.image === right.image);
+      }
+      function pictureQuote() {
+        var usd = Math.round((IMAGE_USD + VISION_USD) * 1e6) / 1e6;
+        return {
+          estimateUsd: usd,
+          estimateGbp: Math.round(usd * GBP_PER_USD * 1e4) / 1e4
+        };
+      }
+      function artworkRequests(pages, roles) {
+        var requests = [];
+        function add(item) {
+          requests.push(Object.assign({
+            status: "needs-new",
+            replaces: false,
+            supplements: true,
+            references: ["games/images/characters/maya-v1.jpg", "games/images/characters/crew/wondii-leo.jpg"],
+            characters: ["maya-v1", "leo"]
+          }, pictureQuote(), item));
+        }
+        for (var i = 0; i < pages.length; i += 2) {
+          var left = pages[i];
+          var right = pages[i + 1];
+          if (!left || !right || samePicture(left, right)) continue;
+          if (left.shot === "reaction" && right.phase === "escalation") {
+            add({
+              id: "spread-" + left.number + "-" + right.number,
+              pages: [left.number, right.number],
+              role: "spread",
+              aspect: "2:1",
+              required: true,
+              reason: "These two saved pictures are different scenes. A cinematic spread has to be painted as one 2:1 image, with faces and words kept out of the centre fold. The existing pictures stay until that painting is approved."
+            });
+          }
+          if (left.shot === "establishing" && right.shot === "reveal") {
+            add({
+              id: "opening-" + left.number + "-" + right.number,
+              pages: [left.number, right.number],
+              role: "integrated-spread",
+              aspect: "2:1",
+              required: false,
+              reason: "The opening pictures are separate places. Water, mist, or leaves that continue from the first page onto the second have to be painted for the open spread. They cannot be drawn over these photographs."
+            });
+          }
+        }
+        pages.forEach(function(page, index) {
+          if (page.shot === "overhead" && roles[index] === "full-bleed") {
+            add({
+              id: "portrait-" + page.number,
+              pages: [page.number],
+              role: "portrait-bleed",
+              aspect: "2:3",
+              required: false,
+              reason: "The saved boat picture is a wide photograph. It cannot fill a portrait page or run past its rectangle without cropping past the safe limit. A 2:3 painting can carry the boat toward the outer edge and leave paper for the words."
+            });
+          }
+          if (page.shot === "close") {
+            add({
+              id: "close-" + page.number,
+              pages: [page.number],
+              role: "portrait-close",
+              aspect: "2:3",
+              required: false,
+              reason: "The saved close-up is a wide photograph, so it can only occupy the upper part of the page. A 2:3 painting with open water or foliage around the children would let the words sit in the scene."
+            });
+          }
+        });
+        return requests;
+      }
+      function directBook(record) {
+        var source = record || {};
+        var pages = pagesOf(source);
+        var identity = identityFrom(source);
+        var roles = pages.map(function(page, index) {
+          return layoutRole(page, index, pages.length, identity.personality);
+        });
+        pages.forEach(function(page, index) {
+          var partner = pages[index + 1];
+          if (index % 2 || !samePicture(page, partner)) return;
+          if (page.intent !== "DOUBLE_PAGE_SPREAD" && !page.continuousImage) return;
+          roles[index] = "spread";
+          roles[index + 1] = "spread";
+          page.half = "left";
+          partner.half = "right";
+        });
+        roles.forEach(function(role, index) {
+          if (!index || role === "ending" || role === "spread" || role === "quiet" || role === "beside") return;
+          if (role === roles[index - 1]) roles[index] = alternate(role);
+        });
+        pages.forEach(function(page, index) {
+          var previous = roles[index - 1];
+          page.placeBelow = roles[index] === "half" && index % 2 === 1 && page.phase === "escalation" && (previous === "full-bleed" || previous === "cinematic");
+        });
+        var limitations = [];
+        var plans = [];
+        pages.forEach(function(page, index) {
+          var layout = roles[index];
+          var partner = index % 2 === 0 ? pages[index + 1] : pages[index - 1];
+          if (page.intent === "DOUBLE_PAGE_SPREAD" && !samePicture(page, partner)) {
+            limitations.push("Page " + page.number + " asks for a double-page spread, but its picture is a separate scene, so it stays on its own page.");
+            if (partner && partner.phase === "resolution") {
+              limitations.push("Page " + page.number + " stays separate from the ending, so the last spread can slow down.");
+            }
+            if (layout === "spread") layout = "cinematic";
+          }
+          page.reason = layout + " from " + (page.shot || "the scene") + " / " + (page.phase || "the beat");
+          plans.push(pagePlan(page, layout, identity.personality));
+        });
+        if (!pages.some(function(page) {
+          return page.image && pages.some(function(other) {
+            return other !== page && other.image === page.image;
+          });
+        })) {
+          limitations.push("These pictures were painted as separate pages. A continuous double-page scene needs one wide painting made for the open book.");
+        }
+        limitations.push("These pictures include their own backgrounds. A character standing on the paper needs transparent artwork made for that page.");
+        var spreads = [];
+        for (var i = 0; i < plans.length; i += 2) {
+          var left = plans[i];
+          var right = plans[i + 1];
+          var relationship = "paired";
+          if (left && right && left.layout !== right.layout) relationship = "asymmetric";
+          if (left && left.layout === "ending" || right && right.layout === "ending" || left && left.layout === "quiet") relationship = "quiet";
+          if (left && right && left.continuous && right.continuous) relationship = "continuous";
+          spreads.push({
+            pages: [left ? left.number : 0, right ? right.number : 0],
+            relationship,
+            continuous: !!(left && right && left.continuous && right.continuous),
+            reason: relationship === "continuous" ? "One painting crosses the fold." : "Each page keeps its own picture."
+          });
+        }
+        var requests = artworkRequests(pages, roles);
+        var requiredUsd = 0;
+        var requiredGbp = 0;
+        var allUsd = 0;
+        var allGbp = 0;
+        requests.forEach(function(item) {
+          allUsd += item.estimateUsd;
+          allGbp += item.estimateGbp;
+          if (item.required) {
+            requiredUsd += item.estimateUsd;
+            requiredGbp += item.estimateGbp;
+          }
+        });
+        return {
+          schema: SCHEMA,
+          bookId: String(source.id || ""),
+          identity,
+          spreads,
+          pages: plans,
+          artworkRequests: requests,
+          artworkCost: {
+            currencyNote: "One new picture plus one vision check, using the measured Rain That Rose average. A repair adds the same amount again. Nothing here is generated until it is approved.",
+            requiredUsd: Math.round(requiredUsd * 1e6) / 1e6,
+            requiredGbp: Math.round(requiredGbp * 1e4) / 1e4,
+            withSupplementsUsd: Math.round(allUsd * 1e6) / 1e6,
+            withSupplementsGbp: Math.round(allGbp * 1e4) / 1e4
+          },
+          limitations: limitations.filter(function(item, index, list) {
+            return list.indexOf(item) === index;
+          })
+        };
+      }
+      function attachPlan(showcase, plan) {
+        var copy = JSON.parse(JSON.stringify(showcase || {}));
+        var request = plan && plan.request || {};
+        if (request.ageBand) copy.ageBand = request.ageBand;
+        if (request.tone) copy.tone = request.tone;
+        (copy.pages || []).forEach(function(page, index) {
+          var src = plan && plan.pages && plan.pages[index];
+          if (!src || String(src.prose || "") !== String(page.text || "")) return;
+          page.charactersPresent = src.charactersPresent || [];
+          page.entitiesRequired = src.entitiesRequired || [];
+          page.emotion = src.emotion || "";
+        });
+        return copy;
+      }
+      function margins(pageW, pageH, side) {
+        var folio = Math.round(pageH * 0.058);
+        var outer = Math.round(pageW * 0.055);
+        var gutter = Math.round(pageW * 0.08);
+        var top = Math.round(pageH * 0.045);
+        var gap = Math.round(pageH * 0.028);
+        return {
+          folio,
+          outer,
+          gutter,
+          top,
+          gap,
+          left: side === "right" ? gutter : outer,
+          right: side === "left" ? gutter : outer
+        };
+      }
+      function contain(imageW, imageH, x, y, w, h) {
+        var scale = Math.min(w / imageW, h / imageH);
+        var dw = imageW * scale;
+        var dh = imageH * scale;
+        return {
+          x: Math.round(x + (w - dw) / 2),
+          y: Math.round(y + (h - dh) / 2),
+          w: Math.round(dw),
+          h: Math.round(dh),
+          sx: 0,
+          sy: 0,
+          sw: imageW,
+          sh: imageH,
+          crop: 0
+        };
+      }
+      function cover(imageW, imageH, x, y, w, h, maxCrop, ax, ay) {
+        var aspect = imageW / imageH;
+        var dest = w / h;
+        var crop = dest < aspect ? 1 - dest / aspect : 1 - aspect / dest;
+        if (crop > maxCrop) {
+          if (dest < aspect) h = w / (aspect * (1 - maxCrop));
+          else w = h * (aspect * (1 - maxCrop));
+          crop = maxCrop;
+        }
+        w = Math.max(1, Math.round(w));
+        h = Math.max(1, Math.round(h));
+        var scale = Math.max(w / imageW, h / imageH);
+        var sw = w / scale;
+        var sh = h / scale;
+        var sx = (imageW - sw) * (ax == null ? 0.5 : ax);
+        var sy = (imageH - sh) * (ay == null ? 0.4 : ay);
+        if (sx < 0) sx = 0;
+        if (sy < 0) sy = 0;
+        if (sx > imageW - sw) sx = Math.max(0, imageW - sw);
+        if (sy > imageH - sh) sy = Math.max(0, imageH - sh);
+        return { x: Math.round(x), y: Math.round(y), w, h, sx, sy, sw, sh, crop };
+      }
+      function compose(direction, pageW, pageH, imageW, imageH, side, copyH) {
+        var spec = direction || {};
+        var layout = LAYOUTS.indexOf(spec.layout) >= 0 ? spec.layout : "half";
+        var box = margins(pageW, pageH, side);
+        var contentW = pageW - box.left - box.right;
+        var aspect = imageW / imageH;
+        var maxCrop = spec.crop && spec.crop.maxSide != null ? spec.crop.maxSide : 0.16;
+        if (maxCrop > 0.16) maxCrop = 0.16;
+        var image;
+        var text;
+        var align = spec.textAlign || "left";
+        var feather = spec.edge === "feather";
+        var cropLimited = false;
+        if (layout === "spread" && spec.continuous) {
+          var halfW = imageW / 2;
+          var maxH = Math.round(pageH * 0.62);
+          var spreadW = pageW;
+          var spreadH = Math.round(spreadW / (halfW / imageH));
+          var sy = 0;
+          var sh = imageH;
+          if (spreadH > maxH) {
+            spreadH = maxH;
+            sh = spreadH * (halfW / spreadW);
+            if (sh < imageH * (1 - maxCrop)) sh = imageH * (1 - maxCrop);
+            spreadH = Math.round(sh * (spreadW / halfW));
+            sy = (imageH - sh) * 0.4;
+          }
+          image = {
+            x: 0,
+            y: 0,
+            w: spreadW,
+            h: spreadH,
+            sx: spec.half === "right" ? halfW : 0,
+            sy,
+            sw: halfW,
+            sh,
+            crop: 1 - sh / imageH
+          };
+          var textLeft = side === "right" ? box.gutter : box.outer;
+          var textRight = side === "left" ? box.gutter : box.outer;
+          text = {
+            x: textLeft,
+            y: image.y + image.h + box.gap,
+            w: pageW - textLeft - textRight,
+            h: pageH - box.folio - (image.y + image.h + box.gap)
+          };
+        } else if (layout === "beside") {
+          var textW = Math.round(contentW * 0.64);
+          var slot = contentW - textW - box.gap;
+          var band = Math.round(slot / aspect);
+          var bodyH = pageH - box.folio - box.top;
+          if (band > bodyH * 0.46) band = Math.round(bodyH * 0.46);
+          var imgY = box.top;
+          if (side === "left") {
+            image = contain(imageW, imageH, box.left, imgY, slot, band);
+            text = { x: box.left + slot + box.gap, y: box.top, w: textW, h: bodyH };
+          } else {
+            text = { x: box.left, y: box.top, w: textW, h: bodyH };
+            image = contain(imageW, imageH, box.left + textW + box.gap, imgY, slot, band);
+          }
+          if (copyH > 0 && copyH < bodyH * 0.78) {
+            var cluster = Math.max(image.h, copyH);
+            var shift = Math.max(0, Math.round((bodyH - cluster) / 2));
+            image.y += shift;
+            text.y += shift;
+            text.h = Math.max(copyH, image.h);
+          }
+        } else if (layout === "ending") {
+          var used = copyH > 0 ? copyH : Math.round(pageH * 0.34);
+          text = { x: box.left, y: box.top, w: contentW, h: used };
+          var endW = Math.round(contentW * 0.86);
+          var endH = Math.round(endW / aspect);
+          var room = pageH - box.folio - (text.y + text.h + box.gap);
+          if (endH > room) {
+            endH = Math.max(1, room);
+            endW = Math.round(endH * aspect);
+          }
+          image = contain(imageW, imageH, box.left + (contentW - endW) / 2, text.y + text.h + box.gap, endW, endH);
+          align = "center";
+        } else if (spec.placement === "below") {
+          var usedBelow = copyH > 0 ? copyH : Math.round(pageH * 0.36);
+          var floorImg = Math.round(pageH * 0.22);
+          var maxText = pageH - box.folio - box.top - box.gap - floorImg;
+          if (usedBelow > maxText) usedBelow = Math.max(1, maxText);
+          text = { x: box.left, y: box.top, w: contentW, h: usedBelow };
+          var belowW = Math.round(contentW * 0.9);
+          var belowH = Math.round(belowW / aspect);
+          var room = pageH - box.folio - (text.y + text.h + box.gap);
+          if (belowH > room) {
+            belowH = Math.max(1, room);
+            belowW = Math.round(belowH * aspect);
+            if (belowW > contentW) {
+              belowW = contentW;
+              belowH = Math.round(belowW / aspect);
+            }
+          }
+          image = contain(imageW, imageH, box.left + Math.round((contentW - belowW) / 2), text.y + text.h + box.gap, belowW, belowH);
+          align = "center";
+        } else {
+          var fraction = layout === "full-bleed" || layout === "two-thirds" ? 0.62 : layout === "cinematic" ? 0.52 : layout === "quiet" ? 0.34 : layout === "text-led" ? 0.3 : layout === "action" ? 0.38 : 0.42;
+          var bleed = layout === "full-bleed";
+          var imgX = bleed ? side === "right" ? box.gutter : 0 : box.left;
+          var imgW = bleed ? pageW - box.gutter : layout === "quiet" ? Math.round(contentW * 0.72) : layout === "text-led" ? Math.round(contentW * 0.64) : layout === "action" ? Math.round(contentW * 0.8) : contentW;
+          if (!bleed && (layout === "quiet" || layout === "text-led" || layout === "action")) imgX = box.left + Math.round((contentW - imgW) / 2);
+          var want = Math.round(pageH * fraction);
+          var natural = Math.round(imgW / aspect);
+          if (layout === "full-bleed" || layout === "cinematic" || layout === "two-thirds") {
+            image = cover(imageW, imageH, imgX, bleed ? 0 : box.top, imgW, Math.max(natural, want), maxCrop, 0.5, 0.4);
+            if (image.crop >= maxCrop - 1e-3 && image.h + 1 < want) cropLimited = true;
+          } else {
+            image = contain(imageW, imageH, imgX, box.top + (layout === "quiet" ? Math.round(pageH * 0.04) : 0), imgW, natural);
+          }
+          if (copyH > 0 && image.y + image.h + box.gap + copyH > pageH - box.folio && image.h > pageH * 0.28) {
+            var fitH = pageH - box.folio - image.y - box.gap - copyH;
+            if (fitH < pageH * 0.28) fitH = Math.round(pageH * 0.28);
+            var fitW = Math.round(fitH * (image.w / image.h));
+            var fitX = bleed ? side === "right" ? pageW - box.gutter - fitW : 0 : imgX + (imgW - fitW) / 2;
+            image = contain(imageW, imageH, fitX, image.y, fitW, fitH);
+            cropLimited = true;
+          }
+          var copyX = Math.max(box.outer, box.left);
+          var copyRight = Math.max(box.outer, box.right);
+          text = {
+            x: copyX,
+            y: image.y + image.h + box.gap,
+            w: pageW - copyX - copyRight,
+            h: pageH - box.folio - (image.y + image.h + box.gap)
+          };
+          if (copyH > 0 && !bleed) {
+            var block = image.h + box.gap + copyH;
+            var room = pageH - box.folio - box.top;
+            if (block < room * 0.82) {
+              var shift = Math.round((room - block) / 2);
+              image.y += shift;
+              text.y += shift;
+              text.h = copyH;
+            }
+          }
+          if (layout === "quiet" || layout === "text-led" || layout === "action") align = "center";
+        }
+        if (text.h < 1) text.h = 1;
+        if (text.y < image.y + image.h && layout !== "beside" && layout !== "ending" && spec.placement !== "below") {
+          text.y = image.y + image.h + box.gap;
+          text.h = Math.max(1, pageH - box.folio - text.y);
+        }
+        return {
+          layout,
+          image,
+          text,
+          align,
+          feather,
+          radius: feather ? Math.round(Math.min(image.w, image.h) * 0.06) : 0,
+          folio: box.folio,
+          gutter: box.gutter,
+          cropLimited,
+          fraction: image.h / pageH
+        };
+      }
+      function overlaps(a, b) {
+        return a.x < b.x + b.w - 1 && a.x + a.w > b.x + 1 && a.y < b.y + b.h - 1 && a.y + a.h > b.y + 1;
+      }
+      function estimateHeight(copy, width, size) {
+        var chars = String(copy || "").trim().length || 1;
+        var perLine = Math.max(8, Math.floor(width / (size * 0.5)));
+        return Math.ceil(chars / perLine) * size * 1.55;
+      }
+      function checkBook(record, direction) {
+        var issues = [];
+        var art = direction || {};
+        if (art.schema !== "wondii-art-direction/1" && art.schema !== "wondii-art-direction/2") issues.push("schema");
+        var pages = pagesOf(record);
+        (art.pages || []).forEach(function(planned, index) {
+          var source = pages[index];
+          if (!source) {
+            issues.push("extra-page");
+            return;
+          }
+          if (LAYOUTS.indexOf(planned.layout) < 0) issues.push("layout:" + planned.number);
+          (planned.treatments || []).forEach(function(mark) {
+            if (!mark.text || source.text.indexOf(mark.text) < 0) issues.push("span:" + planned.number);
+            if (mark.kind === "impact" && !/^(SPLASH|BOOM|CRASH|WHOOSH|POP|CRACK)!$/i.test(mark.text)) issues.push("invented-sound:" + planned.number);
+          });
+          if (planned.continuous && source.image) {
+            var partner = index % 2 === 0 ? pages[index + 1] : pages[index - 1];
+            if (!partner || partner.image !== source.image) issues.push("split-unrelated:" + planned.number);
+          }
+          var side = index % 2 ? "right" : "left";
+          var needed = estimateHeight(source.text, 1e3, 36);
+          var placed = compose(planned, 1200, 1800, 1536, 1024, side, needed);
+          if (overlaps(placed.image, placed.text)) issues.push("overlap:" + planned.number);
+          if (placed.image.x < -1 || placed.image.y < -1 || placed.image.x + placed.image.w > 1201 || placed.image.y + placed.image.h > 1801) issues.push("crop-outside:" + planned.number);
+          if (placed.image.crop > 0.1601) issues.push("crop:" + planned.number);
+          var drawn = placed.image.w / placed.image.h;
+          var sourceAspect = placed.image.sw / placed.image.sh;
+          if (Math.abs(drawn - sourceAspect) > 0.04) issues.push("distort:" + planned.number);
+          var gutter = placed.gutter;
+          if (side === "left" && placed.text.x + placed.text.w > 1200 - gutter + 2) issues.push("gutter-text:" + planned.number);
+          if (side === "right" && placed.text.x < gutter - 2) issues.push("gutter-text:" + planned.number);
+          if (placed.text.h < 80) issues.push("text-room:" + planned.number);
+          if (planned.accessibility && planned.accessibility.minSizeRatio < 0.03) issues.push("type-size:" + planned.number);
+          var anchor = planned.continuous ? index % 2 ? 1536 * 0.75 : 1536 * 0.25 : 1536 / 2;
+          if (placed.image.sx > anchor || placed.image.sx + placed.image.sw < anchor) issues.push("focal:" + planned.number);
+          if (!planned.readingOrder || planned.readingOrder[planned.readingOrder.length - 1] !== "folio") issues.push("order:" + planned.number);
+        });
+        (art.pages || []).forEach(function(planned, index) {
+          if (!index) return;
+          if (planned.layout === art.pages[index - 1].layout && planned.layout !== "spread" && planned.layout !== "ending") {
+            issues.push("repeat:" + planned.number);
+          }
+        });
+        return { ok: issues.length === 0, issues };
+      }
+      return {
+        SCHEMA,
+        LAYOUTS,
+        identityFrom,
+        directBook,
+        attachPlan,
+        compose,
+        checkBook,
+        promptNote
+      };
+    });
+  }
+});
+
 // js/book-v2-identity.js
 var require_book_v2_identity = __commonJS({
   "js/book-v2-identity.js"(exports, module) {
@@ -927,9 +1643,30 @@ var require_book_v2_identity = __commonJS({
           }) && limitations.length === 0
         };
       }
+      function artApi() {
+        if (root && root.WondiiArtDirection) return root.WondiiArtDirection;
+        try {
+          return require_book_art_direction();
+        } catch (e) {
+          return null;
+        }
+      }
+      function artDirectionFor(pages) {
+        var art = artApi();
+        var hasText = (pages || []).some(function(page) {
+          return page && (page.text || page.prose);
+        });
+        if (!art || !hasText) return null;
+        try {
+          return art.directBook({ pages });
+        } catch (e) {
+          return null;
+        }
+      }
       function illustrationPlan(registry, pages) {
         assignPages(registry, pages);
-        var spreads = (pages || []).map(function(page) {
+        var directed = artDirectionFor(pages);
+        var spreads = (pages || []).map(function(page, index) {
           var present = page && page.charactersPresent || [];
           var refs = pageReferences(registry, present);
           return {
@@ -937,7 +1674,8 @@ var require_book_v2_identity = __commonJS({
             charactersPresent: present.slice(),
             references: refs.files,
             limitations: refs.limitations,
-            reliable: refs.reliable
+            reliable: refs.reliable,
+            compositionNote: directed && directed.pages[index] ? directed.pages[index].promptNote : ""
           };
         });
         var selected = (registry || []).filter(function(row) {
@@ -970,7 +1708,8 @@ var require_book_v2_identity = __commonJS({
             return spread.limitations.length > 0;
           }),
           reviewPath: "vision-check-and-one-repair",
-          limitations
+          limitations,
+          artDirection: directed
         };
       }
       function cacheKey(entry) {
@@ -1070,6 +1809,7 @@ var require_book_v2_identity = __commonJS({
       return {
         BIBLE_PAIR,
         SCENE_REFERENCE_LIMIT,
+        ownedPortrait,
         buildRegistry,
         pageReferences,
         illustrationPlan,
@@ -7090,6 +7830,1341 @@ var require_book_v2_budget = __commonJS({
   }
 });
 
+// scripts/book/writer.js
+var require_writer = __commonJS({
+  "scripts/book/writer.js"(exports, module) {
+    "use strict";
+    var Book = require_book_brain();
+    var Cast = require_character_bible();
+    var SHAPE = {
+      quick: "Aim for 6 to 8 spreads. Keep it complete: a hook, a discovery, an attempt, a change, a climax, and a resolution. Concise, not unfinished.",
+      storybook: "Aim for 10 to 12 spreads, and stay between 9 and 13. This is a full picture book. Use the room for a reaction, a relationship, a setback, and a quiet beat where the story needs them. Do not spend two spreads on one event.",
+      adventure: "Aim for 14 to 18 spreads. Add real exploration, another attempt, and a setback that changes the story. Do not stretch a shorter book with filler."
+    };
+    var STORY_CRAFT = "Give the story a sense of wonder and discovery. The problem should matter, with stakes these children can feel. Let their personalities show as different choices, risks, and ways of speaking. A feeling belongs in an action or a line of dialogue. A later turn may surprise the reader when it follows from something already planted. The ending should leave a change or an image worth remembering. Do not reuse one plot shape for every idea, and do not insert a fixed number of feeling beats.";
+    var PROSE_CRAFT = "Let wonder, worry, or relief come through what a character does or says. Keep the children distinct in their choices and dialogue. Do not flatten the page into a list of steps. When a surprise was planted earlier, let the sentence land it. The last page should feel finished and worth remembering. Do not add a feeling the event did not earn.";
+    function unique(list) {
+      var seen = {};
+      return (list || []).filter(function(item) {
+        if (seen[item]) return false;
+        seen[item] = 1;
+        return true;
+      });
+    }
+    function unwrap(draft) {
+      if (!draft || draft.__error) return {};
+      if (Array.isArray(draft.beats)) return draft;
+      if (draft.book && Array.isArray(draft.book.beats)) return draft.book;
+      if (draft.story && Array.isArray(draft.story.beats)) return draft.story;
+      return draft;
+    }
+    function pagesOf(payload) {
+      if (!payload || payload.__error) return [];
+      var pages = Array.isArray(payload) ? payload : payload.pages || payload.book && payload.book.pages || [];
+      return pages.map(function(page) {
+        var sentences = page.sentences || [];
+        if (!sentences.length && page.prose) sentences = String(page.prose).split(/(?<=[.!?])\s+/);
+        return { pageId: page.pageId, sentences };
+      });
+    }
+    function mergeSpoken(base, patch) {
+      var map = {};
+      pagesOf(base).forEach(function(page) {
+        map[page.pageId] = page;
+      });
+      pagesOf(patch).forEach(function(page) {
+        if (page.pageId && page.sentences && page.sentences.length) map[page.pageId] = page;
+      });
+      return Object.keys(map).map(function(id) {
+        return map[id];
+      });
+    }
+    function registryRow(ask, id) {
+      return (ask && ask.identityRegistry || []).filter(function(row) {
+        return row && (row.characterId === id || row.journeyId === id || row.bibleId === id);
+      })[0] || null;
+    }
+    function castBrief(ask) {
+      return (ask.castIds || []).map(function(id) {
+        var row = registryRow(ask, id);
+        var character = Cast.getCharacter(row && row.bibleId || id) || Cast.getCharacter(id);
+        if (character) {
+          var visual = row && row.referenceApproved !== true ? "Visual reference is this character's own portrait. Do not invent a different face, hair, or outfit." : "They stay this person: " + character.ageAppearance + "; " + character.hair + "; " + character.defaultClothing + ".";
+          return [
+            (row && row.journeyId ? row.journeyId : character.characterId) + " (" + character.name + ")",
+            "Show these through what they do, and never name the words: " + character.personality.join(", ") + ".",
+            visual
+          ].join(" ");
+        }
+        if (row) {
+          return [
+            row.characterId + " (" + row.name + ")",
+            "Locked selected character. Match the saved portrait. Do not invent a new face, hair, or outfit.",
+            "Appearance: " + (row.appearance || ""),
+            "Clothing: " + (row.clothing || ""),
+            row.personality && row.personality.length ? "Show these through what they do, and never name the words: " + row.personality.join(", ") + "." : ""
+          ].filter(Boolean).join(" ");
+        }
+        return id + ": unknown";
+      }).join("\n");
+    }
+    function spokenName(id, bible) {
+      var row = registryRow(bible, id);
+      if (row && row.name) return row.name;
+      var story = (bible && bible.storyCast || []).filter(function(item) {
+        return item.characterId === id;
+      })[0];
+      if (story && story.name) return story.name;
+      var character = Cast.getCharacter(id);
+      return character ? character.name : id;
+    }
+    function lengthLine(ask, profile) {
+      var ending = "The first role is hook. The last role is resolution. One beat is climax, and it comes before the resolution.";
+      if (ask.pageCount > 0) {
+        return "This book is exactly " + ask.pageCount + " pages. One beat is one page. Return exactly " + ask.pageCount + " beats. Do not return fewer, do not return more, and do not add an empty page to reach the count. " + ending;
+      }
+      return "Use between " + (profile ? profile.minSpreads : "?") + " and " + (profile ? profile.maxSpreads : "?") + " beats. " + ending;
+    }
+    function shapeLine(ask) {
+      if (ask.pageCount > 0) {
+        var room = ask.length === "storybook" ? " This is a full picture book. Use a reaction, a relationship, a setback, or a quiet beat only where this story needs them. Do not spend two pages on one event." : "";
+        return "Write exactly " + ask.pageCount + " pages. Do not aim for a nearby count." + room;
+      }
+      return SHAPE[ask.length] || "";
+    }
+    function bibleBrief(ask) {
+      var profile = Book.lengthProfile(ask.length);
+      var reader = Book.readerProfile(ask);
+      var limits = reader ? reader.limits : null;
+      var words = Book.contentWords(ask.idea).join(", ");
+      var sample = Cast.getCharacter(ask.castIds[0]) || { characterId: "child", name: "Child", personality: ["kind"] };
+      var sampleTrait = sample.personality[0];
+      return {
+        system: [
+          "You plan a Wondii children's picture book. Return one JSON object and nothing else.",
+          "You invent the events. You do not invent the output shape, the cast, the year, the length, or the tone.",
+          "Do not write the finished page prose. The action field is the event, in one or two plain sentences.",
+          "The teacher's idea is the premise. The story must be about it. Do not paste that sentence into the premise, the hook, or any action.",
+          "If that premise were removed, the hook, the problem, the middle, the climax, and the resolution should stop making sense.",
+          "Build a causal chain. Each beat happens because of the one before it. Do not write an 'and then' list.",
+          STORY_CRAFT,
+          "The story state must change across the book. A new shot of the same moment is not a new beat.",
+          "The place may stay the same when the world state, the obstacle, the goal, or a consequence changes. Do not change place only to make the pictures different.",
+          "Do not repeat the same interaction in the same state for several beats. An attempt is followed by its consequence, not by another interchangeable attempt.",
+          "A quiet beat is allowed when it has a job: a reaction, a pause, or anticipation. It still has to belong to the chain.",
+          "A recurring creature who is not one of the selected children belongs in storyCast, with one locked look, and then in charactersPresent. Do not invent an extra person. If the story needs no recurring creature, storyCast is an empty array.",
+          "The climax settles the central problem by using something that happened earlier. It is not a new obstacle.",
+          "The resolution shows what changed: a behaviour, a final image, or a callback. It must not explain the climax again, name the feeling, or say that everyone was happy.",
+          "Selected children must change what happens. Give every selected child at least one expresses note.",
+          "expresses.shows is a behaviour, such as kneeling to listen. It must not be the personality word, and it must not say 'was curious' or 'felt brave'.",
+          "Do not add a person who is not in the cast. A creature, object, place, or force is an entity.",
+          "If an object matters later, introduce it with introduce:true on the beat it first appears. Leave it out of later entityState arrays unless its owner or state changes.",
+          "A character can change place only along connectedTo. If they carry an object, set that object's ownerCharacterId.",
+          "Give a pageTurnHook only where a turn helps. Leave it empty on most beats, and always on the resolution. Do not repeat the same kind of turn.",
+          "problemFamily is a short slug. It must change every beat. The hook and the resolution may use an empty string.",
+          "shotType must be one of the allowed shots and must not match the previous beat.",
+          "Do not use: suddenly, little did they know, couldn't believe their eyes, the adventure had only just begun.",
+          "Do not copy any sample story. Invent this idea only."
+        ].join(" "),
+        user: [
+          "Cast, and the only people allowed:",
+          castBrief(ask),
+          "",
+          "SOURCE PREMISE \u2014 SEMANTIC CONSTRAINT ONLY. NEVER COPY AS PROSE:",
+          ask.idea,
+          "Plan check only, not reader wording. These words must remain somewhere in the premise, and at least one must sit in the climax action and in the resolution action: " + words,
+          "Reader: " + (ask.yearGroup || ask.ageBand) + (reader && reader.constraintYear && reader.constraintYear !== ask.yearGroup ? " (" + reader.constraintYear + ")" : "") + ". " + (reader ? reader.narrativeComplexity : ""),
+          "How this reader should feel: " + (reader && reader.writing || Book.YEAR_WRITING[reader && reader.constraintYear || ask.yearGroup] || ""),
+          "Later reading load, so keep each event sayable inside it: about " + limits.maxSentences + " sentences on a page, under " + limits.maxPageWords + " words, no sentence longer than " + limits.maxSentenceWords + " words, at most " + limits.maxDialogueTurns + " spoken turns. One extra short sentence is acceptable. A page of long sentences is not.",
+          "Length: " + ask.length + ". " + (ask.pageCount > 0 ? "Exactly " + ask.pageCount + " pages." : profile ? profile.line + " " + profile.scope + "." : ""),
+          lengthLine(ask, profile),
+          "Allowed roles: hook, world, discovery, reaction, goal, exploration, attempt, consequence, complication, relationship, setback, reveal, setup, payoff, approach, climax, resolution, breath, turn, wonder, humour, anticipation.",
+          "Each beat must add something: new information, a decision, a consequence, a relationship, a setup, a payoff, or an earned quiet moment (wonder, reaction, humour, anticipation). A quiet beat is allowed. A repeated event is not.",
+          "Do not split one moment across two beats. Do not add a walk that changes nothing.",
+          "Reader level decides the language. Length decides how much story there is. A young reader can have a long simple story. An older reader can have a short subtle one.",
+          shapeLine(ask),
+          "Tone: " + (ask.tone || "surprise"),
+          Book.TONE_WRITING[ask.tone || "surprise"] || "",
+          "A bedtime book is quiet. A funny book is a mismatch in what someone does. A mystery answers the question it opened. A magical book keeps one impossible rule. An adventure rewards curiosity. A cost is welcome when the story needs one. Do not tell every adventure as a repair, and do not tell every tone as a chase.",
+          require_book_adventure().writerGuide(ask),
+          "",
+          "Return this JSON shape. The ids below are field examples, not a plot and not extra characters:",
+          "{",
+          '  "title": "",',
+          '  "premise": "",',
+          '  "hook": "",',
+          '  "goal": "",',
+          '  "centralProblem": "",',
+          '  "stakes": "",',
+          '  "motif": "",',
+          '  "emotionalArc": [],',
+          '  "storyCast": [],',
+          '  "locations": [{ "locationId": "place-a", "name": "first place", "connectedTo": ["place-b"], "zones": [], "setting": "", "visualIdentity": "" }],',
+          '  "journey": [{ "section": "opening", "locationId": "place-a", "purpose": "", "objective": "", "discoveryOrObstacle": "", "change": "", "leadsTo": "place-b" }],',
+          '  "entities": [{ "entityId": "story-thing", "name": "story thing", "identity": "" }],',
+          '  "beats": [{',
+          '    "role": "hook",',
+          '    "locationId": "place-a",',
+          '    "locationZone": "",',
+          '    "worldState": "",',
+          '    "goalNow": "",',
+          '    "obstacleNow": "",',
+          '    "consequenceNow": "",',
+          '    "pageTurnIntent": "",',
+          '    "entryFrom": "",',
+          '    "exitToward": "",',
+          '    "charactersPresent": ["' + sample.characterId + '"],',
+          '    "absent": {},',
+          '    "expresses": [{ "characterId": "' + sample.characterId + '", "trait": "' + sampleTrait + '", "shows": "A behaviour, never the trait word." }],',
+          '    "problemFamily": "",',
+          '    "action": "",',
+          '    "emotion": "",',
+          '    "shotType": "establishing",',
+          '    "compositionIntent": "",',
+          '    "visualFocus": "",',
+          '    "textPurpose": "",',
+          '    "pageTurnHook": "",',
+          '    "entityState": [{ "entityId": "story-thing", "introduce": true, "ownerCharacterId": null, "locationId": "place-a", "state": "here" }]',
+          "  }]",
+          "}",
+          "Do not reuse story-thing, place-a, or the sample behaviour. Invent this idea only.",
+          "locationId and entityId are lowercase slugs. A location name should be the phrase spoken on pages set there, and should not be a short word that other pages will need.",
+          "Allowed shotType values: " + Book.SHOTS.join(", ") + ".",
+          "charactersPresent may contain only: " + ask.castIds.join(", ") + ".",
+          'If a selected child is off a beat, charactersPresent omits them and absent explains why, for example { "leo": "waiting upstairs" }.',
+          "traits allowed: " + ask.castIds.map(function(id) {
+            var row = registryRow(ask, id);
+            var character = Cast.getCharacter(row && row.bibleId || id) || Cast.getCharacter(id);
+            return id + " " + (character ? character.personality.join("/") : "");
+          }).join("; ") + "."
+        ].join("\n")
+      };
+    }
+    function repairBibleBrief(ask, draft, problems) {
+      var base = bibleBrief(ask);
+      base.system += " The previous plan failed. Return a full replacement in the same shape. Keep the teacher's idea and the same cast. Change what the failed checks require.";
+      base.user += "\n\nFailed checks:\n" + unique(problems).join("\n") + "\n\nPrevious JSON:\n" + JSON.stringify(unwrap(draft));
+      return base;
+    }
+    var VOICE = {
+      curious: "notices first",
+      brave: "moves when someone else pauses",
+      careful: "hesitates, then checks",
+      kind: "reassures without taking over",
+      inventive: "tries an experiment, and can get it wrong",
+      bold: "steps in",
+      observant: "sees the small thing the others miss",
+      gentle: "steadies someone"
+    };
+    function voiceLines(ids) {
+      return ids.map(function(id) {
+        var character = Cast.getCharacter(id);
+        if (!character) return "";
+        var habits = character.personality.map(function(trait) {
+          return VOICE[trait] || trait;
+        }).join("; ");
+        return character.name + " (" + habits + "). Let this change who notices, who acts, who hesitates, and how they speak. No catchphrase.";
+      }).filter(Boolean).join("\n");
+    }
+    function roleNote(role) {
+      if (role === "climax") return "Show the turn that settles the problem. Do not announce a moral.";
+      if (role === "resolution") return "Show what changed: behaviour, a final image, or a callback. Do not explain the solution again. Do not name the feeling if the action already shows it.";
+      return "Write this moment. Do not summarise the whole story.";
+    }
+    function proseBrief(bible, pages, onlyIds) {
+      var reader = Book.readerProfile({ yearGroup: bible.yearGroup, ageBand: bible.ageBand });
+      var limits = Book.limitsFor(bible);
+      var stage = reader ? reader.constraintYear : bible.yearGroup;
+      var wanted = pages.filter(function(page) {
+        return !onlyIds || onlyIds.indexOf(page.pageId) >= 0;
+      });
+      var young = stage === "Reception" || stage === "Year 1";
+      var progress = require_book_progression().review({ bible, pages });
+      function stepFor(page) {
+        var row = progress.storyProgressionMap.filter(function(item) {
+          return item.spreadId === page.pageId || item.beatId === page.beatId;
+        })[0];
+        if (!row) return "";
+        var changed = (row.newInformation || []).filter(function(item) {
+          return item !== "opening" && item !== "none" && item !== "EMOTION";
+        });
+        return "progression: " + row.narrativePhase + ". Why this page exists: " + row.progressionReason + "." + (changed.length ? " What changed: " + changed.join(", ") + "." : "") + (row.locationZone ? " Zone: " + row.locationZone + "." : "");
+      }
+      return {
+        system: [
+          "You write the read-aloud words for a children's picture book whose events are already fixed.",
+          'Return one JSON object: { "pages": [ { "pageId": "p1", "sentences": ["..."] } ] }.',
+          "Do not change the events, the cast, the places, or the ending.",
+          "Follow the planned journey. When this page is in a new place, the sentences say that place. Do not describe a place this page is not in.",
+          "If a page's progression moves the place, changes the world, or reveals something, the sentences must say that change. Do not flatten a new beat back into the previous moment.",
+          "The source premise is meaning only. Do not quote it. Do not closely paraphrase it as narration. Do not address the reader by restating it. Do not use it as a concluding moral or summary.",
+          "The story's own nouns still belong on the page. A story about a shadow may say shadow. Do not copy the premise sentence around those nouns.",
+          "Write from the current page's event. The story has already established the premise.",
+          "Show action, image, and behaviour before any explanation of a feeling.",
+          PROSE_CRAFT,
+          "Once the climax shows how the problem is settled, the resolution must not explain that solution again.",
+          "The resolution answers what changed, how the characters behave now, and what final image closes the book.",
+          "Write for the ear. Vary the sentence length.",
+          young ? "For this young reader, short concrete lines are the right prose. A repeated short line is welcome when it is the book's rhythm." : "Do not lean on the same opening. Nearby pages should not all start with they find, they climb, or they look.",
+          "Dialogue must sound like that child, inside the spoken-turn limit, with straight double quotes. Do not put the explanation in someone's mouth twice.",
+          "Do not narrate the picture's every detail. Leave room for the illustration.",
+          "Do not name a personality trait. Do not write 'was curious', 'felt brave', 'wasn't scared', or 'wasn't lonely'.",
+          "Do not start three sentences in a row with the same name.",
+          "Do not use: suddenly, little did they know, couldn't believe their eyes, could not believe their eyes, the adventure had only just begun, with a twinkle, adventure awaits.",
+          "Do not write like a worksheet or a plot summary.",
+          "Name only objects that are already in that page's entities. Name only the place that page is in."
+        ].join(" "),
+        user: [
+          "Title: " + bible.title,
+          "SOURCE PREMISE \u2014 SEMANTIC CONSTRAINT ONLY. NEVER COPY AS PROSE:",
+          bible.userIdea || "",
+          "Reader: " + (bible.ageBand || bible.yearGroup) + (reader && reader.constraintYear && reader.constraintYear !== bible.yearGroup ? " (" + reader.constraintYear + ")" : "") + ". " + (reader && reader.writing || Book.YEAR_WRITING[stage] || ""),
+          "Tone: " + (bible.tone || "surprise") + ". " + (Book.TONE_WRITING[bible.tone || "surprise"] || ""),
+          "Reading load: aim for about " + limits.maxSentences + " sentences. One extra short sentence is fine. Keep the page under " + limits.maxPageWords + " words. No sentence longer than " + limits.maxSentenceWords + " words. At most " + limits.maxDialogueTurns + " quoted turns.",
+          bible.pageCount > 0 ? "This book has exactly " + bible.pageCount + " pages. Return one pages entry for every page listed here, and no extra pages. Do not drop a page, and do not invent a page to fill the count." : "",
+          "Voices:",
+          voiceLines(bible.castIds || []),
+          "Write only these pages:",
+          wanted.map(function(page, index) {
+            var place = (bible.locations || []).filter(function(item) {
+              return item.locationId === page.locationId;
+            })[0];
+            var names = (page.charactersPresent || []).map(function(id) {
+              return spokenName(id, bible);
+            }).join(", ");
+            var entities = (page.stateAfter && page.stateAfter.entities || []).map(function(entity) {
+              return entity.entityId + " owner=" + (entity.ownerCharacterId || "nobody") + " state=" + entity.state;
+            }).join("; ");
+            var neighbour = "";
+            if (onlyIds) {
+              var at = pages.indexOf(page);
+              var prev = at > 0 ? pages[at - 1] : null;
+              var next = at >= 0 && at < pages.length - 1 ? pages[at + 1] : null;
+              neighbour = "\nPrevious page: " + (prev && prev.prose ? prev.prose : "(none)") + "\nNext page: " + (next && next.prose ? next.prose : "(none)");
+            }
+            var role = pageRole(bible, page);
+            var step = stepFor(page);
+            return [
+              page.pageId + " role=" + role,
+              roleNote(role),
+              step,
+              "place: " + (place ? place.name : page.locationId),
+              "present: " + names,
+              "event: " + page.action,
+              "entities: " + (entities || "none"),
+              page.pageTurnHook ? "The page may end toward: " + page.pageTurnHook : "No page-turn hook.",
+              neighbour
+            ].join("\n");
+          }).join("\n\n")
+        ].join("\n")
+      };
+    }
+    function pageRole(bible, page) {
+      var beat = (bible.beats || []).filter(function(item) {
+        return item.beatId === page.beatId;
+      })[0];
+      return beat ? beat.role : "";
+    }
+    function repairProseBrief(bible, pages, spoken, problems) {
+      var ids = [];
+      unique(problems).forEach(function(problem) {
+        var parts = String(problem).split(":");
+        if (parts.length > 1 && /^p\d+$/.test(parts[parts.length - 1])) ids.push(parts[parts.length - 1]);
+      });
+      if (/idea-not-structural|resolution-missing|climax-missing/.test((problems || []).join(" "))) {
+        pages.forEach(function(page) {
+          if (page.beatId === bible.climaxBeatId || page.beatId === bible.resolutionBeatId) ids.push(page.pageId);
+        });
+      }
+      ids = unique(ids);
+      if (!ids.length) ids = pages.map(function(page) {
+        return page.pageId;
+      });
+      var current = pages.map(function(page) {
+        var found = pagesOf(spoken).filter(function(item) {
+          return item.pageId === page.pageId;
+        })[0];
+        return Object.assign({}, page, { prose: found ? (found.sentences || []).join(" ") : page.prose || "" });
+      });
+      var brief = proseBrief(bible, current, ids);
+      brief.system += " Repair only the listed pages. Rewrite them from the Book Bible, the current beat, the page plan, stateBefore, stateAfter, the previous page, the current page, and the next page. The original idea is labeled SOURCE PREMISE, SEMANTIC CONSTRAINT ONLY, NEVER COPY AS PROSE. Do not paste it back in to satisfy a check.";
+      brief.user += "\n\nFailed checks:\n" + unique(problems).join("\n");
+      return brief;
+    }
+    function compileOrFail(draft, ask) {
+      if (!draft || draft.__error) return { ok: false, problems: ["model-error"], bible: null };
+      return Book.compileStory(unwrap(draft), ask);
+    }
+    function failingStage(problems) {
+      var joined = (problems || []).join(" ");
+      if (/prompt-echo|ending-repeated|emotion-told|reader-address|idea-not-structural|resolution-missing|climax-missing|ending/.test(joined)) return "ending";
+      return "prose";
+    }
+    async function generateBook(request, ports) {
+      var source = request || {};
+      var ask = Book.publicRequest(source);
+      var briefAsk = Object.assign({}, ask, { identityRegistry: source.identityRegistry || [] });
+      var repairs = [];
+      var calls = 0;
+      var imageDraws = 0;
+      var modelName = ports.model || "gpt-6.1-sol";
+      if (!Book.lengthProfile(ask.length) || !Book.readerProfile(ask) || !ask.idea || ask.castIds.length < 1) {
+        return result("NOT_REVIEWABLE", { ok: false, problems: ["request"], bible: null }, null, null, null);
+      }
+      var band = Book.lengthProfile(ask.length);
+      if (ask.pageCount && (ask.pageCount < band.minSpreads || ask.pageCount > band.maxSpreads)) {
+        return result("NOT_REVIEWABLE", { ok: false, problems: ["page-count"], bible: null }, null, null, null);
+      }
+      async function model(brief, purpose, tokens) {
+        calls += 1;
+        try {
+          return await ports.callModel(brief, {
+            purpose,
+            maxTokens: tokens,
+            model: modelName,
+            effort: ports.effort || "low"
+          });
+        } catch (error) {
+          return { __error: String(error && error.message || error) };
+        }
+      }
+      var bibleTokens = ask.length === "adventure" ? 1e4 : ask.length === "storybook" ? 8e3 : 6e3;
+      var proseTokens = ask.length === "adventure" ? 8e3 : ask.length === "storybook" ? 6e3 : 4e3;
+      var draft = await model(bibleBrief(briefAsk), "book-bible", bibleTokens);
+      var compiled = compileOrFail(draft, source);
+      var tries = 0;
+      while (!compiled.ok && tries < Book.MAX_REPAIRS) {
+        tries += 1;
+        repairs.push({ stage: "bible", problems: unique(compiled.problems) });
+        draft = await model(repairBibleBrief(briefAsk, draft, compiled.problems), "book-bible-repair", bibleTokens);
+        compiled = compileOrFail(draft, source);
+      }
+      if (!compiled.ok) return result("NOT_REVIEWABLE", compiled, null, null, null);
+      var planned = Book.planPages(compiled.bible);
+      tries = 0;
+      while (!planned.ok && tries < Book.MAX_REPAIRS) {
+        tries += 1;
+        repairs.push({ stage: "page-plan", problems: unique(planned.problems) });
+        draft = await model(repairBibleBrief(briefAsk, draft, planned.problems), "page-plan-repair", bibleTokens);
+        compiled = compileOrFail(draft, source);
+        planned = compiled.ok ? Book.planPages(compiled.bible) : { ok: false, problems: compiled.problems, pages: null };
+      }
+      if (!compiled.ok || !planned.ok) return result("NOT_REVIEWABLE", compiled, planned, null, null);
+      var spoken = await model(proseBrief(compiled.bible, planned.pages, null), "book-prose", proseTokens);
+      var attached = Book.attachSpokenProse(compiled.bible, planned.pages, pagesOf(spoken));
+      tries = 0;
+      while (!attached.ok && tries < Book.MAX_REPAIRS) {
+        tries += 1;
+        repairs.push({ stage: failingStage(attached.problems), problems: unique(attached.problems) });
+        var patch = await model(repairProseBrief(compiled.bible, attached.pages, spoken, attached.problems), "book-prose-repair", proseTokens);
+        spoken = mergeSpoken(spoken, patch);
+        attached = Book.attachSpokenProse(compiled.bible, planned.pages, spoken);
+      }
+      var images = Book.requestImages(
+        { textReview: attached, storyReview: { ok: compiled.ok } },
+        { draw: function() {
+          imageDraws += 1;
+        } }
+      );
+      var status = attached.ok && planned.ok && images.imageCalls === 0 && imageDraws === 0 ? "REVIEWABLE" : "NOT_REVIEWABLE";
+      return result(status, compiled, planned, attached, images);
+      function result(status2, story, plan, text, images2) {
+        return {
+          status: status2,
+          request: ask,
+          modelCalls: calls,
+          repairCalls: repairs.length,
+          repairs,
+          stagesRepaired: unique(repairs.map(function(item) {
+            return item.stage;
+          })),
+          bible: story && story.bible,
+          storyProblems: unique(story && story.problems),
+          planProblems: unique(plan && plan.problems),
+          textProblems: unique(text && text.problems),
+          pages: text && text.pages ? text.pages : plan && plan.pages || null,
+          imageCalls: images2 ? images2.imageCalls : 0,
+          imageDraws,
+          imageReason: images2 ? images2.reason : "not-run",
+          imageUsd: 0
+        };
+      }
+    }
+    module.exports = {
+      generateBook,
+      bibleBrief,
+      proseBrief,
+      repairBibleBrief,
+      repairProseBrief
+    };
+  }
+});
+
+// js/book-v2-shelf.js
+var require_book_v2_shelf = __commonJS({
+  "js/book-v2-shelf.js"(exports, module) {
+    (function(root, factory) {
+      var api = factory();
+      if (typeof module === "object" && module.exports) module.exports = api;
+      if (root) root.WondiiBookV2Shelf = api;
+    })(typeof globalThis !== "undefined" ? globalThis : exports, function() {
+      "use strict";
+      var KEY = /^[A-Za-z0-9_-]{8,80}$/;
+      function fail(reason) {
+        return {
+          ok: false,
+          saved: false,
+          claimed: false,
+          duplicate: false,
+          reason,
+          message: "Nothing was saved."
+        };
+      }
+      function imageOf(page) {
+        if (!page) return "";
+        var inline = page.imageDataUrl ? String(page.imageDataUrl) : "";
+        var fallback = page.imageUrlFallback ? String(page.imageUrlFallback) : "";
+        return inline || fallback;
+      }
+      function privatePicture(value) {
+        if (!value) return false;
+        if (value.indexOf("data:image/") === 0) return true;
+        return value.indexOf("wondii-private:") === 0;
+      }
+      function reviewProblem(result) {
+        var book = result || {};
+        if (book.status !== "REVIEWABLE") return "incomplete";
+        if (book.textProblems && book.textProblems.length) return "rejected";
+        if (book.storyProblems && book.storyProblems.length) return "rejected";
+        if (book.illustrationStyle && book.illustrationStyle !== "wondii-picture-book") return "style";
+        var title = book.bible && book.bible.title ? String(book.bible.title).trim() : "";
+        if (!title) return "incomplete";
+        var pages = book.pages || [];
+        if (!pages.length) return "incomplete";
+        var missing = pages.some(function(page) {
+          return !page || !String(page.text || page.prose || "").trim() || !privatePicture(imageOf(page));
+        });
+        if (missing) return "incomplete";
+        return "";
+      }
+      function shelfPages(result) {
+        return (result.pages || []).map(function(page) {
+          var text = String(page.text || page.prose || "");
+          var image = imageOf(page);
+          var inline = image.indexOf("data:image/") === 0 ? image : null;
+          var stored = image.indexOf("wondii-private:") === 0 ? image : null;
+          return {
+            text,
+            imageDataUrl: inline,
+            imageUrlFallback: stored
+          };
+        });
+      }
+      function toShelf(result, id, owner, key) {
+        var pages = shelfPages(result);
+        var cover = pages[0] && (pages[0].imageDataUrl || pages[0].imageUrlFallback) || null;
+        return {
+          id,
+          title: String(result.bible.title).trim(),
+          author: "",
+          readerArtLayout: "duplex",
+          storyTextMode: "prose",
+          storyLength: "medium",
+          creationKey: key,
+          ownerUserId: owner.userId,
+          childId: owner.accountKind === "child" ? owner.childId : "",
+          illustrationStyle: "wondii-picture-book",
+          v2: true,
+          pages,
+          sceneDataUrl: cover && cover.indexOf("data:image/") === 0 ? cover : null,
+          sceneUrlFallback: cover && cover.indexOf("wondii-private:") === 0 ? cover : null
+        };
+      }
+      function bookId(owner, key) {
+        var who = String(owner.userId || "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 24);
+        return ("b-" + who + "-" + key.replace(/[^A-Za-z0-9_-]/g, "")).slice(0, 80);
+      }
+      function rollback(store, owner, id) {
+        var list = (store.readShelf(owner.userId) || []).filter(function(book) {
+          return book && book.id !== id;
+        });
+        store.writeShelf(owner.userId, list);
+        if (owner.accountKind === "child" && store.deleteObject) {
+          store.deleteObject(owner.childId + "/books/" + id + ".json");
+        }
+      }
+      function commitBook(input, ports) {
+        var source = input || {};
+        var owner = source.owner || {};
+        var store = ports && ports.store;
+        var allowance = ports && ports.allowance;
+        var key = String(source.creationKey || "");
+        if (!KEY.test(key)) return fail("allowance-key");
+        if (key === "showcase-the-lanterns-missing-path" || key === "showcase-the-rain-that-rose") return fail("read-only");
+        if (!owner.userId || !store || !store.readShelf || !store.writeShelf) return fail("unauthorised");
+        var child = owner.accountKind === "child";
+        if (child && !owner.childId) return fail("unauthorised");
+        if (!child && owner.childId) return fail("wrong-shelf");
+        var existing = (store.readShelf(owner.userId) || []).filter(function(book2) {
+          return book2 && book2.creationKey === key;
+        })[0];
+        if (existing) {
+          return {
+            ok: true,
+            saved: true,
+            claimed: false,
+            duplicate: true,
+            reason: "already-saved",
+            book: existing,
+            reader: "book-prototype/?book=" + encodeURIComponent(existing.id),
+            message: "This book is already on the shelf."
+          };
+        }
+        var problem = reviewProblem(source.result);
+        if (problem) return fail(problem);
+        var id = bookId(owner, key);
+        var book = toShelf(source.result, id, owner, key);
+        var list = (store.readShelf(owner.userId) || []).slice();
+        list.unshift(book);
+        store.writeShelf(owner.userId, list);
+        if (child) {
+          if (!store.putObject) {
+            rollback(store, owner, id);
+            return fail("unauthorised");
+          }
+          store.putObject(owner.childId + "/books/" + id + ".json", JSON.stringify(book));
+        }
+        if (!child) {
+          return {
+            ok: true,
+            saved: true,
+            claimed: false,
+            duplicate: false,
+            reason: "saved",
+            book,
+            reader: "book-prototype/?book=" + encodeURIComponent(book.id),
+            message: "The book is on your shelf."
+          };
+        }
+        var claim = allowance && allowance.claim(owner.childId, key);
+        if (!claim || !claim.allowed) {
+          rollback(store, owner, id);
+          return fail(claim && claim.reason || "allowance");
+        }
+        return {
+          ok: true,
+          saved: true,
+          claimed: true,
+          duplicate: false,
+          reason: "saved",
+          book,
+          reader: "book-prototype/?book=" + encodeURIComponent(book.id),
+          message: "The book is on your shelf."
+        };
+      }
+      function memoryStore() {
+        var shelves = {};
+        var objects = {};
+        return {
+          readShelf: function(userId) {
+            return shelves[userId] ? shelves[userId].slice() : [];
+          },
+          writeShelf: function(userId, books) {
+            shelves[userId] = (books || []).slice();
+          },
+          putObject: function(path, body) {
+            objects[path] = body;
+          },
+          deleteObject: function(path) {
+            delete objects[path];
+          },
+          getObject: function(path) {
+            return objects[path] || null;
+          }
+        };
+      }
+      function memoryAllowance() {
+        var reserved = {};
+        var claimed = {};
+        return {
+          reserve: function(childId, key) {
+            reserved[childId + ":" + key] = "reserved";
+          },
+          claim: function(childId, key) {
+            var id = childId + ":" + key;
+            if (reserved[id] !== "reserved" || claimed[id]) {
+              return { allowed: false, reason: "already_used" };
+            }
+            claimed[id] = true;
+            return { allowed: true, reason: "claimed", childId, key };
+          },
+          refund: function(childId, key) {
+            var id = childId + ":" + key;
+            delete claimed[id];
+            if (reserved[id] === "reserved") reserved[id] = "refunded";
+            return { refunded: true };
+          },
+          claimedCount: function() {
+            return Object.keys(claimed).length;
+          }
+        };
+      }
+      function isStoryPlan(book) {
+        if (!book || book.generated === true || book.recordKind === "book") return false;
+        return book.recordKind === "plan" || book.simulated === true;
+      }
+      function isPlanRecord(book) {
+        return isStoryPlan(book);
+      }
+      function planRequest(source, preview) {
+        var request = source && source.request || preview && preview.request || {};
+        var members = Array.isArray(request.members) ? request.members : [];
+        return {
+          idea: String(request.idea || source && source.idea || "").trim(),
+          place: String(request.place || source && source.place || ""),
+          theme: String(request.theme || source && source.theme || ""),
+          length: String(request.length || source && source.length || ""),
+          ageBand: String(request.ageBand || source && source.ageBand || ""),
+          names: Array.isArray(request.names) ? request.names.map(function(name) {
+            return String(name || "");
+          }).filter(Boolean) : [],
+          members: members.map(function(member) {
+            if (!member) return "";
+            return String(member.id || member);
+          }).filter(Boolean)
+        };
+      }
+      function placePlan(input) {
+        var source = input || {};
+        var owner = source.owner || {};
+        var key = String(source.creationKey || "");
+        var userId = String(owner.userId || "");
+        var preview = source.preview || {};
+        var shelf = Array.isArray(source.shelf) ? source.shelf : [];
+        if (!KEY.test(key)) return fail("allowance-key");
+        if (key === "showcase-the-lanterns-missing-path" || key === "showcase-the-rain-that-rose") return fail("read-only");
+        if (!userId) return fail("unauthorised");
+        if (owner.accountKind === "child" && !owner.childId) return fail("unauthorised");
+        if (owner.accountKind !== "child" && owner.childId) return fail("wrong-shelf");
+        if (preview.generated === true) return fail("generated");
+        var title = String(source.title || "").trim();
+        if (!title) return fail("incomplete");
+        var request = planRequest(source, preview);
+        var job = source.job && typeof source.job === "object" ? {
+          creationKey: key,
+          accountId: userId,
+          stage: "plan",
+          status: "saved",
+          paid: false,
+          started: false,
+          recoverable: true,
+          attempts: Number(source.job.attempts) || 0,
+          budgetUsd: 1.2,
+          calls: { text: 0, image: 0, vision: 0 },
+          stages: Array.isArray(source.job.stages) ? source.job.stages.slice(0, 8) : [],
+          reason: String(source.job.reason || "paid-generation-not-approved")
+        } : null;
+        var id = bookId(owner, key);
+        var snapshot = shelf.slice();
+        var next = [];
+        var replaced = false;
+        var i;
+        for (i = 0; i < shelf.length; i++) {
+          var book = shelf[i];
+          if (!book) continue;
+          var mark = book.ownerUserId || book.ownerId || "";
+          var sameKey = !!(book.creationKey && String(book.creationKey) === key);
+          var sameId = String(book.id || "") === id;
+          if (mark && String(mark) !== userId) {
+            if (sameId || sameKey) return Object.assign(fail("occupied"), { shelf: snapshot });
+            next.push(book);
+            continue;
+          }
+          if (sameKey || sameId) {
+            if (book.creationKey && String(book.creationKey) !== key) {
+              return Object.assign(fail("occupied"), { shelf: snapshot });
+            }
+            if (!isPlanRecord(book)) {
+              return {
+                ok: true,
+                saved: true,
+                claimed: false,
+                duplicate: true,
+                reason: "already-saved",
+                book,
+                shelf: snapshot,
+                reader: "book-prototype/?book=" + encodeURIComponent(book.id),
+                message: "This book is already on the shelf."
+              };
+            }
+            if (!replaced) replaced = true;
+            continue;
+          }
+          next.push(book);
+        }
+        var planned = {
+          id,
+          recordKind: "plan",
+          status: "saved-plan",
+          openable: false,
+          title,
+          author: "",
+          creationKey: key,
+          ownerUserId: userId,
+          ownerId: userId,
+          childId: owner.accountKind === "child" ? owner.childId : "",
+          v2: true,
+          simulated: true,
+          generated: false,
+          savedAt: source.savedAt || (/* @__PURE__ */ new Date()).toISOString(),
+          request,
+          job,
+          pages: []
+        };
+        next.unshift(planned);
+        return {
+          ok: true,
+          saved: true,
+          claimed: false,
+          duplicate: replaced,
+          reason: replaced ? "already-saved" : "saved",
+          book: planned,
+          shelf: next,
+          reader: "",
+          message: replaced ? "This story idea is already saved." : "The story idea is saved. The illustrated book has not been made yet."
+        };
+      }
+      function mergeOwned(local, cloud) {
+        var map = /* @__PURE__ */ Object.create(null);
+        var order = [];
+        function take(list) {
+          (list || []).forEach(function(book) {
+            if (!book || book.id == null || String(book.id) === "") return;
+            var id = String(book.id);
+            if (!Object.prototype.hasOwnProperty.call(map, id)) order.push(id);
+            var prev = map[id];
+            if (!prev) {
+              map[id] = book;
+              return;
+            }
+            var tPrev = Date.parse(prev.savedAt || "") || 0;
+            var tNext = Date.parse(book.savedAt || "") || 0;
+            if (tNext >= tPrev) map[id] = book;
+          });
+        }
+        take(cloud);
+        take(local);
+        return order.map(function(id) {
+          return map[id];
+        });
+      }
+      return {
+        commitBook,
+        isStoryPlan,
+        placePlan,
+        mergeOwned,
+        memoryStore,
+        memoryAllowance
+      };
+    });
+  }
+});
+
+// scripts/book/produce.js
+var require_produce = __commonJS({
+  "scripts/book/produce.js"(exports, module) {
+    "use strict";
+    var Adapter = require_book_v2_adapter();
+    var Writer = require_writer();
+    var Art = require_book_art_direction();
+    var Visual = require_book_visual();
+    var Identity = require_book_v2_identity();
+    var Shelf = require_book_v2_shelf();
+    var Budget = require_book_v2_budget();
+    var Hosted = require_hosted_job();
+    function callsOf(source) {
+      var used = source && source.calls || {};
+      return {
+        text: Number(used.text) || 0,
+        image: Number(used.image) || 0,
+        vision: Number(used.vision) || 0
+      };
+    }
+    function publicJob(job) {
+      var copy = Object.assign({}, job || {});
+      delete copy.checkpoint;
+      return copy;
+    }
+    function named(registry, characterId) {
+      var row = (registry || []).filter(function(entry) {
+        return entry.characterId === characterId;
+      })[0];
+      return row && row.name ? row.name : characterId;
+    }
+    function storyRows(bible) {
+      return (bible && bible.storyCast || []).map(function(row) {
+        var appearance = [row.face, row.colouring, row.markings, row.covering].filter(Boolean).join(". ");
+        return {
+          id: row.characterId,
+          name: row.name,
+          appearance,
+          clothing: (row.accessories || []).join(", ")
+        };
+      }).filter(function(row) {
+        return row.id && row.appearance;
+      });
+    }
+    function markStages(active, done) {
+      if (done) {
+        return Hosted.stages("read").map(function(stage) {
+          return Object.assign({}, stage, { state: "done" });
+        });
+      }
+      return Hosted.stages(active);
+    }
+    function jobFor(source, extra) {
+      var gate = extra.generation || { reason: "paid-generation-not-approved" };
+      return Object.assign({
+        creationKey: String(source.creationKey || ""),
+        accountId: String(source.accountId || ""),
+        stage: "plan",
+        status: "saved",
+        paid: false,
+        started: false,
+        recoverable: true,
+        attempts: Number(extra.attempts) || 0,
+        budgetUsd: Budget.BUDGET_USD,
+        calls: callsOf(extra),
+        stages: markStages("plan"),
+        reason: gate.reason || "",
+        message: "The story idea is saved. The illustrated book has not been made yet.",
+        layouts: [],
+        reader: ""
+      }, extra.job || {});
+    }
+    function held(source, prior, generation, reason) {
+      var job = jobFor(source, {
+        attempts: prior && prior.attempts,
+        calls: prior && prior.calls,
+        generation,
+        job: {
+          stage: prior && prior.stage || "plan",
+          status: prior && prior.status || "saved",
+          paid: false,
+          started: false,
+          calls: callsOf(prior),
+          stages: prior && prior.stages || markStages("plan"),
+          reason: reason || generation && generation.reason || "paid-generation-not-approved",
+          message: reason === "already-running" ? "This story is already being made. It was not started again." : reason === "already-generated" ? "This book is already on the shelf. It was not generated again." : generation && generation.message || "The story idea is saved. The illustrated book has not been made yet.",
+          reader: ""
+        }
+      });
+      return {
+        ok: reason === "already-generated",
+        ran: false,
+        duplicate: reason === "already-generated" || reason === "already-running",
+        reason,
+        job: publicJob(job),
+        generation,
+        book: null,
+        reader: ""
+      };
+    }
+    function charge(calls, kind) {
+      var next = callsOf({ calls });
+      next[kind] += 1;
+      if (next.text > Budget.MAX_TEXT || next.image > Budget.MAX_IMAGE || next.vision > Budget.MAX_VISION) {
+        return { ok: false, reason: "call-cap", calls };
+      }
+      if (Budget.price(next).usd > Budget.BUDGET_USD) {
+        return { ok: false, reason: "budget", calls };
+      }
+      return { ok: true, calls: next };
+    }
+    function visionReport(report, spread) {
+      return Visual.acceptIllustration(report, spread);
+    }
+    function run(existing, input, ports) {
+      var source = input || {};
+      var store = ports && ports.store;
+      var jobs = ports && ports.jobs;
+      var accountId = String(source.accountId || "");
+      var key = String(source.creationKey || "");
+      return Promise.resolve(!existing && jobs && jobs.read ? jobs.read(accountId, key) : null).then(function(loaded) {
+        return runLoaded(existing || loaded || null, source, ports, store, jobs, accountId, key);
+      });
+    }
+    function runLoaded(prior, source, ports, store, jobs, accountId, key) {
+      var finished = null;
+      if (store && store.readShelf) {
+        finished = (store.readShelf(accountId) || []).filter(function(book) {
+          return book && String(book.creationKey || "") === key && !Shelf.isStoryPlan(book);
+        })[0] || null;
+      }
+      if (finished || prior && prior.status === "complete" || source.alreadyGenerated === true) {
+        var again = Budget.decide({
+          approved: true,
+          accountId,
+          accountKind: source.accountKind,
+          alreadyGenerated: true,
+          calls: Budget.quote().calls
+        });
+        var duplicate = held(source, prior, again, "already-generated");
+        duplicate.book = finished;
+        duplicate.reader = finished ? "book-prototype/?book=" + encodeURIComponent(finished.id) : "";
+        duplicate.job.message = "This book is already on the shelf. It was not generated again.";
+        return Promise.resolve(duplicate);
+      }
+      var gate = Budget.decide({
+        approved: !!(ports && ports.approved === true),
+        accountId,
+        accountKind: source.accountKind,
+        childPermitted: source.childPermitted === true,
+        allowanceReserved: source.allowanceReserved === true,
+        alreadyGenerated: false,
+        budgetUsd: Budget.BUDGET_USD,
+        calls: Budget.quote().calls
+      });
+      if (!gate.authorised) return Promise.resolve(held(source, prior, gate, gate.reason));
+      if (!ports || typeof ports.callModel !== "function" || typeof ports.drawImage !== "function" || typeof ports.inspectImage !== "function") {
+        return Promise.resolve(held(source, prior, gate, "writer-not-connected"));
+      }
+      return Promise.resolve(jobs && jobs.claim ? jobs.claim(accountId, key) : { ok: true, prior }).then(function(claim) {
+        if (!claim.ok) return held(source, claim.job || prior, gate, claim.reason || "already-running");
+        prior = claim.prior || prior;
+        var checkpoint = prior && prior.checkpoint || {};
+        var calls = callsOf(prior);
+        var attempts = (Number(prior && prior.attempts) || 0) + 1;
+        function stop(stage, reason, message, art) {
+          var job = jobFor(source, {
+            attempts,
+            calls,
+            generation: gate,
+            job: {
+              stage,
+              status: "interrupted",
+              paid: calls.text + calls.image + calls.vision > 0,
+              started: true,
+              recoverable: true,
+              calls,
+              stages: markStages(stage).map(function(row) {
+                return row.id === stage ? Object.assign({}, row, { state: "blocked" }) : row;
+              }),
+              reason,
+              message,
+              layouts: art && art.pages ? art.pages.map(function(page) {
+                return page.layout;
+              }) : [],
+              reader: "",
+              checkpoint
+            }
+          });
+          if (jobs && jobs.write) jobs.write(accountId, key, job);
+          var out = held(source, null, gate, reason);
+          out.job = publicJob(job);
+          out.art = art || null;
+          return out;
+        }
+        var planned = Adapter.planRequest(source);
+        if (!planned.ok) {
+          return Promise.resolve(stop("plan", "plan", planned.message || "The story plan could not start. Nothing was saved."));
+        }
+        var halt = "";
+        var bookPromise = checkpoint.story && checkpoint.story.status === "REVIEWABLE" && checkpoint.story.pages ? Promise.resolve(checkpoint.story) : Writer.generateBook(planned.request, {
+          callModel: function(brief, opts) {
+            var billed = charge(calls, "text");
+            if (!billed.ok) {
+              halt = billed.reason;
+              return Promise.resolve({ __error: billed.reason });
+            }
+            calls = billed.calls;
+            return ports.callModel(brief, opts);
+          },
+          model: ports.model || "gpt-6.1-sol"
+        });
+        return bookPromise.then(function(book) {
+          if (halt === "budget" || halt === "call-cap") {
+            return stop("story", halt, halt === "budget" ? "This book would cost more than its budget. Nothing more was started, and the book was not saved." : "This book would take more story calls than Wondii allows. The book was not saved.");
+          }
+          if (!book || book.status !== "REVIEWABLE" || !(book.pages || []).length) {
+            return stop("story", "story", "The story was not finished, so no pictures were drawn and nothing was saved.");
+          }
+          checkpoint.story = {
+            status: book.status,
+            bible: book.bible,
+            pages: book.pages,
+            textProblems: book.textProblems || [],
+            storyProblems: book.storyProblems || []
+          };
+          var pages = book.pages;
+          var registryBuilt = Identity.buildRegistry({
+            members: source.members || [],
+            savedReferences: source.savedReferences,
+            sharedCharacters: source.sharedCharacters,
+            storyCharacters: storyRows(book.bible),
+            accountId,
+            pages: pages.map(function(page) {
+              return { pageId: page.pageId, charactersPresent: page.charactersPresent || [] };
+            })
+          });
+          if (!registryBuilt.ok) {
+            return stop("story", "artwork", "A character reference could not be checked. Nothing was saved.");
+          }
+          var registry = registryBuilt.registry || [];
+          Identity.clearCache();
+          var wanted = {};
+          pages.forEach(function(page) {
+            (page.charactersPresent || []).forEach(function(id) {
+              wanted[id] = true;
+            });
+          });
+          var scenes = pages.map(function(page) {
+            return Identity.prepareScene(registry, page.charactersPresent || [], { ownerId: accountId });
+          });
+          if (scenes.some(function(scene) {
+            return scene.blocksGeneration;
+          })) {
+            var blocked = scenes.filter(function(scene) {
+              return scene.blocksGeneration;
+            })[0];
+            var who = (blocked.limitations || []).map(function(item) {
+              var id = String(item).split(":").pop();
+              return named(registry, id);
+            }).filter(Boolean)[0] || "A character";
+            return stop("pictures", "artwork", who + " needs their own portrait before pictures can be drawn. Nothing was saved.");
+          }
+          var files = [];
+          scenes.forEach(function(scene) {
+            (scene.files || []).forEach(function(file) {
+              if (!files.some(function(row) {
+                return row.characterId === file.characterId;
+              })) files.push(file);
+            });
+          });
+          checkpoint.references = checkpoint.references || {};
+          var references = checkpoint.references;
+          var seen = {};
+          Object.keys(references).forEach(function(id) {
+            if (references[id] && references[id].bytes) seen[references[id].bytes] = id;
+          });
+          var pending = files.filter(function(file) {
+            return !references[file.characterId];
+          });
+          return pending.reduce(function(chain, file) {
+            return chain.then(function(problem) {
+              if (problem) return problem;
+              var entry = registry.filter(function(row) {
+                return row.characterId === file.characterId;
+              })[0] || {};
+              var path = String(file.file || entry.reference || "");
+              var priv = file.privateArt === true || entry.privateArt === true || entry.source === "saved";
+              if (priv) {
+                var owned = Identity.ownedPortrait(accountId, file.characterId, path);
+                if (!owned) return named(registry, file.characterId) + " portrait";
+                path = owned;
+              } else if (!path || path.indexOf("..") >= 0 || path.indexOf("\\") >= 0) {
+                return named(registry, file.characterId) + " portrait";
+              }
+              return Promise.resolve(ports.fetchReference({
+                accountId,
+                characterId: file.characterId,
+                file: path,
+                privateArt: priv
+              })).then(function(got) {
+                var bytes = got && got.ok ? String(got.bytes || "") : "";
+                if (!bytes) return named(registry, file.characterId);
+                if (seen[bytes] && seen[bytes] !== file.characterId) return named(registry, file.characterId);
+                seen[bytes] = file.characterId;
+                references[file.characterId] = { file: path, bytes, privateArt: priv };
+                return "";
+              });
+            });
+          }, Promise.resolve("")).then(function(problem) {
+            if (problem) {
+              return stop("pictures", "artwork", problem + " needs their own portrait before pictures can be drawn. Nothing was saved.");
+            }
+            checkpoint.references = references;
+            var directed = Art.directBook({
+              tone: planned.request && planned.request.tone,
+              pages: pages.map(function(page) {
+                return {
+                  text: page.prose || page.text || "",
+                  phase: page.narrativePhase || page.phase || "",
+                  shot: page.shotType || page.shot || "",
+                  characters: page.charactersPresent || [],
+                  emotion: page.emotion || ""
+                };
+              })
+            });
+            var artCheck = Art.checkBook({
+              pages: pages.map(function(page) {
+                return { text: page.prose || page.text || "" };
+              })
+            }, directed);
+            var artBlocking = (artCheck.issues || []).filter(function(issue) {
+              return issue.indexOf("text-room:") !== 0;
+            });
+            if (artBlocking.length) {
+              return stop("art", "art", "The page layouts were not ready, so no pictures were drawn and nothing was saved.", directed);
+            }
+            var contracts = Visual.contractsFor(book.bible, pages, {});
+            var lineup = contracts.visualBible.bookCast && contracts.visualBible.bookCast.members || [];
+            checkpoint.pictures = checkpoint.pictures || {};
+            checkpoint.repairs = checkpoint.repairs || {};
+            var pictures = checkpoint.pictures;
+            var repairs = checkpoint.repairs;
+            return (contracts.spreads || []).reduce(function(chain, spread, index) {
+              return chain.then(function(failed) {
+                if (failed) return failed;
+                var page = pages[index];
+                var pageId = page.pageId || spread.spreadId;
+                if (pictures[pageId] && pictures[pageId].accepted) return "";
+                var note = directed.pages[index] && directed.pages[index].promptNote;
+                if (note) spread.compositionNote = note;
+                var prompt = Visual.spreadPrompt(book.bible, spread, lineup);
+                var refs = (spread.charactersPresent || []).map(function(id) {
+                  return references[id] ? { characterId: id, file: references[id].file, bytes: references[id].bytes } : null;
+                }).filter(Boolean);
+                function draw(kind) {
+                  var billed = charge(calls, "image");
+                  if (!billed.ok) return Promise.reject(Object.assign(new Error(billed.reason), { code: billed.reason }));
+                  calls = billed.calls;
+                  return Promise.resolve(ports.drawImage({
+                    pageId,
+                    prompt: kind === "repair" ? Visual.repairPrompt(book.bible, spread, lineup) : prompt,
+                    references: refs,
+                    repair: kind === "repair"
+                  }));
+                }
+                function inspect(image) {
+                  var billed = charge(calls, "vision");
+                  if (!billed.ok) return Promise.reject(Object.assign(new Error(billed.reason), { code: billed.reason }));
+                  calls = billed.calls;
+                  return Promise.resolve(ports.inspectImage({ pageId, image, spread })).then(function(report) {
+                    return { image, report, verdict: visionReport(report, spread) };
+                  });
+                }
+                return draw("new").then(inspect).then(function(first) {
+                  if (first.verdict.ok) return first;
+                  if ((repairs[pageId] || 0) >= Visual.MAX_VISUAL_REPAIRS) return first;
+                  repairs[pageId] = (repairs[pageId] || 0) + 1;
+                  return draw("repair").then(inspect);
+                }).then(function(checked) {
+                  if (!checked.verdict.ok) return pageId;
+                  var stored = ports.storePicture ? ports.storePicture({
+                    accountId,
+                    creationKey: key,
+                    pageId,
+                    dataUrl: checked.image
+                  }) : checked.image;
+                  return Promise.resolve(stored).then(function(saved) {
+                    var url = String(saved || "");
+                    if (url.indexOf("data:image/") !== 0) return pageId;
+                    pictures[pageId] = { accepted: true, dataUrl: url, report: checked.report };
+                    page.imageDataUrl = url;
+                    return "";
+                  });
+                });
+              });
+            }, Promise.resolve("")).then(function(failed) {
+              checkpoint.pictures = pictures;
+              checkpoint.repairs = repairs;
+              if (failed) {
+                return stop("check", "picture", "A picture did not pass its check, so the book was not saved and no story allowance was used.", directed);
+              }
+              var consistency = Visual.characterConsistencyCheckpoint(pages.map(function(page, index) {
+                var shot = pictures[page.pageId];
+                return {
+                  page: index + 1,
+                  characters: shot && shot.report && shot.report.characters || []
+                };
+              }), { humanApproved: false });
+              if (consistency.problems.length) {
+                return stop("check", "picture", "A character did not match their own portrait, so the book was not saved.", directed);
+              }
+              var result = {
+                status: "REVIEWABLE",
+                illustrationStyle: "wondii-picture-book",
+                bible: book.bible,
+                pages,
+                textProblems: book.textProblems || [],
+                storyProblems: book.storyProblems || []
+              };
+              var saved = Shelf.commitBook({
+                result,
+                owner: {
+                  userId: accountId,
+                  accountKind: source.accountKind === "child" ? "child" : "adult",
+                  childId: source.accountKind === "child" ? source.childId : ""
+                },
+                creationKey: key
+              }, { store, allowance: ports.allowance });
+              if (!saved.ok || !saved.book) {
+                return stop("save", saved.reason || "save", "The book could not be saved. No story allowance was used.", directed);
+              }
+              saved.book.generated = true;
+              saved.book.recordKind = "book";
+              saved.book.openable = true;
+              saved.book.savedAt = (/* @__PURE__ */ new Date()).toISOString();
+              if (store.writeShelf) {
+                var list = store.readShelf(accountId) || [];
+                store.writeShelf(accountId, list.map(function(item) {
+                  return item && item.id === saved.book.id ? saved.book : item;
+                }));
+              }
+              var done = jobFor(source, {
+                attempts,
+                calls,
+                generation: gate,
+                job: {
+                  stage: "read",
+                  status: "complete",
+                  paid: true,
+                  started: true,
+                  recoverable: false,
+                  calls,
+                  stages: markStages("read", true),
+                  reason: "saved",
+                  message: "The illustrated book is ready.",
+                  layouts: directed.pages.map(function(page) {
+                    return page.layout;
+                  }),
+                  reader: saved.reader || "",
+                  checkpoint: { story: checkpoint.story, pictures: Object.keys(pictures) }
+                }
+              });
+              if (jobs && jobs.write) jobs.write(accountId, key, done);
+              return {
+                ok: true,
+                ran: true,
+                duplicate: false,
+                reason: "saved",
+                job: publicJob(done),
+                generation: gate,
+                book: saved.book,
+                reader: saved.reader || "",
+                art: directed,
+                claimed: saved.claimed === true,
+                references: Object.keys(references).map(function(id) {
+                  return { characterId: id, file: references[id].file };
+                }),
+                calls
+              };
+            });
+          });
+        }).catch(function(error) {
+          var code = error && error.code || "story";
+          var stage = checkpoint.story ? "pictures" : "story";
+          if (code === "budget" || code === "call-cap") stage = "pictures";
+          var message = code === "budget" ? "This book would cost more than its budget. Nothing more was started, and the book was not saved." : code === "call-cap" ? "This book would take more picture checks than Wondii allows. The book was not saved." : "The story stopped before it was finished. Nothing was saved.";
+          return stop(stage, code, message);
+        });
+      });
+    }
+    module.exports = { run };
+  }
+});
+
 // scripts/book/hosted-job.js
 var require_hosted_job = __commonJS({
   "scripts/book/hosted-job.js"(exports, module) {
@@ -7181,6 +9256,9 @@ var require_hosted_job = __commonJS({
       return next;
     }
     function run(existing, input, ports) {
+      if (ports && typeof ports.callModel === "function") {
+        return require_produce().run(existing, input, ports);
+      }
       var source = input || {};
       var approved = !!(ports && ports.approved === true);
       var gate = approved ? Budget.decide({
@@ -7282,7 +9360,7 @@ var require_handle_request = __commonJS({
         }
       };
     }
-    function handleBookV2(body) {
+    function handleBookV2(body, ports) {
       var planned = Adapter.planRequest(body || {});
       if (!planned.ok) {
         return {
@@ -7299,7 +9377,7 @@ var require_handle_request = __commonJS({
           }
         };
       }
-      return {
+      var plannedResponse = {
         status: 200,
         body: {
           ok: true,
@@ -7341,6 +9419,27 @@ var require_handle_request = __commonJS({
           preview: previewShelf(body, planned)
         }
       };
+      if (!ports || ports.approved !== true) return plannedResponse;
+      return Hosted.run(null, body, ports).then(function(run) {
+        var job = run.job || plannedResponse.body.job;
+        var finished = run.book && run.book.generated === true && run.book.recordKind === "book";
+        return {
+          status: 200,
+          body: Object.assign({}, plannedResponse.body, {
+            ok: true,
+            saved: !!finished,
+            generated: !!finished,
+            simulated: !finished,
+            illustrations: finished ? "stored" : "not-run",
+            pictureConsistency: finished ? "checked" : "not-solved",
+            book: finished ? run.book : null,
+            reader: finished ? run.reader : "",
+            job,
+            generation: run.generation || plannedResponse.body.generation,
+            message: job && job.message || plannedResponse.body.message
+          })
+        };
+      });
     }
     module.exports = { handleBookV2 };
   }

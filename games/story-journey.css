@@ -2099,7 +2099,11 @@ body[data-sj-place="undersea"].page-storybook.sb-route-story:not(.sb-reader-imme
   color: #292246;
 }
 .sj-progress li.is-done { background: #efe7ff; }
+.sj-progress li.is-running { background: #efe7ff; }
+.sj-progress li.is-blocked { background: #fff4e8; }
 .sj-progress li.is-waiting span,
+.sj-progress li.is-running span,
+.sj-progress li.is-blocked span,
 .sj-progress li.is-done span {
   color: #5b21b6;
   font-weight: 800;

@@ -14,7 +14,8 @@ assert.ok(source.indexOf("api.openai.com") < 0);
 assert.ok(source.indexOf("fetch(") < 0);
 assert.ok(source.indexOf("writer.js") >= 0);
 assert.ok(source.indexOf("readiness.js") >= 0);
-assert.ok(handler.indexOf("Hosted.run(") < 0);
+assert.ok(handler.indexOf("ports.approved") >= 0);
+assert.ok(handler.indexOf("Hosted.run(") >= 0);
 assert.ok(edge.indexOf("OPENAI") < 0);
 assert.ok(edge.indexOf("Hosted.run") < 0);
 

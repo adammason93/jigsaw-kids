@@ -101,6 +101,9 @@ function resume(existing, input) {
 /* The existing writer is called only after the budget gate allows it.
    The website passes approval through authorise(), which cannot allow it. */
 function run(existing, input, ports) {
+  if (ports && typeof ports.callModel === "function") {
+    return require("./produce.js").run(existing, input, ports);
+  }
   var source = input || {};
   var approved = !!(ports && ports.approved === true);
   var gate = approved ? Budget.decide({
