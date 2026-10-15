@@ -8,9 +8,8 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
 
-  /* Measured on The Rain That Rose: three story calls cost $0.172486.
-     One picture is the rate already used by the art-direction plan.
-     These are planning rates, not a charge. */
+  /* Planner averages only. Paid calls use the listed token prices in
+     book-v2-cost.js and stop before the next call's upper bound. */
   var TEXT_USD = 0.057495;
   var IMAGE_USD = 0.039657;
   var VISION_USD = 0.001472;

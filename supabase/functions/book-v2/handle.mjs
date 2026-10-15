@@ -8670,6 +8670,161 @@ var require_book_v2_shelf = __commonJS({
   }
 });
 
+// js/book-v2-cost.js
+var require_book_v2_cost = __commonJS({
+  "js/book-v2-cost.js"(exports, module) {
+    (function(root, factory) {
+      var api = factory();
+      if (typeof module === "object" && module.exports) module.exports = api;
+      if (root) root.WondiiBookV2Cost = api;
+    })(typeof globalThis !== "undefined" ? globalThis : exports, function() {
+      "use strict";
+      var TEXT = { input: 2, output: 10, cachedInput: 0.1 };
+      var VISION = { input: 0.15, output: 0.6 };
+      var IMAGE = { textInput: 5, imageInput: 8, imageOutput: 30 };
+      var IMAGE_INPUT_OBSERVED = 1536;
+      var IMAGE_OUTPUT_OBSERVED = 343;
+      var IMAGE_TEXT_OBSERVED = 800;
+      var IMAGE_INPUT_BOUND = 2048;
+      var IMAGE_OUTPUT_BOUND = 512;
+      var IMAGE_TEXT_BOUND = 1200;
+      var VISION_IMAGE_TOKENS = 2833;
+      var VISION_TEXT_BOUND = 800;
+      var VISION_OUTPUT_BOUND = 700;
+      var VISION_EXPECTED_USD = 62e-5;
+      var STORY_EXPECTED_USD = 0.06585;
+      var MAX_BUDGET_USD = 8;
+      var STORY_UPPER = [
+        { input: 2475, output: 8e3, times: 1 },
+        { input: 6475, output: 8e3, times: 2 },
+        { input: 2334, output: 6e3, times: 1 },
+        { input: 5e3, output: 6e3, times: 2 }
+      ];
+      function money(usd) {
+        var value = Number(usd);
+        if (!isFinite(value) || value < 0) return 0;
+        return Math.round(value * 1e6) / 1e6;
+      }
+      function charsOf(brief) {
+        if (!brief) return 0;
+        if (typeof brief === "string") return brief.length;
+        return String(brief.system || "").length + String(brief.user || "").length;
+      }
+      function tokensFromChars(chars) {
+        return Math.ceil(Math.max(0, Number(chars) || 0) / 3);
+      }
+      function textBound(brief, maxOutputTokens) {
+        var input = tokensFromChars(charsOf(brief));
+        var output = Number(maxOutputTokens) || 8e3;
+        return money((input * TEXT.input + output * TEXT.output) / 1e6);
+      }
+      function imageAmount(textTokens, referenceCount, outputTokens, inputPerRef) {
+        var refs = Math.max(0, Number(referenceCount) || 0);
+        return money((textTokens * IMAGE.textInput + refs * inputPerRef * IMAGE.imageInput + outputTokens * IMAGE.imageOutput) / 1e6);
+      }
+      function imageBound(prompt, referenceCount) {
+        var text = Math.max(IMAGE_TEXT_BOUND, tokensFromChars(String(prompt || "").length));
+        return imageAmount(text, referenceCount, IMAGE_OUTPUT_BOUND, IMAGE_INPUT_BOUND);
+      }
+      function imageExpected(referenceCount) {
+        return imageAmount(IMAGE_TEXT_OBSERVED, referenceCount, IMAGE_OUTPUT_OBSERVED, IMAGE_INPUT_OBSERVED);
+      }
+      function visionBound() {
+        return money(((VISION_IMAGE_TOKENS + VISION_TEXT_BOUND) * VISION.input + VISION_OUTPUT_BOUND * VISION.output) / 1e6);
+      }
+      function storyUpper() {
+        return money(STORY_UPPER.reduce(function(sum, call) {
+          return sum + (call.input * TEXT.input + call.output * TEXT.output) / 1e6 * call.times;
+        }, 0));
+      }
+      function settleText(usage, fallbackUsd) {
+        var fallback = money(fallbackUsd);
+        if (!usage) return fallback;
+        var prompt = Number(usage.prompt_tokens) || 0;
+        var output = Number(usage.completion_tokens) || 0;
+        if (prompt + output <= 0) return fallback;
+        var details = usage.prompt_tokens_details || {};
+        var cached = Math.min(prompt, Number(details.cached_tokens) || 0);
+        return money(((prompt - cached) * TEXT.input + cached * TEXT.cachedInput + output * TEXT.output) / 1e6);
+      }
+      function settleImage(usage, fallbackUsd) {
+        var fallback = money(fallbackUsd);
+        if (!usage) return fallback;
+        var details = usage.input_tokens_details || {};
+        var textIn = details.text_tokens != null ? Number(details.text_tokens) || 0 : Number(usage.input_tokens) || 0;
+        var imageIn = Number(details.image_tokens) || 0;
+        var output = Number(usage.output_tokens) || 0;
+        if (textIn + imageIn + output <= 0) return fallback;
+        return money((textIn * IMAGE.textInput + imageIn * IMAGE.imageInput + output * IMAGE.imageOutput) / 1e6);
+      }
+      function settleVision(usage, fallbackUsd) {
+        return settleText(usage, fallbackUsd);
+      }
+      function settle(kind, usage, fallbackUsd) {
+        if (kind === "image") return settleImage(usage, fallbackUsd);
+        if (kind === "vision") return settleVision(usage, fallbackUsd);
+        return settleText(usage, fallbackUsd);
+      }
+      function usageSummary(usage) {
+        var source = usage || {};
+        var details = source.input_tokens_details || source.prompt_tokens_details || {};
+        return {
+          promptTokens: Number(source.prompt_tokens) || 0,
+          completionTokens: Number(source.completion_tokens) || 0,
+          inputTokens: Number(source.input_tokens) || 0,
+          outputTokens: Number(source.output_tokens) || 0,
+          textTokens: Number(details.text_tokens) || 0,
+          imageTokens: Number(details.image_tokens) || 0,
+          cachedTokens: Number(details.cached_tokens) || 0
+        };
+      }
+      function quoteBook(characters, pages) {
+        var cast = Math.max(0, Number(characters) || 0);
+        var count = Number(pages) || 12;
+        var picture = imageExpected(cast);
+        var pictureBound = imageBound("", cast);
+        var check = VISION_EXPECTED_USD;
+        var checkBound = visionBound();
+        var expected = money(STORY_EXPECTED_USD + picture * count + check * count);
+        var upper = money(storyUpper() + pictureBound * (count + 1) + checkBound * (count + 1));
+        return {
+          characters: cast,
+          pages: count,
+          expectedUsd: expected,
+          upperUsd: upper,
+          repairUsd: money(picture + check),
+          repairUpperUsd: money(pictureBound + checkBound),
+          storyExpectedUsd: STORY_EXPECTED_USD,
+          storyUpperUsd: storyUpper(),
+          pictureExpectedUsd: picture,
+          pictureUpperUsd: pictureBound,
+          providerInvoiceCap: false
+        };
+      }
+      return {
+        TEXT,
+        VISION,
+        IMAGE,
+        IMAGE_INPUT_OBSERVED,
+        IMAGE_OUTPUT_OBSERVED,
+        IMAGE_INPUT_BOUND,
+        IMAGE_OUTPUT_BOUND,
+        MAX_BUDGET_USD,
+        STORY_EXPECTED_USD,
+        money,
+        textBound,
+        imageBound,
+        imageExpected,
+        visionBound,
+        storyUpper,
+        settle,
+        usageSummary,
+        quoteBook
+      };
+    });
+  }
+});
+
 // scripts/book/produce.js
 var require_produce = __commonJS({
   "scripts/book/produce.js"(exports, module) {
@@ -8681,6 +8836,7 @@ var require_produce = __commonJS({
     var Identity = require_book_v2_identity();
     var Shelf = require_book_v2_shelf();
     var Budget = require_book_v2_budget();
+    var Cost = require_book_v2_cost();
     var Hosted = require_hosted_job();
     function callsOf(source) {
       var used = source && source.calls || {};
@@ -8770,16 +8926,41 @@ var require_produce = __commonJS({
         reader: ""
       };
     }
-    function charge(calls, kind) {
-      var next = callsOf({ calls });
-      next[kind] += 1;
-      if (next.text > Budget.MAX_TEXT || next.image > Budget.MAX_IMAGE || next.vision > Budget.MAX_VISION) {
-        return { ok: false, reason: "call-cap", calls };
+    function snapshot(job) {
+      var copy = JSON.parse(JSON.stringify(job || {}));
+      var refs = copy.checkpoint && copy.checkpoint.references || {};
+      Object.keys(refs).forEach(function(id) {
+        if (refs[id]) delete refs[id].bytes;
+      });
+      return copy;
+    }
+    function unpackModel(out) {
+      if (out && typeof out === "object" && Object.prototype.hasOwnProperty.call(out, "value") && Object.prototype.hasOwnProperty.call(out, "usage")) {
+        return { value: out.value, usage: out.usage || null };
       }
-      if (Budget.price(next).usd > Budget.BUDGET_USD) {
-        return { ok: false, reason: "budget", calls };
+      return { value: out, usage: null };
+    }
+    function unpackImage(out) {
+      if (typeof out === "string") return { image: out, usage: null };
+      if (out && typeof out.image === "string") return { image: out.image, usage: out.usage || null };
+      return { image: "", usage: null };
+    }
+    function unpackVision(out) {
+      if (out && out.report) return { report: out.report, usage: out.usage || null };
+      return { report: out, usage: null };
+    }
+    function acceptedReference(accountId, entry) {
+      var id = String(entry && entry.characterId || "");
+      var file = String(entry && (entry.approvedReference || entry.portrait || entry.reference) || "");
+      if (!id || !file || file.indexOf("..") >= 0 || file.indexOf("\\") >= 0) return "";
+      if (id === "wondii-maya") return file.indexOf("maya-v1") >= 0 ? file : "";
+      if (id === "wondii-sofia") {
+        if (file.indexOf("maya-v1") >= 0 || file.indexOf("wondii-sofia") < 0) return "";
+        return file;
       }
-      return { ok: true, calls: next };
+      if (entry.source === "saved" || entry.privateArt === true) return Identity.ownedPortrait(accountId, id, file);
+      if (file.indexOf("maya-v1") >= 0 || file.indexOf(id) < 0) return "";
+      return file;
     }
     function visionReport(report, spread) {
       return Visual.acceptIllustration(report, spread);
@@ -8829,12 +9010,100 @@ var require_produce = __commonJS({
       if (!ports || typeof ports.callModel !== "function" || typeof ports.drawImage !== "function" || typeof ports.inspectImage !== "function") {
         return Promise.resolve(held(source, prior, gate, "writer-not-connected"));
       }
+      var budgetUsd = Number(ports && ports.budgetUsd);
+      if (!(budgetUsd > 0) || budgetUsd > Cost.MAX_BUDGET_USD) budgetUsd = Budget.BUDGET_USD;
       return Promise.resolve(jobs && jobs.claim ? jobs.claim(accountId, key) : { ok: true, prior }).then(function(claim) {
         if (!claim.ok) return held(source, claim.job || prior, gate, claim.reason || "already-running");
         prior = claim.prior || prior;
         var checkpoint = prior && prior.checkpoint || {};
         var calls = callsOf(prior);
+        var spend = checkpoint.spend || prior && prior.spend || { listedUsd: 0, entries: [] };
+        if (!Array.isArray(spend.entries)) spend.entries = [];
+        spend.listedUsd = Cost.money(spend.listedUsd);
+        spend.entries.forEach(function(entry) {
+          if (entry && entry.status === "reserved") entry.status = "uncertain";
+        });
+        checkpoint.spend = spend;
+        checkpoint.references = checkpoint.references || {};
+        checkpoint.pictures = checkpoint.pictures || {};
+        checkpoint.repairs = checkpoint.repairs || {};
         var attempts = (Number(prior && prior.attempts) || 0) + 1;
+        var live = jobFor(source, {
+          attempts,
+          calls,
+          generation: gate,
+          job: {
+            stage: prior && prior.stage || "story",
+            status: "running",
+            paid: calls.text + calls.image + calls.vision > 0,
+            started: true,
+            recoverable: true,
+            budgetUsd,
+            calls,
+            spend,
+            stages: markStages(prior && prior.stage || "story"),
+            reason: "running",
+            message: "The illustrated book is being made.",
+            reader: "",
+            checkpoint,
+            startedAt: Date.now()
+          }
+        });
+        function persist() {
+          live.calls = calls;
+          live.spend = spend;
+          live.checkpoint = checkpoint;
+          live.paid = calls.text + calls.image + calls.vision > 0;
+          live.startedAt = Date.now();
+          if (live.status !== "complete" && live.status !== "interrupted") live.status = "running";
+          return Promise.resolve(jobs && jobs.write ? jobs.write(accountId, key, snapshot(live)) : null);
+        }
+        function reserve(kind, upperUsd, meta) {
+          var next = callsOf({ calls });
+          next[kind] += 1;
+          if (next.text > Budget.MAX_TEXT || next.image > Budget.MAX_IMAGE || next.vision > Budget.MAX_VISION) {
+            return Promise.resolve({ ok: false, reason: "call-cap" });
+          }
+          var upper = Cost.money(upperUsd);
+          if (!(upper >= 0) || Cost.money(spend.listedUsd + upper) > budgetUsd) {
+            return Promise.resolve({ ok: false, reason: "budget" });
+          }
+          var entry = {
+            id: spend.entries.length + 1,
+            kind,
+            status: "reserved",
+            worstUsd: upper,
+            listedUsd: upper,
+            pageId: meta && meta.pageId || "",
+            purpose: meta && meta.purpose || kind
+          };
+          spend.entries.push(entry);
+          spend.listedUsd = Cost.money(spend.listedUsd + upper);
+          calls = next;
+          checkpoint.spend = spend;
+          if (kind === "text") live.stage = "story";
+          if (kind === "image") live.stage = "pictures";
+          if (kind === "vision") live.stage = "check";
+          return persist().then(function() {
+            return { ok: true, entry };
+          });
+        }
+        function settle(entry, kind, usage) {
+          var actual = Cost.settle(kind, usage, entry.worstUsd);
+          entry.listedUsd = actual;
+          entry.status = "settled";
+          entry.usage = Cost.usageSummary(usage);
+          spend.listedUsd = Cost.money(spend.entries.reduce(function(sum, row) {
+            return sum + (Number(row.listedUsd) || 0);
+          }, 0));
+          checkpoint.spend = spend;
+          return persist();
+        }
+        function uncertain(entry) {
+          if (entry && entry.status === "reserved") entry.status = "uncertain";
+          checkpoint.spend = spend;
+          return persist();
+        }
         function stop(stage, reason, message, art) {
           var job = jobFor(source, {
             attempts,
@@ -8846,7 +9115,9 @@ var require_produce = __commonJS({
               paid: calls.text + calls.image + calls.vision > 0,
               started: true,
               recoverable: true,
+              budgetUsd,
               calls,
+              spend,
               stages: markStages(stage).map(function(row) {
                 return row.id === stage ? Object.assign({}, row, { state: "blocked" }) : row;
               }),
@@ -8859,96 +9130,27 @@ var require_produce = __commonJS({
               checkpoint
             }
           });
-          if (jobs && jobs.write) jobs.write(accountId, key, job);
-          var out = held(source, null, gate, reason);
-          out.job = publicJob(job);
-          out.art = art || null;
-          return out;
+          live.status = "interrupted";
+          return Promise.resolve(jobs && jobs.write ? jobs.write(accountId, key, snapshot(job)) : null).then(function() {
+            var out = held(source, null, gate, reason);
+            out.job = publicJob(job);
+            out.art = art || null;
+            out.calls = calls;
+            out.spend = { listedUsd: spend.listedUsd, entries: spend.entries.map(function(entry) {
+              return { id: entry.id, kind: entry.kind, status: entry.status, listedUsd: entry.listedUsd, pageId: entry.pageId || "" };
+            }) };
+            return out;
+          });
         }
-        var planned = Adapter.planRequest(source);
-        if (!planned.ok) {
-          return Promise.resolve(stop("plan", "plan", planned.message || "The story plan could not start. Nothing was saved."));
-        }
-        var halt = "";
-        var bookPromise = checkpoint.story && checkpoint.story.status === "REVIEWABLE" && checkpoint.story.pages ? Promise.resolve(checkpoint.story) : Writer.generateBook(planned.request, {
-          callModel: function(brief, opts) {
-            var billed = charge(calls, "text");
-            if (!billed.ok) {
-              halt = billed.reason;
-              return Promise.resolve({ __error: billed.reason });
-            }
-            calls = billed.calls;
-            return ports.callModel(brief, opts);
-          },
-          model: ports.model || "gpt-6.1-sol"
-        });
-        return bookPromise.then(function(book) {
-          if (halt === "budget" || halt === "call-cap") {
-            return stop("story", halt, halt === "budget" ? "This book would cost more than its budget. Nothing more was started, and the book was not saved." : "This book would take more story calls than Wondii allows. The book was not saved.");
-          }
-          if (!book || book.status !== "REVIEWABLE" || !(book.pages || []).length) {
-            return stop("story", "story", "The story was not finished, so no pictures were drawn and nothing was saved.");
-          }
-          checkpoint.story = {
-            status: book.status,
-            bible: book.bible,
-            pages: book.pages,
-            textProblems: book.textProblems || [],
-            storyProblems: book.storyProblems || []
-          };
-          var pages = book.pages;
-          var registryBuilt = Identity.buildRegistry({
-            members: source.members || [],
-            savedReferences: source.savedReferences,
-            sharedCharacters: source.sharedCharacters,
-            storyCharacters: storyRows(book.bible),
-            accountId,
-            pages: pages.map(function(page) {
-              return { pageId: page.pageId, charactersPresent: page.charactersPresent || [] };
-            })
-          });
-          if (!registryBuilt.ok) {
-            return stop("story", "artwork", "A character reference could not be checked. Nothing was saved.");
-          }
-          var registry = registryBuilt.registry || [];
-          Identity.clearCache();
-          var wanted = {};
-          pages.forEach(function(page) {
-            (page.charactersPresent || []).forEach(function(id) {
-              wanted[id] = true;
-            });
-          });
-          var scenes = pages.map(function(page) {
-            return Identity.prepareScene(registry, page.charactersPresent || [], { ownerId: accountId });
-          });
-          if (scenes.some(function(scene) {
-            return scene.blocksGeneration;
-          })) {
-            var blocked = scenes.filter(function(scene) {
-              return scene.blocksGeneration;
-            })[0];
-            var who = (blocked.limitations || []).map(function(item) {
-              var id = String(item).split(":").pop();
-              return named(registry, id);
-            }).filter(Boolean)[0] || "A character";
-            return stop("pictures", "artwork", who + " needs their own portrait before pictures can be drawn. Nothing was saved.");
-          }
-          var files = [];
-          scenes.forEach(function(scene) {
-            (scene.files || []).forEach(function(file) {
-              if (!files.some(function(row) {
-                return row.characterId === file.characterId;
-              })) files.push(file);
-            });
-          });
-          checkpoint.references = checkpoint.references || {};
+        function fetchFiles(registry, files) {
           var references = checkpoint.references;
           var seen = {};
           Object.keys(references).forEach(function(id) {
             if (references[id] && references[id].bytes) seen[references[id].bytes] = id;
           });
-          var pending = files.filter(function(file) {
-            return !references[file.characterId];
+          var pending = (files || []).filter(function(file) {
+            var got = references[file.characterId];
+            return !got || !got.bytes;
           });
           return pending.reduce(function(chain, file) {
             return chain.then(function(problem) {
@@ -8956,15 +9158,10 @@ var require_produce = __commonJS({
               var entry = registry.filter(function(row) {
                 return row.characterId === file.characterId;
               })[0] || {};
-              var path = String(file.file || entry.reference || "");
-              var priv = file.privateArt === true || entry.privateArt === true || entry.source === "saved";
-              if (priv) {
-                var owned = Identity.ownedPortrait(accountId, file.characterId, path);
-                if (!owned) return named(registry, file.characterId) + " portrait";
-                path = owned;
-              } else if (!path || path.indexOf("..") >= 0 || path.indexOf("\\") >= 0) {
-                return named(registry, file.characterId) + " portrait";
-              }
+              if (entry.source === "story-generated") return "";
+              var path = acceptedReference(accountId, entry);
+              if (!path) return named(registry, file.characterId);
+              var priv = entry.privateArt === true || entry.source === "saved";
               return Promise.resolve(ports.fetchReference({
                 accountId,
                 characterId: file.characterId,
@@ -8980,184 +9177,323 @@ var require_produce = __commonJS({
               });
             });
           }, Promise.resolve("")).then(function(problem) {
-            if (problem) {
-              return stop("pictures", "artwork", problem + " needs their own portrait before pictures can be drawn. Nothing was saved.");
-            }
             checkpoint.references = references;
-            var directed = Art.directBook({
-              tone: planned.request && planned.request.tone,
-              pages: pages.map(function(page) {
-                return {
-                  text: page.prose || page.text || "",
-                  phase: page.narrativePhase || page.phase || "",
-                  shot: page.shotType || page.shot || "",
-                  characters: page.charactersPresent || [],
-                  emotion: page.emotion || ""
-                };
-              })
-            });
-            var artCheck = Art.checkBook({
-              pages: pages.map(function(page) {
-                return { text: page.prose || page.text || "" };
-              })
-            }, directed);
-            var artBlocking = (artCheck.issues || []).filter(function(issue) {
-              return issue.indexOf("text-room:") !== 0;
-            });
-            if (artBlocking.length) {
-              return stop("art", "art", "The page layouts were not ready, so no pictures were drawn and nothing was saved.", directed);
-            }
-            var contracts = Visual.contractsFor(book.bible, pages, {});
-            var lineup = contracts.visualBible.bookCast && contracts.visualBible.bookCast.members || [];
-            checkpoint.pictures = checkpoint.pictures || {};
-            checkpoint.repairs = checkpoint.repairs || {};
-            var pictures = checkpoint.pictures;
-            var repairs = checkpoint.repairs;
-            return (contracts.spreads || []).reduce(function(chain, spread, index) {
-              return chain.then(function(failed) {
-                if (failed) return failed;
-                var page = pages[index];
-                var pageId = page.pageId || spread.spreadId;
-                if (pictures[pageId] && pictures[pageId].accepted) return "";
-                var note = directed.pages[index] && directed.pages[index].promptNote;
-                if (note) spread.compositionNote = note;
-                var prompt = Visual.spreadPrompt(book.bible, spread, lineup);
-                var refs = (spread.charactersPresent || []).map(function(id) {
-                  return references[id] ? { characterId: id, file: references[id].file, bytes: references[id].bytes } : null;
-                }).filter(Boolean);
-                function draw(kind) {
-                  var billed = charge(calls, "image");
-                  if (!billed.ok) return Promise.reject(Object.assign(new Error(billed.reason), { code: billed.reason }));
-                  calls = billed.calls;
-                  return Promise.resolve(ports.drawImage({
-                    pageId,
-                    prompt: kind === "repair" ? Visual.repairPrompt(book.bible, spread, lineup) : prompt,
-                    references: refs,
-                    repair: kind === "repair"
-                  }));
-                }
-                function inspect(image) {
-                  var billed = charge(calls, "vision");
-                  if (!billed.ok) return Promise.reject(Object.assign(new Error(billed.reason), { code: billed.reason }));
-                  calls = billed.calls;
-                  return Promise.resolve(ports.inspectImage({ pageId, image, spread })).then(function(report) {
-                    return { image, report, verdict: visionReport(report, spread) };
-                  });
-                }
-                return draw("new").then(inspect).then(function(first) {
-                  if (first.verdict.ok) return first;
-                  if ((repairs[pageId] || 0) >= Visual.MAX_VISUAL_REPAIRS) return first;
-                  repairs[pageId] = (repairs[pageId] || 0) + 1;
-                  return draw("repair").then(inspect);
-                }).then(function(checked) {
-                  if (!checked.verdict.ok) return pageId;
-                  var stored = ports.storePicture ? ports.storePicture({
-                    accountId,
-                    creationKey: key,
-                    pageId,
-                    dataUrl: checked.image
-                  }) : checked.image;
-                  return Promise.resolve(stored).then(function(saved) {
-                    var url = String(saved || "");
-                    if (url.indexOf("data:image/") !== 0) return pageId;
-                    pictures[pageId] = { accepted: true, dataUrl: url, report: checked.report };
-                    page.imageDataUrl = url;
-                    return "";
+            return problem;
+          });
+        }
+        function portraitStop(who) {
+          return stop("pictures", "artwork", who + " needs their own portrait before pictures can be drawn. Nothing was saved.");
+        }
+        return persist().then(function() {
+          var planned = Adapter.planRequest(source);
+          if (!planned.ok) {
+            return stop("plan", "plan", planned.message || "The story plan could not start. Nothing was saved.");
+          }
+          var selectedBuilt = Identity.buildRegistry({
+            members: source.members || [],
+            savedReferences: source.savedReferences,
+            sharedCharacters: source.sharedCharacters,
+            storyCharacters: [],
+            accountId,
+            pages: []
+          });
+          if (!selectedBuilt.ok) {
+            var problemId = String((selectedBuilt.problems || [])[0] || "").split(":").pop();
+            return portraitStop(named(selectedBuilt.registry, problemId) || "A character");
+          }
+          var selectedFiles = (selectedBuilt.selected || []).map(function(entry) {
+            return { characterId: entry.characterId };
+          });
+          return fetchFiles(selectedBuilt.registry, selectedFiles).then(function(missing) {
+            if (missing) return portraitStop(missing);
+            return persist();
+          }).then(function(stopped) {
+            if (stopped && stopped.job) return stopped;
+            var halt = "";
+            var bookPromise = checkpoint.story && checkpoint.story.status === "REVIEWABLE" && checkpoint.story.pages ? Promise.resolve(checkpoint.story) : Writer.generateBook(planned.request, {
+              callModel: function(brief, opts) {
+                var upper = Cost.textBound(brief, opts && opts.maxTokens);
+                return reserve("text", upper, { purpose: opts && opts.purpose || "story" }).then(function(heldCall) {
+                  if (!heldCall.ok) {
+                    halt = heldCall.reason;
+                    return { __error: heldCall.reason };
+                  }
+                  return Promise.resolve(ports.callModel(brief, opts)).then(function(out) {
+                    var unpacked = unpackModel(out);
+                    return settle(heldCall.entry, "text", unpacked.usage).then(function() {
+                      return unpacked.value;
+                    });
+                  }, function(error) {
+                    return uncertain(heldCall.entry).then(function() {
+                      throw error;
+                    });
                   });
                 });
-              });
-            }, Promise.resolve("")).then(function(failed) {
-              checkpoint.pictures = pictures;
-              checkpoint.repairs = repairs;
-              if (failed) {
-                return stop("check", "picture", "A picture did not pass its check, so the book was not saved and no story allowance was used.", directed);
+              },
+              model: ports.model || "gpt-6.1-sol"
+            });
+            return bookPromise.then(function(book) {
+              if (halt === "budget" || halt === "call-cap") {
+                return stop("story", halt, halt === "budget" ? "This book would cost more than its budget. Nothing more was started, and the book was not saved." : "This book would take more story calls than Wondii allows. The book was not saved.");
               }
-              var consistency = Visual.characterConsistencyCheckpoint(pages.map(function(page, index) {
-                var shot = pictures[page.pageId];
-                return {
-                  page: index + 1,
-                  characters: shot && shot.report && shot.report.characters || []
-                };
-              }), { humanApproved: false });
-              if (consistency.problems.length) {
-                return stop("check", "picture", "A character did not match their own portrait, so the book was not saved.", directed);
+              if (!book || book.status !== "REVIEWABLE" || !(book.pages || []).length) {
+                return stop("story", "story", "The story was not finished, so no pictures were drawn and nothing was saved.");
               }
-              var result = {
-                status: "REVIEWABLE",
-                illustrationStyle: "wondii-picture-book",
+              checkpoint.story = {
+                status: book.status,
                 bible: book.bible,
-                pages,
+                pages: book.pages,
                 textProblems: book.textProblems || [],
                 storyProblems: book.storyProblems || []
               };
-              var saved = Shelf.commitBook({
-                result,
-                owner: {
-                  userId: accountId,
-                  accountKind: source.accountKind === "child" ? "child" : "adult",
-                  childId: source.accountKind === "child" ? source.childId : ""
-                },
-                creationKey: key
-              }, { store, allowance: ports.allowance });
-              if (!saved.ok || !saved.book) {
-                return stop("save", saved.reason || "save", "The book could not be saved. No story allowance was used.", directed);
-              }
-              saved.book.generated = true;
-              saved.book.recordKind = "book";
-              saved.book.openable = true;
-              saved.book.savedAt = (/* @__PURE__ */ new Date()).toISOString();
-              if (store.writeShelf) {
-                var list = store.readShelf(accountId) || [];
-                store.writeShelf(accountId, list.map(function(item) {
-                  return item && item.id === saved.book.id ? saved.book : item;
-                }));
-              }
-              var done = jobFor(source, {
-                attempts,
-                calls,
-                generation: gate,
-                job: {
-                  stage: "read",
-                  status: "complete",
-                  paid: true,
-                  started: true,
-                  recoverable: false,
-                  calls,
-                  stages: markStages("read", true),
-                  reason: "saved",
-                  message: "The illustrated book is ready.",
-                  layouts: directed.pages.map(function(page) {
-                    return page.layout;
-                  }),
-                  reader: saved.reader || "",
-                  checkpoint: { story: checkpoint.story, pictures: Object.keys(pictures) }
-                }
+              var pages = book.pages;
+              var registryBuilt = Identity.buildRegistry({
+                members: source.members || [],
+                savedReferences: source.savedReferences,
+                sharedCharacters: source.sharedCharacters,
+                storyCharacters: storyRows(book.bible),
+                accountId,
+                pages: pages.map(function(page) {
+                  return { pageId: page.pageId, charactersPresent: page.charactersPresent || [] };
+                })
               });
-              if (jobs && jobs.write) jobs.write(accountId, key, done);
-              return {
-                ok: true,
-                ran: true,
-                duplicate: false,
-                reason: "saved",
-                job: publicJob(done),
-                generation: gate,
-                book: saved.book,
-                reader: saved.reader || "",
-                art: directed,
-                claimed: saved.claimed === true,
-                references: Object.keys(references).map(function(id) {
-                  return { characterId: id, file: references[id].file };
-                }),
-                calls
-              };
+              if (!registryBuilt.ok) {
+                return stop("story", "artwork", "A character reference could not be checked. Nothing was saved.");
+              }
+              var registry = registryBuilt.registry || [];
+              Identity.clearCache();
+              var wanted = {};
+              pages.forEach(function(page) {
+                (page.charactersPresent || []).forEach(function(id) {
+                  wanted[id] = true;
+                });
+              });
+              var scenes = pages.map(function(page) {
+                return Identity.prepareScene(registry, page.charactersPresent || [], { ownerId: accountId });
+              });
+              if (scenes.some(function(scene) {
+                return scene.blocksGeneration;
+              })) {
+                var blocked = scenes.filter(function(scene) {
+                  return scene.blocksGeneration;
+                })[0];
+                var who = (blocked.limitations || []).map(function(item) {
+                  var id = String(item).split(":").pop();
+                  return named(registry, id);
+                }).filter(Boolean)[0] || "A character";
+                return stop("pictures", "artwork", who + " needs their own portrait before pictures can be drawn. Nothing was saved.");
+              }
+              var files = [];
+              scenes.forEach(function(scene) {
+                (scene.files || []).forEach(function(file) {
+                  if (!files.some(function(row) {
+                    return row.characterId === file.characterId;
+                  })) files.push(file);
+                });
+              });
+              var references = checkpoint.references;
+              return fetchFiles(registry, files).then(function(problem) {
+                if (problem) {
+                  return stop("pictures", "artwork", problem + " needs their own portrait before pictures can be drawn. Nothing was saved.");
+                }
+                checkpoint.references = references;
+                var directed = Art.directBook({
+                  tone: planned.request && planned.request.tone,
+                  pages: pages.map(function(page) {
+                    return {
+                      text: page.prose || page.text || "",
+                      phase: page.narrativePhase || page.phase || "",
+                      shot: page.shotType || page.shot || "",
+                      characters: page.charactersPresent || [],
+                      emotion: page.emotion || ""
+                    };
+                  })
+                });
+                var artCheck = Art.checkBook({
+                  pages: pages.map(function(page) {
+                    return { text: page.prose || page.text || "" };
+                  })
+                }, directed);
+                var artBlocking = (artCheck.issues || []).filter(function(issue) {
+                  return issue.indexOf("text-room:") !== 0;
+                });
+                if (artBlocking.length) {
+                  return stop("art", "art", "The page layouts were not ready, so no pictures were drawn and nothing was saved.", directed);
+                }
+                var contracts = Visual.contractsFor(book.bible, pages, {});
+                var lineup = contracts.visualBible.bookCast && contracts.visualBible.bookCast.members || [];
+                checkpoint.pictures = checkpoint.pictures || {};
+                checkpoint.repairs = checkpoint.repairs || {};
+                var pictures = checkpoint.pictures;
+                var repairs = checkpoint.repairs;
+                return (contracts.spreads || []).reduce(function(chain, spread, index) {
+                  return chain.then(function(failed) {
+                    if (failed) return failed;
+                    var page = pages[index];
+                    var pageId = page.pageId || spread.spreadId;
+                    if (pictures[pageId] && pictures[pageId].accepted) return "";
+                    var note = directed.pages[index] && directed.pages[index].promptNote;
+                    if (note) spread.compositionNote = note;
+                    var prompt = Visual.spreadPrompt(book.bible, spread, lineup);
+                    var refs = (spread.charactersPresent || []).map(function(id) {
+                      return references[id] ? { characterId: id, file: references[id].file, bytes: references[id].bytes } : null;
+                    }).filter(Boolean);
+                    function draw(kind) {
+                      var picturePrompt = kind === "repair" ? Visual.repairPrompt(book.bible, spread, lineup) : prompt;
+                      return reserve("image", Cost.imageBound(picturePrompt, refs.length), { pageId, purpose: kind }).then(function(heldCall) {
+                        if (!heldCall.ok) return Promise.reject(Object.assign(new Error(heldCall.reason), { code: heldCall.reason }));
+                        return Promise.resolve(ports.drawImage({
+                          pageId,
+                          prompt: picturePrompt,
+                          references: refs,
+                          repair: kind === "repair"
+                        })).then(function(out) {
+                          var unpacked = unpackImage(out);
+                          return settle(heldCall.entry, "image", unpacked.usage).then(function() {
+                            return unpacked.image;
+                          });
+                        }, function(error) {
+                          return uncertain(heldCall.entry).then(function() {
+                            throw error;
+                          });
+                        });
+                      });
+                    }
+                    function inspect(image) {
+                      return reserve("vision", Cost.visionBound(), { pageId, purpose: "check" }).then(function(heldCall) {
+                        if (!heldCall.ok) return Promise.reject(Object.assign(new Error(heldCall.reason), { code: heldCall.reason }));
+                        return Promise.resolve(ports.inspectImage({ pageId, image, spread })).then(function(out) {
+                          var unpacked = unpackVision(out);
+                          return settle(heldCall.entry, "vision", unpacked.usage).then(function() {
+                            return { image, report: unpacked.report, verdict: visionReport(unpacked.report, spread) };
+                          });
+                        }, function(error) {
+                          return uncertain(heldCall.entry).then(function() {
+                            throw error;
+                          });
+                        });
+                      });
+                    }
+                    return draw("new").then(inspect).then(function(first) {
+                      if (first.verdict.ok) return first;
+                      if ((repairs[pageId] || 0) >= Visual.MAX_VISUAL_REPAIRS) return first;
+                      repairs[pageId] = (repairs[pageId] || 0) + 1;
+                      return draw("repair").then(inspect);
+                    }).then(function(checked) {
+                      if (!checked.verdict.ok) return pageId;
+                      var stored = ports.storePicture ? ports.storePicture({
+                        accountId,
+                        creationKey: key,
+                        pageId,
+                        dataUrl: checked.image
+                      }) : checked.image;
+                      return Promise.resolve(stored).then(function(saved) {
+                        var url = String(saved || "");
+                        if (url.indexOf("data:image/") !== 0) return pageId;
+                        pictures[pageId] = { accepted: true, dataUrl: url, report: checked.report };
+                        page.imageDataUrl = url;
+                        return "";
+                      });
+                    });
+                  });
+                }, Promise.resolve("")).then(function(failed) {
+                  checkpoint.pictures = pictures;
+                  checkpoint.repairs = repairs;
+                  if (failed) {
+                    return stop("check", "picture", "A picture did not pass its check, so the book was not saved and no story allowance was used.", directed);
+                  }
+                  var consistency = Visual.characterConsistencyCheckpoint(pages.map(function(page, index) {
+                    var shot = pictures[page.pageId];
+                    return {
+                      page: index + 1,
+                      characters: shot && shot.report && shot.report.characters || []
+                    };
+                  }), { humanApproved: false });
+                  if (consistency.problems.length) {
+                    return stop("check", "picture", "A character did not match their own portrait, so the book was not saved.", directed);
+                  }
+                  var result = {
+                    status: "REVIEWABLE",
+                    illustrationStyle: "wondii-picture-book",
+                    bible: book.bible,
+                    pages,
+                    textProblems: book.textProblems || [],
+                    storyProblems: book.storyProblems || []
+                  };
+                  var saved = Shelf.commitBook({
+                    result,
+                    owner: {
+                      userId: accountId,
+                      accountKind: source.accountKind === "child" ? "child" : "adult",
+                      childId: source.accountKind === "child" ? source.childId : ""
+                    },
+                    creationKey: key
+                  }, { store, allowance: ports.allowance });
+                  if (!saved.ok || !saved.book) {
+                    return stop("save", saved.reason || "save", "The book could not be saved. No story allowance was used.", directed);
+                  }
+                  saved.book.generated = true;
+                  saved.book.recordKind = "book";
+                  saved.book.openable = true;
+                  saved.book.savedAt = (/* @__PURE__ */ new Date()).toISOString();
+                  if (store.writeShelf) {
+                    var list = store.readShelf(accountId) || [];
+                    store.writeShelf(accountId, list.map(function(item) {
+                      return item && item.id === saved.book.id ? saved.book : item;
+                    }));
+                  }
+                  var done = jobFor(source, {
+                    attempts,
+                    calls,
+                    generation: gate,
+                    job: {
+                      stage: "read",
+                      status: "complete",
+                      paid: true,
+                      started: true,
+                      recoverable: false,
+                      budgetUsd,
+                      calls,
+                      spend,
+                      stages: markStages("read", true),
+                      reason: "saved",
+                      message: "The illustrated book is ready.",
+                      layouts: directed.pages.map(function(page) {
+                        return page.layout;
+                      }),
+                      reader: saved.reader || "",
+                      checkpoint: { story: checkpoint.story, pictures: Object.keys(pictures), spend }
+                    }
+                  });
+                  return Promise.resolve(jobs && jobs.write ? jobs.write(accountId, key, snapshot(done)) : null).then(function() {
+                    return {
+                      ok: true,
+                      ran: true,
+                      duplicate: false,
+                      reason: "saved",
+                      job: publicJob(done),
+                      generation: gate,
+                      book: saved.book,
+                      reader: saved.reader || "",
+                      art: directed,
+                      claimed: saved.claimed === true,
+                      references: Object.keys(references).map(function(id) {
+                        return { characterId: id, file: references[id].file };
+                      }),
+                      calls,
+                      spend
+                    };
+                  });
+                });
+              });
+            }).catch(function(error) {
+              var code = error && error.code || "story";
+              var stage = checkpoint.story ? "pictures" : "story";
+              if (code === "budget" || code === "call-cap") stage = "pictures";
+              var message = code === "budget" ? "This book would cost more than its budget. Nothing more was started, and the book was not saved." : code === "call-cap" ? "This book would take more picture checks than Wondii allows. The book was not saved." : "The story stopped before it was finished. Nothing was saved.";
+              return stop(stage, code, message);
             });
           });
-        }).catch(function(error) {
-          var code = error && error.code || "story";
-          var stage = checkpoint.story ? "pictures" : "story";
-          if (code === "budget" || code === "call-cap") stage = "pictures";
-          var message = code === "budget" ? "This book would cost more than its budget. Nothing more was started, and the book was not saved." : code === "call-cap" ? "This book would take more picture checks than Wondii allows. The book was not saved." : "The story stopped before it was finished. Nothing was saved.";
-          return stop(stage, code, message);
         });
       });
     }

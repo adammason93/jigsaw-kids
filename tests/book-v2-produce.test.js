@@ -242,7 +242,10 @@ var provider = fs.readFileSync(path.join(root, "supabase/functions/book-v2/provi
 var produceSource = fs.readFileSync(path.join(root, "scripts/book/produce.js"), "utf8");
 assert.ok(edge.indexOf("OPENAI") < 0);
 assert.ok(edge.indexOf("api.openai.com") < 0);
-assert.ok(edge.indexOf('BOOK_V2_PAID_TEST") === "approved"') >= 0);
+assert.ok(edge.indexOf("BOOK_V2_PAID_TEST") < 0);
+assert.ok(edge.indexOf("BOOK_V2_PAID_ACCOUNT") >= 0);
+assert.ok(edge.indexOf("BOOK_V2_PAID_STORY") >= 0);
+assert.ok(edge.indexOf("paidJobAllowed") >= 0);
 assert.ok(edge.indexOf('import("./provider.mjs")') >= 0);
 assert.ok(provider.indexOf("OPENAI_API_KEY") >= 0);
 assert.ok(provider.indexOf("https://api.openai.com/v1/chat/completions") >= 0);

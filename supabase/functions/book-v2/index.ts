@@ -2,10 +2,12 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import handle from "./handle.mjs";
 import { readPublishableKey } from "../_shared/service-key.mjs";
+import { paidJobAllowed } from "./allow.mjs";
 
 /* Book V2. The bundled handler plans a story without a provider key.
-   Paid writing runs only when BOOK_V2_PAID_TEST is exactly "approved",
-   and only then through provider.mjs. That switch is not set. */
+   Paid writing needs three server secrets: one adult account, one story
+   key, and a budget. Empty secrets keep every account on the unpaid path.
+   A browser request cannot set those secrets. */
 
 function allowedOrigin(req: Request): string {
   const origin = req.headers.get("origin") || "";
@@ -84,15 +86,30 @@ Deno.serve(async (req) => {
     body.childPermitted = false;
     body.allowanceReserved = false;
   }
-  const paidTest = Deno.env.get("BOOK_V2_PAID_TEST") === "approved";
+  const paid = paidJobAllowed({
+    accountId: user.id,
+    accountKind: user.accountKind,
+    creationKey: body.creationKey,
+    secrets: {
+      accountId: Deno.env.get("BOOK_V2_PAID_ACCOUNT") || "",
+      creationKey: Deno.env.get("BOOK_V2_PAID_STORY") || "",
+      budgetUsd: Deno.env.get("BOOK_V2_PAID_BUDGET_USD") || ""
+    }
+  });
   let ports: Record<string, unknown> | undefined;
-  if (paidTest) {
+  if (paid.ok) {
     const provider = await import("./provider.mjs");
-    ports = await provider.portsFor(req, user.id);
+    ports = await provider.portsFor(req, {
+      accountId: user.id,
+      accountKind: user.accountKind,
+      creationKey: String(body.creationKey || ""),
+      budgetUsd: paid.budgetUsd
+    });
+    if (!ports || ports.approved !== true) ports = undefined;
   }
   const result = await Promise.resolve(handle.handleBookV2(body, ports));
   if (ports && typeof ports.finish === "function") {
-    try { await ports.finish(); } catch (_error) { /* the job record stays in memory for this request only */ }
+    try { await ports.finish(); } catch (_error) { /* pictures already stored stay on the job record */ }
   }
   const planned = result.body && typeof result.body === "object" ? result.body as Record<string, unknown> : {};
   const userId = user.id;

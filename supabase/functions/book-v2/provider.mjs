@@ -1,11 +1,13 @@
-/* Server-only Book V2 providers. Imported only when BOOK_V2_PAID_TEST is
-   approved. The website never receives the provider key. This file calls the
-   same story, picture, and vision endpoints already used by generate.js and
-   visual-proof.js. It does not start a run by itself. */
+/* Server-only Book V2 providers. Imported only after allow.mjs accepts one
+   adult account and one story key. The website never receives the provider
+   key. This file calls the same story, picture, and vision endpoints already
+   used by generate.js and visual-proof.js. It does not start a run by itself. */
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { readPublishableKey } from "../_shared/service-key.mjs";
 import { claimDecision } from "../clever-service/generation-allowance.mjs";
+import { paidJobAllowed } from "./allow.mjs";
+import { claimGate, confirmLease, LEASE_MS } from "./lease.mjs";
 
 const TEXT_MODEL = "gpt-6.1-sol";
 const IMAGE_MODEL = "gpt-image-2.5-sunburst";
@@ -129,7 +131,7 @@ async function callModel(key, brief, opts) {
   const payload = await res.json();
   if (!res.ok) throw new Error("story");
   const content = payload && payload.choices && payload.choices[0] && payload.choices[0].message && payload.choices[0].message.content || "";
-  return JSON.parse(content);
+  return { value: JSON.parse(content), usage: payload && payload.usage || null };
 }
 
 async function drawImage(key, input) {
@@ -172,7 +174,7 @@ async function drawImage(key, input) {
   const payload = await res.json();
   const b64 = payload && payload.data && payload.data[0] && payload.data[0].b64_json;
   if (!res.ok || !b64) throw new Error("picture");
-  return "data:image/jpeg;base64," + b64;
+  return { image: "data:image/jpeg;base64," + b64, usage: payload && payload.usage || null };
 }
 
 async function inspectImage(key, input) {
@@ -196,10 +198,31 @@ async function inspectImage(key, input) {
   const payload = await res.json();
   if (!res.ok) throw new Error("check");
   const content = payload && payload.choices && payload.choices[0] && payload.choices[0].message && payload.choices[0].message.content || "";
-  return JSON.parse(content);
+  return { report: JSON.parse(content), usage: payload && payload.usage || null };
 }
 
-export async function portsFor(req, accountId) {
+function slimJob(job) {
+  const copy = JSON.parse(JSON.stringify(job || {}));
+  const refs = copy.checkpoint && copy.checkpoint.references || {};
+  Object.keys(refs).forEach(function (id) {
+    if (refs[id]) delete refs[id].bytes;
+  });
+  return copy;
+}
+
+export async function portsFor(req, grant) {
+  const accountId = String(grant && grant.accountId || "");
+  const allowed = paidJobAllowed({
+    accountId: accountId,
+    accountKind: grant && grant.accountKind,
+    creationKey: grant && grant.creationKey,
+    secrets: {
+      accountId: Deno.env.get("BOOK_V2_PAID_ACCOUNT") || "",
+      creationKey: Deno.env.get("BOOK_V2_PAID_STORY") || "",
+      budgetUsd: Deno.env.get("BOOK_V2_PAID_BUDGET_USD") || ""
+    }
+  });
+  if (!allowed.ok) return { approved: false };
   const key = String(Deno.env.get("OPENAI_API_KEY") || "");
   if (!key || !accountId) return { approved: false };
   const base = String(Deno.env.get("SUPABASE_URL") || "");
@@ -219,9 +242,11 @@ export async function portsFor(req, accountId) {
     auth: { persistSession: false, autoRefreshToken: false },
     global: { headers: { Authorization: "Bearer " + token } }
   });
+  const budgetUsd = allowed.budgetUsd;
   return {
     approved: true,
     model: TEXT_MODEL,
+    budgetUsd: budgetUsd,
     store: store,
     jobs: {
       read: async function (userId, creationKey) {
@@ -232,13 +257,30 @@ export async function portsFor(req, accountId) {
         if (prior) jobs.write(userId, creationKey, prior);
         return prior;
       },
-      write: function (userId, creationKey, job) { jobs.write(userId, creationKey, job); },
+      write: async function (userId, creationKey, job) {
+        if (userId !== accountId || !creationKey) return;
+        const stored = slimJob(job);
+        jobs.write(userId, creationKey, stored);
+        await writeJson(base, publishable, token, accountId + "/storybook/jobs/" + creationKey + ".json", stored);
+      },
       claim: async function (userId, creationKey) {
-        if (!jobs.read(userId, creationKey)) {
-          const prior = await readJson(base, publishable, token, accountId + "/storybook/jobs/" + creationKey + ".json");
-          if (prior) jobs.write(userId, creationKey, prior);
-        }
-        return jobs.claim(userId, creationKey);
+        if (userId !== accountId) return { ok: false, reason: "wrong-account", job: null };
+        const prior = await readJson(base, publishable, token, accountId + "/storybook/jobs/" + creationKey + ".json");
+        const gate = claimGate(prior, Date.now(), LEASE_MS);
+        if (!gate.ok) return { ok: false, reason: gate.reason, job: prior };
+        const lease = crypto.randomUUID();
+        const claimed = Object.assign({}, prior || {}, {
+          status: "running",
+          startedAt: Date.now(),
+          lease: lease,
+          accountId: accountId,
+          creationKey: creationKey
+        });
+        await writeJson(base, publishable, token, accountId + "/storybook/jobs/" + creationKey + ".json", slimJob(claimed));
+        const check = await readJson(base, publishable, token, accountId + "/storybook/jobs/" + creationKey + ".json");
+        if (!confirmLease(check, lease)) return { ok: false, reason: "already-running", job: check };
+        jobs.write(userId, creationKey, check);
+        return { ok: true, prior: prior || null };
       }
     },
     allowance: {
@@ -259,6 +301,9 @@ export async function portsFor(req, accountId) {
         if (!res.ok) return { ok: false, reason: "missing" };
         return { ok: true, bytes: await encoded(res) };
       }
+      if (characterId === "wondii-maya" && file.indexOf("maya-v1") < 0) return { ok: false, reason: "wrong-artwork" };
+      if (characterId !== "wondii-maya" && file.indexOf("maya-v1") >= 0) return { ok: false, reason: "wrong-artwork" };
+      if (characterId === "wondii-sofia" && file.indexOf("wondii-sofia") < 0) return { ok: false, reason: "wrong-artwork" };
       if (!crewPath(file)) return { ok: false, reason: "wrong-artwork" };
       const res = await fetch("https://wondii.co.uk/" + file.replace(/^\/+/, ""));
       if (!res.ok) return { ok: false, reason: "missing" };
