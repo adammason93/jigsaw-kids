@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#7c3aed" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Snap — Wondii</title>
+  <link rel="manifest" href="../manifest.json" />
+  <link rel="stylesheet" href="../js/kids-core.css" />
+  <link rel="stylesheet" href="../js/game-scorecard.css" />
+  <link rel="stylesheet" href="snap.css" />
+  <link rel="stylesheet" href="../tablet-ipad.css" />
+  <link rel="stylesheet" href="wondii-shell.css?v=4" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/wondii-tokens.css?v=2" />
+  <link rel="stylesheet" href="../css/wondii-p1.css?v=9" />
+</head>
+<body class="page-snap">
+  <div class="app" id="app">
+    <nav class="game-nav" aria-label="Breadcrumb">
+      <a class="back-link back-btn" href="../portal.html" aria-label="Back to all games"><span class="back-btn__icon" aria-hidden="true">&#8592;</span><span class="back-btn__text">Back</span></a>
+    </nav>
+
+    <div id="screenSetup" class="snap-screen">
+      <header class="snap-header">
+        <h1>Snap</h1>
+        <p class="snap-header__tagline">
+          <strong>First to 100 cards wins.</strong> Tap the floating <strong class="snap-header__q">?</strong> for how to play.
+        </p>
+      </header>
+
+      <section class="gsc" aria-labelledby="snapscTitle">
+        <h2 id="snapscTitle" class="gsc__title">Score card</h2>
+        <p class="gsc__hint" id="snapscHint" hidden>
+          Counts <strong>full games</strong> (first to 100 cards). Saved on this device — copy/paste to move.
+        </p>
+        <div class="gsc__grid gsc__grid--cols2">
+          <div class="gsc__block">
+            <h3 class="gsc__block-title">Two players</h3>
+            <ul class="gsc__list">
+              <li><span class="gsc__label">Player 1 won</span> <strong id="snapscP1">0</strong></li>
+              <li><span class="gsc__label">Player 2 won</span> <strong id="snapscP2">0</strong></li>
+            </ul>
+          </div>
+          <div class="gsc__block">
+            <h3 class="gsc__block-title">vs computer</h3>
+            <ul class="gsc__list">
+              <li><span class="gsc__label">You won</span> <strong id="snapscYou">0</strong></li>
+              <li><span class="gsc__label">Computer won</span> <strong id="snapscCpu">0</strong></li>
+            </ul>
+          </div>
+        </div>
+        <div class="gsc__actions">
+          <button type="button" class="gsc__btn" id="snapscCopy">Copy scores</button>
+          <button type="button" class="gsc__btn" id="snapscPaste">Paste scores</button>
+          <button type="button" class="gsc__btn gsc__btn--danger" id="snapscReset">Reset scores</button>
+        </div>
+      </section>
+
+      <section class="snap-card snap-card--setup" aria-labelledby="lblMode">
+        <h2 id="lblMode">How do you want to play?</h2>
+        <div class="snap-choice-row" role="group" aria-label="Game mode">
+          <label class="snap-radio">
+            <input type="radio" name="snapMode" value="friend" checked />
+            <span class="snap-radio__title">Two players</span>
+            <span class="snap-radio__hint">One Snap! on the left, one on the right — on one screen</span>
+          </label>
+          <label class="snap-radio">
+            <input type="radio" name="snapMode" value="cpu" />
+            <span class="snap-radio__title">Play the computer</span>
+            <span class="snap-radio__hint">You play on one side, the computer uses the other</span>
+          </label>
+        </div>
+        <h3 class="snap-setup-sub" id="lblChars">Choose your characters</h3>
+        <p class="snap-setup-note" id="snapCharLede">
+          Tap a face for each side. During play they sit above your Snap! button with your card count.
+        </p>
+        <div class="snap-char-block">
+          <p class="snap-char-heading" id="headingCharP1">Player 1 (left)</p>
+          <div class="snap-char-row" id="charRowP1" role="group" aria-labelledby="headingCharP1"></div>
+        </div>
+        <div class="snap-char-block" id="snapCharBlockP2">
+          <p class="snap-char-heading" id="headingCharP2">Player 2 (right)</p>
+          <div class="snap-char-row" id="charRowP2" role="group" aria-labelledby="headingCharP2"></div>
+        </div>
+        <h3 class="snap-setup-sub" id="lblSeat">Which side is yours?</h3>
+        <div class="snap-choice-row snap-choice-row--seat" role="group" aria-labelledby="lblSeat">
+          <label class="snap-radio">
+            <input type="radio" name="snapSeat" value="1" checked />
+            <span class="snap-radio__title">Left — Player 1</span>
+            <span class="snap-radio__hint">The blue side 👈</span>
+          </label>
+          <label class="snap-radio">
+            <input type="radio" name="snapSeat" value="2" />
+            <span class="snap-radio__title">Right — Player 2</span>
+            <span class="snap-radio__hint">The pink side</span>
+          </label>
+        </div>
+        <p class="snap-setup-note" id="snapSeatNote">
+          Say who is holding the screen: that person uses that Snap! button. Against the computer, you play
+          that side; the other side is the computer.
+        </p>
+        <button type="button" class="snap-btn snap-btn--primary" id="btnStart">Start game</button>
+      </section>
+    </div>
+
+    <div id="screenPlay" class="snap-screen snap-screen--play is-hidden" hidden>
+      <p class="snap-mode-line" id="modeLine" aria-live="polite">Two players</p>
+      <p class="snap-goal" id="snapGoalLine">First to 100 cards wins the game.</p>
+      <p class="snap-status" id="statusLine" role="status" aria-live="polite">Flip to begin — cute animals ahead!</p>
+
+      <div class="snap-arena" aria-label="Snap table">
+        <div class="snap-pillar snap-pillar--p1">
+          <div class="snap-pillar__hud snap-pillar__hud--p1" aria-label="Player 1 score">
+            <span class="snap-score__label" id="labelP1">Player 1</span>
+            <div class="snap-score__mascot" id="mascotP1" aria-hidden="true"></div>
+            <span class="snap-score__value" id="scoreP1">0</span>
+            <span class="snap-score__unit">cards</span>
+          </div>
+          <button type="button" class="snap-side snap-side--p1" id="btnSnap1" aria-label="Player 1 snap">
+            <span class="snap-side__burst" aria-hidden="true"></span>
+            <span class="snap-side__emoji" aria-hidden="true">👈</span>
+            <span class="snap-side__text">Snap!</span>
+            <span class="snap-side__hint" id="hintP1">Player 1</span>
+          </button>
+        </div>
+
+        <div class="snap-middle">
+          <div class="snap-deck-badge" aria-label="Cards left in pile">
+            <span class="snap-deck-badge__label">Still in pile</span>
+            <span class="snap-deck-badge__value" id="stockCount">52</span>
+          </div>
+          <div class="snap-table" id="pileWrap">
+            <div class="snap-showcase" id="showcase" aria-label="Compare the last two animals">
+              <div class="snap-showcase__row">
+                <div class="snap-slot snap-slot--prev">
+                  <span class="snap-slot__title">The one before</span>
+                  <div class="snap-slot__card" id="slotPrev"></div>
+                </div>
+                <div class="snap-slot snap-slot--curr">
+                  <span class="snap-slot__title">Just flipped</span>
+                  <div class="snap-slot__card" id="slotCurr"></div>
+                </div>
+              </div>
+              <div class="snap-showcase__mid">
+                <span class="snap-showcase__arrow" aria-hidden="true">⬇</span>
+                <p class="snap-compare" id="compareBanner">Flip to play</p>
+              </div>
+            </div>
+          </div>
+          <div class="snap-controls">
+            <button type="button" class="snap-btn snap-btn--primary snap-btn--flip" id="btnFlip" aria-label="Flip next animal tile">
+              Next animal
+            </button>
+            <label class="snap-auto">
+              <input type="checkbox" id="chkAuto" />
+              <span>Auto-flip</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="snap-pillar snap-pillar--p2">
+          <div class="snap-pillar__hud snap-pillar__hud--p2" aria-label="Player 2 score">
+            <span class="snap-score__label" id="labelP2">Player 2</span>
+            <div class="snap-score__mascot" id="mascotP2" aria-hidden="true"></div>
+            <span class="snap-score__value" id="scoreP2">0</span>
+            <span class="snap-score__unit">cards</span>
+          </div>
+          <button type="button" class="snap-side snap-side--p2" id="btnSnap2" aria-label="Player 2 snap">
+            <span class="snap-side__burst" aria-hidden="true"></span>
+            <span class="snap-side__emoji" aria-hidden="true"></span>
+            <span class="snap-side__text">Snap!</span>
+            <span class="snap-side__hint" id="hintP2">Player 2</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="snap-actions">
+        <button type="button" class="snap-btn snap-btn--ghost" id="btnMenu">Change mode</button>
+        <button type="button" class="snap-btn snap-btn--primary" id="btnAgain">New game</button>
+      </div>
+    </div>
+  </div>
+
+  <div
+    id="snapCountdown"
+    class="snap-countdown is-hidden"
+    hidden
+    role="status"
+    aria-live="assertive"
+    aria-atomic="true"
+  >
+    <div class="snap-countdown__inner">
+      <p class="snap-countdown__kicker" id="snapCountdownKicker">Get ready</p>
+      <p class="snap-countdown__num" id="snapCountdownNum">5</p>
+    </div>
+  </div>
+
+  <div
+    id="snapMatchPopup"
+    class="snap-popup is-hidden"
+    hidden
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="snapMatchTitle"
+    aria-describedby="snapMatchSub"
+  >
+    <div class="snap-popup__backdrop" aria-hidden="true"></div>
+    <div class="snap-popup__panel">
+      <p class="snap-popup__kicker" id="snapMatchKicker" aria-hidden="true">SNAP!</p>
+      <h2 class="snap-popup__title" id="snapMatchTitle">You won the pile!</h2>
+      <p class="snap-popup__sub" id="snapMatchSub">That was a great snap.</p>
+      <div class="snap-popup__count-wrap" aria-hidden="true">
+        <span class="snap-popup__count" id="snapMatchCount">0</span>
+        <span class="snap-popup__count-label">cards</span>
+      </div>
+      <button type="button" class="snap-btn snap-btn--primary snap-btn--dismiss" id="snapMatchOk">
+        Yay! Keep playing
+      </button>
+    </div>
+  </div>
+
+  <button
+    type="button"
+    class="snap-rules-fab"
+    id="snapRulesFab"
+    aria-label="How to play Snap"
+    aria-expanded="false"
+    title="How to play"
+  >
+    <span aria-hidden="true">?</span>
+  </button>
+
+  <div id="snapRulesModal" class="gsc__help snap-rules-modal" hidden>
+    <div class="gsc__help-backdrop" tabindex="-1" aria-hidden="true"></div>
+    <div class="gsc__help-panel" role="dialog" aria-modal="true" aria-labelledby="snapRulesTitle">
+      <h3 class="gsc__help-title" id="snapRulesTitle">How to play Snap</h3>
+      <div class="gsc__help-body">
+        <p>
+          <strong>First to 100 cards wins the game.</strong> Each round starts with a
+          <strong>5, 4, 3, 2, 1, Go!</strong> countdown, then the cards <strong>flip for you</strong> (auto-flip turns on) until
+          you change it.
+        </p>
+        <p>
+          Flip tiles and look at the <strong>two boxes</strong> in the middle. When the <strong>last two</strong> show the
+          <strong>same animal</strong> (picture and name), the first to tap <strong>Snap!</strong> on their side takes
+          <strong>the whole middle pile</strong> and those cards go toward their 100.
+        </p>
+        <p>
+          If the deck runs out, it gets shuffled in again (with any leftover on the table) so you can keep going until
+          someone wins. Tapped <strong>too soon</strong> (not a real match)? The <strong>other</strong> player gets a
+          <strong>+3</strong> card bonus.
+        </p>
+        <p>Choose <strong>characters</strong>, <strong>which side is yours</strong>, then tap <strong>Start game</strong>.</p>
+      </div>
+      <button type="button" class="gsc__help-close" id="snapRulesClose">Done</button>
+    </div>
+  </div>
+
+  <script src="../js/score-config.js"></script>
+  <script src="../js/kids-core.js?v=2" defer></script>
+<script src="../js/wondii-session.js?v=1" defer></script>
+  <script src="../js/score-cloud.js?v=13" defer></script>
+  <script src="../js/game-scorecard.js?v=2" defer></script>
+  <script src="snap.js?v=3" defer></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("../sw.js").catch(function () {});
+    }
+  </script>
+  <script src="wondii-shell.js?v=3" defer></script>
+</body>
+</html>

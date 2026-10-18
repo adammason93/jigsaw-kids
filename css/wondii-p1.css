@@ -1,0 +1,562 @@
+/* P1 customer surfaces. Loaded last. Mechanics stay; chrome uses the tokens. */
+
+body.wondii-game {
+  --wondii-ink: var(--w-ink);
+  --wondii-soft: var(--w-soft);
+  --wondii-paper: var(--w-paper);
+  --wondii-card: var(--w-card);
+  --wondii-shadow: var(--w-shadow);
+  --wondii-radius: var(--w-radius);
+}
+
+/* Family home tiles: white cards, not candy gradients or emoji. */
+.p-tiles .p-tile {
+  background: var(--w-card);
+  color: var(--w-ink);
+  box-shadow: var(--w-shadow);
+  border-radius: var(--w-radius);
+}
+
+.p-tile__svg {
+  width: 1.6rem;
+  height: 1.6rem;
+  display: block;
+}
+
+.p-card,
+.p-learn__item,
+.p-learn__item a,
+.p-card__link {
+  background: var(--w-card);
+  border-radius: var(--w-radius);
+  box-shadow: var(--w-shadow);
+  color: var(--w-ink);
+}
+
+.p-card__title,
+.p-learn__title,
+.p-h2,
+.gate__title,
+.ch-head h1 {
+  font-family: var(--w-display);
+  color: var(--w-ink);
+}
+
+.p-learn__icon,
+.p-card__emoji {
+  display: grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 14px;
+  background: var(--w-paper);
+  color: var(--w-ink);
+  font-family: var(--w-display);
+  font-weight: 650;
+  font-size: 1.2rem;
+}
+
+.gate-on .gate {
+  background:
+    radial-gradient(900px 420px at 12% -10%, rgba(124, 77, 255, 0.16), transparent 70%),
+    radial-gradient(700px 380px at 100% 0%, rgba(255, 186, 120, 0.18), transparent 68%),
+    var(--w-paper);
+  font-family: var(--w-font);
+  color: var(--w-ink);
+}
+
+.gate__card,
+.ch-card,
+.ch-modal__card {
+  border-radius: var(--w-radius-lg);
+  box-shadow: var(--w-shadow-lg);
+}
+
+.gate__btn,
+.ch-btn:not(.ch-btn--ghost):not(.ch-btn--danger),
+.teach-go,
+.org-today .teach-go,
+.p-feature__go,
+.learn-btn,
+.room-go,
+.org-cta,
+.class-go,
+.class-btn,
+.j-go,
+.j-next,
+body.wondii-game .btn-primary,
+body.wondii-game .btn--primary,
+body.wondii-game .memory-btn:not(.memory-btn--secondary),
+body.wondii-game .snap-btn:not(.snap-btn--ghost),
+body.wondii-game .c4-btn--primary,
+body.wondii-game .ttt-btn--primary,
+body.wondii-game .og-btn:not(.og-btn--alt),
+body.wondii-game .wondii-modal__go,
+body.wondii-game .sb-btn--primary {
+  background: var(--w-ink);
+  color: var(--w-on-accent);
+  border: 0;
+  border-radius: 999px;
+  font-family: var(--w-font);
+  font-weight: 800;
+}
+
+.gate__tab.is-on,
+.look-chip.is-on,
+.learn-mini.is-on {
+  background: var(--w-ink);
+  color: var(--w-on-accent);
+}
+
+.gate a,
+.gate__back {
+  color: var(--w-ink);
+}
+
+.gate input:focus,
+.ch-input:focus,
+.class-field:focus {
+  outline: 2px solid var(--w-ink);
+  border-color: var(--w-ink);
+}
+
+.ch-signed-out {
+  background: var(--w-card);
+  color: var(--w-ink);
+  box-shadow: var(--w-shadow);
+}
+
+/* Characters */
+body.page-characters {
+  background: var(--w-paper);
+  color: var(--w-ink);
+  font-family: var(--w-font);
+}
+
+body.page-characters .ch-back,
+body.page-characters .ch-btn--ghost {
+  background: var(--w-card);
+  color: var(--w-ink);
+  box-shadow: var(--w-shadow);
+  border-radius: 999px;
+}
+
+/* Lesson player: same paper system as the classroom, including doors, mystery, reward, tools. */
+.class-app {
+  --class-navy: var(--w-ink);
+  --class-paper: var(--w-paper);
+  background: var(--w-paper);
+  color: var(--w-ink);
+  font-family: var(--w-font);
+}
+
+.class-present,
+.class-gate,
+.class-bar {
+  background: var(--w-paper);
+  color: var(--w-ink);
+}
+
+.class-kicker { color: var(--w-soft); }
+
+.class-cue { color: var(--w-soft); }
+
+.class-ghost {
+  color: var(--w-ink);
+  background: var(--w-card);
+  box-shadow: inset 0 0 0 1.5px var(--w-line);
+  border-radius: 999px;
+}
+
+.class-tools summary {
+  color: var(--w-ink);
+  background: var(--w-card);
+  box-shadow: var(--w-shadow);
+}
+
+.class-tools[open] {
+  background: var(--w-card);
+  box-shadow: var(--w-shadow-lg);
+}
+
+.class-tools button,
+.class-tools a { color: var(--w-ink); }
+
+.class-pips i { background: rgba(20, 27, 77, 0.12); }
+.class-pips i.is-on { background: var(--w-ink); }
+
+.class-bars span { background: rgba(20, 27, 77, 0.08); }
+.class-bars i { background: var(--w-ok); }
+
+.class-door {
+  background: var(--w-card);
+  color: var(--w-ink);
+  box-shadow: var(--w-shadow);
+  border-radius: var(--w-radius);
+}
+
+.class-reward { color: var(--w-ink); }
+.class-mini { color: var(--w-ink); }
+
+.class-sheet h1,
+.class-present h1,
+.class-gate h1 {
+  font-family: var(--w-display);
+  color: var(--w-ink);
+}
+
+.class-check {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  font-weight: 800;
+}
+
+.class-btn { margin-top: 0.8rem; }
+.class-join { width: min(100% - 2rem, 36rem); margin: 2rem auto; }
+.class-join h1 { font-family: var(--w-display); color: var(--w-ink); }
+.class-join input { display: block; width: 100%; min-height: 52px; margin: 0.4rem 0 0.8rem; border: 0; border-radius: 14px; padding: 0 0.8rem; background: var(--w-card); box-shadow: var(--w-shadow); font: inherit; color: var(--w-ink); }
+#joinGo { width: 100%; }
+
+.class-field,
+.class-add input,
+.class-sheet input,
+.class-card input {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 0.25rem;
+  padding: 0.4rem 0.7rem;
+  border: 0;
+  border-radius: 14px;
+  background: var(--w-paper);
+  color: var(--w-ink);
+  font: inherit;
+}
+
+.class-gate a { color: var(--w-ink); }
+
+.class-go { background: var(--w-ink); color: var(--w-on-accent); }
+
+/* Electricity demo chrome follows the same tokens. Circuit colours stay in the board. */
+.j-app {
+  --j-red: var(--w-ink);
+  --j-navy: var(--w-ink);
+  --j-soft: var(--w-soft);
+  --j-paper: var(--w-paper);
+  background: var(--w-paper);
+  color: var(--w-ink);
+  font-family: var(--w-font);
+}
+
+.j-app h1,
+.j-app h2 { font-family: var(--w-display); }
+
+/* Adventure builder */
+.learn-app {
+  --learn-navy: var(--w-ink);
+  --learn-soft: var(--w-soft);
+  --learn-paper: var(--w-paper);
+  background: var(--w-paper);
+  color: var(--w-ink);
+  font-family: var(--w-font);
+}
+
+.learn-app h1,
+.learn-app h2 { font-family: var(--w-display); }
+
+/* Classroom */
+.room-page { color: var(--w-ink); font-family: var(--w-font); }
+.room-top h1,
+.room-empty h2 { font-family: var(--w-display); }
+.room-go { background: var(--room-accent, var(--w-ink)); color: var(--w-on-accent); }
+.room-card,
+.room-panel,
+.room-banner,
+.room-turn { border-radius: var(--w-radius); }
+
+/* Family game setup, play frame, feedback, and results. */
+body.wondii-game #screenSetup,
+body.wondii-game #setup,
+body.wondii-game .jz-setup,
+body.wondii-game #screenWin,
+body.wondii-game #screenLose {
+  color: var(--w-ink);
+  font-family: var(--w-font);
+}
+
+body.wondii-game #screenSetup h1,
+body.wondii-game #setup h1,
+body.wondii-game .welcome-popup__panel {
+  background: var(--w-card);
+  box-shadow: var(--w-shadow-lg);
+  border-color: transparent;
+}
+
+body.wondii-game .welcome-popup__bubble {
+  border-color: var(--w-ink);
+  color: var(--w-ink);
+}
+
+body.wondii-game #screenSetup h2,
+body.wondii-game #lblMode,
+body.wondii-game .snap-screen h2,
+body.wondii-game .welcome-popup__title,
+body.wondii-game .snap-setup h2,
+body.wondii-game .jz-title__accent {
+  color: var(--w-ink);
+  font-family: var(--w-display);
+  text-shadow: none;
+}
+
+body.wondii-game .game-wrap button,
+body.wondii-game .game-wrap .pill {
+  background: var(--w-card);
+  color: var(--w-ink);
+  border-radius: 999px;
+  box-shadow: var(--w-shadow);
+}
+
+body.wondii-game .game-wrap #startBtn,
+body.wondii-game .game-wrap button.start {
+  background: var(--w-ink);
+  color: var(--w-on-accent);
+}
+
+body.wondii-game #screenWin h2,
+body.wondii-game #screenLose h2,
+body.wondii-game #winTitle,
+body.wondii-game .win-title,
+body.wondii-game .ttt-win-dialog__title,
+body.wondii-game .rps-win-heading,
+body.wondii-game #overlayTitle,
+body.wondii-game #snakeOverlay h2 {
+  font-family: var(--w-display);
+  color: var(--w-ink);
+  text-shadow: none;
+}
+
+body.wondii-game #tttWinOverlay,
+body.wondii-game #rpsWinOverlay,
+body.wondii-game #snakeOverlay,
+body.wondii-game #overlay,
+body.wondii-game #questionModal,
+body.wondii-game #snapRulesModal {
+  background: rgba(20, 27, 77, 0.28);
+}
+
+body.wondii-game .ttt-win-dialog,
+body.wondii-game .rps-win-overlay__card,
+body.wondii-game .rps-win-card,
+body.wondii-game #questionModal .modal,
+body.wondii-game #questionModal > div,
+body.wondii-game #snakeOverlay > div,
+body.wondii-game #overlay > div,
+body.wondii-game .win-card {
+  background: var(--w-card);
+  color: var(--w-ink);
+  border-radius: var(--w-radius-lg);
+  box-shadow: var(--w-shadow-lg);
+}
+
+body.wondii-game #screenPlay,
+body.wondii-game #screenGame,
+body.wondii-game .word-search-app,
+body.wondii-game .colour-app,
+body.wondii-game .block-stack-app,
+body.wondii-game .zuma-app,
+body.wondii-game .drive-mad-app,
+body.wondii-game .marble-tilt-app,
+body.wondii-game .game-wrap {
+  color: var(--w-ink);
+  font-family: var(--w-font);
+}
+
+body.wondii-game .memory-card--panel,
+body.wondii-game .memory-play-header {
+  background: var(--w-card);
+  color: var(--w-ink);
+  border: 0;
+  box-shadow: var(--w-shadow);
+}
+
+body.wondii-game .memory-card--panel h2,
+body.wondii-game .memory-header h1,
+body.wondii-game .memory-play-header h1,
+body.wondii-game .memory-play-header,
+body.wondii-game .memory-play-header__title,
+body.wondii-game .memory-play-title {
+  color: var(--w-ink);
+  font-family: var(--w-display);
+  text-shadow: none;
+}
+
+body.wondii-game .memory-radio {
+  background: var(--w-paper);
+  border-color: transparent;
+}
+
+body.wondii-game .memory-radio:has(input:checked) {
+  border-color: var(--w-ink);
+  background: #fff;
+}
+
+body.wondii-game .gsc,
+body.wondii-game .wondii-scores {
+  background: var(--w-card);
+  border-radius: var(--w-radius);
+  box-shadow: var(--w-shadow);
+  color: var(--w-ink);
+}
+
+body.page-storybook .sb-btn--primary,
+body.page-storybook #sbDownloadBook {
+  background: var(--w-ink);
+  color: var(--w-on-accent);
+  border-radius: 999px;
+}
+
+body.page-storybook .sb-modal__card,
+body.page-storybook .sb-savedchar {
+  border-radius: var(--w-radius-lg);
+}
+
+body.page-storybook #sbSpreadArt,
+body.page-storybook .sb-flip-art {
+  border-radius: var(--w-radius);
+}
+
+/* Teacher dashboard and class wizard share the same buttons as the rest of the product. */
+.teach-dash,
+.teach-modal__card {
+  color: var(--w-ink);
+  font-family: var(--w-font);
+}
+
+.teach-hello h1,
+.teach-modal__card h2,
+.teach-hero h2 {
+  font-family: var(--w-display);
+  color: var(--w-ink);
+}
+
+.teach-class,
+.teach-modal__card,
+.teach-hero,
+.teach-adventures article {
+  background: var(--w-card);
+  border-radius: var(--w-radius);
+  box-shadow: var(--w-shadow);
+}
+
+/* Family game pages: paper and navy type around the board. The board itself keeps its pieces. */
+body.page-snakes {
+  --accent: var(--w-ink);
+  --accent-dark: #0e1438;
+  --ink: var(--w-ink);
+}
+
+body.page-snap {
+  --snap-ink: var(--w-ink);
+  --snap-table: var(--w-ink);
+  --snap-table-deep: #0e1438;
+  --snap-table-light: #5c6284;
+}
+
+body.page-rps { --rps-purple: var(--w-ink); }
+
+body.page-snakes .btn--roll,
+body.page-rps .rps-again,
+body.page-prompt-game .prompt-game-btn,
+body.page-colour .btn-accent,
+body.page-snake-game .snake-overlay__btn,
+body.page-snakes .btn-turn,
+body.page-snakes #openTurn {
+  background: var(--w-ink);
+  color: var(--w-on-accent);
+  border: 0;
+  border-radius: 999px;
+}
+
+body.page-snake-game .snake-overlay {
+  background: rgba(246, 245, 252, 0.94);
+  color: var(--w-ink);
+}
+
+body.page-snake-game .snake-overlay__title,
+body.page-snake-game .snake-overlay__msg {
+  color: var(--w-ink);
+}
+
+body.page-snakes,
+body.page-memory,
+body.page-snap,
+body.page-c4,
+body.page-ttt,
+body.page-math,
+body.page-jigsaw,
+body.page-ws,
+body.page-colour,
+body.page-prompt-game,
+body.page-link-grid,
+body.page-rps,
+body.page-block-stack,
+body.page-zuma,
+body.page-drive-mad,
+body.page-snake-game {
+  background: var(--w-paper);
+  color: var(--w-ink);
+  font-family: var(--w-font);
+}
+
+body.page-snakes h1,
+body.page-snakes h2,
+body.page-memory h1,
+body.page-memory h2,
+body.page-snap h1,
+body.page-snap h2,
+body.page-c4 h1,
+body.page-c4 h2,
+body.page-ttt h1,
+body.page-ttt h2,
+body.page-math h1,
+body.page-math h2,
+body.page-jigsaw h1,
+body.page-ws h1,
+body.page-colour h1,
+body.page-prompt-game h1,
+body.page-link-grid h1,
+body.page-rps h1,
+body.page-block-stack h1,
+body.page-zuma h1,
+body.page-drive-mad h1,
+body.page-snake-game h1 {
+  font-family: var(--w-display);
+  color: var(--w-ink);
+}
+
+body.page-storybook .sb-modal__card,
+body.page-storybook .sb-savedchar {
+  background: var(--w-card);
+  color: var(--w-ink);
+}
+
+body.page-storybook .sb-modal__heading,
+body.page-storybook .sb-modal__kicker {
+  color: var(--w-ink);
+  font-family: var(--w-display);
+}
+
+.ch-empty {
+  background: var(--w-card);
+  color: var(--w-ink);
+  border-radius: var(--w-radius);
+  box-shadow: var(--w-shadow);
+}
+
+.ch-busy[hidden],
+.ch-result[hidden],
+.ch-error[hidden],
+.ch-signed-out[hidden] {
+  display: none;
+}

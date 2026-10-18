@@ -1,0 +1,33 @@
+Wondii production review snapshot, 18 October 2026.
+
+This branch is a local review copy. It has not been deployed and it is not a development branch.
+
+Website
+- Cloudflare Worker jigsaw-kids version 9f675aa2-df1a-4edb-b859-d2099531b526
+- Created 2026-10-18T17:32:03Z
+- Message: Reader: continuous-spread text placement
+- The public files in this tree were compared with https://wondii.co.uk before the commit. 536 public files matched. One deploy-cache file was excluded (see below).
+- games/book-prototype/book.js SHA-256 5258fea369739d7bd2dfcb53c81e33ce9ac04ada5f2852a343b7eb3c5ce681a4
+- That file is served as book.js?v=72 and contains OPEN_MS 1200 and TURN_MS 880.
+
+Book V2
+- Supabase function book-v2 version 77, ACTIVE, verify_jwt false
+- Updated 2026-10-18T17:29:23Z
+- Live body SHA-256 1a11f935a25f93678f6721206477cf1fde3595a3931fed138fa5299ca9dda11a
+- ezbr_sha256 1ae506b11ed281e541f334f0efa68b5abb9f63dee21f978f2929f4cd61c53945
+- supabase/functions/book-v2/ and the shared files beside it are the exact sources uploaded to create version 77.
+- handle.mjs SHA-256 768241200f49edb7bee10c3a88d52cc2954b01f689726faff25feaa3334c6ec1
+- The live body is Supabase's rebundle of those sources. It is not byte-identical to handle.mjs. It does contain require_book_spread, bindComposition, onePicture, and MAX_IMAGE = 24.
+- js/book-spread.js SHA-256 56d979bda83cf456725e4c7fbb11578017cc2535df9d01407c255b06b0844edf
+- scripts/book/produce.candidate.js SHA-256 367c2e8f91389d1b4d37fed1752c6b5fcdcaa004dff17c26c43c0e465b9fda9d
+- Both of those files are embedded in the uploaded handle.mjs. They are included again so the planner and the generator integration can be read without unpacking the bundle.
+- import_map.json pins npm:@supabase/supabase-js@2 to 2.118.0, the version inside the previous production bundle.
+
+Not included
+- .wrangler/cache/wrangler-account.json (local Cloudflare account cache; not a website file; live URL returns 404)
+- The raw function eszip
+- Older Git generator files
+- Local proof fixtures, synthetic artwork, and private portraits
+- BOOK_V2_AUTO remains off and is not stored in this tree
+
+Do not deploy this branch as a shortcut. A website deploy must still start from a full asset set, and the Git function in older branches must not replace version 77.

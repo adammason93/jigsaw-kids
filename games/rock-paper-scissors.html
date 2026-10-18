@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#7c3aed" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Rock paper scissors — Wondii</title>
+  <link rel="manifest" href="../manifest.json" />
+  <link rel="stylesheet" href="../js/kids-core.css" />
+  <link rel="stylesheet" href="rock-paper-scissors.css" />
+  <link rel="stylesheet" href="../tablet-ipad.css" />
+  <link rel="stylesheet" href="wondii-shell.css?v=4" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/wondii-tokens.css?v=2" />
+  <link rel="stylesheet" href="../css/wondii-p1.css?v=9" />
+</head>
+<body class="page-rps">
+  <div class="rps-app" id="app">
+    <nav class="rps-nav" aria-label="Breadcrumb">
+      <a class="rps-back back-btn" href="../portal.html" aria-label="Back to all games"><span class="back-btn__icon" aria-hidden="true">&#8592;</span><span class="back-btn__text">Back</span></a>
+    </nav>
+
+    <main class="rps-main" aria-labelledby="rpsHeading">
+      <div class="rps-card">
+        <div class="rps-hero rps-hero--icons" id="rpsHero" aria-hidden="true">
+          <img class="rps-hero__icon" src="images/rps/rock.png" width="382" height="384" alt="" decoding="async" />
+          <img class="rps-hero__icon" src="images/rps/paper.png" width="376" height="382" alt="" decoding="async" />
+          <img class="rps-hero__icon" src="images/rps/scissors.png" width="361" height="379" alt="" decoding="async" />
+        </div>
+
+        <h1 class="rps-heading" id="rpsHeading">
+          <span id="rpsTitleLine">Let’s play!!</span>
+        </h1>
+        <p class="rps-score" id="rpsScore" aria-live="polite">You 0 · Computer 0</p>
+      </div>
+    </main>
+
+    <!-- Step 1: pick -->
+    <div class="rps-flow-backdrop" id="rpsFlowBackdrop" role="presentation">
+      <div
+        class="rps-flow-sheet"
+        id="rpsFlowSheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="rpsPickTitle"
+      >
+        <div class="rps-flow-step" id="rpsFlowPick">
+          <p class="rps-flow-score rps-flow-score--sheet" id="rpsFlowScorePick" aria-hidden="true">You 0 · Computer 0</p>
+          <h2 class="rps-flow-title" id="rpsPickTitle">Pick your option!</h2>
+          <p class="rps-flow-hint">Tap rock, paper, or scissors</p>
+          <div class="rps-picks" id="rpsPicks" role="group" aria-label="Your move">
+            <button type="button" class="rps-pick" data-move="rock" aria-label="Rock">
+              <img
+                class="rps-pick__img"
+                src="images/rps/rock.png"
+                width="382"
+                height="384"
+                alt=""
+                decoding="async"
+              />
+              <span class="rps-pick__label">Rock</span>
+            </button>
+            <button type="button" class="rps-pick" data-move="paper" aria-label="Paper">
+              <img
+                class="rps-pick__img"
+                src="images/rps/paper.png"
+                width="376"
+                height="382"
+                alt=""
+                decoding="async"
+              />
+              <span class="rps-pick__label">Paper</span>
+            </button>
+            <button type="button" class="rps-pick" data-move="scissors" aria-label="Scissors">
+              <img
+                class="rps-pick__img"
+                src="images/rps/scissors.png"
+                width="361"
+                height="379"
+                alt=""
+                decoding="async"
+              />
+              <span class="rps-pick__label">Scissors</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 2: countdown -->
+        <div class="rps-flow-step is-hidden" id="rpsFlowCount" aria-live="assertive">
+          <p class="rps-flow-score rps-flow-score--sheet" id="rpsFlowScoreCount" aria-hidden="true">You 0 · Computer 0</p>
+          <h2 class="rps-flow-title">Get ready…</h2>
+          <div class="rps-countdown" id="rpsCountNum" aria-live="assertive">3</div>
+        </div>
+
+        <!-- Step 3: reveal -->
+        <div class="rps-flow-step is-hidden" id="rpsFlowReveal" aria-live="polite">
+          <p class="rps-flow-score rps-flow-score--sheet" id="rpsFlowScoreReveal" aria-hidden="true">You 0 · Computer 0</p>
+          <h2 class="rps-flow-title rps-flow-title--small">Here’s what we played</h2>
+          <div class="rps-duel rps-duel--modal">
+            <div class="rps-duel__side">
+              <span class="rps-duel__label">You</span>
+              <div class="rps-duel__icon-wrap" id="rpsRevealYou"></div>
+            </div>
+            <div class="rps-duel__vs" aria-hidden="true">vs</div>
+            <div class="rps-duel__side">
+              <span class="rps-duel__label">Computer</span>
+              <div class="rps-duel__icon-wrap" id="rpsRevealCpu"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: winner overlay -->
+    <div class="rps-win-overlay is-hidden" id="rpsWinOverlay" role="dialog" aria-modal="true" aria-labelledby="rpsWinHeading">
+      <div class="rps-win-panel">
+        <h2 class="rps-win-heading" id="rpsWinHeading"></h2>
+        <p class="rps-win-detail" id="rpsWinDetail"></p>
+        <p class="rps-win-score" id="rpsWinScore" aria-live="polite"></p>
+        <button type="button" class="rps-again" id="rpsAgain">Play again</button>
+      </div>
+    </div>
+  </div>
+  <script src="../js/score-config.js"></script>
+<script src="../js/wondii-session.js?v=1" defer></script>
+  <script src="../js/score-cloud.js?v=13" defer></script>
+  <script src="../js/kids-core.js?v=2" defer></script>
+  <script src="rock-paper-scissors.js" defer></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("../sw.js").catch(function () {});
+    }
+  </script>
+  <script src="wondii-shell.js?v=3" defer></script>
+</body>
+</html>

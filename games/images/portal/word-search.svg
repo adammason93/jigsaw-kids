@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" role="img" aria-hidden="true">
+  <rect width="320" height="240" rx="16" fill="#eef2ff"/>
+  <rect x="40" y="40" width="240" height="180" rx="10" fill="#fff" stroke="#312e81" stroke-width="3"/>
+  <!-- found word highlight -->
+  <rect x="52" y="58" width="126" height="24" rx="4" fill="#bbf7d0"/>
+  <g font-family="system-ui,sans-serif" font-weight="800" font-size="16" fill="#14532d">
+    <text x="58"  y="76">S</text><text x="84"  y="76">O</text><text x="110" y="76">F</text><text x="136" y="76">I</text><text x="162" y="76">A</text>
+  </g>
+  <g font-family="system-ui,sans-serif" font-weight="800" font-size="16" fill="#334155">
+    <text x="188" y="76">T</text><text x="214" y="76">K</text><text x="240" y="76">M</text>
+    <text x="58"  y="104">B</text><text x="84"  y="104">I</text><text x="110" y="104">K</text><text x="136" y="104">E</text>
+    <text x="58"  y="132">S</text><text x="84"  y="132">C</text><text x="110" y="132">H</text><text x="136" y="132">O</text>
+    <text x="58"  y="160">W</text><text x="84"  y="160">A</text><text x="110" y="160">T</text><text x="136" y="160">E</text><text x="162" y="160">R</text>
+    <text x="58"  y="188">T</text><text x="84"  y="188">A</text><text x="110" y="188">B</text><text x="136" y="188">L</text><text x="162" y="188">E</text>
+  </g>
+</svg>

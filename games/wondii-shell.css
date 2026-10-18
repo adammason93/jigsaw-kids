@@ -1,0 +1,251 @@
+/* Shared presentation for every game. Loaded after each game's own CSS.
+   Game engines stay as they are. This is the page around them. */
+
+body.wondii-game {
+  --wondii-ink: #141b4d;
+  --wondii-soft: #5a5f80;
+  --wondii-paper: #f6f5fc;
+  --wondii-card: #fff;
+  --wondii-shadow: 0 10px 26px rgba(20, 27, 77, 0.08);
+  --wondii-radius: 22px;
+  margin: 0;
+  min-height: 100vh;
+  color: var(--wondii-ink);
+  font-family: Nunito, system-ui, sans-serif;
+  background: var(--wondii-paper);
+}
+
+body.wondii-game::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(900px 420px at 12% -10%, var(--wondii-wash, rgba(124, 77, 255, 0.16)), transparent 70%),
+    radial-gradient(700px 380px at 100% 0%, var(--wondii-wash-2, rgba(255, 186, 120, 0.18)), transparent 68%);
+}
+
+body.wondii-game[data-wondii-theme="creative"] {
+  --wondii-wash: rgba(255, 176, 120, 0.22);
+  --wondii-wash-2: rgba(186, 154, 255, 0.16);
+}
+
+body.wondii-game[data-wondii-theme="puzzles"] {
+  --wondii-wash: rgba(124, 77, 255, 0.16);
+  --wondii-wash-2: rgba(120, 196, 255, 0.16);
+}
+
+body.wondii-game[data-wondii-theme="words"] {
+  --wondii-wash: rgba(255, 196, 120, 0.2);
+  --wondii-wash-2: rgba(255, 228, 180, 0.28);
+}
+
+body.wondii-game[data-wondii-theme="numbers"] {
+  --wondii-wash: rgba(80, 190, 140, 0.18);
+  --wondii-wash-2: rgba(255, 214, 120, 0.16);
+}
+
+body.wondii-game[data-wondii-theme="logic"] {
+  --wondii-wash: rgba(90, 120, 220, 0.14);
+  --wondii-wash-2: rgba(180, 160, 255, 0.14);
+}
+
+body.wondii-game[data-wondii-theme="stem"] {
+  --wondii-wash: rgba(80, 170, 210, 0.16);
+  --wondii-wash-2: rgba(160, 140, 255, 0.12);
+}
+
+body.wondii-game .app {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+}
+
+body.wondii-game .game-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.8rem 0 0.4rem;
+}
+
+body.wondii-game .back-btn,
+body.wondii-game .back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 44px;
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--wondii-ink);
+  font-weight: 800;
+  text-decoration: none;
+  box-shadow: var(--wondii-shadow);
+}
+
+body.wondii-game .ttt-header,
+body.wondii-game .snap-header,
+body.wondii-game .colour-header {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0.1rem 0 0.15rem;
+}
+
+body.wondii-game .c4-header h1,
+body.wondii-game .snap-header h1,
+body.wondii-game .colour-header h1 {
+  background: none;
+  -webkit-text-fill-color: var(--wondii-ink);
+  color: var(--wondii-ink);
+  filter: none;
+  font-family: Fredoka, Nunito, sans-serif;
+}
+
+body.wondii-game .app h1,
+body.wondii-game .screen > header h1,
+body.wondii-game .page-header h1,
+body.wondii-game .ttt-header h1 {
+  margin: 0.2rem 0 0;
+  font-family: Fredoka, Nunito, sans-serif;
+  font-weight: 650;
+  font-size: clamp(1.7rem, 3vw, 2.35rem);
+  line-height: 1.05;
+  color: var(--wondii-ink);
+  text-shadow: none;
+}
+
+body.wondii-game .wondii-kicker {
+  margin: 0.6rem 0 0;
+  color: var(--wondii-soft);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+body.wondii-game .wondii-help {
+  margin-left: auto;
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--wondii-ink);
+  font: 800 1.1rem/1 Nunito, sans-serif;
+  box-shadow: var(--wondii-shadow);
+  cursor: pointer;
+}
+
+body.wondii-game .gsc,
+body.wondii-game .wondii-scores {
+  margin-top: 1rem;
+  border: 0;
+  border-radius: var(--wondii-radius);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--wondii-shadow);
+}
+
+body.wondii-game .wondii-scores > summary {
+  min-height: 44px;
+  padding: 0.75rem 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  list-style: none;
+}
+
+body.wondii-game .wondii-scores > summary::-webkit-details-marker {
+  display: none;
+}
+
+body.wondii-game .wondii-scores .gsc {
+  margin: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+body.wondii-game .gsc__btn,
+body.wondii-game .btn,
+body.wondii-game .btn--primary {
+  min-height: 44px;
+  border-radius: 999px;
+}
+
+body.wondii-game .kids-fbar__mute,
+body.wondii-game .kids-fbar__help {
+  border: 0;
+  background: #fff;
+  color: var(--wondii-ink);
+  box-shadow: var(--wondii-shadow);
+}
+
+body.wondii-game .kids-settings__panel {
+  border: 0;
+  border-radius: 28px;
+  color: var(--wondii-ink);
+  box-shadow: 0 18px 50px rgba(20, 27, 77, 0.16);
+}
+
+body.wondii-game .kids-settings__title {
+  font-family: Fredoka, Nunito, sans-serif;
+  color: var(--wondii-ink);
+}
+
+body.wondii-game .wondii-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9600;
+  display: grid;
+  place-items: center;
+  padding: 1.2rem;
+  background: rgba(20, 27, 77, 0.28);
+}
+
+body.wondii-game .wondii-modal[hidden] {
+  display: none;
+}
+
+body.wondii-game .wondii-modal__card {
+  width: min(32rem, 100%);
+  max-height: min(80vh, 640px);
+  overflow: auto;
+  padding: 1.3rem 1.2rem 1.2rem;
+  border-radius: 28px;
+  background: #fffdfb;
+  color: var(--wondii-ink);
+  box-shadow: 0 18px 50px rgba(20, 27, 77, 0.16);
+}
+
+body.wondii-game .wondii-modal__card h2 {
+  margin: 0 0 0.6rem;
+  font-family: Fredoka, Nunito, sans-serif;
+}
+
+body.wondii-game .wondii-modal__card p {
+  margin: 0 0 0.7rem;
+  color: var(--wondii-soft);
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+body.wondii-game .wondii-modal__go {
+  min-height: 44px;
+  margin-top: 0.4rem;
+  padding: 0.7rem 1.1rem;
+  border: 0;
+  border-radius: 999px;
+  background: #141b4d;
+  color: #fff;
+  font: 800 1rem/1 Nunito, sans-serif;
+  cursor: pointer;
+}
+
+body.wondii-game .ttt-char-opt--pic img,
+body.wondii-game .char-opt img,
+body.wondii-game [class*="char-opt"] img {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 18px;
+}

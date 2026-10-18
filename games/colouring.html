@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#141b4d" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Colouring book — Wondii</title>
+  <link rel="manifest" href="../manifest.json" />
+  <link rel="stylesheet" href="../js/kids-core.css" />
+  <link rel="stylesheet" href="colouring.css" />
+  <link rel="stylesheet" href="../tablet-ipad.css" />
+  <link rel="stylesheet" href="game-shell.css?v=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/wondii-tokens.css?v=2" />
+  <link rel="stylesheet" href="../css/wondii-p1.css?v=9" />
+</head>
+<body class="page-colour" data-game-shell="v2" data-game-id="colouring">
+  <div class="app colour-app" id="app">
+    <div class="colour-workspace">
+      <div class="colour-sidebar">
+        <nav class="game-nav" aria-label="Breadcrumb">
+          <a class="back-link back-btn" href="../portal.html" aria-label="Back to all games"><span class="back-btn__icon" aria-hidden="true">&#8592;</span><span class="back-btn__text">Back</span></a>
+        </nav>
+
+        <header class="colour-header">
+          <h1>Colouring book</h1>
+          <p class="colour-header__lede">
+            Pick <strong>blank paper</strong> or a picture—the outlines stay on top. <strong>Undo</strong> fixes the last stroke.
+            When you leave and come back, your drawing reloads on this device. A signed-in Wondii account keeps it with your scores.
+          </p>
+        </header>
+
+        <section class="colour-saved" id="colourSavedWrap" aria-label="Pictures you saved for later">
+          <h2 class="colour-saved__title">My saved pictures</h2>
+          <p class="colour-saved__hint" id="colourSavedHint">When you save, you can name the picture. Use <strong>&times;</strong> on a thumbnail to remove it (you’ll be asked first).</p>
+          <div class="colour-saved__strip" id="colourSavedStrip" role="list"></div>
+        </section>
+
+        <div class="colour-tools" role="toolbar" aria-label="Drawing tools">
+          <div class="colour-tools__row colour-tools__row--palette">
+            <span class="colour-tools__label" id="palette-label">Colour</span>
+            <div class="colour-palette-wrap" id="colourPaletteWrap">
+              <button type="button" class="colour-palette-toggle" id="colourPaletteToggle" aria-expanded="false" aria-haspopup="true" aria-controls="colourPalettePopover" tabindex="0">
+                <span class="colour-palette-toggle__preview" id="colourPaletteTogglePreview"></span>
+                <span class="colour-palette-toggle__label">Colours</span>
+              </button>
+              <div
+                class="colour-palette-popover"
+                id="colourPalettePopover"
+                role="dialog"
+                aria-label="Colour palette"
+              >
+                <div class="colour-palette" role="group" aria-labelledby="palette-label">
+                  <button type="button" class="swatch" data-hex="#dc2626" style="--sw: #dc2626" title="Red" aria-label="Red" aria-pressed="false"></button>
+                  <button type="button" class="swatch" style="--sw: #ea580c" data-hex="#ea580c" title="Orange" aria-label="Orange" aria-pressed="false"></button>
+                  <button type="button" class="swatch" style="--sw: #ca8a04" data-hex="#ca8a04" title="Gold" aria-label="Gold" aria-pressed="false"></button>
+                  <button type="button" class="swatch" style="--sw: #16a34a" data-hex="#16a34a" title="Green" aria-label="Green" aria-pressed="false"></button>
+                  <button type="button" class="swatch" style="--sw: #2563eb" data-hex="#2563eb" title="Blue" aria-label="Blue" aria-pressed="false"></button>
+                  <button type="button" class="swatch" style="--sw: #7c3aed" data-hex="#7c3aed" title="Purple" aria-label="Purple" aria-pressed="false"></button>
+                  <button type="button" class="swatch" style="--sw: #db2777" data-hex="#db2777" title="Pink" aria-label="Pink" aria-pressed="false"></button>
+                  <button type="button" class="swatch" style="--sw: #0f172a" data-hex="#0f172a" title="Black" aria-label="Black" aria-pressed="true"></button>
+                </div>
+                <label class="colour-custom">
+                  <span class="colour-custom__lbl">Pick your own</span>
+                  <input type="color" id="customColour" value="#0f172a" />
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="colour-tools__row colour-tools__row--tools">
+            <span class="colour-tools__label" id="tools-label">Tool</span>
+            <div class="colour-tool-btns" role="group" aria-labelledby="tools-label">
+              <button type="button" class="tool-btn is-active" data-tool="pen" aria-pressed="true" title="Felt pen">Felt pen</button>
+              <button type="button" class="tool-btn" data-tool="pencil" aria-pressed="false" title="Pencil">Pencil</button>
+              <button type="button" class="tool-btn" data-tool="crayon" aria-pressed="false" title="Crayon">Crayon</button>
+              <button type="button" class="tool-btn" data-tool="marker" aria-pressed="false" title="Thick marker">Marker</button>
+              <button type="button" class="tool-btn tool-btn--eraser" data-tool="eraser" aria-pressed="false" title="Eraser">Eraser</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="colour-templates" aria-label="Pictures and blank paper">
+          <h2 class="colour-templates__title">Blank paper or a picture</h2>
+          <div class="colour-templates__grid" role="list" id="templateList"></div>
+        </div>
+      </div>
+
+      <div class="colour-stage-wrap">
+        <div class="colour-stage" id="colourStage" aria-label="Your drawing—paint here">
+          <div class="colour-stage__panzoom" id="colourPanzoom">
+            <canvas id="paintCanvas" width="800" height="600"></canvas>
+            <img id="templateOverlay" class="colour-stage__overlay" src="" alt="" width="400" height="300" decoding="async" />
+          </div>
+        </div>
+        <div class="colour-zoom" role="group" aria-label="Zoom">
+          <button type="button" class="btn btn-ghost colour-zoom__btn" id="btnZoomOut" aria-label="Zoom out" title="Zoom out">
+            −
+          </button>
+          <span class="colour-zoom__pct" id="zoomPct">100%</span>
+          <button type="button" class="btn btn-ghost colour-zoom__btn" id="btnZoomIn" aria-label="Zoom in" title="Zoom in">
+            +
+          </button>
+          <button type="button" class="btn btn-ghost colour-zoom__btn colour-zoom__fit" id="btnZoomFit" aria-label="Reset zoom and pan" title="Fit whole picture">
+            Reset
+          </button>
+        </div>
+        <p class="colour-hint" id="statusLine" role="status" aria-live="polite">Use your finger or mouse on the canvas. Pinch or Ctrl-scroll to zoom; drag with two fingers to move when zoomed.</p>
+        <div class="colour-actions">
+          <button type="button" class="btn btn-ghost" id="btnUndo" aria-label="Undo last stroke" title="Undo last stroke" disabled>
+            Undo
+          </button>
+          <button type="button" class="btn btn-ghost" id="btnClear">Clear painting</button>
+          <button type="button" class="btn btn-ghost" id="btnSaveLater" title="Updates your current saved slot on this device">
+            Save for later
+          </button>
+          <button type="button" class="btn btn-ghost" id="btnSaveAsNew" title="Keep this drawing as another saved picture">
+            Save as another picture
+          </button>
+          <button type="button" class="btn btn-accent" id="btnSave" title="Save as PNG">Save picture</button>
+        </div>
+        <div class="colour-save-prefs">
+          <label class="colour-autosave">
+            <input type="checkbox" id="chkColourAutoSave" checked />
+            <span class="colour-autosave__text">Keep my picture on this device while I draw</span>
+          </label>
+          <p class="colour-autosave__hint">
+            On by default — your work is saved quietly as you go so a refresh doesn’t clear it. Turn off if you prefer a
+            fresh canvas every visit. Use <strong>Save as another picture</strong> to keep more than one drawing in “My saved pictures”.
+            You can still tap <strong>Save for later</strong> or <strong>Save picture</strong> whenever you like.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <a id="saveLink" class="visually-hidden" href="#" download="wondii-colouring.png" aria-hidden="true">save</a>
+  <div id="colourSaveNameDialog" class="colour-name-dialog" aria-hidden="true" aria-labelledby="colourNameDialogTitle">
+    <button type="button" class="colour-name-dialog__backdrop" data-close="1" tabindex="-1" aria-label="Close"></button>
+    <div class="colour-name-dialog__panel" role="dialog" aria-modal="true" aria-labelledby="colourNameDialogTitle">
+      <h3 id="colourNameDialogTitle" class="colour-name-dialog__title">Save this picture</h3>
+      <p id="colourNameDialogHint" class="colour-name-dialog__hint">Give it a name (optional) — you’ll see it under the thumbnail.</p>
+      <label class="colour-name-dialog__label">
+        <span class="visually-hidden">Picture name</span>
+        <input type="text" id="colourPhotoNameInput" class="colour-name-dialog__input" maxlength="48" autocomplete="off" placeholder="e.g. Rainbow dragon" />
+      </label>
+      <div class="colour-name-dialog__actions">
+        <button type="button" class="btn btn-accent" id="colourNameConfirmBtn">Save</button>
+        <button type="button" class="btn btn-ghost" id="colourNameCancelBtn" data-close="1">Cancel</button>
+      </div>
+    </div>
+  </div>
+  <script src="../js/score-config.js"></script>
+  <script src="../js/kids-core.js?v=2" defer></script>
+<script src="../js/wondii-session.js?v=1" defer></script>
+  <script src="../js/score-cloud.js?v=13" defer></script>
+  <script src="colouring.js" defer></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("../sw.js").catch(function () {});
+      });
+    }
+  </script>
+  <script src="game-platform.js?v=1" defer></script>
+  <script src="game-shell.js?v=1" defer></script>
+  <script src="pilot-bridge.js?v=1" defer></script>
+</body>
+</html>

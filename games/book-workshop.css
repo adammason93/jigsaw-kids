@@ -1,0 +1,464 @@
+/* Book Workshop. The 3D reader keeps its own page-turn. */
+
+.bw {
+  --bw-ink: #4a3428;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  width: min(100%, 44rem);
+  margin: 0 auto;
+  min-height: 0;
+  padding: 0.15rem 0.35rem 0.55rem;
+  color: var(--bw-ink);
+  font-family: Nunito, "Trebuchet MS", sans-serif;
+  text-align: center;
+}
+
+.bw-kicker {
+  margin: 0;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #7a6248;
+}
+
+.bw-stage {
+  position: relative;
+  width: min(100%, 34rem);
+  height: min(34dvh, 16.5rem);
+  display: grid;
+  place-items: center;
+}
+
+.bw-shelf,
+.bw-cover,
+.bw-peek {
+  display: block;
+  max-width: 100%;
+}
+
+.bw-shelf {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: min(100%, 26rem);
+  transform: translateX(-50%) translateY(1.4rem);
+  opacity: 0;
+  border-radius: 1rem;
+  pointer-events: none;
+}
+
+.bw-book {
+  position: relative;
+  width: min(22rem, 86vw);
+  height: min(14.5rem, 32dvh);
+  transform-origin: 50% 80%;
+}
+
+.bw-cover {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: min(13.5rem, 52vw);
+  height: auto;
+  border-radius: 1rem;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 16px 22px rgba(92, 58, 28, 0.2));
+}
+
+.bw-open {
+  position: absolute;
+  inset: 8% 4% 10%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  opacity: 0;
+  transform: scale(0.92) rotateX(8deg);
+  transform-origin: 50% 80%;
+  filter: drop-shadow(0 16px 18px rgba(92, 58, 28, 0.16));
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.bw-leaf {
+  position: relative;
+  min-height: 9.5rem;
+  padding: 1.1rem 0.9rem;
+  background:
+    linear-gradient(180deg, rgba(255, 252, 246, 0.2), transparent 18%),
+    #fff8ee;
+}
+
+.bw-leaf--left {
+  border-radius: 0.7rem 0.15rem 0.15rem 0.7rem;
+  box-shadow: inset -10px 0 14px rgba(120, 84, 48, 0.06);
+}
+
+.bw-leaf--right {
+  border-radius: 0.15rem 0.85rem 0.85rem 0.15rem;
+  box-shadow: inset 10px 0 14px rgba(120, 84, 48, 0.07);
+}
+
+.bw-leaf span {
+  display: block;
+  height: 0.38rem;
+  margin: 0.55rem 0;
+  border-radius: 999px;
+  background: #e4d3be;
+  width: 78%;
+}
+
+.bw-leaf--right span:nth-child(2) { width: 64%; background: #d9c4ef; }
+.bw-leaf--right span:nth-child(3) { width: 82%; }
+.bw-leaf--left span { width: 70%; }
+
+.bw-pencil,
+.bw-brush,
+.bw-glass,
+.bw-peek,
+.bw-spark {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.bw-pencil,
+.bw-brush {
+  width: 7.2rem;
+  height: 0.72rem;
+  right: 6%;
+  bottom: 18%;
+  border-radius: 999px;
+  transform-origin: 80% 50%;
+}
+
+.bw-pencil {
+  background: linear-gradient(90deg, #f2b8c4 0 12%, #e7c27a 12% 22%, #f3d7a2 22% 88%, #5d5148 88% 100%);
+  box-shadow: 0 6px 10px rgba(92, 58, 28, 0.16);
+}
+
+.bw-brush {
+  height: 0.95rem;
+  background: linear-gradient(90deg, #c9b08a 0 62%, #efe6da 62% 70%, #c4a4e8 70% 100%);
+  border-radius: 999px 1rem 1rem 999px;
+}
+
+.bw-brush::after {
+  content: "";
+  position: absolute;
+  right: -0.15rem;
+  top: -0.15rem;
+  width: 1.5rem;
+  height: 1.25rem;
+  border-radius: 40% 50% 50% 40%;
+  background: #c9b4ef;
+}
+
+.bw-glass {
+  width: 4.2rem;
+  height: 4.2rem;
+  left: 22%;
+  top: 18%;
+  border-radius: 50%;
+  border: 0.42rem solid rgba(255, 250, 242, 0.96);
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.85), rgba(198, 214, 255, 0.2) 58%, transparent 72%);
+  box-shadow: 0 8px 14px rgba(70, 48, 110, 0.15);
+}
+
+.bw-glass::after {
+  content: "";
+  position: absolute;
+  width: 0.42rem;
+  height: 2rem;
+  right: -0.15rem;
+  bottom: -1.5rem;
+  border-radius: 999px;
+  background: #c4a574;
+  transform: rotate(36deg);
+}
+
+.bw-peek {
+  width: 4.8rem;
+  height: 4.8rem;
+  left: 0.15rem;
+  top: 22%;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: 22% 18%;
+  box-shadow: 0 8px 16px rgba(92, 58, 28, 0.18);
+  transform: translateY(1.4rem);
+}
+
+.bw-spark {
+  right: 12%;
+  top: 6%;
+  width: 4rem;
+  height: 3rem;
+}
+
+.bw-spark i {
+  position: absolute;
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 50%;
+  background: #ffe8a3;
+  box-shadow: 0 0 0 4px rgba(255, 232, 163, 0.28);
+}
+
+.bw-spark i:nth-child(2) { left: 1.3rem; top: 0.85rem; }
+.bw-spark i:nth-child(3) { left: 0.35rem; top: 1.45rem; }
+
+.bw-message {
+  margin: 0;
+  max-width: 28rem;
+  font-size: clamp(1.2rem, 2.6vw, 1.65rem);
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.bw-count,
+.bw-note {
+  margin: 0;
+  max-width: 32rem;
+  color: #6d5848;
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.bw-previews {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: center;
+}
+
+.bw-previews img {
+  width: 3.1rem;
+  height: 3.1rem;
+  object-fit: cover;
+  border-radius: 0.7rem;
+  box-shadow: 0 6px 12px rgba(92, 58, 28, 0.16);
+}
+
+.bw-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  justify-content: center;
+}
+
+.bw-continue,
+.bw-read,
+.bw-library {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.8rem;
+  padding: 0.45rem 1.15rem;
+  border-radius: 999px;
+  font: 800 1rem/1.2 Nunito, "Trebuchet MS", sans-serif;
+  text-decoration: none;
+}
+
+.bw-continue,
+.bw-read {
+  border: 0;
+  background: linear-gradient(180deg, #f3d48a, #e2a84a);
+  color: #4a3118;
+  box-shadow: 0 8px 16px rgba(180, 120, 40, 0.22);
+  cursor: pointer;
+}
+
+.bw-library {
+  background: rgba(255, 248, 238, 0.9);
+  color: #5c4636;
+  box-shadow: inset 0 0 0 1px rgba(120, 84, 48, 0.16);
+}
+
+.bw[data-scene="opening"] .bw-book,
+.bw[data-motion="on"] .bw-book {
+  animation: bw-float 4.8s ease-in-out infinite;
+}
+
+.bw[data-scene="opening"] .bw-cover,
+.bw[data-scene="saving"] .bw-cover,
+.bw[data-scene="completed"] .bw-cover {
+  opacity: 1;
+}
+
+.bw[data-scene="writing"] .bw-cover,
+.bw[data-scene="planning"] .bw-cover,
+.bw[data-scene="drawing"] .bw-cover,
+.bw[data-scene="checking"] .bw-cover,
+.bw[data-scene="assembling"] .bw-cover,
+.bw[data-scene="paused"] .bw-cover,
+.bw[data-scene="failed"] .bw-cover,
+.bw[data-scene="waiting"] .bw-cover {
+  opacity: 0;
+}
+
+.bw[data-scene="writing"] .bw-open,
+.bw[data-scene="planning"] .bw-open,
+.bw[data-scene="drawing"] .bw-open,
+.bw[data-scene="checking"] .bw-open,
+.bw[data-scene="assembling"] .bw-open,
+.bw[data-scene="paused"] .bw-open,
+.bw[data-scene="failed"] .bw-open {
+  opacity: 1;
+  transform: none;
+}
+
+.bw[data-scene="writing"] .bw-pencil,
+.bw[data-scene="planning"] .bw-pencil { opacity: 1; }
+
+.bw[data-scene="drawing"] .bw-brush,
+.bw[data-scene="assembling"] .bw-brush { opacity: 1; }
+
+.bw[data-scene="checking"] .bw-glass { opacity: 1; }
+
+.bw[data-scene="drawing"] .bw-peek { opacity: 1; }
+
+.bw[data-motion="on"][data-scene="writing"] .bw-leaf--right span,
+.bw[data-motion="on"][data-scene="planning"] .bw-leaf--right span {
+  animation: bw-write 2.6s ease-in-out infinite;
+}
+
+.bw[data-motion="on"][data-scene="writing"] .bw-pencil,
+.bw[data-motion="on"][data-scene="planning"] .bw-pencil {
+  animation: bw-pencil 2.2s ease-in-out infinite;
+}
+
+.bw[data-motion="on"][data-scene="drawing"] .bw-brush {
+  animation: bw-brush 2.4s ease-in-out infinite;
+}
+
+.bw[data-motion="on"][data-scene="drawing"] .bw-peek {
+  animation: bw-peek 7s ease-in-out infinite;
+}
+
+.bw[data-motion="on"][data-scene="checking"] .bw-glass {
+  animation: bw-glass 3.2s ease-in-out infinite;
+}
+
+.bw[data-scene="saving"] .bw-shelf,
+.bw[data-scene="completed"] .bw-shelf {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0.15rem);
+}
+
+.bw[data-scene="saving"] .bw-cover,
+.bw[data-scene="completed"] .bw-cover {
+  width: min(7.2rem, 30vw);
+  top: 34%;
+}
+
+.bw[data-motion="on"][data-scene="saving"] .bw-cover {
+  animation: bw-shelve 2.8s ease-in-out infinite;
+}
+
+.bw[data-scene="completed"] .bw-spark { opacity: 1; }
+
+.bw[data-motion="on"][data-scene="completed"] .bw-spark i {
+  animation: bw-spark 1.8s ease-in-out infinite;
+}
+
+.bw[data-scene="failed"] .bw-message { color: #8a4b3a; }
+.bw[data-scene="paused"] .bw-message { color: #6d4e2e; }
+
+.bw[data-scene="opening"] .bw-cover {
+  animation: bw-glow 3.4s ease-in-out infinite;
+}
+
+@keyframes bw-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+
+@keyframes bw-glow {
+  0%, 100% { filter: drop-shadow(0 16px 22px rgba(92, 58, 28, 0.2)); }
+  50% { filter: drop-shadow(0 16px 22px rgba(196, 150, 70, 0.35)) brightness(1.04); }
+}
+
+@keyframes bw-write {
+  0% { width: 18%; }
+  60% { width: 88%; }
+  100% { width: 70%; }
+}
+
+@keyframes bw-pencil {
+  0%, 100% { transform: translate(0, 0) rotate(-18deg); }
+  50% { transform: translate(-28px, -6px) rotate(-8deg); }
+}
+
+@keyframes bw-brush {
+  0%, 100% { transform: translate(0, 0) rotate(-12deg); }
+  50% { transform: translate(-16px, 10px) rotate(4deg); }
+}
+
+@keyframes bw-peek {
+  0%, 64%, 100% { transform: translateY(1.5rem); opacity: 0; }
+  76%, 90% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes bw-glass {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(42px, 18px); }
+}
+
+@keyframes bw-shelve {
+  0%, 100% { transform: translate(-50%, -46%); }
+  50% { transform: translate(-50%, -58%); }
+}
+
+@keyframes bw-spark {
+  0%, 100% { transform: scale(0.75); opacity: 0.45; }
+  50% { transform: scale(1); opacity: 1; }
+}
+
+@media (max-width: 720px) {
+  .bw { width: 100%; }
+  .bw-stage { height: min(38dvh, 16.5rem); }
+  .bw-book { width: min(19rem, 92vw); height: min(13.5rem, 34dvh); }
+  .bw-actions { width: min(100%, 22rem); }
+  .bw-continue,
+  .bw-read,
+  .bw-library { flex: 1 1 100%; }
+  .bw-peek { width: 4.4rem; height: 4.4rem; }
+}
+
+@media (min-width: 721px) and (max-width: 1024px) {
+  .bw-stage { height: min(42dvh, 20rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bw,
+  .bw *,
+  .bw *::before,
+  .bw *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+.bw[data-reduced="true"],
+.bw[data-reduced="true"] *,
+.bw[data-reduced="true"] *::before,
+.bw[data-reduced="true"] *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+.bw[data-reduced="true"][data-scene="drawing"] .bw-peek {
+  opacity: 1;
+  transform: none;
+}
+
+body.bw-live #sjNext { display: none; }
+body.bw-live #sjStage { overflow: auto; }
+
+body.bw-live .bw {
+  background: rgba(255, 248, 238, 0.88);
+  border-radius: 1.6rem;
+  box-shadow: 0 18px 40px rgba(70, 40, 90, 0.12);
+}

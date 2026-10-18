@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>Wondii design system</title>
+  <link rel="icon" type="image/svg+xml" href="games/images/brand/wondi-mark.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Lora:wght@500;600&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/wondii-tokens.css?v=3" />
+  <link rel="stylesheet" href="css/wondii-system.css?v=2" />
+  <style>
+    body { margin: 0; }
+    .ds-nav { position: sticky; top: 0; z-index: var(--w-z-bar); display: flex; gap: 1rem; align-items: center; padding: 0.7rem var(--w-gutter); background: rgba(255, 253, 251, 0.92); backdrop-filter: blur(10px); }
+    .ds-nav a { color: var(--w-text-primary); font-weight: 800; text-decoration: none; }
+    .ds-swatch { width: 4.5rem; height: 4.5rem; border-radius: var(--w-radius-sm); box-shadow: var(--w-shadow-soft); }
+    .ds-row { display: flex; flex-wrap: wrap; gap: 0.8rem; align-items: center; }
+    .ds-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 1rem; }
+    .ds-stage { background: radial-gradient(800px 320px at 10% 0%, #f3e6d4, transparent 70%), var(--w-surface-card); border-radius: var(--w-radius-lg); padding: 1.5rem; color: var(--w-text-primary); aspect-ratio: 16 / 9; display: grid; align-content: center; gap: 1rem; box-shadow: var(--w-shadow-raised); }
+    .ds-stage .w-display, .ds-stage .w-lead { color: var(--w-text-primary); }
+  </style>
+</head>
+<body class="w-page">
+  <header class="ds-nav">
+    <strong>Wondii system</strong>
+    <span class="w-badge">Internal</span>
+    <a href="#colour">Colour</a>
+    <a href="#type">Type</a>
+    <a href="#controls">Controls</a>
+    <a href="#school">School theme</a>
+  </header>
+  <main class="w-wrap">
+    <section class="w-section">
+      <p class="w-kicker">Reference</p>
+      <h1 class="w-title">Canonical Wondii design system</h1>
+      <p class="w-lead">This page is not part of the product. Later migrations should match these components. School colour is a theme, not a second system.</p>
+      <div class="w-toolbar" role="group" aria-label="Theme">
+        <button type="button" class="w-btn w-btn--primary" id="themeWondii">Default Wondii</button>
+        <button type="button" class="w-btn w-btn--school" id="themeRamsden">Ramsden School theme</button>
+      </div>
+    </section>
+
+    <section class="w-section" id="colour">
+      <h2 class="w-h2">Colour</h2>
+      <div class="ds-row">
+        <div class="ds-swatch" style="background: var(--w-color-brand)"></div>
+        <div class="ds-swatch" style="background: var(--w-color-brand-soft)"></div>
+        <div class="ds-swatch" style="background: var(--w-surface-page)"></div>
+        <div class="ds-swatch" style="background: var(--w-color-warm)"></div>
+        <div class="ds-swatch" style="background: var(--w-color-success)"></div>
+        <div class="ds-swatch" style="background: var(--w-color-warning)"></div>
+        <div class="ds-swatch" style="background: var(--w-color-danger)"></div>
+        <div class="ds-swatch" style="background: var(--school-accent)"></div>
+      </div>
+    </section>
+
+    <section class="w-section" id="type">
+      <h2 class="w-h2">Typography</h2>
+      <p class="w-display">Classroom display</p>
+      <h1 class="w-h1">Heading one</h1>
+      <h2 class="w-h2">Heading two</h2>
+      <h3 class="w-h3">Heading three</h3>
+      <p>Body copy stays in Nunito. A long sentence should stay comfortable to read for a teacher scanning a class list.</p>
+      <p class="w-help">Small help text</p>
+      <p class="w-kicker">Label</p>
+      <p class="w-story">Expressive story type is Lora, used for reading, not for buttons.</p>
+    </section>
+
+    <section class="w-section" id="controls" data-w-context="schools">
+      <h2 class="w-h2">Buttons</h2>
+      <div class="ds-row">
+        <button type="button" class="w-btn w-btn--primary">Primary</button>
+        <button type="button" class="w-btn w-btn--secondary">Secondary</button>
+        <button type="button" class="w-btn w-btn--quiet">Quiet</button>
+        <button type="button" class="w-btn w-btn--danger">Remove class</button>
+        <button type="button" class="w-btn w-btn--icon" aria-label="Close"><span class="w-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span></button>
+        <button type="button" class="w-btn w-btn--primary" disabled>Disabled</button>
+        <button type="button" class="w-btn w-btn--primary" id="loadBtn">Save class</button>
+      </div>
+      <p class="w-help">A very long classroom instruction that should stay inside the button without looking like a browser default.</p>
+      <button type="button" class="w-btn w-btn--room w-btn--primary">Start the adventure for the whole class</button>
+    </section>
+
+    <section class="w-section">
+      <h2 class="w-h2">Cards</h2>
+      <div class="ds-grid">
+        <article class="w-card"><h3 class="w-h3">Standard card</h3><p class="w-help">Shared radius, shadow, and padding.</p></article>
+        <a class="w-card w-card--interactive" href="#cards"><h3 class="w-h3">Interactive card</h3><p class="w-help">Lifts on hover. Focus ring on keyboard.</p></a>
+        <article class="w-card w-card--feature" data-w-context="family"><h3 class="w-h3">Feature card</h3><p class="w-help">Family context can be warmer.</p></article>
+        <article class="w-card w-card--class"><img class="w-avatar" src="games/images/schools/room/kid-blonde-long.webp" alt="" /><div><strong>Year 3</strong><p class="w-help">28 pupils</p></div></article>
+      </div>
+      <div class="w-panel" style="margin-top:1rem"><h3 class="w-h3">Content panel</h3><p class="w-help">A quieter block for forms and notes.</p></div>
+    </section>
+
+    <section class="w-section">
+      <h2 class="w-h2">Forms</h2>
+      <div class="w-panel">
+        <label class="w-field">Class name <input value="Year 3 Oak" /></label>
+        <label class="w-field">Notes <textarea>What the class is learning this week.</textarea></label>
+        <label class="w-field">Year <select><option>Year 3</option><option>Year 4</option></select></label>
+        <label class="w-check"><input type="checkbox" checked /> Include a story</label>
+        <label class="w-radio"><input type="radio" name="who" checked /> Whole class</label>
+        <div class="w-segment" role="group" aria-label="Subject">
+          <button type="button" aria-pressed="true">Science</button>
+          <button type="button" aria-pressed="false">English</button>
+        </div>
+        <label class="w-field w-file">Lesson file <input type="file" /></label>
+        <label class="w-field w-search">Search <input type="search" placeholder="Search lessons" /></label>
+        <label class="w-field is-invalid">Class code <input class="w-input--code" value="????" /><span class="w-help">That code is not open. Check it with your teacher.</span></label>
+        <label class="w-field">Disabled <input disabled value="Saved" /></label>
+      </div>
+    </section>
+
+    <section class="w-section">
+      <h2 class="w-h2">Dialogs</h2>
+      <button type="button" class="w-btn w-btn--primary" id="openDialog">Open dialog</button>
+      <button type="button" class="w-btn w-btn--danger" id="openDanger">Remove a pupil</button>
+      <dialog class="w-dialog" id="sampleDialog">
+        <form method="dialog" class="w-dialog__body">
+          <button type="submit" class="w-btn w-btn--quiet w-btn--icon w-dialog__close" aria-label="Close" value="cancel"><span class="w-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span></button>
+          <p class="w-kicker">Class</p>
+          <h2 class="w-h2">Start this adventure?</h2>
+          <p>The class screen will open. Pupils can join with the code.</p>
+          <div class="w-dialog__actions">
+            <button type="submit" class="w-btn w-btn--quiet" value="cancel">Not yet</button>
+            <button type="submit" class="w-btn w-btn--primary" value="go">Start</button>
+          </div>
+        </form>
+      </dialog>
+      <dialog class="w-dialog" id="dangerDialog">
+        <form method="dialog" class="w-dialog__body">
+          <h2 class="w-h2">Remove this pupil?</h2>
+          <p>Their name leaves this class. Stories already made stay on the account.</p>
+          <div class="w-dialog__actions">
+            <button type="submit" class="w-btn w-btn--quiet" value="cancel">Keep</button>
+            <button type="submit" class="w-btn w-btn--danger" value="remove">Remove</button>
+          </div>
+        </form>
+      </dialog>
+    </section>
+
+    <section class="w-section">
+      <h2 class="w-h2">Icons and avatars</h2>
+      <div class="ds-row">
+        <span class="w-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5L12 4l8 6.5V20H4z"/><path d="M9 20v-6h6v6"/></svg></span>
+        <span class="w-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M5 5h10a4 4 0 010 8H5z"/><path d="M5 13h11a3 3 0 010 6H8"/></svg></span>
+        <span class="w-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/></svg></span>
+        <span class="w-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M5 12l5 5L20 7"/></svg></span>
+      </div>
+      <div class="ds-row" style="margin-top:1rem">
+        <img class="w-avatar w-avatar--tiny" src="games/images/schools/room/kid-blonde-long.webp" alt="" />
+        <img class="w-avatar w-avatar--sm" src="games/images/schools/room/kid-blonde-long.webp" alt="" />
+        <img class="w-avatar" src="games/images/schools/room/kid-blonde-long.webp" alt="Sofia, standard" />
+        <img class="w-avatar w-avatar--lg is-selected" src="games/images/schools/room/kid-brown-short.webp" alt="" />
+        <img class="w-avatar w-avatar--lg is-active" src="games/images/schools/room/kid-black-long.webp" alt="" />
+        <img class="w-avatar w-avatar--lg is-celebrating" src="games/images/schools/room/kid-auburn-short.webp" alt="" />
+        <img class="w-avatar w-avatar--lg is-inactive" src="games/images/schools/room/kid-blonde-short.webp" alt="" />
+        <img class="w-avatar w-avatar--room" src="games/images/schools/room/kid-blonde-long.webp" alt="" />
+      </div>
+      <p><span class="w-badge">Year 3</span> <span class="w-badge w-badge--school">School accent</span></p>
+    </section>
+
+    <section class="w-section">
+      <h2 class="w-h2">Feedback, loading, empty</h2>
+      <div class="ds-grid">
+        <p class="w-note w-note--success"><strong>Saved.</strong> The class is on the school record.</p>
+        <p class="w-note w-note--warning"><strong>Check this.</strong> The year group is still empty.</p>
+        <p class="w-note w-note--error"><strong>Not saved.</strong> Wondii could not reach the school record.</p>
+        <p class="w-note w-note--info">Pupils join with a code. They do not need an account.</p>
+        <p class="w-note w-note--correct"><strong>That’s it.</strong> The path was complete.</p>
+        <p class="w-note w-note--again"><strong>Try another way.</strong> The bulb still needs a full loop.</p>
+        <p class="w-note w-note--pending"><strong>Still on this device.</strong> The school save will try again.</p>
+      </div>
+      <div class="ds-row" style="margin-top:1rem">
+        <span class="w-loader" role="status" aria-label="Loading"></span>
+        <span class="w-loader w-loader--room" role="status" aria-label="Loading the lesson"></span>
+      </div>
+      <div class="w-card" style="margin-top:1rem;max-width:18rem">
+        <div class="w-skeleton w-skeleton--title"></div>
+        <div class="w-skeleton"></div>
+        <div class="w-skeleton"></div>
+      </div>
+      <div class="w-empty">
+        <p class="w-empty__title">No classes yet</p>
+        <p>Add a class, then Wondii can keep the children’s names with the school.</p>
+      </div>
+      <div class="w-empty">
+        <p class="w-empty__title">No Adventures yet</p>
+        <p>Create one from what you are teaching this week.</p>
+      </div>
+      <div class="w-empty">
+        <p class="w-empty__title">No results yet</p>
+        <p>Results appear here after the class has played.</p>
+      </div>
+      <div class="w-empty">
+        <p class="w-empty__title">No stories yet</p>
+        <p>A story made on this account will show on the shelf.</p>
+      </div>
+    </section>
+
+    <section class="w-section" id="school">
+      <h2 class="w-h2">Same components, two themes</h2>
+      <article class="w-hero">
+        <p class="w-kicker">School accent</p>
+        <h2 class="w-h2">The navy stays Wondii. The ribbon follows the school.</h2>
+        <div class="ds-row">
+          <button type="button" class="w-btn w-btn--primary">Primary stays navy</button>
+          <button type="button" class="w-btn w-btn--school">School accent</button>
+          <span class="w-badge w-badge--school">Theme badge</span>
+        </div>
+      </article>
+    </section>
+
+    <section class="w-section" id="room" data-w-context="room">
+      <h2 class="w-h2">Classroom scale</h2>
+      <div class="ds-stage">
+        <p class="w-display">Why won’t the bulb light?</p>
+        <div class="ds-row">
+          <button type="button" class="w-btn w-btn--room w-btn--primary">A complete path</button>
+          <button type="button" class="w-btn w-btn--room w-btn--secondary">Look again</button>
+        </div>
+        <span class="w-loader w-loader--room" role="status" aria-label="Waiting for the class"></span>
+      </div>
+    </section>
+
+    <section class="w-section" data-w-context="admin">
+      <h2 class="w-h2">Admin density</h2>
+      <article class="w-card"><h3 class="w-h3">Members</h3><p class="w-help">Quieter cards. Same buttons and fields.</p><button type="button" class="w-btn w-btn--secondary">Invite a teacher</button></article>
+    </section>
+  </main>
+  <script src="js/design-system.js?v=1"></script>
+</body>
+</html>

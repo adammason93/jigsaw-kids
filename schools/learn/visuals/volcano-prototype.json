@@ -1,0 +1,188 @@
+{
+  "prototype": "year5-volcano-9.8",
+  "enabledGlobally": false,
+  "provider": "openai",
+  "model": "gpt-image-2.5-sunburst",
+  "dimensions": "1536x864",
+  "totalMs": 68051,
+  "assets": [
+    {
+      "id": "opening",
+      "type": "story_scene",
+      "status": "ready",
+      "fallback": false,
+      "storagePath": "c90e0da5-3ba7-4c25-9e78-9519ffbc6f39/year5-volcano-9.8/opening-39c41923.jpg",
+      "publicUrl": "https://enuzrcjnrxwglacivlnu.supabase.co/storage/v1/object/public/wondii_adventure_visuals/c90e0da5-3ba7-4c25-9e78-9519ffbc6f39/year5-volcano-9.8/opening-39c41923.jpg",
+      "visualBriefHash": "39c41923",
+      "provider": "openai",
+      "model": "gpt-image-2.5-sunburst",
+      "dimensions": "1536x864",
+      "quality": "high",
+      "bytes": 323249,
+      "ms": 31503,
+      "usage": {
+        "input_tokens": 636,
+        "input_tokens_details": {
+          "image_tokens": 0,
+          "text_tokens": 636
+        },
+        "output_tokens": 1078,
+        "output_tokens_details": {
+          "image_tokens": 1078,
+          "text_tokens": 0
+        },
+        "total_tokens": 1714
+      },
+      "promptStrategy": "text-generation-establishes-world",
+      "brief": {
+        "sceneType": "story",
+        "setting": "A coastal town beneath a large volcano, seen from a hillside science field station.",
+        "subjects": [
+          "three fictional young science explorers",
+          "the volcano",
+          "the town"
+        ],
+        "action": "The explorers investigate subtle signs that the ground has begun to tremble, beside scientific field equipment.",
+        "importantObjects": [
+          "volcano",
+          "cracked ground",
+          "monitoring equipment",
+          "yellow research vehicle",
+          "field station"
+        ],
+        "educationalFocus": "A volcano above a coastal town, with the first signs of movement in the ground.",
+        "mood": "mystery and adventure, exciting rather than frightening"
+      },
+      "importantObjects": [
+        "volcano",
+        "cracked ground",
+        "monitoring equipment",
+        "yellow research vehicle",
+        "field station"
+      ],
+      "usedByScenes": [
+        "The Mystery of the Trembling Ground"
+      ],
+      "createdAt": "2026-09-30T21:06:08.482Z",
+      "fileBytes": 323249
+    },
+    {
+      "id": "discovery",
+      "type": "teaching_visual",
+      "status": "ready",
+      "fallback": false,
+      "storagePath": "c90e0da5-3ba7-4c25-9e78-9519ffbc6f39/year5-volcano-9.8/discovery-9e575c11.jpg",
+      "publicUrl": "https://enuzrcjnrxwglacivlnu.supabase.co/storage/v1/object/public/wondii_adventure_visuals/c90e0da5-3ba7-4c25-9e78-9519ffbc6f39/year5-volcano-9.8/discovery-9e575c11.jpg",
+      "visualBriefHash": "9e575c11",
+      "provider": "openai",
+      "model": "gpt-image-2.5-sunburst",
+      "dimensions": "1536x864",
+      "quality": "high",
+      "bytes": 334367,
+      "ms": 32760,
+      "usage": {
+        "input_tokens": 1947,
+        "input_tokens_details": {
+          "image_tokens": 1296,
+          "text_tokens": 651
+        },
+        "output_tokens": 1078,
+        "output_tokens_details": {
+          "image_tokens": 1078,
+          "text_tokens": 0
+        },
+        "total_tokens": 3025
+      },
+      "promptStrategy": "edit-from-opening-reference",
+      "brief": {
+        "sceneType": "teaching",
+        "setting": "Inside and beneath the same volcano, above the same coastal town.",
+        "subjects": [
+          "magma",
+          "the volcano conduit",
+          "the same three explorers at the field station"
+        ],
+        "action": "Magma is under pressure and moving upwards towards the surface.",
+        "importantObjects": [
+          "magma",
+          "pressure in the conduit",
+          "path towards the surface",
+          "the same volcano"
+        ],
+        "educationalFocus": "Magma, pressure, and movement towards the surface.",
+        "mood": "clear, serious, and wondrous"
+      },
+      "importantObjects": [
+        "magma",
+        "pressure in the conduit",
+        "path towards the surface",
+        "the same volcano"
+      ],
+      "usedByScenes": [
+        "The Pressure Builds",
+        "Understanding Eruptions"
+      ],
+      "createdAt": "2026-09-30T21:06:42.357Z",
+      "fileBytes": 334367
+    },
+    {
+      "id": "resolution",
+      "type": "resolution",
+      "status": "ready",
+      "fallback": false,
+      "storagePath": "c90e0da5-3ba7-4c25-9e78-9519ffbc6f39/year5-volcano-9.8/resolution-4958cfb.jpg",
+      "publicUrl": "https://enuzrcjnrxwglacivlnu.supabase.co/storage/v1/object/public/wondii_adventure_visuals/c90e0da5-3ba7-4c25-9e78-9519ffbc6f39/year5-volcano-9.8/resolution-4958cfb.jpg",
+      "visualBriefHash": "4958cfb",
+      "provider": "openai",
+      "model": "gpt-image-2.5-sunburst",
+      "dimensions": "1536x864",
+      "quality": "high",
+      "bytes": 313161,
+      "ms": 31228,
+      "usage": {
+        "input_tokens": 1920,
+        "input_tokens_details": {
+          "image_tokens": 1296,
+          "text_tokens": 624
+        },
+        "output_tokens": 1078,
+        "output_tokens_details": {
+          "image_tokens": 1078,
+          "text_tokens": 0
+        },
+        "total_tokens": 2998
+      },
+      "promptStrategy": "edit-from-opening-reference",
+      "brief": {
+        "sceneType": "resolution",
+        "setting": "The town hall opening towards the same volcano and field station.",
+        "subjects": [
+          "the same three fictional explorers",
+          "townspeople",
+          "the volcano"
+        ],
+        "action": "The explorers finish the mission by sharing what they discovered. The investigation is complete.",
+        "importantObjects": [
+          "notebook",
+          "monitoring equipment",
+          "the volcano",
+          "the town"
+        ],
+        "educationalFocus": "The mission reaches its conclusion.",
+        "mood": "earned, calm, and hopeful"
+      },
+      "importantObjects": [
+        "notebook",
+        "monitoring equipment",
+        "the volcano",
+        "the town"
+      ],
+      "usedByScenes": [
+        "The Final Presentation",
+        "What Did We Learn?"
+      ],
+      "createdAt": "2026-09-30T21:06:40.818Z",
+      "fileBytes": 313161
+    }
+  ]
+}

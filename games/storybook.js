@@ -1,0 +1,7053 @@
+/**
+ * AI storybook — journey modal + Supabase Edge Function `clever-service`.
+ * Requires: deploy function + OPENAI_API_KEY secret (see supabase/functions/clever-service/README.md).
+ */
+(function () {
+  var CHARACTERS = [
+    { id: "unicorn", label: "Unicorn", icon: "\uD83E\uDD84" },
+    { id: "dragon", label: "Little dragon", icon: "\uD83D\uDC09" },
+    { id: "custom_buddy", label: "Add your own buddy", icon: "\u270F\uFE0F" },
+    { id: "dinosaur", label: "Dinosaur", icon: "\uD83E\uDD96" },
+    { id: "robot", label: "Robot", icon: "\uD83E\uDD16" },
+    { id: "bunny", label: "Bunny", icon: "\uD83D\uDC30" },
+    { id: "teddy", label: "Teddy bear", icon: "\uD83E\uDDF8" },
+    { id: "cat", label: "Kitty", icon: "\uD83D\uDC31" },
+    { id: "dog", label: "Puppy", icon: "\uD83D\uDC36" },
+    { id: "fox", label: "Fox", icon: "\uD83E\uDD8A" },
+    { id: "penguin", label: "Penguin", icon: "\uD83D\uDC27" },
+    { id: "owl", label: "Owl", icon: "\uD83E\uDD89" },
+    { id: "octopus", label: "Octopus", icon: "\uD83D\uDC19" },
+    { id: "giraffe", label: "Giraffe", icon: "\uD83E\uDD92" },
+    { id: "bee", label: "Bumblebee", icon: "\uD83D\uDC1D" },
+    { id: "butterfly", label: "Butterfly", icon: "\uD83E\uDD8B" },
+    { id: "ladybug", label: "Ladybug", icon: "\uD83D\uDC1E" },
+    { id: "frog", label: "Frog", icon: "\uD83D\uDC38" },
+    { id: "hedgehog", label: "Hedgehog", icon: "\uD83E\uDD94" },
+    { id: "mouse", label: "Little mouse", icon: "\uD83D\uDC2D" },
+    { id: "hippo", label: "Hippo", icon: "\uD83E\uDD9B" },
+    { id: "flamingo", label: "Flamingo", icon: "\uD83E\uDDA9" },
+    { id: "turtle", label: "Turtle", icon: "\uD83D\uDC22" },
+    { id: "koala", label: "Koala", icon: "\uD83D\uDC28" },
+    { id: "llama", label: "Llama", icon: "\uD83E\uDD99" },
+    { id: "raccoon", label: "Raccoon", icon: "\uD83E\uDD9D" },
+    { id: "seal", label: "Seal", icon: "\uD83E\uDDAD" },
+    { id: "otter", label: "Otter", icon: "\uD83E\uDDA6" },
+    { id: "panda", label: "Panda", icon: "\uD83D\uDC3C" },
+    { id: "bear", label: "Bear cub", icon: "\uD83D\uDC3B" },
+    { id: "polarbear", label: "Polar bear", icon: "\uD83D\uDC3B\u200D\u2744\uFE0F" },
+    { id: "lion", label: "Lion cub", icon: "\uD83E\uDD81" },
+    { id: "tiger", label: "Tiger cub", icon: "\uD83D\uDC2F" },
+    { id: "monkey", label: "Monkey friend", icon: "\uD83D\uDC35" },
+    { id: "elephant", label: "Elephant calf", icon: "\uD83D\uDC18" },
+    { id: "zebra", label: "Zebra foal", icon: "\uD83E\uDD93" },
+    { id: "cow", label: "Cow", icon: "\uD83D\uDC04" },
+    { id: "pig", label: "Piglet", icon: "\uD83D\uDC37" },
+    { id: "sheep", label: "Lamb", icon: "\uD83D\uDC11" },
+    { id: "horse", label: "Pony", icon: "\uD83D\uDC34" },
+    { id: "chicken", label: "Chicken", icon: "\uD83D\uDC14" },
+    { id: "duck", label: "Duckling", icon: "\uD83E\uDD86" },
+    { id: "parrot", label: "Parrot", icon: "\uD83E\uDD9C" },
+    { id: "deer", label: "Deer fawn", icon: "\uD83E\uDD8C" },
+    { id: "dolphin", label: "Dolphin", icon: "\uD83D\uDC33" },
+    { id: "whale", label: "Whale", icon: "\uD83D\uDC0B" },
+    { id: "crab", label: "Crab", icon: "\uD83E\uDD80" },
+    { id: "snail", label: "Snail", icon: "\uD83D\uDC0C" },
+    { id: "caterpillar", label: "Caterpillar", icon: "\uD83D\uDC1B" },
+    { id: "lightningbug", label: "Glow-bug buddy", icon: "\u2728" },
+    { id: "fairy", label: "Tiny fairy", icon: "\uD83E\uDDDA" },
+    { id: "alien", label: "Squishy alien", icon: "\uD83D\uDC7D" },
+    { id: "ghost", label: "Friendly ghost", icon: "\uD83D\uDC7B" },
+    { id: "snowbuddy", label: "Snow buddy", icon: "\u26C4" },
+    { id: "mermaidbuddy", label: "Merfriend", icon: "\uD83E\uDDDC" },
+    { id: "nobuddy", label: "No buddy", icon: "\uD83D\uDC64" },
+  ];
+
+  /** Must match clever-service `BOOK_COLOR_KEYS` / `coerceBookColor`. */
+  var BOOK_COLOR_OPTIONS = [
+    { id: "", label: "Auto", swatch: null },
+    { id: "pink", label: "Pink", swatch: "#ec4899" },
+    { id: "blue", label: "Blue", swatch: "#2563eb" },
+    { id: "green", label: "Green", swatch: "#16a34a" },
+    { id: "purple", label: "Purple", swatch: "#9333ea" },
+    { id: "orange", label: "Orange", swatch: "#ea580c" },
+    { id: "teal", label: "Teal", swatch: "#0d9488" },
+    { id: "red", label: "Red", swatch: "#dc2626" },
+    { id: "yellow", label: "Yellow", swatch: "#ca8a04" },
+    { id: "lilac", label: "Lilac", swatch: "#a78bfa" },
+    { id: "mint", label: "Mint", swatch: "#34d399" },
+    { id: "coral", label: "Coral", swatch: "#fb7185" },
+    { id: "navy", label: "Navy", swatch: "#1e3a8a" },
+  ];
+
+  /** Max characters for "What happens?" — keep in sync with clever-service `STORYBOOK_PLOT_HINT_MAX`. */
+  var PLOT_INPUT_MAX = 6000;
+
+  /**
+   * OpenAI TTS voice for story read-aloud. If **empty**, we pick **ballad** (boy-leaning) or **sage**
+   * (girl-leaning) from the book title and hero name — see `firstNameForReadAloud`.
+   * Set to any clever-service voice id to lock a voice (e.g. "coral").
+   */
+  var STORYBOOK_TTS_VOICE = "";
+
+  /**
+   * Common first names (lowercase → 1). Hero/title tokens are matched here for read-aloud voice.
+   * Unisex → we use **sage**. Missing names omit `ttsVoice` so the server default applies.
+   */
+  var TTS_BOY_NAMES = {
+    adam: 1, adrian: 1, aiden: 1, aj: 1, albert: 1, alexander: 1, alfie: 1, andrew: 1,
+    angus: 1, archie: 1, arlo: 1, arthur: 1, austin: 1, axel: 1, bear: 1, beau: 1, ben: 1, benjamin: 1,
+    billy: 1, blake: 1, bodhi: 1, bobby: 1, bradley: 1, brody: 1, bryan: 1, bryce: 1, buster: 1,
+    caden: 1, caleb: 1, callum: 1, calvin: 1, cameron: 1, carter: 1, charles: 1, chase: 1, chester: 1, christian: 1, christopher: 1, clark: 1, colin: 1, colton: 1, connor: 1,
+    cooper: 1, cyrus: 1, damian: 1, daniel: 1, danny: 1, darren: 1, dave: 1, david: 1, dean: 1,
+    declan: 1, dexter: 1, dominic: 1, dougie: 1, douglas: 1, drake: 1, dylan: 1, easton: 1,
+    eddie: 1, edgar: 1, edward: 1, elliot: 1, elliott: 1, eli: 1, elias: 1, emil: 1, eric: 1, ethan: 1,
+    evan: 1, ewan: 1, ezra: 1, felix: 1, finn: 1, fletcher: 1, flynn: 1, ford: 1, frank: 1,
+    frankie: 1, freddie: 1, frederick: 1, gabriel: 1, garrett: 1, gary: 1, gavin: 1, gareth: 1, george: 1,
+    gideon: 1, grayson: 1, greg: 1, greyson: 1, griffin: 1, guy: 1, harold: 1, harrison: 1,
+    harry: 1, harvey: 1, henry: 1, hudson: 1, hugh: 1, hugo: 1, hunter: 1, ian: 1, igor: 1, isaac: 1,
+    isaiah: 1, ivan: 1, jack: 1, jackson: 1, jacob: 1, jake: 1, james: 1, jared: 1, jarrett: 1,
+    jason: 1, jasper: 1, jax: 1, jaxson: 1, jay: 1, jayden: 1, jed: 1, jeff: 1, jeremiah: 1, jesse: 1,
+    joey: 1, john: 1, johnny: 1, jonah: 1, jonathan: 1, jonny: 1, joseph: 1, josh: 1, joshua: 1,
+    josiah: 1, jude: 1, judah: 1, julian: 1, julius: 1, junior: 1, justin: 1, kai: 1, kane: 1, karl: 1,
+    kayden: 1, keenan: 1, keith: 1, ken: 1, kenneth: 1, kevin: 1, kian: 1, kieran: 1, kit: 1, kobe: 1,
+    kyle: 1, kyrie: 1, lance: 1, lawrence: 1, lee: 1, legend: 1, lennox: 1, leo: 1, leon: 1, leonard: 1,
+    levi: 1, liam: 1, lincoln: 1, logan: 1, louie: 1, louis: 1, luca: 1, lucas: 1, lucian: 1, lucius: 1,
+    luis: 1, luke: 1, magnus: 1, malachi: 1, marcus: 1, mario: 1, mark: 1, marshall: 1, martin: 1, marvin: 1,
+    mason: 1, mateo: 1, matt: 1, matthew: 1, maurice: 1, max: 1, maximilian: 1, micah: 1, michael: 1,
+    mick: 1, miguel: 1, milo: 1, mitchell: 1, mohamed: 1, muhammad: 1, mohammed: 1, monty: 1, myles: 1,
+    nate: 1, nathan: 1, nathaniel: 1, neil: 1, nelson: 1, nico: 1, noah: 1, nolan: 1, norman: 1,
+    oakley: 1, odin: 1, oliver: 1, ollie: 1, orlando: 1, oscar: 1, otto: 1, owen: 1, parker: 1, patrick: 1,
+    paul: 1, pedro: 1, peter: 1, phil: 1, philip: 1, pierce: 1, preston: 1, quentin: 1, rafael: 1,
+    ralph: 1, randall: 1, randy: 1, raul: 1, ray: 1, raymond: 1, reggie: 1, remy: 1, rex: 1, reuben: 1,
+    rhys: 1, richard: 1, ricky: 1, rob: 1, robbie: 1, robert: 1, rocco: 1, rocky: 1,
+    rodney: 1, roger: 1, roman: 1, ronan: 1, ronnie: 1, rory: 1, ross: 1, roy: 1, ruben: 1,
+    rudy: 1, russell: 1, rusty: 1, ryan: 1, ryder: 1, samson: 1, samuel: 1, santino: 1,
+    sascha: 1, sawyer: 1, scott: 1, sean: 1, sebastian: 1, sergio: 1, seth: 1, shaun: 1, shawn: 1, silas: 1,
+    simon: 1, sonny: 1, stanley: 1, stefan: 1, stephen: 1, steve: 1, steven: 1, sullivan: 1, teddy: 1,
+    terry: 1, theo: 1, theodore: 1, thomas: 1, tim: 1, timothy: 1, tobias: 1, toby: 1, todd: 1, tommy: 1,
+    tony: 1, travis: 1, trent: 1, trevor: 1, tristan: 1, troy: 1, tucker: 1, tyler: 1, tyson: 1, vance: 1,
+    vaughn: 1, vernon: 1, victor: 1, vincent: 1, vinnie: 1, walter: 1, warren: 1, wayne: 1, wesley: 1,
+    will: 1, william: 1, willie: 1, wilson: 1, xander: 1, xavier: 1, zach: 1, zachary: 1, zain: 1, zander: 1,
+    zane: 1, zeke: 1,
+  };
+
+  var TTS_GIRL_NAMES = {
+    abby: 1, abigail: 1, ada: 1, addison: 1, adelaide: 1, adele: 1, adeline: 1, agnes: 1, aileen: 1,
+    aisha: 1, alana: 1, alexa: 1, alexandra: 1, alexis: 1, alice: 1, alicia: 1, alina: 1, alison: 1, alyssa: 1,
+    amanda: 1, amara: 1, amber: 1, amelia: 1, amy: 1, ana: 1, anastasia: 1, andrea: 1, angel: 1, angela: 1,
+    angelica: 1, anna: 1, annabelle: 1, annabel: 1, anne: 1, annie: 1, arabella: 1, aria: 1, ariana: 1,
+    arianna: 1, arwen: 1, ashley: 1, astrid: 1, athena: 1, audrey: 1, aurora: 1, autumn: 1, ava: 1,
+    ayla: 1, barbara: 1, beatrice: 1, beatrix: 1, bella: 1, belle: 1, beth: 1, betsy: 1, betty: 1,
+    bianca: 1, bonnie: 1, braelyn: 1, brenda: 1, brianna: 1, bridget: 1, brooke: 1, brooklyn: 1, callie: 1,
+    camilla: 1, camille: 1, candy: 1, carly: 1, carmen: 1, caroline: 1, carrie: 1, cassandra: 1,
+    cassidy: 1, cassie: 1, catherine: 1, cecilia: 1, celeste: 1, charlotte: 1, chloe: 1, christina: 1,
+    claire: 1, clara: 1, clarissa: 1, clementine: 1, colleen: 1, connie: 1, cora: 1, courtney: 1, crystal: 1,
+    daisy: 1, dana: 1, danica: 1, danielle: 1, darla: 1, darcy: 1, dawn: 1, deb: 1, debra: 1,
+    delia: 1, delilah: 1, destiny: 1, diana: 1, dolly: 1, dolores: 1, donna: 1, dora: 1, doris: 1, dorothy: 1,
+    eden: 1, edith: 1, edna: 1, eileen: 1, elaine: 1, eleanor: 1, elena: 1, eliana: 1, elise: 1, eliza: 1,
+    elizabeth: 1, ella: 1, elle: 1, ellen: 1, ellie: 1, elsie: 1, eloise: 1, ember: 1, emilia: 1,
+    emily: 1, emma: 1, erica: 1, erika: 1, erin: 1, esther: 1, etta: 1, eva: 1, eve: 1, evelyn: 1, everly: 1,
+    faith: 1, fatima: 1, faye: 1, felicity: 1, fenella: 1, fiona: 1, flora: 1, florence: 1, frances: 1,
+    francesca: 1, freya: 1, gabriella: 1, gabrielle: 1, gemma: 1, georgia: 1, georgina: 1, geraldine: 1,
+    gianna: 1, gillian: 1, ginny: 1, giselle: 1, grace: 1, gracie: 1, greta: 1, gwen: 1, gwendolyn: 1, hadley: 1,
+    hailey: 1, haley: 1, hana: 1, hannah: 1, harlow: 1, harper: 1, harriet: 1, hattie: 1, hazel: 1, heather: 1,
+    heidi: 1, helen: 1, holly: 1, hope: 1, imogen: 1, ines: 1, inez: 1, ingrid: 1, irene: 1, iris: 1, isabel: 1,
+    isabella: 1, isla: 1, ivy: 1, izzy: 1, jacqueline: 1, jade: 1, jane: 1, janet: 1, janice: 1,
+    jasmine: 1, jean: 1, jeanette: 1, jeannie: 1, jenna: 1, jennifer: 1, jess: 1, jessica: 1, jill: 1, jillian: 1,
+    joan: 1, joanna: 1, jocelyn: 1, jodie: 1, johanna: 1, josephine: 1, joy: 1, joyce: 1, judith: 1, julia: 1,
+    julianna: 1, julie: 1, juliet: 1, june: 1, junko: 1, kali: 1, karen: 1, kate: 1, katelyn: 1, katherine: 1,
+    kathleen: 1, kathryn: 1, katie: 1, kayla: 1, keira: 1, kelly: 1, kendra: 1, kerri: 1, kiara: 1, kim: 1,
+    kimberly: 1, kira: 1, kirsten: 1, kitty: 1, kylie: 1, lainey: 1, lana: 1, lara: 1, laura: 1, lauren: 1,
+    layla: 1, leah: 1, leela: 1, leia: 1, lena: 1, leona: 1, lexie: 1, lia: 1, lila: 1, lilah: 1,
+    lillian: 1, lily: 1, lina: 1, linda: 1, lindsay: 1, lisa: 1, liv: 1, lola: 1, lottie: 1, louisa: 1, louise: 1,
+    lucia: 1, lucille: 1, lucy: 1, luna: 1, lydia: 1, lyla: 1, lyra: 1, mabel: 1, madeleine: 1, mae: 1, maeve: 1,
+    maggie: 1, magnolia: 1, mandy: 1, mara: 1, marcie: 1, margaret: 1, margot: 1, maria: 1, marian: 1,
+    marie: 1, marilyn: 1, marina: 1, marion: 1, marissa: 1, martha: 1, mary: 1, maryam: 1, matilda: 1, maureen: 1,
+    maxine: 1, may: 1, maya: 1, megan: 1, melanie: 1, melissa: 1, mia: 1, michelle: 1, millie: 1, minnie: 1,
+    miranda: 1, molly: 1, monica: 1, muriel: 1, myra: 1, nadine: 1, nancy: 1, naomi: 1, natalie: 1,
+    natasha: 1, nell: 1, nellie: 1, nia: 1, nicole: 1, nikki: 1, nina: 1, noelle: 1, nora: 1, norah: 1, nova: 1,
+    octavia: 1, olive: 1, olivia: 1, opal: 1, ophelia: 1, paige: 1, pam: 1, pamela: 1, patricia: 1,
+    paula: 1, pearl: 1, peggy: 1, penny: 1, pepper: 1, phoebe: 1, piper: 1, pippa: 1, polly: 1, poppy: 1, priya: 1,
+    queenie: 1, rachel: 1, raina: 1, rebecca: 1, regina: 1, renee: 1, rhiannon: 1, rita: 1,
+    roberta: 1, romy: 1, ronda: 1, rosa: 1, rose: 1, rosemary: 1, rosie: 1,
+    ruby: 1, ruth: 1, rylee: 1, sadie: 1, sally: 1, samantha: 1, sandra: 1, sara: 1, sarah: 1, savannah: 1,
+    scarlett: 1, selena: 1, serena: 1, shannon: 1, sharon: 1, sheila: 1, shelby: 1, shelly: 1, shirley: 1,
+    sierra: 1, sienna: 1, silvia: 1, skye: 1, sophia: 1, sophie: 1, stacey: 1,
+    stacy: 1, stella: 1, summer: 1, susan: 1, susie: 1, sutton: 1, sydney: 1, sylvia: 1, tabitha: 1, tamara: 1,
+    tammy: 1, tanya: 1, tara: 1, teresa: 1, tess: 1, tessa: 1, thea: 1, theresa: 1, tiffany: 1, tilly: 1,
+    tina: 1, tracy: 1, trinity: 1, trudy: 1, valentina: 1, valerie: 1, vanessa: 1, vera: 1, veronica: 1,
+    vicki: 1, victoria: 1, violet: 1, virginia: 1, vivian: 1, vivienne: 1, whitney: 1, willa: 1, willow: 1,
+    winifred: 1, winnie: 1, winter: 1, xara: 1, yasmin: 1, yvette: 1, zara: 1, zelda: 1, zoe: 1, zola: 1, zoey: 1,
+  };
+
+  /** Names often used for any gender — read-aloud uses **sage**. */
+  var TTS_UNISEX_NAMES = {
+    alex: 1, avery: 1, bailey: 1, blair: 1, casey: 1, charlie: 1, dakota: 1, devon: 1, drew: 1, ellis: 1,
+    emerson: 1, finley: 1, francis: 1, gray: 1, harley: 1, jaden: 1, jamie: 1, jordan: 1, kendall: 1,
+    kennedy: 1, kit: 1, lane: 1, lee: 1, leslie: 1, logan: 1, max: 1, morgan: 1, noel: 1, paris: 1,
+    pat: 1, peyton: 1, phoenix: 1, quinn: 1, reese: 1, remy: 1, riley: 1, river: 1, robin: 1, rowan: 1, ryan: 1,
+    sam: 1, skylar: 1, skyler: 1, stevie: 1, taylor: 1, terry: 1, val: 1,
+  };
+
+  var PLACES = [
+    { id: "beach", label: "Beach", icon: "\uD83C\uDFD6" },
+    { id: "woods", label: "Woods", icon: "\uD83C\uDF32" },
+    { id: "custom_place", label: "Add your own scene", icon: "\uD83D\uDDFA" },
+    { id: "castle", label: "Castle", icon: "\uD83C\uDFF0" },
+    { id: "garden", label: "Garden", icon: "\uD83C\uDF37" },
+    { id: "space", label: "Space", icon: "\uD83D\uDE80" },
+    { id: "sea", label: "Open sea", icon: "\uD83C\uDF0A" },
+    { id: "pirateship", label: "Pirate ship", icon: "\uD83D\uDEA2" },
+    { id: "mountain", label: "Mountains", icon: "\u26F0" },
+    { id: "zoo", label: "Zoo", icon: "\uD83E\uDD81" },
+    { id: "farm", label: "Farm", icon: "\uD83D\uDC04" },
+    { id: "circus", label: "Circus", icon: "\uD83C\uDFAA" },
+    { id: "city", label: "Toy town", icon: "\uD83C\uDFD7" },
+    { id: "train", label: "Train ride", icon: "\uD83D\uDE82" },
+    { id: "lake", label: "Lake", icon: "\uD83D\uDEF6" },
+    { id: "snow", label: "Snowy land", icon: "\u2744" },
+    { id: "desert", label: "Desert", icon: "\uD83C\uDFDC" },
+    { id: "stadium", label: "Football stadium", icon: "\u26BD" },
+    { id: "museum", label: "Museum", icon: "\uD83C\uDFDB" },
+    { id: "island", label: "Tropical island", icon: "\uD83C\uDFDD" },
+    { id: "cave", label: "Secret cave", icon: "\uD83E\uDEA8" },
+    { id: "undersea", label: "Under the sea", icon: "\uD83D\uDC20" },
+    { id: "jungle", label: "Jungle", icon: "\uD83C\uDF34" },
+    { id: "school", label: "School day", icon: "\uD83C\uDFEB" },
+    { id: "playground", label: "Playground", icon: "\uD83C\uDFDE\uFE0F" },
+    { id: "bedroom", label: "Cozy bedroom", icon: "\uD83D\uDECF" },
+    { id: "treehouse", label: "Tree house", icon: "\uD83C\uDF33" },
+    { id: "library", label: "Library", icon: "\uD83D\uDCDA" },
+    { id: "campsite", label: "Camping", icon: "\u26FA" },
+    { id: "swimmingpool", label: "Swimming pool", icon: "\uD83C\uDFCA" },
+    { id: "icerink", label: "Ice skating", icon: "\u26F8" },
+    { id: "airport", label: "Airport", icon: "\u2708" },
+    { id: "fairground", label: "Fairground", icon: "\uD83C\uDFA1" },
+    { id: "village", label: "Village", icon: "\uD83C\uDFD8" },
+    { id: "bakery", label: "Bakery", icon: "\uD83C\uDF6E" },
+    { id: "greenhouse", label: "Greenhouse", icon: "\uD83E\uDEB4" },
+    { id: "savannah", label: "Savannah sun", icon: "\uD83C\uDF05" },
+    { id: "volcano", label: "Quiet volcano hills", icon: "\uD83C\uDF0B" },
+    { id: "meadow", label: "Wildflower meadow", icon: "\uD83C\uDF3C" },
+    { id: "petshop", label: "Pet nook", icon: "\uD83D\uDC3E" },
+    { id: "workshop", label: "Inventors workshop", icon: "\uD83D\uDD27" },
+  ];
+
+  var STEP_HEADINGS = [
+    "Who’s the hero?",
+    "Who comes along?",
+    "Where does it happen?",
+    "What happens?",
+    "How should it look?",
+  ];
+
+  var STEP_PROGRESS_LABELS = ["You", "Friend", "Place", "Story", "Look"];
+
+  /** Short lines read aloud per wizard step (pre-readers). */
+  var STEP_GUIDE_TEXT = [
+    "Who is the hero? Type their name, or tap Speak. You can add a photo if you like. Then press Next.",
+    "Pick a friend to come along. Or pick no buddy.",
+    "Pick a place for the pictures. Tap Next when you have one.",
+    "What happens in the story? One sentence is enough. You can tap an idea, or Speak.",
+    "Pick how the pictures should look. Then press Make my book.",
+  ];
+
+  var PLOT_STARTERS = [
+    "We found a magic door…",
+    "My friend got lost and we helped…",
+    "We built a secret clubhouse…",
+    "Something glowed under my bed…",
+    "We followed a trail of sparkles…",
+  ];
+
+  var landing = document.getElementById("sbLanding");
+  var modal = document.getElementById("sbModal");
+  var book = document.getElementById("sbBook");
+  var bookSpreadEl = document.getElementById("sbBookSpread");
+  var busy = document.getElementById("sbBusy");
+  var sbBusyProgressBar = document.getElementById("sbBusyProgressBar");
+  var sbBusyProgressFill = document.getElementById("sbBusyProgressFill");
+  var sbBusyStep = document.getElementById("sbBusyStep");
+  /** Smooth fake progress for synchronous long POST (no job polling). */
+  var sbBuildGuessTimer = null;
+  var sbBuildGuessPct = 0;
+  var appEl = document.getElementById("app");
+  var nameInput = document.getElementById("sbName");
+  var bookTitleInput = document.getElementById("sbBookTitle");
+  var authorInput = document.getElementById("sbAuthor");
+  var plotInput = document.getElementById("sbPlot");
+  var charRow = document.getElementById("sbCharacters");
+  var placeRow = document.getElementById("sbPlaces");
+  var buddyCustomWrap = document.getElementById("sbBuddyCustomWrap");
+  var buddyCustomInput = document.getElementById("sbBuddyCustom");
+  var placeCustomWrap = document.getElementById("sbPlaceCustomWrap");
+  var placeCustomInput = document.getElementById("sbPlaceCustom");
+  var bookColorsWrap = document.getElementById("sbBookColorsWrap");
+  var bookColorsQuick = document.getElementById("sbBookColorsQuick");
+  var bookColorsGrid = document.getElementById("sbBookColorsGrid");
+  var bookColorsExtra = document.getElementById("sbBookColorsExtra");
+  var bookColorToggle = document.getElementById("sbBookColorToggle");
+  var errEl = document.getElementById("sbError");
+  var modalErr = document.getElementById("sbModalError");
+  var progressEl = document.getElementById("sbProgress");
+  var stepKicker = document.getElementById("sbStepKicker");
+  var stepHeading = document.getElementById("sbStepHeading");
+  var readStepBtn = document.getElementById("sbReadStepBtn");
+  var btnStart = document.getElementById("sbStartJourney");
+  var btnGen = document.getElementById("sbGenerate");
+  /** True while Make my book POST/poll is running — blocks double-tap duplicate API spend. */
+  var sbGenerateInFlight = false;
+  var heroPhotoInput = document.getElementById("sbHeroPhoto");
+  var heroPhotoPickBtn = document.getElementById("sbHeroPhotoPick");
+  var heroPhotoThumbsWrap = document.getElementById("sbHeroPhotoThumbsWrap");
+  var heroPhotoThumbsList = document.getElementById("sbHeroPhotoThumbs");
+  var heroPhotoErr = document.getElementById("sbHeroPhotoErr");
+  var heroPhotoRemove = document.getElementById("sbHeroPhotoRemove");
+  var heroPhotoNameOverlay = document.getElementById("sbHeroPhotoNameOverlay");
+  var heroPhotoNameThumb = document.getElementById("sbHeroPhotoNameThumb");
+  var heroPhotoNameLead = document.getElementById("sbHeroPhotoNameLead");
+  var heroPhotoNameInput = document.getElementById("sbHeroPhotoNameInput");
+  var heroPhotoNameErr = document.getElementById("sbHeroPhotoNameErrInline");
+  var btnHeroPhotoNameOk = document.getElementById("sbHeroPhotoNameOk");
+  var btnHeroPhotoNameVoice = document.getElementById("sbHeroPhotoNameVoice");
+  var btnHeroPhotoNameMe = document.getElementById("sbHeroPhotoNameMe");
+  var heroPhotoNameVoiceHint = document.getElementById("sbHeroPhotoNameVoiceHint");
+  /** @type {number[]} — indices in heroPhotoItems still to name after an upload */
+  var heroPhotoPromptIndices = [];
+  var heroPhotoPromptAt = 0;
+  var heroRefDatalist = document.getElementById("sbHeroRefWhoDatalist");
+  /** @type {{ dataUrl: string, who: string }[]} */
+  var heroPhotoItems = [];
+  var HERO_PHOTO_MAX_COUNT = 3;
+  /** Keep under clever-service `MAX_HERO_REFERENCE_BYTES` per image after base64 (~1.2MB raw). */
+  var HERO_PHOTO_MAX_FILE_BYTES = Math.floor(1.25 * 1024 * 1024);
+  var readerHeading = document.getElementById("sbBookHeading");
+  var spreadText = document.getElementById("sbSpreadText");
+  var spreadTextClip = document.getElementById("sbSpreadTextClip");
+  var spreadTextActions = document.getElementById("sbSpreadTextActions");
+  var btnReadToMe = document.getElementById("sbReadToMe");
+  var spreadArt = document.getElementById("sbSpreadArt");
+
+  var currentAudio = null;
+  var stepGuideAudio = null;
+  var stepGuidePlaying = false;
+
+  function refreshReadStepBtn() {
+    if (!readStepBtn) return;
+    if (stepGuidePlaying) {
+      readStepBtn.textContent = "Stop";
+      readStepBtn.setAttribute("aria-label", "Stop reading this step");
+    } else {
+      readStepBtn.innerHTML =
+        '<span aria-hidden="true">\uD83D\uDD0A</span> Read this to me';
+      readStepBtn.setAttribute(
+        "aria-label",
+        "Read this step out loud",
+      );
+    }
+  }
+
+  function stopStepGuideAudio() {
+    if (stepGuideAudio) {
+      try {
+        stepGuideAudio.pause();
+        stepGuideAudio.src = "";
+      } catch (eSg) {}
+      stepGuideAudio = null;
+    }
+    if (window.speechSynthesis) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch (eSy) {}
+    }
+    stepGuidePlaying = false;
+    refreshReadStepBtn();
+  }
+
+  function speakStepGuideFallback(text) {
+    if (!window.speechSynthesis) return;
+    stepGuidePlaying = true;
+    refreshReadStepBtn();
+    var u = new SpeechSynthesisUtterance(text);
+    if (typeof KidsCore !== "undefined" && KidsCore.applyKidFriendlySpeech) {
+      KidsCore.applyKidFriendlySpeech(u, "en-GB");
+    } else {
+      u.lang = "en-GB";
+      u.rate = 1.08;
+      u.pitch = 1.18;
+    }
+    u.onend = function () {
+      stepGuidePlaying = false;
+      refreshReadStepBtn();
+    };
+    u.onerror = function () {
+      stepGuidePlaying = false;
+      refreshReadStepBtn();
+    };
+    window.speechSynthesis.speak(u);
+  }
+
+  function toggleStepGuide() {
+    stopSpeech();
+    if (stepGuidePlaying) {
+      stopStepGuideAudio();
+      return;
+    }
+    stopReading();
+    stopStepGuideAudio();
+    var text = STEP_GUIDE_TEXT[journeyStep];
+    if (!text) return;
+    var ttsUrl = cleverServiceTtsUrl(text);
+    if (ttsUrl) {
+      stepGuideAudio = new Audio(ttsUrl);
+      stepGuidePlaying = true;
+      refreshReadStepBtn();
+      stepGuideAudio.onended = function () {
+        stepGuidePlaying = false;
+        refreshReadStepBtn();
+      };
+      stepGuideAudio.onerror = function () {
+        stopStepGuideAudio();
+        speakStepGuideFallback(text);
+      };
+      var gp = stepGuideAudio.play();
+      if (gp !== undefined) {
+        gp.catch(function () {
+          stopStepGuideAudio();
+          speakStepGuideFallback(text);
+        });
+      }
+    } else {
+      speakStepGuideFallback(text);
+    }
+  }
+
+  function readWordOutLoud(word, element) {
+    stopStepGuideAudio();
+    hideSpeechNote();
+    if (currentAudio) {
+      stopReading();
+    }
+
+    var fUrl = functionUrl();
+    if (!fUrl) return;
+    
+    // Highlight the word being read
+    if (element) {
+      element.classList.add("sb-word-reading");
+      var impact = element.closest ? element.closest(".sb-impact") : null;
+      if (impact) {
+        impact.classList.remove("sb-impact--pop", "sb-impact--whoosh", "sb-impact--spark", "sb-impact--glow");
+        var kind = "sb-impact--glow";
+        if (impact.classList.contains("sb-impact--sound")) kind = "sb-impact--pop";
+        else if (impact.classList.contains("sb-impact--magical")) kind = "sb-impact--spark";
+        else if (impact.classList.contains("sb-impact--emotion")) kind = "sb-impact--pop";
+        impact.classList.add(kind);
+        window.setTimeout(function () {
+          impact.classList.remove(kind);
+        }, 560);
+      }
+      dismissWordTip();
+    }
+    
+    var audioUrl = cleverServiceTtsUrl(word);
+    if (!audioUrl) return;
+    currentAudio = new Audio(audioUrl);
+    
+    var playPromise = currentAudio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(function(e) {
+        console.error("Word audio playback failed:", e);
+        if (element) {
+          element.classList.remove("sb-word-reading");
+        }
+        stopReading();
+      });
+    }
+    
+    currentAudio.onended = function() {
+      if (element) {
+        element.classList.remove("sb-word-reading");
+      }
+      stopReading();
+    };
+    currentAudio.onerror = function() {
+      if (element) {
+        element.classList.remove("sb-word-reading");
+      }
+      showSpeechNote();
+      stopReading();
+    };
+  }
+
+  function stopReading() {
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.src = "";
+      currentAudio = null;
+    }
+    setReadToMeState("idle");
+  }
+
+  function showSpeechNote() {
+    var note = document.getElementById("sbReadNote");
+    if (!note) return;
+    note.hidden = false;
+    note.textContent = "Wondii needs a short rest before reading again. Try once more in a little while.";
+  }
+
+  function hideSpeechNote() {
+    var note = document.getElementById("sbReadNote");
+    if (note) note.hidden = true;
+  }
+
+  function setReadToMeState(state) {
+    if (!btnReadToMe) return;
+    var icon = btnReadToMe.querySelector(".sb-read-toolbar__icon");
+    var label = btnReadToMe.querySelector(".sb-read-toolbar__label");
+    var reading = state === "reading";
+    btnReadToMe.classList.toggle("is-reading", reading);
+    btnReadToMe.disabled = state === "wait";
+    btnReadToMe.setAttribute("aria-pressed", reading ? "true" : "false");
+    if (icon) icon.textContent = state === "wait" ? "…" : reading ? "⏹" : "🔊";
+    if (label) label.textContent = reading ? "Stop" : "Read to me";
+    if (!icon && !label) {
+      btnReadToMe.textContent = reading ? "Stop" : "Read to me";
+    }
+  }
+
+  if (btnReadToMe) {
+    btnReadToMe.addEventListener("click", function() {
+      if (currentAudio) {
+        stopReading();
+        return;
+      }
+      stopStepGuideAudio();
+      var n = numSpreads();
+      if (n < 1 || spreadIndex * 2 >= story.pages.length) return;
+      var leftP = story.pages[spreadIndex * 2];
+      var rightP = story.pages[spreadIndex * 2 + 1];
+      var readText = leftP && leftP.text ? String(leftP.text).trim() : "";
+      if (rightP && rightP.text && String(rightP.text).trim()) {
+        readText = readText ? readText + "\n\n" + String(rightP.text).trim() : String(rightP.text).trim();
+      }
+      if (!readText) return;
+      
+      var fUrl = functionUrl();
+      if (!fUrl) return;
+      
+      setReadToMeState("wait");
+      hideSpeechNote();
+      
+      var audioUrl = cleverServiceTtsUrl(readText);
+      if (!audioUrl) {
+        stopReading();
+        return;
+      }
+      currentAudio = new Audio(audioUrl);
+      
+      // On iOS, play() must be called synchronously in the click handler
+      var playPromise = currentAudio.play();
+      if (playPromise !== undefined) {
+        playPromise.then(function() {
+          if (!currentAudio) return;
+          setReadToMeState("reading");
+        }).catch(function(e) {
+          console.error("Audio playback failed:", e);
+          stopReading();
+        });
+      } else {
+        setReadToMeState("reading");
+      }
+      
+      currentAudio.onended = stopReading;
+      currentAudio.onerror = function () {
+        showSpeechNote();
+        stopReading();
+      };
+    });
+  }
+  var spreadArtImg = document.getElementById("sbSpreadArtImg");
+  var spreadArtNum = document.getElementById("sbSpreadArtNum");
+  var spreadInnerEl = document.getElementById("sbFlipSpreadInner");
+  var flipSpreadEl = document.getElementById("sbFlipSpread");
+  var spreadArtBg = document.getElementById("sbSpreadArtBg");
+  var spreadArtBase = document.getElementById("sbSpreadArtBase");
+  var spreadArtCover = document.getElementById("sbSpreadArtCover");
+  var spreadArtFlyleaf = document.getElementById("sbSpreadArtFlyleaf");
+  /** Incoming spread: full duplex under the peel (#sbSpreadArtCover inside .sb-flip-spread__art-base). */
+  /** Outgoing duplex on #sbSpreadArtPeel rotates away above it. */
+  var spreadArtPeelShell = document.getElementById("sbSpreadArtPeel");
+  var spreadArtPeelImg = document.getElementById("sbSpreadArtPeelImg");
+  var spreadPeelBackText = document.getElementById("sbSpreadPeelBackText");
+  var spreadPeelFrontText = document.getElementById("sbSpreadPeelFrontText");
+  var readerStack = document.getElementById("sbReaderStack");
+  var readerPages = document.getElementById("sbReaderPages");
+  var flipLeftShell = document.getElementById("sbFlipLeftShell");
+  var flipRightShell = document.getElementById("sbFlipRightShell");
+  var spreadPageNumEl = document.getElementById("sbSpreadPageNum");
+  var bookSpreadLayoutFieldset = document.getElementById("sbBookSpreadLayout");
+  var illustrationStyleFieldset = document.getElementById("sbIllustrationStyles");
+  var storyTextModeFieldset = document.getElementById("sbStoryTextMode");
+  var storyLengthFieldset = document.getElementById("sbStoryLength");
+  var K_READER_ART_LAYOUT = "sbReaderArtLayout";
+  var K_ILLUSTRATION_STYLE = "sbIllustrationStyle";
+  var journeyIllustrationHold = false;
+  var journeyFamilyPeople = [];
+  var K_STORY_TEXT_MODE = "sbStoryTextMode";
+  var K_STORY_LENGTH = "sbStoryLength";
+
+  function getReaderArtLayout() {
+    try {
+      var v = localStorage.getItem(K_READER_ART_LAYOUT);
+      if (v === "facing" || v === "duplex") return v;
+    } catch (eReadLayout) {}
+    return "duplex";
+  }
+
+  /**
+   * Spread layout for the **open** book. Legacy books default to duplex (full two-page art).
+   * @returns {'duplex' | 'facing'}
+   */
+  function getEffectiveReaderArtLayout() {
+    if (story && story.readerArtLayout === "facing") return "facing";
+    if (story && story.readerArtLayout === "duplex") return "duplex";
+    return "duplex";
+  }
+
+  function setReaderArtLayout(mode) {
+    try {
+      localStorage.setItem(K_READER_ART_LAYOUT, mode === "facing" ? "facing" : "duplex");
+    } catch (eSetLayout) {}
+  }
+
+  function syncBookSpreadLayoutRadios() {
+    if (!bookSpreadLayoutFieldset) return;
+    var m = getReaderArtLayout();
+    var inp = bookSpreadLayoutFieldset.querySelector(
+      'input[name="sbBookSpreadLayout"][value="' + m + '"]'
+    );
+    if (inp) inp.checked = true;
+  }
+
+  /** @returns {'duplex' | 'facing'} */
+  function readBookSpreadLayoutFromWizard() {
+    if (!bookSpreadLayoutFieldset) return getReaderArtLayout();
+    var c = bookSpreadLayoutFieldset.querySelector(
+      'input[name="sbBookSpreadLayout"]:checked'
+    );
+    if (!c) return getReaderArtLayout();
+    return String(c.value) === "facing" ? "facing" : "duplex";
+  }
+
+  function getStoryTextMode() {
+    try {
+      var v = localStorage.getItem(K_STORY_TEXT_MODE);
+      if (v === "prose" || v === "rhyme") return v;
+    } catch (eStoryMode) {}
+    return "rhyme";
+  }
+
+  function setStoryTextMode(mode) {
+    try {
+      localStorage.setItem(K_STORY_TEXT_MODE, mode === "prose" ? "prose" : "rhyme");
+    } catch (eSetStoryMode) {}
+  }
+
+  function syncStoryTextModeRadios() {
+    if (!storyTextModeFieldset) return;
+    var m = getStoryTextMode();
+    var inp = storyTextModeFieldset.querySelector(
+      'input[name="sbStoryTextMode"][value="' + m + '"]'
+    );
+    if (inp) inp.checked = true;
+  }
+
+  /** @returns {'prose' | 'rhyme'} */
+  function readStoryTextModeFromWizard() {
+    if (!storyTextModeFieldset) return getStoryTextMode();
+    var c = storyTextModeFieldset.querySelector(
+      'input[name="sbStoryTextMode"]:checked'
+    );
+    if (!c) return getStoryTextMode();
+    return String(c.value) === "prose" ? "prose" : "rhyme";
+  }
+
+  /** Shelf / legacy: infer mode when not stored. */
+  function storyTextModeFromShelfItem(item, layout) {
+    var lay = layout === "facing" ? "facing" : "duplex";
+    if (item && (item.storyTextMode === "prose" || item.storyTextMode === "rhyme")) {
+      return item.storyTextMode;
+    }
+    return lay === "facing" ? "prose" : "rhyme";
+  }
+
+  function coerceStoryLengthKey(v) {
+    var s = String(v || "").trim().toLowerCase();
+    if (s === "short" || s === "medium" || s === "long") return s;
+    return "medium";
+  }
+
+  function getStoryLength() {
+    try {
+      var v = localStorage.getItem(K_STORY_LENGTH);
+      return coerceStoryLengthKey(v);
+    } catch (eLen) {}
+    return "medium";
+  }
+
+  function setStoryLength(mode) {
+    try {
+      localStorage.setItem(K_STORY_LENGTH, coerceStoryLengthKey(mode));
+    } catch (eSetLen) {}
+  }
+
+  function syncStoryLengthRadios() {
+    if (!storyLengthFieldset) return;
+    var m = getStoryLength();
+    var inp = storyLengthFieldset.querySelector(
+      'input[name="sbStoryLength"][value="' + m + '"]'
+    );
+    if (inp) inp.checked = true;
+  }
+
+  /** @returns {'short' | 'medium' | 'long'} */
+  function readStoryLengthFromWizard() {
+    if (!storyLengthFieldset) return getStoryLength();
+    var c = storyLengthFieldset.querySelector(
+      'input[name="sbStoryLength"]:checked'
+    );
+    if (!c) return getStoryLength();
+    return coerceStoryLengthKey(c.value);
+  }
+
+  function storyLengthFromShelfItem(item) {
+    if (
+      item &&
+      (item.storyLength === "short" ||
+        item.storyLength === "medium" ||
+        item.storyLength === "long")
+    ) {
+      return item.storyLength;
+    }
+    return "medium";
+  }
+
+  var ILLUSTRATION_STYLE_KEYS = {
+    clay3d: 1,
+    vector_flat: 1,
+    watercolor: 1,
+    papercut: 1,
+    soft_3d: 1,
+  };
+
+  function coerceIllustrationStyleKey(v) {
+    var s = String(v || "").trim();
+    return ILLUSTRATION_STYLE_KEYS[s] ? s : "clay3d";
+  }
+
+  function getIllustrationStyle() {
+    try {
+      var v = localStorage.getItem(K_ILLUSTRATION_STYLE);
+      if (v) return coerceIllustrationStyleKey(v);
+    } catch (eSt) {}
+    return "clay3d";
+  }
+
+  function setIllustrationStyle(mode) {
+    if (journeyIllustrationHold) return;
+    try {
+      localStorage.setItem(K_ILLUSTRATION_STYLE, coerceIllustrationStyleKey(mode));
+    } catch (eSetSt) {}
+  }
+
+  function syncIllustrationStyleRadios() {
+    if (!illustrationStyleFieldset) return;
+    var m = getIllustrationStyle();
+    var inp = illustrationStyleFieldset.querySelector(
+      'input[name="sbIllustrationStyle"][value="' + m + '"]'
+    );
+    if (inp) inp.checked = true;
+  }
+
+  function readIllustrationStyleFromWizard() {
+    if (!illustrationStyleFieldset) return getIllustrationStyle();
+    var c = illustrationStyleFieldset.querySelector(
+      'input[name="sbIllustrationStyle"]:checked'
+    );
+    return c ? coerceIllustrationStyleKey(c.value) : getIllustrationStyle();
+  }
+
+  /** True when this spread index has an illustration URL in story data (matches syncSpreadIllustrationFromStory). */
+  function spreadRowHasIllustration(si) {
+    if (!story || !story.pages) return false;
+    var n = numSpreads();
+    if (n < 1) return false;
+    si = Math.max(0, Math.min(Math.floor(Number(si)), n - 1));
+    if (si * 2 >= story.pages.length) {
+      return !!(story.sceneImageUrl && String(story.sceneImageUrl).trim());
+    }
+    var rightP = story.pages[si * 2 + 1];
+    var leftP = story.pages[si * 2];
+    if (rightP && rightP.imageUrl && String(rightP.imageUrl).trim()) return true;
+    if (leftP && leftP.imageUrl && String(leftP.imageUrl).trim()) return true;
+    return false;
+  }
+
+  function syncReaderFacingLayoutClasses() {
+    if (!spreadInnerEl) return;
+    var wantFacing = getEffectiveReaderArtLayout() === "facing";
+    var dataHasIll = !!(story && spreadRowHasIllustration(spreadIndex));
+    var flyleafDom = spreadInnerEl.classList.contains("sb-flip-spread__inner--flyleaf-pane");
+    /* Opening spread: flyleaf class can linger after the first real picture loads — facing stays off and type looks like duplex over art. */
+    if (wantFacing && dataHasIll && flyleafDom) {
+      clearArtFlyleaf();
+      syncSpreadIllustrationFromStory();
+    }
+    var flyleaf = spreadInnerEl.classList.contains("sb-flip-spread__inner--flyleaf-pane");
+    var hasArt =
+      spreadInnerEl.classList.contains("sb-flip-spread__inner--has-art") || dataHasIll;
+    var effective = wantFacing && hasArt && !flyleaf;
+
+    spreadInnerEl.classList.toggle("sb-flip-spread__inner--art-facing", effective);
+
+    if (effective) {
+      /* Fixed facing: prose always on the left leaf, art always on the right (no alternating shells per spread). */
+      spreadInnerEl.classList.add("sb-facing-text-on-left");
+      spreadInnerEl.classList.remove("sb-facing-text-on-right");
+    } else {
+      spreadInnerEl.classList.remove(
+        "sb-facing-text-on-left",
+        "sb-facing-text-on-right"
+      );
+    }
+  }
+
+  function placeTextPageForFacingLayout() {
+    if (!flipLeftShell || !flipRightShell || !spreadText) return;
+    var textPage = spreadText.closest(".sb-flip-page--text");
+    if (!textPage) return;
+
+    var facingEffective =
+      spreadInnerEl &&
+      spreadInnerEl.classList.contains("sb-flip-spread__inner--art-facing");
+
+    if (!facingEffective) {
+      if (!flipLeftShell.contains(textPage)) {
+        flipLeftShell.appendChild(textPage);
+      }
+      flipRightShell.setAttribute("aria-hidden", "true");
+      return;
+    }
+
+    if (!flipLeftShell.contains(textPage)) {
+      flipLeftShell.appendChild(textPage);
+    }
+    flipRightShell.setAttribute("aria-hidden", "true");
+  }
+
+  function updateSpreadPageNumberDisplay(siOverride) {
+    if (!spreadPageNumEl || !spreadInnerEl) return;
+    if (!spreadInnerEl.classList.contains("sb-flip-spread__inner--art-facing")) {
+      spreadPageNumEl.textContent = "";
+      return;
+    }
+    if (!story || !story.pages || numSpreads() < 1) {
+      spreadPageNumEl.textContent = "";
+      return;
+    }
+    var nSpr = numSpreads();
+    var si = spreadIndex;
+    if (siOverride !== undefined && siOverride !== null) {
+      si = Math.max(0, Math.min(Math.floor(Number(siOverride)), Math.max(0, nSpr - 1)));
+    }
+    if (si * 2 >= story.pages.length) {
+      spreadPageNumEl.textContent = "";
+      return;
+    }
+    /* 1-based number of the text page shown (first page of each spread pair). */
+    var pageNum = si * 2 + 1;
+    spreadPageNumEl.textContent = String(pageNum);
+  }
+
+  var btnOpenCover = document.getElementById("sbOpenCover");
+  var btnCloseBook = document.getElementById("sbCloseBook");
+  var coverTitle = document.getElementById("sbCoverTitle");
+  var coverAuthor = document.getElementById("sbCoverAuthor");
+  var coverPanel = document.getElementById("sbCoverPanel");
+  var btnPrev = document.getElementById("sbPrev");
+  var btnNext = document.getElementById("sbNext");
+  /** Wide screens (tablets / large landscape): edge-to-edge reader + fixed overlays. */
+  var immersiveReaderMq =
+    typeof window !== "undefined" && window.matchMedia
+      ? window.matchMedia("(min-width: 768px)")
+      : { matches: false, addEventListener: function () {} };
+  var btnNew = document.getElementById("sbNew");
+  var btnDownload = document.getElementById("sbDownloadBook");
+  var btnShelf = document.getElementById("sbShelfBook");
+  var actionsDock = document.getElementById("sbBookActionsDock");
+  var actionsFab = document.getElementById("sbBookActionsFab");
+  var shelfEl = document.getElementById("sbShelf");
+  var btnVoiceName = document.getElementById("sbVoiceName");
+  var btnVoicePlot = document.getElementById("sbVoicePlot");
+  var voiceHintName = document.getElementById("sbVoiceNameHint");
+  var voiceHintPlot = document.getElementById("sbVoicePlotHint");
+
+  var SpeechRec =
+    typeof window !== "undefined"
+      ? window.SpeechRecognition || window.webkitSpeechRecognition || null
+      : null;
+
+  var activeSpeech = null;
+  /** @type {'name' | 'plot' | null} */
+  var speechTarget = null;
+  var plotSpeechPrefix = "";
+  var plotSpeechAccum = "";
+
+  function getSpeechRecognition() {
+    return SpeechRec;
+  }
+
+  function setVoiceHint(nameMsg, plotMsg) {
+    if (voiceHintName) {
+      voiceHintName.textContent = nameMsg || "";
+      voiceHintName.hidden = !nameMsg;
+    }
+    if (voiceHintPlot) {
+      voiceHintPlot.textContent = plotMsg || "";
+      voiceHintPlot.hidden = !plotMsg;
+    }
+  }
+
+  function syncVoiceButtons() {
+    var onName = speechTarget === "name";
+    var onPlot = speechTarget === "plot";
+    var onHeroPhotoName = speechTarget === "hero_photo_name";
+    if (btnVoiceName) {
+      btnVoiceName.classList.toggle("is-listening", onName);
+      btnVoiceName.setAttribute("aria-pressed", onName ? "true" : "false");
+      var nameLbl = btnVoiceName.querySelector(".sb-voice-btn__txt");
+      if (nameLbl) nameLbl.textContent = onName ? "Stop" : "Speak";
+    }
+    if (btnVoicePlot) {
+      btnVoicePlot.classList.toggle("is-listening", onPlot);
+      btnVoicePlot.setAttribute("aria-pressed", onPlot ? "true" : "false");
+      var plotLbl = btnVoicePlot.querySelector(".sb-voice-btn__txt");
+      if (plotLbl) plotLbl.textContent = onPlot ? "Stop listening" : "Speak your idea";
+    }
+    if (btnHeroPhotoNameVoice) {
+      btnHeroPhotoNameVoice.classList.toggle("is-listening", onHeroPhotoName);
+      btnHeroPhotoNameVoice.setAttribute("aria-pressed", onHeroPhotoName ? "true" : "false");
+      var hpLbl = btnHeroPhotoNameVoice.querySelector(".sb-voice-btn__txt");
+      if (hpLbl) hpLbl.textContent = onHeroPhotoName ? "Stop" : "Speak";
+    }
+  }
+
+  function setHeroPhotoNameVoiceHint(msg) {
+    if (!heroPhotoNameVoiceHint) return;
+    if (msg) {
+      heroPhotoNameVoiceHint.textContent = msg;
+      heroPhotoNameVoiceHint.hidden = false;
+    } else {
+      heroPhotoNameVoiceHint.textContent = "";
+      heroPhotoNameVoiceHint.hidden = true;
+    }
+  }
+
+  function setHeroPhotoNameInlineErr(msg) {
+    if (!heroPhotoNameErr) return;
+    if (msg) {
+      heroPhotoNameErr.textContent = msg;
+      heroPhotoNameErr.hidden = false;
+    } else {
+      heroPhotoNameErr.textContent = "";
+      heroPhotoNameErr.hidden = true;
+    }
+  }
+
+  /**
+   * @param {{ preserveVoiceHints?: boolean }} [opts]
+   */
+  function stopSpeech(opts) {
+    var preserveHints = opts && opts.preserveVoiceHints;
+    var rec = activeSpeech;
+    activeSpeech = null;
+    speechTarget = null;
+    plotSpeechPrefix = "";
+    plotSpeechAccum = "";
+    if (rec) {
+      rec.onresult = null;
+      rec.onerror = null;
+      rec.onend = null;
+      try {
+        rec.stop();
+      } catch (e) {}
+    }
+    syncVoiceButtons();
+    setHeroPhotoNameVoiceHint("");
+    if (!preserveHints) setVoiceHint("", "");
+  }
+
+  function startNameSpeech() {
+    var Rec = getSpeechRecognition();
+    if (!Rec || !nameInput) return;
+    if (speechTarget === "name") {
+      stopSpeech();
+      return;
+    }
+    stopSpeech();
+    stopStepGuideAudio();
+    speechTarget = "name";
+    var rec = new Rec();
+    rec.lang = "en-GB";
+    rec.continuous = false;
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+    rec.onresult = function (e) {
+      if (!e.results || !e.results.length) return;
+      var t = e.results[0][0].transcript.trim();
+      nameInput.value = t.slice(0, 24);
+    };
+    rec.onerror = function (e) {
+      if (e.error === "aborted") return;
+      var friendly =
+        e.error === "not-allowed"
+          ? "Microphone blocked — check browser settings or type instead."
+          : e.error === "no-speech"
+            ? "Didn’t hear anything. Tap Speak and try again."
+            : "Speaking hit a snag. You can type instead.";
+      stopSpeech({ preserveVoiceHints: true });
+      setVoiceHint(friendly, "");
+    };
+    rec.onend = function () {
+      if (activeSpeech !== rec) return;
+      activeSpeech = null;
+      speechTarget = null;
+      plotSpeechPrefix = "";
+      plotSpeechAccum = "";
+      syncVoiceButtons();
+      setVoiceHint("", "");
+    };
+    activeSpeech = rec;
+    syncVoiceButtons();
+    setVoiceHint("Listening… say your name", "");
+    try {
+      rec.start();
+    } catch (err) {
+      stopSpeech({ preserveVoiceHints: true });
+      setVoiceHint("Couldn’t start the microphone. Try typing.", "");
+    }
+  }
+
+  function startHeroPhotoNameSpeech() {
+    var RecHp = getSpeechRecognition();
+    if (!RecHp || !heroPhotoNameInput) return;
+    if (speechTarget === "hero_photo_name") {
+      stopSpeech();
+      return;
+    }
+    stopSpeech();
+    stopStepGuideAudio();
+    speechTarget = "hero_photo_name";
+    var recHp = new RecHp();
+    recHp.lang = "en-GB";
+    recHp.continuous = false;
+    recHp.interimResults = false;
+    recHp.maxAlternatives = 1;
+    recHp.onresult = function (e) {
+      if (!e.results || !e.results.length) return;
+      var tHp = e.results[0][0].transcript.trim();
+      heroPhotoNameInput.value = tHp.slice(0, 48);
+      setHeroPhotoNameInlineErr("");
+    };
+    recHp.onerror = function (eHp) {
+      if (eHp.error === "aborted") return;
+      var friendlyHp =
+        eHp.error === "not-allowed"
+          ? "Microphone blocked — you can type the name instead."
+          : eHp.error === "no-speech"
+            ? "Didn't hear anyone — tap Speak again or type."
+            : "Something went wrong — try typing.";
+      stopSpeech({ preserveVoiceHints: true });
+      setHeroPhotoNameVoiceHint(friendlyHp);
+    };
+    recHp.onend = function () {
+      if (activeSpeech !== recHp) return;
+      activeSpeech = null;
+      speechTarget = null;
+      plotSpeechPrefix = "";
+      plotSpeechAccum = "";
+      syncVoiceButtons();
+      setHeroPhotoNameVoiceHint("");
+    };
+    activeSpeech = recHp;
+    syncVoiceButtons();
+    setHeroPhotoNameVoiceHint("Listening — say their name");
+    try {
+      recHp.start();
+    } catch (errHp) {
+      stopSpeech({ preserveVoiceHints: true });
+      setHeroPhotoNameVoiceHint("Couldn't use the microphone — type instead.");
+    }
+  }
+
+  function startPlotSpeech() {
+    var Rec = getSpeechRecognition();
+    if (!Rec || !plotInput) return;
+    if (speechTarget === "plot") {
+      stopSpeech();
+      return;
+    }
+    stopSpeech();
+    stopStepGuideAudio();
+    speechTarget = "plot";
+    plotSpeechPrefix = plotInput.value;
+    plotSpeechAccum = "";
+    var rec = new Rec();
+    rec.lang = "en-GB";
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.maxAlternatives = 1;
+    rec.onresult = function (e) {
+      var interim = "";
+      for (var i = e.resultIndex; i < e.results.length; i++) {
+        var piece = e.results[i][0].transcript;
+        if (e.results[i].isFinal) plotSpeechAccum += piece;
+        else interim += piece;
+      }
+      var tail = (plotSpeechAccum + interim).trim();
+      var base = plotSpeechPrefix.replace(/\s+$/,"");
+      var merged = (base && tail ? base + " " + tail : base + tail)
+        .replace(/\s+/g, " ")
+        .trim();
+      plotInput.value = merged.slice(0, PLOT_INPUT_MAX);
+    };
+    rec.onerror = function (e) {
+      if (e.error === "aborted") return;
+      var friendly =
+        e.error === "not-allowed"
+          ? "Microphone blocked — check settings or type your idea."
+          : e.error === "no-speech"
+            ? "Didn’t catch that — tap Speak and try again."
+            : "Speaking had a problem. Typing still works.";
+      stopSpeech({ preserveVoiceHints: true });
+      setVoiceHint("", friendly);
+    };
+    rec.onend = function () {
+      if (activeSpeech !== rec) return;
+      activeSpeech = null;
+      speechTarget = null;
+      plotSpeechPrefix = "";
+      plotSpeechAccum = "";
+      syncVoiceButtons();
+      setVoiceHint("", "");
+    };
+    activeSpeech = rec;
+    syncVoiceButtons();
+    setVoiceHint("", "Listening… talk about your story. Tap Stop when you’re done.");
+    try {
+      rec.start();
+    } catch (err) {
+      stopSpeech({ preserveVoiceHints: true });
+      setVoiceHint("", "Couldn’t start the microphone. Try typing.");
+    }
+  }
+
+  function initVoiceUi() {
+    if (!getSpeechRecognition()) {
+      if (btnVoiceName) {
+        btnVoiceName.hidden = true;
+        btnVoiceName.classList.add("is-unavailable");
+      }
+      if (btnVoicePlot) {
+        btnVoicePlot.hidden = true;
+        btnVoicePlot.classList.add("is-unavailable");
+      }
+      return;
+    }
+    if (btnVoiceName) {
+      btnVoiceName.addEventListener("click", function () { startNameSpeech(); });
+    }
+    if (btnVoicePlot) {
+      btnVoicePlot.addEventListener("click", function () { startPlotSpeech(); });
+    }
+  }
+
+  /** @type {number} */
+  var journeyStep = 0;
+  /** True when user skipped buddy (& still picks scene + plot together). Back returns to hero step. */
+  var skippedBuddyAndPlace = false;
+  /** @type {string} */
+  var selectedChar = "unicorn";
+  /** @type {string} */
+  var selectedPlace = "beach";
+  /** @type {string} book frame colour: "" = Auto, or "blue"|"green"|"pink" */
+  var selectedBookCoverColor = "";
+  /** @type {{ title: string, author?: string, readerFont?: string|null, readerArtLayout?: 'duplex'|'facing', storyTextMode?: 'prose'|'rhyme', storyLength?: 'short'|'medium'|'long', sceneImageUrl?: string|null, pages: { text: string, imageUrl: string|null }[] } | null} */
+  var story = null;
+
+  /** Matches clever-service STORY_READER_FONT_KEYS — body / tape-over-art / splash word stack per book. */
+  var SB_READER_FONT_PRESETS = {
+    fredoka: {
+      body: '"Fredoka","Sniglet","Nunito",sans-serif',
+      overArt: '"Schoolbell","Fredoka","Nunito",sans-serif',
+      emphasis: '"Kalam","Fredoka","Nunito",cursive,sans-serif',
+    },
+    schoolbell: {
+      body: '"Schoolbell","Nunito",sans-serif',
+      overArt: '"Schoolbell","Nunito",sans-serif',
+      emphasis: '"Kalam","Schoolbell","Nunito",cursive,sans-serif',
+    },
+    sniglet: {
+      body: '"Sniglet","Fredoka","Nunito",sans-serif',
+      overArt: '"Sniglet","Schoolbell","Nunito",sans-serif',
+      emphasis: '"Sniglet","Fredoka","Nunito",sans-serif',
+    },
+    kalam: {
+      body: '"Kalam","Sniglet","Nunito",cursive,sans-serif',
+      overArt: '"Kalam","Schoolbell","Nunito",cursive,sans-serif',
+      emphasis: '"Kalam","Fredoka","Nunito",cursive,sans-serif',
+    },
+    patrick: {
+      body: '"Patrick Hand","Schoolbell","Nunito",cursive,sans-serif',
+      overArt: '"Patrick Hand","Nunito",cursive,sans-serif',
+      emphasis: '"Kalam","Patrick Hand","Nunito",cursive,sans-serif',
+    },
+    comic: {
+      body: '"Comic Neue","Nunito",sans-serif',
+      overArt: '"Comic Neue","Schoolbell","Nunito",sans-serif',
+      emphasis: '"Sniglet","Comic Neue","Nunito",sans-serif',
+    },
+    lora: {
+      body: 'Lora, Georgia, serif',
+      overArt: 'Lora, Georgia, serif',
+      emphasis: 'Lora, Georgia, serif',
+    },
+  };
+
+  function normalizeReaderFontKey(key) {
+    var k = key ? String(key).toLowerCase().trim() : "";
+    return SB_READER_FONT_PRESETS[k] ? k : "fredoka";
+  }
+  var spreadIndex = 0;
+  var spreadListener = null;
+  /** @type {boolean} */
+  var spreadAnimLock = false;
+  /** @type {number | null} — paint incoming duplex + prose early in the hinge */
+  var midTurnIncomingTimer = null;
+  var coverOpenGeneration = 0;
+
+  function prefersReducedSpreadMotion() {
+    return (
+      typeof window !== "undefined" &&
+      window.matchMedia &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    );
+  }
+
+  function isTransformTransitionProperty(name) {
+    return name === "transform" || name === "-webkit-transform";
+  }
+
+  function illustrationUrlAtSpreadIndex(si) {
+    if (!story || !story.pages || !story.pages.length) return "";
+    var nSpr = numSpreads();
+    if (nSpr < 1) return "";
+    si = Math.max(0, Math.min(si, nSpr - 1));
+    if (si * 2 >= story.pages.length) {
+      return storyImageDisplayUrl(story.sceneImageUrl || "");
+    }
+    var rightP = story.pages[si * 2 + 1];
+    var raw = rightP && rightP.imageUrl ? String(rightP.imageUrl) : "";
+    if (!raw) {
+      var leftP = story.pages[si * 2];
+      if (leftP && leftP.imageUrl) raw = String(leftP.imageUrl);
+    }
+    if (!raw && si === 0 && story.sceneImageUrl) {
+      raw = String(story.sceneImageUrl);
+    }
+    return storyImageDisplayUrl(raw);
+  }
+
+  /** Preload neighbouring spread art so turns don’t linger on the previous decode (large PNG + peel animation exaggerates this). */
+  function prefetchAdjacentSpreadIllustrations() {
+    if (!story || !story.pages || !story.pages.length) return;
+    var nSpr = numSpreads();
+    if (nSpr < 1) return;
+    var si = Math.max(0, Math.min(spreadIndex, nSpr - 1));
+    var seen = {};
+    for (var step = -1; step <= 1; step += 2) {
+      var j = si + step;
+      if (j < 0 || j >= nSpr) continue;
+      var u = illustrationUrlAtSpreadIndex(j);
+      if (!u || Object.prototype.hasOwnProperty.call(seen, u)) continue;
+      seen[u] = true;
+      var preload = new Image();
+      preload.decoding = "async";
+      preload.referrerPolicy = "no-referrer";
+      preload.src = u;
+    }
+  }
+
+  /** First duplex art URL for inside-cover preview (skips blank front-matter spreads). */
+  function firstSpreadArtUrlForCover() {
+    if (!story || !story.pages) return "";
+    var scene = story.sceneImageUrl
+      ? storyImageDisplayUrl(String(story.sceneImageUrl))
+      : "";
+    if (scene) return scene;
+    var n = Math.floor(story.pages.length / 2);
+    for (var si = 0; si < n; si++) {
+      var u = illustrationUrlAtSpreadIndex(si);
+      if (u) return u;
+    }
+    return "";
+  }
+
+  function clearArtFlyleaf() {
+    if (spreadArtFlyleaf) {
+      spreadArtFlyleaf.hidden = true;
+      spreadArtFlyleaf.innerHTML = "";
+      spreadArtFlyleaf.setAttribute("hidden", "");
+    }
+    if (spreadInnerEl) {
+      spreadInnerEl.classList.remove("sb-flip-spread__inner--flyleaf-pane");
+    }
+  }
+
+  function bindReadableWordSpans(rootEl) {
+    if (!rootEl) return;
+    var wordSpans = rootEl.querySelectorAll(".sb-readable-word");
+    for (var w = 0; w < wordSpans.length; w++) {
+      wordSpans[w].addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var wordToRead = this.getAttribute("data-word");
+        if (wordToRead) {
+          readWordOutLoud(wordToRead, this);
+        }
+      });
+    }
+  }
+
+  function clearSpreadTurnRevealFx() {
+    if (spreadTextClip) {
+      spreadTextClip.classList.remove("sb-flip-text__clip--reveal-turn");
+      spreadTextClip.style.clipPath = "";
+      spreadTextClip.style.webkitClipPath = "";
+    }
+    if (spreadArtBase) {
+      spreadArtBase.classList.remove("sb-flip-spread__art-base--reveal-turn");
+    }
+  }
+
+  function clearSpreadPeelTurnClasses() {
+    var shell =
+      spreadArtPeelShell || document.getElementById("sbSpreadArtPeel");
+    if (!shell) return;
+    shell.classList.remove(
+      "sb-story-pageflip--turn-next-1",
+      "sb-story-pageflip--snap-next",
+      "sb-story-pageflip--turn-next-2",
+      "sb-story-pageflip--turn-prev-1",
+      "sb-story-pageflip--snap-prev",
+      "sb-story-pageflip--turn-prev-2"
+    );
+  }
+
+  /** Snap peel to reset without animating back (avoids half-way transform carrying into the next turn). */
+  function snapPeelShellToRest(peelShell) {
+    if (!peelShell) return;
+    peelShell.style.transition = "none";
+    peelShell.style.webkitTransition = "none";
+    clearSpreadPeelTurnClasses();
+    void peelShell.offsetWidth;
+    peelShell.style.removeProperty("transition");
+    peelShell.style.removeProperty("-webkit-transition");
+  }
+
+  function clearSpreadTurnClasses() {
+    if (midTurnIncomingTimer != null) {
+      window.clearTimeout(midTurnIncomingTimer);
+      midTurnIncomingTimer = null;
+    }
+    if (spreadInnerEl) {
+      spreadInnerEl.classList.remove(
+        "sb-flip-spread__inner--turn-out-next",
+        "sb-flip-spread__inner--turn-out-prev",
+        "sb-flip-spread__inner--turn-in-next",
+        "sb-flip-spread__inner--turn-in-prev",
+        "sb-flip-spread__inner--fade-out",
+        "sb-flip-spread__inner--fade-in",
+        "sb-flip-spread__inner--peel-turning",
+        "sb-flip-spread__inner--facing-peel-turn"
+      );
+    }
+    if (flipSpreadEl) {
+      flipSpreadEl.classList.remove("sb-flip-spread--peel-active");
+    }
+    if (bookSpreadEl) {
+      bookSpreadEl.classList.remove("sb-book-spread--peel-overflow");
+    }
+    clearSpreadPeelTurnClasses();
+    clearSpreadTurnRevealFx();
+    clearPeelBackTextColumn();
+  }
+
+  function bindCpShellTurnEnd(shell, cb) {
+    var done = false;
+    function finish() {
+      if (done) return;
+      done = true;
+      shell.removeEventListener("transitionend", onTe);
+      shell.removeEventListener("webkitTransitionEnd", onTe);
+      window.clearTimeout(tid);
+      cb();
+    }
+    function onTe(ev) {
+      if (!ev || ev.target !== shell) return;
+      var pn = ev.propertyName || "";
+      if (pn !== "" && !isTransformTransitionProperty(pn)) return;
+      finish();
+    }
+    shell.addEventListener("transitionend", onTe);
+    shell.addEventListener("webkitTransitionEnd", onTe);
+    var tid = window.setTimeout(finish, 760);
+  }
+
+  /**
+   * Incoming spread is already authoritative in `spreadIndex`; paint it while the hinge runs so
+   * copy + duplex feel ahead of the fold.
+   */
+  function paintIncomingSpreadWhilePeeling() {
+    writeSpreadTextMetaFromStory();
+    syncSpreadIllustrationFromStory();
+    syncReaderFacingLayoutClasses();
+    placeTextPageForFacingLayout();
+    renderDuplexStoryType();
+    window.requestAnimationFrame(fitVisibleStoryText);
+    updateSpreadPageNumberDisplay();
+    nudgeDuplexArtComposite();
+    prefetchAdjacentSpreadIllustrations();
+  }
+
+  /**
+   * Mid–page-turn (~90deg) WebKit composites both peel faces edge-on (`backface-visibility:hidden`),
+   * exposing the stationary duplex cover. Keeping that cover on **outgoing** art avoids a decoding
+   * gap; `peelImg`/`peelBack` already carry outgoing + incoming paints for the hinge.
+   * @param {HTMLImageElement | null | undefined} a
+   * @param {HTMLImageElement | null | undefined} b
+   * @param {() => void} run
+   */
+  function decodePeelImagesThenAnimate(a, b, run) {
+    var ran = false;
+    function runOnce() {
+      if (ran) return;
+      ran = true;
+      run();
+    }
+    /* Never strand spreadAnimLock if decode() or load handlers hang (slow network / odd WebKit). */
+    var safetyTid = window.setTimeout(runOnce, 1800);
+
+    var imgs = [];
+    if (a && a.src) imgs.push(a);
+    if (b && b.src) imgs.push(b);
+    if (imgs.length === 0) {
+      window.clearTimeout(safetyTid);
+      runOnce();
+      return;
+    }
+
+    /** @returns {Promise<void>} */
+    function decodeImg(img) {
+      return new Promise(function (resolve) {
+        try {
+          if (!img.complete) {
+            img.addEventListener("load", function onLoad() {
+              img.removeEventListener("load", onLoad);
+              img.removeEventListener("error", onErr);
+              tryDecode();
+            });
+            img.addEventListener(
+              "error",
+              function onErr() {
+                img.removeEventListener("load", onLoad);
+                img.removeEventListener("error", onErr);
+                resolve();
+              },
+              { once: true }
+            );
+            return;
+          }
+          tryDecode();
+        } catch (_e) {
+          resolve();
+        }
+
+        function tryDecode() {
+          if (typeof img.decode === "function") {
+            img.decode().then(resolve, resolve);
+          } else {
+            resolve();
+          }
+        }
+      });
+    }
+
+    var decodeRaceMs = 48;
+    var cap = new Promise(function (resolve) {
+      window.setTimeout(resolve, decodeRaceMs);
+    });
+
+    Promise.race([Promise.all(imgs.map(decodeImg)), cap])
+      .then(function () {
+        window.clearTimeout(safetyTid);
+        runOnce();
+      })
+      .catch(function () {
+        window.clearTimeout(safetyTid);
+        runOnce();
+      });
+  }
+
+  function bumpSpreadIndex(delta) {
+    spreadIndex += delta;
+    var nSpr = numSpreads();
+    spreadIndex = Math.max(0, Math.min(spreadIndex, nSpr - 1));
+    applySpreadContent();
+  }
+
+  function navigateSpreadWithRightPageTurn(delta) {
+    var peelShell =
+      spreadArtPeelShell || document.getElementById("sbSpreadArtPeel");
+    if (spreadAnimLock) return;
+    if (!peelShell) {
+      navigateSpreadInstant(delta);
+      return;
+    }
+
+    var nSpr = numSpreads();
+    var fromSi = spreadIndex;
+    var toSi = Math.max(0, Math.min(spreadIndex + delta, nSpr - 1));
+    if (toSi === fromSi) return;
+
+    var outArt = illustrationUrlAtSpreadIndex(fromSi);
+    var inArt = illustrationUrlAtSpreadIndex(toSi);
+    /* Flyleaf / dedication spreads have no illustration URL; use a white tile so the peel still runs (matches old books where spread 0 already had art). */
+    if (!outArt && !inArt) {
+      navigateSpreadInstant(delta);
+      return;
+    }
+    var peelBlank =
+      "data:image/svg+xml," +
+      encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2 2"><rect width="2" height="2" fill="#ffffff"/></svg>'
+      );
+    var peelOut = outArt || peelBlank;
+    var peelIn = inArt || peelBlank;
+
+    spreadIndex = toSi;
+
+    spreadAnimLock = true;
+    setSpreadNavBusy(true);
+    if (midTurnIncomingTimer != null) {
+      window.clearTimeout(midTurnIncomingTimer);
+      midTurnIncomingTimer = null;
+    }
+    snapPeelShellToRest(peelShell);
+    clearSpreadTurnRevealFx();
+    if (spreadInnerEl) {
+      spreadInnerEl.classList.add("sb-flip-spread__inner--peel-turning");
+    }
+    if (flipSpreadEl) {
+      flipSpreadEl.classList.add("sb-flip-spread--peel-active");
+    }
+    if (bookSpreadEl) {
+      bookSpreadEl.classList.add("sb-book-spread--peel-overflow");
+    }
+
+    /*
+     * Keep duplex base (#sbSpreadArtCover) on the **outgoing** illustration in one assignment.
+     * Previously we synced incoming then overwrote — two src changes trigger WebKit/iPad decode flicker.
+     */
+    syncSpreadIllustrationFromStory({ duplexCoverSrc: peelOut });
+    syncReaderFacingLayoutClasses();
+    placeTextPageForFacingLayout();
+
+    writeSpreadTextMetaFromStory(fromSi);
+    updateSpreadPageNumberDisplay(fromSi);
+    fillPeelBackTextColumn(spreadIndex);
+    updatePagerHints();
+
+    var peelImg =
+      spreadArtPeelImg || document.getElementById("sbSpreadArtPeelImg");
+    var peelBackImg = document.getElementById("sbSpreadArtPeelBackImg");
+    var outgoingLeftShell = document.getElementById("sbSpreadArtOutgoingLeft");
+    var outgoingLeftImg = document.getElementById("sbSpreadArtOutgoingLeftImg");
+
+    if (peelImg) {
+      peelImg.alt = "";
+      peelImg.referrerPolicy = "no-referrer";
+      if ((peelImg.getAttribute("src") || "") !== peelOut) {
+        peelImg.src = peelOut;
+      }
+    }
+
+    if (peelBackImg) {
+      peelBackImg.alt = "";
+      peelBackImg.referrerPolicy = "no-referrer";
+      if ((peelBackImg.getAttribute("src") || "") !== peelIn) {
+        peelBackImg.src = peelIn;
+      }
+    }
+
+    if (outgoingLeftImg) {
+      outgoingLeftImg.alt = "";
+      outgoingLeftImg.referrerPolicy = "no-referrer";
+      if ((outgoingLeftImg.getAttribute("src") || "") !== peelOut) {
+        outgoingLeftImg.src = peelOut;
+      }
+    }
+
+    var peelFrontRoot = peelShell.querySelector(".sb-flip-spread__peel-front");
+    if (spreadPeelFrontText) spreadPeelFrontText.innerHTML = "";
+    if (peelFrontRoot) {
+      peelFrontRoot.classList.remove("sb-flip-spread__peel-front--recto-prose");
+    }
+
+    peelShell.hidden = false;
+    peelShell.removeAttribute("hidden");
+    peelShell.style.removeProperty("display");
+
+    var peelBackEl = peelShell.querySelector(".sb-flip-spread__peel-back");
+    if (peelBackEl) {
+      peelBackEl.classList.remove("sb-flip-spread__peel-back--verso-text");
+    }
+
+    if (outgoingLeftShell) {
+      outgoingLeftShell.hidden = false;
+      outgoingLeftShell.removeAttribute("hidden");
+      outgoingLeftShell.style.display = "block";
+    }
+
+    var isNext = delta > 0;
+    var cls1 = isNext
+      ? "sb-story-pageflip--turn-next-1"
+      : "sb-story-pageflip--turn-prev-1";
+
+    decodePeelImagesThenAnimate(peelImg, peelBackImg, function () {
+      void peelShell.offsetWidth;
+      window.requestAnimationFrame(function () {
+        peelShell.classList.add(cls1);
+        midTurnIncomingTimer = window.setTimeout(function () {
+          midTurnIncomingTimer = null;
+          if (
+            !spreadInnerEl ||
+            !spreadInnerEl.classList.contains("sb-flip-spread__inner--peel-turning")
+          ) {
+            return;
+          }
+          paintIncomingSpreadWhilePeeling();
+        }, 64);
+      });
+
+      bindCpShellTurnEnd(peelShell, function peelTurnDone() {
+        try {
+          if (midTurnIncomingTimer != null) {
+            window.clearTimeout(midTurnIncomingTimer);
+            midTurnIncomingTimer = null;
+          }
+
+          clearPeelBackTextColumn();
+
+          paintIncomingSpreadWhilePeeling();
+
+          peelShell.style.display = "none";
+          peelShell.hidden = true;
+
+          if (outgoingLeftShell) {
+            outgoingLeftShell.hidden = true;
+            outgoingLeftShell.style.display = "none";
+          }
+
+          if (peelImg) peelImg.removeAttribute("src");
+          if (peelBackImg) peelBackImg.removeAttribute("src");
+          if (outgoingLeftImg) outgoingLeftImg.removeAttribute("src");
+
+          snapPeelShellToRest(peelShell);
+
+          clearSpreadTurnRevealFx();
+          if (flipSpreadEl) {
+            flipSpreadEl.classList.remove("sb-flip-spread--peel-active");
+          }
+          if (bookSpreadEl) {
+            bookSpreadEl.classList.remove("sb-book-spread--peel-overflow");
+          }
+          if (spreadInnerEl) {
+            spreadInnerEl.classList.remove("sb-flip-spread__inner--peel-turning");
+            spreadInnerEl.classList.remove("sb-flip-spread__inner--facing-peel-turn");
+            var textPages = spreadInnerEl.querySelectorAll(".sb-flip-page--text");
+            for (var ti = 0; ti < textPages.length; ti++) {
+              textPages[ti].style.animation = "";
+              textPages[ti].style.opacity = "";
+              var sheetKids = textPages[ti].querySelectorAll(
+                ".sb-flip-page__sheet > *"
+              );
+              for (var kj = 0; kj < sheetKids.length; kj++) {
+                sheetKids[kj].style.animation = "";
+                sheetKids[kj].style.opacity = "";
+              }
+            }
+          }
+          updatePagerHints();
+        } finally {
+          spreadAnimLock = false;
+          setSpreadNavBusy(false);
+        }
+      });
+    });
+  }
+
+  function navigateSpreadInstant(delta) {
+    spreadAnimLock = false;
+    bumpSpreadIndex(delta);
+    if (typeof window.requestAnimationFrame === "function") {
+      window.requestAnimationFrame(function () {
+        syncSpreadIllustrationFromStory();
+      });
+    }
+  }
+
+  function navigateSpread(delta) {
+    if (!story) return;
+    if (book && book.classList.contains("sb-book--cover-visible")) return;
+    if (delta > 0 && spreadIndex >= numSpreads() - 1) return;
+    if (delta < 0 && spreadIndex <= 0) return;
+    if (prefersReducedSpreadMotion() || phoneReaderOn()) {
+      navigateSpreadInstant(delta);
+      return;
+    }
+    if (spreadAnimLock) return;
+    navigateSpreadWithRightPageTurn(delta);
+  }
+
+  function setSpreadNavBusy(locked) {
+    if (!btnPrev || !btnNext) return;
+    if (locked) {
+      btnPrev.disabled = true;
+      btnNext.disabled = true;
+    } else {
+      updatePagerHints();
+    }
+  }
+
+  function syncCloseBookButton() {
+    if (!btnCloseBook) return;
+    var readerOpen =
+      readerStack &&
+      readerStack.classList.contains("sb-reader-stack--open");
+    var coverShowing =
+      book && book.classList.contains("sb-book--cover-visible");
+    var show =
+      book && story && readerOpen && !coverShowing;
+    if (show) {
+      btnCloseBook.hidden = false;
+      btnCloseBook.removeAttribute("aria-hidden");
+    } else {
+      btnCloseBook.hidden = true;
+      btnCloseBook.setAttribute("aria-hidden", "true");
+    }
+  }
+
+  function closeBookCover() {
+    stopReading();
+    if (!book || !readerStack) return;
+    if (book.classList.contains("sb-book--cover-visible")) return;
+    if (!readerStack.classList.contains("sb-reader-stack--open")) {
+      return;
+    }
+
+    coverOpenGeneration += 1;
+
+    spreadAnimLock = false;
+    clearSpreadTurnClasses();
+    setSpreadNavBusy(false);
+
+    readerStack.classList.remove("sb-reader-stack--open");
+    book.classList.add("sb-book--cover-visible");
+    book.classList.remove("sb-chrome--quiet", "sb-book--phone-leaf", "sb-book--phone-right");
+    phoneLeaf = "left";
+    syncReadDock();
+    updateReadChrome();
+    if (readerPages) readerPages.setAttribute("aria-hidden", "true");
+    if (btnOpenCover) {
+      btnOpenCover.removeAttribute("aria-hidden");
+      btnOpenCover.removeAttribute("tabindex");
+    }
+    syncCloseBookButton();
+    updatePagerHints();
+  }
+
+  function openBookCover() {
+    if (!book || !book.classList.contains("sb-book--cover-visible")) return;
+    if (!readerStack) return;
+
+    spreadIndex = 0;
+    coverOpenGeneration += 1;
+    phoneLeaf = "left";
+    readerStack.classList.add("sb-reader-stack--open");
+    book.classList.remove("sb-book--cover-visible");
+    book.classList.add("sb-book--opening");
+    window.setTimeout(function () {
+      if (book) book.classList.remove("sb-book--opening");
+    }, 980);
+    applyPhoneLeaf();
+    syncReadDock();
+    updateReadChrome();
+    maybeShowWordTip();
+    wakeReaderChrome();
+    if (readerPages) readerPages.removeAttribute("aria-hidden");
+    if (btnOpenCover) {
+      btnOpenCover.setAttribute("aria-hidden", "true");
+      btnOpenCover.tabIndex = -1;
+    }
+    syncCloseBookButton();
+    updatePagerHints();
+
+    function paintOpenSpread() {
+      applySpreadContent();
+    }
+    paintOpenSpread();
+    if (typeof window.requestAnimationFrame === "function") {
+      window.requestAnimationFrame(function () {
+        window.requestAnimationFrame(paintOpenSpread);
+      });
+    }
+    var plate = book.querySelector(".sb-reader-book");
+    if (plate && !prefersReducedSpreadMotion()) {
+      var settled = false;
+      function onPlateTransitionEnd(ev) {
+        if (settled || ev.target !== plate) return;
+        if (ev.propertyName !== "max-width") return;
+        settled = true;
+        plate.removeEventListener("transitionend", onPlateTransitionEnd);
+        paintOpenSpread();
+      }
+      plate.addEventListener("transitionend", onPlateTransitionEnd);
+      window.setTimeout(function () {
+        if (!settled) {
+          settled = true;
+          paintOpenSpread();
+        }
+        plate.removeEventListener("transitionend", onPlateTransitionEnd);
+      }, 1300);
+    }
+  }
+
+  function resetBookCoverForWizard() {
+    coverOpenGeneration += 1;
+    if (readerStack) {
+      readerStack.classList.remove("sb-reader-stack--open");
+    }
+    if (book) book.classList.remove("sb-book--cover-visible");
+    if (readerPages) readerPages.setAttribute("aria-hidden", "true");
+    if (btnOpenCover) {
+      btnOpenCover.removeAttribute("aria-hidden");
+      btnOpenCover.removeAttribute("tabindex");
+    }
+    syncCloseBookButton();
+  }
+
+  function applyBookThemingFromStory() {
+    if (!book || !story) return;
+
+    var c = story.bookColor ? String(story.bookColor).toLowerCase() : "";
+    var themes = {
+      blue: ["#2563eb", "#dbeafe", "#1d4ed8", "#1e40af", "#1e3a8a"],
+      navy: ["#1e3a8a", "#dbeafe", "#1e40af", "#172554", "#0f172a"],
+      green: ["#16a34a", "#dcfce7", "#15803d", "#166534", "#14532d"],
+      mint: ["#10b981", "#d1fae5", "#059669", "#047857", "#065f46"],
+      pink: ["#db2777", "#fce7f3", "#be185d", "#9d174d", "#831843"],
+      coral: ["#f43f5e", "#ffe4e6", "#e11d48", "#be123c", "#9f1239"],
+      lilac: ["#a855f7", "#f3e8ff", "#9333ea", "#7e22ce", "#6b21a8"],
+      purple: ["#7c3aed", "#ede9fe", "#6d28d9", "#5b21b6", "#4c1d95"],
+      orange: ["#ea580c", "#ffedd5", "#c2410c", "#9a3412", "#7c2d12"],
+      red: ["#dc2626", "#fee2e2", "#b91c1c", "#991b1b", "#7f1d1d"],
+      yellow: ["#ca8a04", "#fef9c3", "#a16207", "#854d0e", "#713f12"],
+      teal: ["#0d9488", "#ccfbf1", "#0f766e", "#115e59", "#134e4a"],
+    };
+    var t = themes[c];
+    if (t) {
+      book.style.setProperty("--sb-flip-red", t[0]);
+      book.style.setProperty("--sb-flip-light", t[1]);
+      book.style.setProperty("--sb-flip-mid", t[2]);
+      book.style.setProperty("--sb-flip-dark", t[3]);
+      book.style.setProperty("--sb-flip-darker", t[4]);
+    } else {
+      book.style.setProperty("--sb-flip-red", "#db2777");
+      book.style.setProperty("--sb-flip-light", "#fce7f3");
+      book.style.setProperty("--sb-flip-mid", "#be185d");
+      book.style.setProperty("--sb-flip-dark", "#9d174d");
+      book.style.setProperty("--sb-flip-darker", "#831843");
+    }
+
+    var preset =
+      SB_READER_FONT_PRESETS[normalizeReaderFontKey(story.readerFont)];
+    book.style.setProperty("--sb-reader-font-body", preset.body);
+    book.style.setProperty("--sb-reader-font-over-art", preset.overArt);
+    book.style.setProperty("--sb-reader-font-emphasis", preset.emphasis);
+
+    var u = story.sceneImageUrl || firstSpreadArtUrlForCover();
+    if (u) {
+      book.classList.add("sb-book--themed");
+      // Remove setting the background image on the entire book container
+      book.style.backgroundImage = "";
+      if (coverPanel) {
+        coverPanel.classList.add("sb-cover__panel--themed");
+        var safeUrl = String(u).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+        coverPanel.style.setProperty("--sb-cover-photo", 'url("' + safeUrl + '")');
+      }
+    } else {
+      book.classList.remove("sb-book--themed");
+      book.style.backgroundImage = "";
+      if (coverPanel) {
+        coverPanel.classList.remove("sb-cover__panel--themed");
+        coverPanel.style.removeProperty("--sb-cover-photo");
+      }
+    }
+  }
+
+  function clearBookTheming() {
+    if (!book) return;
+    book.style.removeProperty("--sb-flip-red");
+    book.style.removeProperty("--sb-flip-light");
+    book.style.removeProperty("--sb-flip-mid");
+    book.style.removeProperty("--sb-flip-dark");
+    book.style.removeProperty("--sb-flip-darker");
+    book.style.removeProperty("--sb-reader-font-body");
+    book.style.removeProperty("--sb-reader-font-over-art");
+    book.style.removeProperty("--sb-reader-font-emphasis");
+    book.classList.remove("sb-book--themed");
+    book.style.backgroundImage = "";
+    book.style.removeProperty("--sb-cover-inside-art");
+    if (coverPanel) {
+      coverPanel.classList.remove("sb-cover__panel--themed");
+      coverPanel.style.removeProperty("--sb-cover-photo");
+    }
+  }
+
+  function numSpreads() {
+    return story && story.pages ? Math.floor(story.pages.length / 2) + 1 : 0;
+  }
+
+  /** Local preview only — same shape as OpenAI output (pairs: text, then picture). */
+  function buildSampleStory() {
+    var imgs = [
+      "images/colouring/template-winged-unicorn.png",
+      "images/colouring/template-dino-hill.png",
+      "images/colouring/template-pony.png",
+      "images/math-race-dino.png",
+      "images/colouring/template-mermaid.png",
+      "images/colouring/template-splash-friends.png",
+    ];
+    var texts = [
+      "\"Ready, Fox?\" Mira asked, glancing at her friend. The fox nodded eagerly, its fluffy tail swishing in excitement.\n\nWith a roar, they raced toward the shimmering moon.",
+      "BANG! The star whispered that it had tumbled from the sky and needed to be home before sunrise, beyond Crystal Valley.",
+      "She rolled the star gently in a leaf-boat down the brook, past sleepy ducks and sparkling stones.",
+      "At the hill of three oaks, a wise crow pointed to the clearest patch of night where the sky looked soft as velvet.",
+      "Mira tossed the star as high as she could. It caught a breeze and rose — tiny at first, then bright again.",
+      "By morning the sky was ordinary blue, but Mira knew the star was safe. She curled up in her den, proud and cosy.",
+    ];
+    var pages = [];
+    for (var s = 0; s < 6; s++) {
+      pages.push({ text: texts[s], imageUrl: null });
+      pages.push({ text: "", imageUrl: imgs[s] });
+    }
+    pages.unshift(
+      { text: "", imageUrl: null },
+      {
+        text: "This book was brought to you by the wonderful mind of Mira.",
+        imageUrl: null,
+      }
+    );
+    pages[2].textSafeZones = [
+      { side: "left", position: "upper-left", priority: 1 },
+      { side: "right", position: "upper-right", priority: 2 },
+    ];
+    pages[2].impactWords = [
+      { text: "\"Ready, Fox?\"", type: "dialogue" },
+      { text: "shimmering moon", type: "magical" },
+    ];
+    pages[2].textBlocks = [
+      {
+        side: "left",
+        position: "upper-left",
+        sentences: [
+          "\"Ready, Fox?\" Mira asked, glancing at her friend.",
+          "The fox nodded eagerly, its fluffy tail swishing in excitement.",
+        ],
+      },
+      {
+        side: "right",
+        position: "upper-right",
+        sentences: ["With a roar, they raced toward the shimmering moon."],
+      },
+    ];
+    var rfKeys = Object.keys(SB_READER_FONT_PRESETS);
+    var rfPick = rfKeys[(Math.random() * rfKeys.length) | 0] || "fredoka";
+    return {
+      title: "Mira and the fallen star (sample)",
+      bookColor: "blue",
+      readerFont: rfPick,
+      readerArtLayout: "duplex",
+      storyTextMode: "rhyme",
+      storyLength: "medium",
+      sceneImageUrl: null,
+      pages: pages,
+      isSample: true,
+    };
+  }
+
+  /** Words in ALL CAPS (sound effects) — skip common short words so body text stays normal. */
+  var SB_BIG_WORD_STOP = {
+    THE: true,
+    AND: true,
+    BUT: true,
+    FOR: true,
+    WAS: true,
+    ARE: true,
+    WERE: true,
+    NOT: true,
+    SHE: true,
+    HER: true,
+    HIS: true,
+    HIM: true,
+    YOU: true,
+    ALL: true,
+    CAN: true,
+    HAD: true,
+    HAS: true,
+    ONE: true,
+    TWO: true,
+    DAY: true,
+    WAY: true,
+    OUT: true,
+    OFF: true,
+    TOO: true,
+    WHO: true,
+    OUR: true,
+    SAY: true,
+    YES: true,
+    NOW: true,
+    NEW: true,
+    HOW: true,
+    WHY: true,
+    LET: true,
+    GOT: true,
+    GET: true,
+    BOY: true,
+    GIRL: true,
+    MAN: true,
+    MEN: true,
+    MUM: true,
+    DAD: true,
+  };
+
+  function isBigWordToken(part) {
+    if (!part) {
+      return false;
+    }
+    var letters = part.replace(/[^A-Za-z]/g, "");
+    if (letters.length < 3) {
+      return false;
+    }
+    if (letters !== letters.toUpperCase()) {
+      return false;
+    }
+    if (SB_BIG_WORD_STOP[letters]) {
+      return false;
+    }
+    return true;
+  }
+
+  /** Title-case tokens that aren’t shouty CAPS effects — skips common prose words. Used for playful emphasis on facing pages. */
+  var SB_PROPER_NOUN_SKIP = {
+    THE: true,
+    AND: true,
+    BUT: true,
+    FOR: true,
+    ARE: true,
+    WAS: true,
+    WERE: true,
+    NOT: true,
+    HER: true,
+    HIS: true,
+    HIM: true,
+    SHE: true,
+    HAS: true,
+    HAD: true,
+    YOU: true,
+    YOUR: true,
+    OUR: true,
+    ITS: true,
+    THEY: true,
+    THEM: true,
+    THEIR: true,
+    THERE: true,
+    THESE: true,
+    THOSE: true,
+    THIS: true,
+    THAT: true,
+    THEN: true,
+    THAN: true,
+    THEYRE: true,
+    WITH: true,
+    FROM: true,
+    INTO: true,
+    OVER: true,
+    UPON: true,
+    ALSO: true,
+    VERY: true,
+    JUST: true,
+    ONLY: true,
+    EVEN: true,
+    SUCH: true,
+    SOME: true,
+    MOST: true,
+    MORE: true,
+    EACH: true,
+    EVERY: true,
+    BOTH: true,
+    AFTER: true,
+    BEFORE: true,
+    WHILE: true,
+    WHICH: true,
+    WHOSE: true,
+    WHERE: true,
+    WHAT: true,
+    WHEN: true,
+    WHY: true,
+    HOW: true,
+    WHO: true,
+    COULD: true,
+    WOULD: true,
+    SHOULD: true,
+    MIGHT: true,
+    MUST: true,
+    ABOUT: true,
+    AROUND: true,
+    THROUGH: true,
+    AGAIN: true,
+    STILL: true,
+    ONCE: true,
+    ALREADY: true,
+    SUDDENLY: true,
+    MAYBE: true,
+    PERHAPS: true,
+    QUITE: true,
+    EITHER: true,
+    NEITHER: true,
+    ANOTHER: true,
+    OTHER: true,
+    SOMETHING: true,
+    NOTHING: true,
+    ANYONE: true,
+    SOMEONE: true,
+    EVERYONE: true,
+    ANYTHING: true,
+    EVERYTHING: true,
+    ONE: true,
+    TWO: true,
+    ALL: true,
+    ANY: true,
+    CAN: true,
+    GOT: true,
+    GET: true,
+    GETS: true,
+    WAY: true,
+    OUT: true,
+    DAY: true,
+    NEW: true,
+    NOW: true,
+    SAY: true,
+    SAYS: true,
+    SAID: true,
+    ASKED: true,
+    BACK: true,
+    DOWN: true,
+    MADE: true,
+    MAKE: true,
+    WENT: true,
+    GOES: true,
+    CAME: true,
+    LOOKED: true,
+    WANTED: true,
+    BECAUSE: true,
+    THOUGHT: true,
+    ALTHOUGH: true,
+    MUM: true,
+    DAD: true,
+    MOM: true,
+    SON: true,
+    BOY: true,
+    GIRL: true,
+    MAN: true,
+    MEN: true,
+  };
+
+  /** Single capitalised name / place that should pop (Sophia, Remy — not SHE, WHICH, WHO). */
+  function isStoryKeyWordToken(part) {
+    if (!part || isBigWordToken(part)) {
+      return false;
+    }
+    var t = String(part)
+      .trim()
+      .replace(/^[\u201c\u201d\u2018\u2019"""'`(]+/, "")
+      .replace(/[.,!?;:\u2014\u2013)\u201d"'"…\]]+$/, "")
+      .trim();
+    var m = /^([A-Z][a-z]{2,})(?:'s)?$/.exec(t);
+    var core = m ? m[1] : "";
+    if (!core || core.length < 3 || SB_PROPER_NOUN_SKIP[core.toUpperCase()]) {
+      return false;
+    }
+    return true;
+  }
+
+  function storyPageTextToReadableHtml(text) {
+    var lines = escapeHtml(String(text || ""))
+      .replace(/\r/g, "")
+      .split("\n");
+    var htmlLines = [];
+    for (var li = 0; li < lines.length; li++) {
+      var words = lines[li].split(/\s+/).filter(function (w) {
+        return w.length > 0;
+      });
+      var spans = [];
+      for (var wi = 0; wi < words.length; wi++) {
+        var word = words[wi];
+        var cleanWord = word.replace(/[.,/#!$%^&*;:{}=\-_`~()'"”]/g, "");
+        var cls = "sb-readable-word";
+        if (isBigWordToken(word)) {
+          cls += " sb-big-word";
+        } else if (isStoryKeyWordToken(word)) {
+          cls += " sb-key-word";
+        }
+        spans.push(
+          '<span class="' +
+            cls +
+            '" data-word="' +
+            escapeAttr(cleanWord) +
+            '">' +
+            word +
+            "</span>"
+        );
+      }
+      htmlLines.push(spans.join(" "));
+    }
+    return htmlLines.join("<br/>");
+  }
+
+  function clearPeelBackTextColumn() {
+    if (spreadPeelBackText) spreadPeelBackText.innerHTML = "";
+    var peelShell = spreadArtPeelShell || document.getElementById("sbSpreadArtPeel");
+    if (peelShell) {
+      var peelBack = peelShell.querySelector(".sb-flip-spread__peel-back");
+      if (peelBack) {
+        peelBack.classList.remove("sb-flip-spread__peel-back--verso-text");
+      }
+      var peelFront = peelShell.querySelector(".sb-flip-spread__peel-front");
+      if (peelFront) {
+        peelFront.classList.remove("sb-flip-spread__peel-front--recto-prose");
+      }
+    }
+    if (spreadPeelFrontText) spreadPeelFrontText.innerHTML = "";
+  }
+
+  function theEndHtml() {
+    return (
+      '<div class="sb-the-end-wrap" role="status">' +
+      '<h2 class="sb-the-end-title">The End</h2>' +
+      '<p class="sb-the-end-lead">We hope you enjoyed the story!</p>' +
+      '<div class="sj-end-actions">' +
+      '<button type="button" class="sb-btn sb-btn--primary" data-sj-end="again">Read again</button>' +
+      '<button type="button" class="sb-btn sb-btn--ghost" data-sj-end="shelf">Back to my bookshelf</button>' +
+      '<button type="button" class="sb-btn sb-btn--ghost" data-sj-end="another">Create another story</button>' +
+      "</div></div>"
+    );
+  }
+
+  /**
+   * Left column content for one spread (prose words HTML, The End block, or empty).
+   * @param {number} si
+   * @returns {{ kind: "empty"|"theend"|"prose", html?: string }}
+   */
+  function spreadLeftColumnBlockAtSi(si) {
+    if (!story || !story.pages || !story.pages.length) {
+      return { kind: "empty" };
+    }
+    var n = numSpreads();
+    if (n < 1) return { kind: "empty" };
+    si = Math.max(0, Math.min(Number(si), n - 1));
+    if (si * 2 >= story.pages.length) {
+      return { kind: "theend", html: theEndHtml() };
+    }
+    var leftP = story.pages[si * 2];
+    if (leftP && String(leftP.text || "").trim().toLowerCase() === "the end") {
+      return { kind: "theend", html: theEndHtml() };
+    }
+    if (leftP && leftP.text) {
+      return { kind: "prose", html: storyPageTextToReadableHtml(leftP.text) };
+    }
+    return { kind: "empty" };
+  }
+
+  /**
+   * Right column of a spread’s story pages (prose HTML).
+   * @param {number} si
+   * @returns {{ kind: "empty"|"theend"|"prose", html?: string }}
+   */
+  function spreadRightColumnBlockAtSi(si) {
+    if (!story || !story.pages || !story.pages.length) {
+      return { kind: "empty" };
+    }
+    var n = numSpreads();
+    if (n < 1) return { kind: "empty" };
+    si = Math.max(0, Math.min(Number(si), n - 1));
+    if (si * 2 >= story.pages.length) {
+      return { kind: "theend", html: theEndHtml() };
+    }
+    var ri = si * 2 + 1;
+    if (ri >= story.pages.length) {
+      return { kind: "empty" };
+    }
+    var rightP = story.pages[ri];
+    if (rightP && rightP.text) {
+      return { kind: "prose", html: storyPageTextToReadableHtml(rightP.text) };
+    }
+    return { kind: "empty" };
+  }
+
+  /**
+   * Prose for the visible text column in facing layout: the **first** story page of each spread pair
+   * (index 2×si), matching how books are generated (text page, then picture page).
+   * If that page has no body copy, falls back to the paired right page (captions / odd authoring).
+   * Duplex / non-facing uses the left column only, same as before.
+   * @param {number} si
+   * @returns {{ kind: "empty"|"theend"|"prose", html?: string }}
+   */
+  function spreadFacingReaderTextBlockAtSi(si) {
+    if (!story || !story.pages || !story.pages.length) {
+      return { kind: "empty" };
+    }
+    if (
+      !spreadInnerEl ||
+      !spreadInnerEl.classList.contains("sb-flip-spread__inner--art-facing")
+    ) {
+      return spreadLeftColumnBlockAtSi(si);
+    }
+    var primary = spreadLeftColumnBlockAtSi(si);
+    if (primary.kind !== "empty") {
+      return primary;
+    }
+    return spreadRightColumnBlockAtSi(si);
+  }
+
+  /**
+   * Back of the turning leaf during peel: duplex uses left-column text on the verso.
+   * Facing (picture-page) layouts must leave this empty: duplicating prose on the peel paints a
+   * mirrored glyph layer over the static left sheet mid-rotate on WebKit (“ghost” type swap).
+   * @param {number} si  Incoming spread index (spreadIndex / toSi during peel).
+   */
+  function fillPeelBackTextColumn(si) {
+    if (!spreadPeelBackText) return;
+    if (
+      !spreadInnerEl ||
+      !spreadInnerEl.classList.contains("sb-flip-spread__inner--art-facing")
+    ) {
+      spreadPeelBackText.innerHTML = "";
+      window.requestAnimationFrame(function () {
+        renderDuplexStoryType();
+        fitVisibleStoryText();
+      });
+      return;
+    }
+    var block = spreadLeftColumnBlockAtSi(si);
+    if (block.kind === "prose" && block.html) {
+      spreadPeelBackText.innerHTML =
+        '<p class="sb-flip-text"><span class="sb-flip-text__highlight">' +
+        block.html +
+        "</span></p>";
+      bindReadableWordSpans(spreadPeelBackText);
+    } else if (block.kind === "theend" && block.html) {
+      spreadPeelBackText.innerHTML = block.html;
+    } else {
+      spreadPeelBackText.innerHTML = "";
+    }
+    window.requestAnimationFrame(fitVisibleStoryText);
+  }
+
+  function openSampleBook() {
+    story = buildSampleStory();
+    spreadIndex = 0;
+    showBook();
+  }
+
+  var storyTypeState = null;
+
+  function duplexStoryTypeActive() {
+    if (!story || !spreadInnerEl) return false;
+    if (getEffectiveReaderArtLayout() === "facing") return false;
+    if (spreadInnerEl.classList.contains("sb-flip-spread__inner--art-facing")) return false;
+    if (spreadInnerEl.classList.contains("sb-flip-spread__inner--flyleaf-pane")) return false;
+    if (spreadIndex * 2 >= story.pages.length) return false;
+    return (
+      spreadInnerEl.classList.contains("sb-flip-spread__inner--has-art") ||
+      spreadRowHasIllustration(spreadIndex)
+    );
+  }
+
+  function storyWordCount(sentence) {
+    return String(sentence || "")
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean).length;
+  }
+
+  function storySentenceSpecial(sentence) {
+    var s = String(sentence || "").trim();
+    return /[“"]/.test(s) || (/!$/.test(s) && s.length < 18);
+  }
+
+  function splitStoryParagraphs(text) {
+    return String(text || "")
+      .replace(/\r/g, "")
+      .split(/\n+/)
+      .map(function (para) {
+        return para.trim();
+      })
+      .filter(Boolean)
+      .map(function (para) {
+        var sentences = [];
+        var buf = "";
+        var quote = false;
+        for (var i = 0; i < para.length; i++) {
+          var ch = para.charAt(i);
+          buf += ch;
+          if (ch === '"' || ch === "\u201c" || ch === "\u201d") quote = !quote;
+          if (!quote && /[.!?]/.test(ch)) {
+            var nxt = para.charAt(i + 1);
+            if (!nxt || /\s/.test(nxt)) {
+              if (buf.trim()) sentences.push(buf.trim());
+              buf = "";
+            }
+          }
+        }
+        if (buf.trim()) sentences.push(buf.trim());
+        return sentences.length ? sentences : [para];
+      });
+  }
+
+  function blocksFromPlanner(text, hinted) {
+    if (!hinted || !hinted.length) return null;
+    var lower = String(text || "").toLowerCase();
+    var ok = hinted.every(function (block) {
+      var sentences = block && block.sentences;
+      return (
+        sentences &&
+        sentences.length &&
+        sentences.every(function (sentence) {
+          var bit = String(sentence || "").trim().toLowerCase();
+          return bit.length > 2 && lower.indexOf(bit) >= 0;
+        })
+      );
+    });
+    if (!ok) return null;
+    return hinted.slice(0, 3).map(function (block, i) {
+      return {
+        side: block.side === "right" ? "right" : "left",
+        position: String(block.position || (block.side === "right" ? "upper-right" : "upper-left")),
+        width: block.width || (i === 0 ? "30%" : "28%"),
+        sentences: block.sentences.map(function (sentence) {
+          return String(sentence).trim();
+        }),
+      };
+    });
+  }
+
+  function planStoryTextBlocks(text, zones, hinted) {
+    var planned = blocksFromPlanner(text, hinted);
+    var blocks = planned;
+    if (!blocks) {
+      var groups = splitStoryParagraphs(text);
+      var chunks = [];
+      if (groups.length >= 2) {
+        chunks.push(groups[0].slice());
+        var rest = [];
+        for (var g = 1; g < groups.length; g++) rest = rest.concat(groups[g]);
+        if (groups.length >= 3 && rest.length > groups[groups.length - 1].length) {
+          var last = groups[groups.length - 1];
+          chunks.push(rest.slice(0, rest.length - last.length));
+          chunks.push(last.slice());
+        } else {
+          chunks.push(rest);
+        }
+      } else {
+        var sents = (groups[0] || []).slice();
+        var cut = -1;
+        var shift = /^(with|then|suddenly|at last|soon|later|next|finally|meanwhile)\b/i;
+        for (var s = 1; s < sents.length; s++) {
+          if (shift.test(sents[s])) {
+            cut = s;
+            break;
+          }
+        }
+        if (cut < 0 && sents.length >= 4) {
+          cut = /[“"]/.test(sents[0]) ? 2 : Math.ceil(sents.length / 2);
+          if (cut >= sents.length) cut = sents.length - 1;
+        }
+        if (cut > 0 && cut < sents.length) {
+          chunks = [sents.slice(0, cut), sents.slice(cut)];
+        } else if (sents.length) {
+          chunks = [sents];
+        }
+      }
+      blocks = chunks
+        .filter(function (sentences) {
+          return sentences && sentences.length;
+        })
+        .slice(0, 3)
+        .map(function (sentences) {
+          return { sentences: sentences };
+        });
+    }
+
+    var merged = [];
+    blocks.forEach(function (block) {
+      var words = block.sentences.reduce(function (sum, sentence) {
+        return sum + storyWordCount(sentence);
+      }, 0);
+      var special = block.sentences.some(storySentenceSpecial);
+      if (words <= 2 && !special && merged.length) {
+        merged[merged.length - 1].sentences = merged[merged.length - 1].sentences.concat(block.sentences);
+      } else {
+        merged.push({
+          side: block.side,
+          position: block.position,
+          width: block.width,
+          sentences: block.sentences.slice(),
+        });
+      }
+    });
+    blocks = merged.slice(0, 3);
+
+    var positions = (zones || []).slice().sort(function (a, b) {
+      return (Number(a.priority) || 9) - (Number(b.priority) || 9);
+    });
+    if (!positions.length) {
+      positions = [
+        { side: "left", position: "upper-left" },
+        { side: "right", position: "upper-right" },
+        { side: "left", position: "lower-left" },
+      ];
+    }
+    var usedPos = {};
+    var placedSides = [];
+    return blocks.map(function (block, i) {
+      var zone = positions[i] || positions[positions.length - 1];
+      var side = block.side === "right" || block.side === "left" ? block.side : zone.side === "right" ? "right" : "left";
+      if (!block.side && blocks.length > 1 && i > 0 && side === placedSides[0]) {
+        side = placedSides[0] === "left" ? "right" : "left";
+        zone = { side: side, position: side === "right" ? "upper-right" : "upper-left" };
+      }
+      placedSides.push(side);
+      var position = block.position || zone.position || (side === "right" ? "upper-right" : "upper-left");
+      var key = side + ":" + position;
+      if (usedPos[key]) {
+        position = side === "right" ? "lower-right" : "lower-left";
+        key = side + ":" + position;
+      }
+      usedPos[key] = true;
+      return {
+        side: side,
+        position: position,
+        width: block.width || (i === 0 ? "30%" : "28%"),
+        sentences: block.sentences,
+      };
+    });
+  }
+
+  function resolveImpactWords(text, hinted) {
+    var source = String(text || "");
+    var lower = source.toLowerCase();
+    var found = [];
+    function add(phrase, type) {
+      var bit = String(phrase || "").trim();
+      if (!bit || found.length >= 3) return;
+      if (lower.indexOf(bit.toLowerCase()) < 0) return;
+      if (found.some(function (item) { return item.text.toLowerCase() === bit.toLowerCase(); })) return;
+      found.push({ text: bit, type: type || "magical" });
+    }
+    (hinted || []).forEach(function (item) {
+      if (item && item.text) add(item.text, item.type || "magical");
+    });
+    if (found.length) return found.slice(0, 3);
+    var sound = /\b(?:BANG|BOOM|WHOOSH|CRASH|ROAR|ZOOM|SPLASH|POP|POW|ZAP)!/gi;
+    var match;
+    while ((match = sound.exec(source))) add(match[0], "sound");
+    var spoken = /[“"][^"“”]{1,32}[”"]/.exec(source);
+    if (spoken) add(spoken[0], "dialogue");
+    var place = /\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2}\s+(?:Valley|Palace|Forest|Castle|Cave|Kingdom|Mountain|Ocean|Garden|Ridge)\b/.exec(source);
+    if (place) add(place[0], "place");
+    var magical = /\b(?:shimmering|glowing|glistening|sparkling|glittering|magical|enormous)\s+[a-z]{3,}/i.exec(source);
+    if (magical) add(magical[0], "magical");
+    else {
+      var magicalWord = /\b(?:shimmering|glowing|glistening|sparkling|glittering|magical|enormous)\b/i.exec(source);
+      if (magicalWord) add(magicalWord[0], "magical");
+    }
+    var emotion = /\b(?:AMAZING|WOW|HOORAY|YAY)!/g;
+    while ((match = emotion.exec(source))) add(match[0], "emotion");
+    return found.slice(0, 3);
+  }
+
+  function storyWordsHtml(chunk) {
+    var lines = escapeHtml(chunk).split("\n");
+    return lines
+      .map(function (line) {
+        return line
+          .split(/(\s+)/)
+          .map(function (part) {
+            if (!part || /^\s+$/.test(part)) return part;
+            var clean = part.replace(/[.,/#!$%^&*;:{}=\-_`~()'"”]/g, "");
+            return (
+              '<span class="sb-readable-word" data-word="' +
+              escapeAttr(clean) +
+              '">' +
+              part +
+              "</span>"
+            );
+          })
+          .join("");
+      })
+      .join("<br/>");
+  }
+
+  function markStoryImpacts(text, impacts) {
+    var src = String(text || "");
+    var lower = src.toLowerCase();
+    var ranges = [];
+    (impacts || []).forEach(function (impact) {
+      if (ranges.length >= 3) return;
+      var phrase = String(impact.text || "").trim();
+      if (phrase.length < 2) return;
+      var at = lower.indexOf(phrase.toLowerCase());
+      if (at < 0) return;
+      var end = at + phrase.length;
+      var overlaps = ranges.some(function (range) {
+        return at < range.end && end > range.start;
+      });
+      if (overlaps) return;
+      var type = /^(sound|magical|emotion|place|dialogue)$/.test(impact.type) ? impact.type : "magical";
+      ranges.push({ start: at, end: end, type: type });
+    });
+    ranges.sort(function (a, b) {
+      return a.start - b.start;
+    });
+    var html = "";
+    var cursor = 0;
+    ranges.forEach(function (range) {
+      html += storyWordsHtml(src.slice(cursor, range.start));
+      html +=
+        '<span class="sb-impact sb-impact--' +
+        range.type +
+        '">' +
+        storyWordsHtml(src.slice(range.start, range.end)) +
+        "</span>";
+      if (range.type === "dialogue" && range.end < src.length) html += "<br/>";
+      cursor = range.end;
+    });
+    html += storyWordsHtml(src.slice(cursor));
+    return html;
+  }
+
+  function pageWidthFromSpread(width) {
+    var n = parseFloat(width);
+    if (!n) return "";
+    if (n <= 42) return Math.max(46, Math.min(78, Math.round((n / 44.5) * 100))) + "%";
+    return Math.max(46, Math.min(78, Math.round(n))) + "%";
+  }
+
+  function paintStoryType(layer, state) {
+    var left = "";
+    var right = "";
+    state.blocks.forEach(function (block, index) {
+      var html =
+        '<p class="sb-story-block" data-side="' +
+        block.side +
+        '" data-pos="' +
+        escapeAttr(block.position) +
+        '" data-block-index="' +
+        index +
+        '" style="width:' +
+        pageWidthFromSpread(block.width) +
+        '">' +
+        markStoryImpacts(block.sentences.join(" "), state.impacts) +
+        "</p>";
+      if (block.side === "right") right += html;
+      else left += html;
+    });
+    layer.innerHTML =
+      '<div class="sb-story-type__page" data-side="left">' +
+      left +
+      '</div><div class="sb-story-type__gutter" aria-hidden="true"></div><div class="sb-story-type__page" data-side="right">' +
+      right +
+      '</div><p class="sb-story-type__flag" id="sbStoryTypeOverflow" hidden>This spread has more words than fit</p>';
+    bindReadableWordSpans(layer);
+  }
+
+  function renderDuplexStoryType() {
+    var layer = document.getElementById("sbStoryType");
+    var panel = document.getElementById("sbSpreadTextPanel");
+    if (!layer || !spreadInnerEl) return;
+    var on = duplexStoryTypeActive();
+    spreadInnerEl.classList.toggle("sb-flip-spread__inner--story-type", on);
+    if (panel) {
+      if (on) panel.setAttribute("aria-hidden", "true");
+      else panel.removeAttribute("aria-hidden");
+    }
+    if (!on) {
+      layer.hidden = true;
+      layer.innerHTML = "";
+      storyTypeState = null;
+      return;
+    }
+    var leftP = story.pages[spreadIndex * 2] || {};
+    var rightP = story.pages[spreadIndex * 2 + 1] || {};
+    var text = String(leftP.text || "").trim();
+    if (rightP.text && String(rightP.text).trim()) {
+      text = text ? text + "\n\n" + String(rightP.text).trim() : String(rightP.text).trim();
+    }
+    if (!text) {
+      layer.hidden = true;
+      layer.innerHTML = "";
+      storyTypeState = null;
+      spreadInnerEl.classList.remove("sb-flip-spread__inner--story-type");
+      return;
+    }
+    var zones = leftP.textSafeZones || rightP.textSafeZones || [];
+    var hintedBlocks = leftP.textBlocks || rightP.textBlocks || [];
+    var hintedImpacts = leftP.impactWords || rightP.impactWords || [];
+    storyTypeState = {
+      blocks: planStoryTextBlocks(text, zones, hintedBlocks),
+      impacts: resolveImpactWords(text, hintedImpacts),
+    };
+    paintStoryType(layer, storyTypeState);
+    layer.hidden = false;
+  }
+
+  function storyBlockOverflows(block, region) {
+    return block.scrollHeight > region + 2;
+  }
+
+  function pullBlockOffGutter(block, gutter) {
+    if (!block || !gutter) return;
+    var guard = 0;
+    while (guard < 6) {
+      var box = block.getBoundingClientRect();
+      var gap = gutter.getBoundingClientRect();
+      if (box.right <= gap.left + 1 || box.left >= gap.right - 1) return;
+      var next = Math.max(120, box.width - 16);
+      block.style.width = next + "px";
+      guard += 1;
+    }
+  }
+
+  function fitStoryTypeBlocks(layer, pass) {
+    if (!storyTypeState) return;
+    var flag = document.getElementById("sbStoryTypeOverflow");
+    if (flag) flag.hidden = true;
+    var gutter = layer.querySelector(".sb-story-type__gutter");
+    var nodes = layer.querySelectorAll(".sb-story-block");
+    var base = Math.max(16, Math.min(27, (window.innerWidth || 1200) * 0.0135));
+    var anyOver = false;
+    for (var i = 0; i < nodes.length; i++) {
+      var node = nodes[i];
+      var page = node.parentElement;
+      var pageH = (page && page.clientHeight) || 400;
+      var pageW = (page && page.clientWidth) || 280;
+      var region = Math.round(pageH * 0.42);
+      var size = base;
+      var leading = 1.42;
+      node.style.maxHeight = region + "px";
+      node.style.overflow = "hidden";
+      node.style.fontSize = size.toFixed(2) + "px";
+      node.style.lineHeight = String(leading);
+      while (size > 16 && storyBlockOverflows(node, region)) {
+        size -= 1;
+        node.style.fontSize = size.toFixed(2) + "px";
+      }
+      if (storyBlockOverflows(node, region)) {
+        leading = 1.35;
+        node.style.lineHeight = "1.35";
+      }
+      if (storyBlockOverflows(node, region)) {
+        region = Math.round(pageH * 0.58);
+        node.style.maxHeight = region + "px";
+        node.style.width = Math.round(pageW * 0.76) + "px";
+      }
+      pullBlockOffGutter(node, gutter);
+      var over = storyBlockOverflows(node, region);
+      node.classList.toggle("sb-story-block--overfilled", over);
+      node.style.overflow = over ? "auto" : "visible";
+      if (!over) node.style.maxHeight = "";
+      var index = Number(node.getAttribute("data-block-index"));
+      if (storyTypeState.blocks[index]) storyTypeState.blocks[index].overfilled = over;
+      if (over) anyOver = true;
+    }
+    if (anyOver && pass < 1 && redistributeStoryBlocks()) {
+      paintStoryType(layer, storyTypeState);
+      fitStoryTypeBlocks(layer, pass + 1);
+      return;
+    }
+    layer.setAttribute("data-sb-text-fit", anyOver ? "overflow" : "ok");
+    if (flag) flag.hidden = !anyOver;
+  }
+
+  function redistributeStoryBlocks() {
+    if (!storyTypeState || storyTypeState.blocks.length >= 3 && storyTypeState.blocks.every(function (block) {
+      return block.overfilled;
+    })) {
+      return false;
+    }
+    var moved = false;
+    storyTypeState.blocks.forEach(function (block) {
+      if (!block.overfilled || block.sentences.length < 2) return;
+      var sentence = block.sentences[block.sentences.length - 1];
+      if (storyWordCount(sentence) < 3 && !storySentenceSpecial(sentence)) return;
+      var otherSide = block.side === "left" ? "right" : "left";
+      var others = storyTypeState.blocks.filter(function (item) {
+        return item.side === otherSide;
+      });
+      if (others.length >= 2) return;
+      if (!others.length && storyTypeState.blocks.length >= 3) return;
+      block.sentences.pop();
+      if (others.length === 1) others[0].sentences.push(sentence);
+      else {
+        storyTypeState.blocks.push({
+          side: otherSide,
+          position: otherSide === "right" ? "lower-right" : "lower-left",
+          width: "28%",
+          sentences: [sentence],
+        });
+      }
+      block.overfilled = false;
+      moved = true;
+    });
+    return moved;
+  }
+
+  var storyTextFitTimer = 0;
+
+  function fitOneStoryHighlight(highlightEl, isMain) {
+    var panel = highlightEl ? highlightEl.closest(".sb-flip-text") : null;
+    var sheet = highlightEl ? highlightEl.closest(".sb-flip-page__sheet") || highlightEl.parentElement : null;
+    var flag = isMain ? document.getElementById("sbStoryOverflow") : null;
+    var plain = String(highlightEl && highlightEl.textContent || "").replace(/\s+/g, " ").trim();
+    if (!highlightEl || !sheet || !plain || highlightEl.querySelector(".sb-the-end-wrap")) {
+      if (highlightEl) {
+        highlightEl.style.fontSize = "";
+        highlightEl.style.lineHeight = "";
+        highlightEl.classList.remove("sb-story-copy--long", "sb-story-text--overflow");
+      }
+      if (panel) {
+        panel.style.width = "";
+        panel.style.maxWidth = "";
+        panel.style.maxHeight = "";
+        panel.classList.remove("sb-story-panel--wide", "sb-story-text--overflow");
+      }
+      if (flag) flag.hidden = true;
+      if (sheet && sheet.setAttribute) sheet.setAttribute("data-sb-text-fit", "empty");
+      return;
+    }
+    if (flag) flag.hidden = true;
+    var overArt = !!(
+      spreadInnerEl &&
+      spreadInnerEl.classList.contains("sb-flip-spread__inner--has-art") &&
+      !spreadInnerEl.classList.contains("sb-flip-spread__inner--art-facing")
+    );
+    var breaks = highlightEl.innerHTML.match(/<br/gi);
+    var longCopy = plain.length > 90 || (breaks ? breaks.length : 0) >= 2;
+    highlightEl.classList.toggle("sb-story-copy--long", longCopy);
+
+    var sheetW = sheet.clientWidth || 280;
+    var sheetH = sheet.clientHeight || 360;
+    var safeX = Math.max(16, sheetW * 0.08);
+    var safeY = Math.max(14, sheetH * 0.08);
+    var gutter = overArt ? Math.max(18, sheetW * 0.06) : 0;
+    var maxW = Math.max(110, sheetW - safeX * 2 - gutter);
+    var limitH = Math.max(64, sheetH - safeY);
+    var startW = Math.round(Math.min(maxW, maxW * (longCopy ? 0.94 : 0.8)));
+    var minPx = overArt ? 11 : 12;
+    var maxPx = overArt
+      ? Math.min(17, Math.max(minPx + 1, Math.min(sheetH * 0.046, sheetW * 0.036)))
+      : Math.min(18, Math.max(minPx + 1, sheetH * 0.04));
+
+    function paint(size, leading, width) {
+      highlightEl.style.fontSize = size.toFixed(2) + "px";
+      highlightEl.style.lineHeight = String(leading);
+      if (panel && overArt) {
+        panel.style.width = Math.round(width) + "px";
+        panel.style.maxWidth = "100%";
+      }
+    }
+    function tooTall(width) {
+      var box = panel || highlightEl;
+      var tall = box.offsetHeight > limitH + 1;
+      var wide = highlightEl.scrollWidth > width + 6;
+      return tall || wide;
+    }
+
+    var leading = 1.45;
+    var width = startW;
+    var lo = minPx;
+    var hi = maxPx;
+    var best = minPx;
+    var step;
+    for (step = 0; step < 8; step++) {
+      var mid = (lo + hi) / 2;
+      paint(mid, leading, width);
+      if (!tooTall(width)) {
+        best = mid;
+        lo = mid;
+      } else {
+        hi = mid;
+      }
+    }
+    paint(best, leading, width);
+    if (tooTall(width)) {
+      leading = 1.35;
+      paint(best, leading, width);
+    }
+    if (tooTall(width) && width < maxW - 1) {
+      width = maxW;
+      if (panel) panel.classList.add("sb-story-panel--wide");
+      paint(best, leading, width);
+    } else if (panel) {
+      panel.classList.remove("sb-story-panel--wide");
+    }
+    if (tooTall(width)) {
+      best = minPx;
+      leading = 1.35;
+      width = maxW;
+      paint(best, leading, width);
+    }
+    var overflow = tooTall(width);
+    highlightEl.classList.toggle("sb-story-text--overflow", overflow);
+    if (panel) {
+      panel.classList.toggle("sb-story-text--overflow", overflow);
+      panel.style.maxHeight = overflow ? Math.round(limitH) + "px" : "";
+    }
+    if (flag) flag.hidden = !overflow;
+    if (sheet.setAttribute) sheet.setAttribute("data-sb-text-fit", overflow ? "overflow" : "ok");
+  }
+
+  function fitVisibleStoryText() {
+    var layer = document.getElementById("sbStoryType");
+    if (
+      layer &&
+      !layer.hidden &&
+      spreadInnerEl &&
+      spreadInnerEl.classList.contains("sb-flip-spread__inner--story-type")
+    ) {
+      fitStoryTypeBlocks(layer, 0);
+      return;
+    }
+    fitOneStoryHighlight(spreadText, true);
+    var peel = document.querySelector(".sb-flip-spread__peel-back-text .sb-flip-text__highlight");
+    if (peel && peel !== spreadText) fitOneStoryHighlight(peel, false);
+  }
+
+  window.addEventListener("resize", function () {
+    if (storyTextFitTimer) window.clearTimeout(storyTextFitTimer);
+    storyTextFitTimer = window.setTimeout(fitVisibleStoryText, 140);
+  });
+
+  /** @param {number} [textSiOverride]  Spread index for prose (facing uses primary text page of the pair). */
+  function writeSpreadTextMetaFromStory(textSiOverride) {
+    if (!story || !spreadText) return;
+    var n = numSpreads();
+    if (n < 1) return;
+    var si;
+    if (textSiOverride !== undefined && textSiOverride !== null) {
+      si = Math.max(0, Math.min(Number(textSiOverride), n - 1));
+    } else {
+      spreadIndex = Math.max(0, Math.min(spreadIndex, n - 1));
+      si = spreadIndex;
+    }
+
+    stopReading();
+
+    var block = spreadFacingReaderTextBlockAtSi(si);
+    if (block.kind === "theend" && block.html) {
+      spreadText.innerHTML = block.html;
+      if (spreadTextActions) {
+        spreadTextActions.hidden = true;
+        spreadTextActions.style.display = "none";
+      }
+      return;
+    }
+    if (block.kind === "prose" && block.html) {
+      spreadText.innerHTML = block.html;
+      bindReadableWordSpans(spreadText);
+      if (spreadTextActions) {
+        spreadTextActions.hidden = false;
+        spreadTextActions.style.display = "flex";
+      }
+      return;
+    }
+    spreadText.innerHTML = "";
+    if (spreadTextActions) {
+      spreadTextActions.hidden = true;
+      spreadTextActions.style.display = "none";
+    }
+  }
+
+  /** WebKit/Safari sometimes composites the duplex cover one frame late after flyleaf → first art; nudge after decode. */
+  function nudgeDuplexArtComposite() {
+    if (!spreadArtCover || !spreadArtCover.src) return;
+    var el = spreadArtCover;
+    var rafTwice = function () {
+      if (typeof window.requestAnimationFrame !== "function") return;
+      window.requestAnimationFrame(function () {
+        window.requestAnimationFrame(function () {
+          if (el && el.src) void el.offsetWidth;
+        });
+      });
+    };
+    if (typeof el.decode === "function") {
+      el.decode().then(rafTwice, rafTwice);
+    } else {
+      rafTwice();
+    }
+  }
+
+  /**
+   * Align reader illustrations with `spreadIndex`.
+   * @param {{ duplexCoverSrc?: string }} opt — When set (page-turn peel), `#sbSpreadArtCover` uses this URL
+   * instead of the spread’s canonical art so Safari/WebKit never briefly paints the incoming image then swaps.
+   */
+  function syncSpreadIllustrationFromStory(opt) {
+    opt = opt || {};
+    if (!story) return;
+    var n = numSpreads();
+    if (n < 1) return;
+    var si = spreadIndex;
+    si = Math.max(0, Math.min(si, n - 1));
+    var isTheEnd = si * 2 >= story.pages.length;
+    var rightP = isTheEnd ? null : story.pages[si * 2 + 1];
+    var leftP = isTheEnd ? null : story.pages[si * 2];
+    var pLo = isTheEnd ? story.pages.length : (si * 2 + 1);
+    var pHi = isTheEnd ? story.pages.length : (si * 2 + 2);
+    var rawU = isTheEnd
+      ? story.sceneImageUrl || ""
+      : rightP && rightP.imageUrl
+        ? String(rightP.imageUrl)
+        : "";
+    if (!rawU && !isTheEnd && leftP && leftP.imageUrl) {
+      rawU = String(leftP.imageUrl);
+    }
+    var u = storyImageDisplayUrl(rawU);
+
+    function imgAttrSrc(img) {
+      return img ? img.getAttribute("src") || "" : "";
+    }
+
+    if (u) {
+      clearArtFlyleaf();
+      if (spreadInnerEl) {
+        spreadInnerEl.classList.add("sb-flip-spread__inner--has-art");
+      }
+      var duplexCoverSrc = Object.prototype.hasOwnProperty.call(opt, "duplexCoverSrc")
+        ? opt.duplexCoverSrc
+        : u;
+      var duplexChanged = false;
+      var legacyChanged = false;
+      if (spreadArtImg) {
+        if (imgAttrSrc(spreadArtImg) !== u) {
+          spreadArtImg.src = u;
+          legacyChanged = true;
+        }
+        spreadArtImg.alt = isTheEnd ? "The End" : "Illustration for pages " + pLo + "–" + pHi;
+        spreadArtImg.referrerPolicy = "no-referrer";
+      }
+      if (spreadArt) spreadArt.classList.remove("is-empty");
+      if (spreadArtCover && duplexCoverSrc) {
+        if (imgAttrSrc(spreadArtCover) !== duplexCoverSrc) {
+          spreadArtCover.src = duplexCoverSrc;
+          duplexChanged = true;
+        }
+        spreadArtCover.alt =
+          isTheEnd ? "The End" : "Illustration for pages " + pLo + "–" + pHi + " of " + story.pages.length;
+        spreadArtCover.referrerPolicy = "no-referrer";
+        spreadArtCover.style.opacity = "";
+        spreadArtCover.style.visibility = "";
+      }
+      if (spreadInnerEl && spreadInnerEl.dataset) {
+        spreadInnerEl.dataset.sbArtUrl = u;
+      }
+      if (spreadArtNum) {
+        spreadArtNum.textContent = isTheEnd ? "The End" : "Pages " + pLo + "–" + pHi + " of " + story.pages.length;
+      }
+      if (duplexChanged || legacyChanged) {
+        nudgeDuplexArtComposite();
+      }
+    } else {
+      var flyTxt =
+        si === 0 &&
+        !isTheEnd &&
+        rightP &&
+        rightP.text
+          ? String(rightP.text).trim()
+          : "";
+      if (flyTxt && spreadArtFlyleaf) {
+        if (spreadArtImg) spreadArtImg.removeAttribute("src");
+        if (spreadArt) spreadArt.classList.add("is-empty");
+        if (spreadArtBg) spreadArtBg.style.backgroundImage = "";
+        if (spreadArtCover) {
+          spreadArtCover.removeAttribute("src");
+          spreadArtCover.alt = "";
+          spreadArtCover.style.opacity = "";
+          spreadArtCover.style.visibility = "";
+        }
+        if (spreadInnerEl && spreadInnerEl.dataset && spreadInnerEl.dataset.sbArtUrl) {
+          delete spreadInnerEl.dataset.sbArtUrl;
+        }
+        if (spreadInnerEl) {
+          spreadInnerEl.classList.remove("sb-flip-spread__inner--has-art");
+          spreadInnerEl.classList.add("sb-flip-spread__inner--flyleaf-pane");
+        }
+        if (spreadArtNum) {
+          spreadArtNum.textContent = "";
+        }
+        spreadArtFlyleaf.innerHTML =
+          '<p class="sb-flip-text sb-flip-flyleaf-paragraph"><span class="sb-flip-text__highlight">' +
+          storyPageTextToReadableHtml(flyTxt) +
+          "</span></p>";
+        bindReadableWordSpans(spreadArtFlyleaf);
+        spreadArtFlyleaf.removeAttribute("hidden");
+        spreadArtFlyleaf.hidden = false;
+      } else {
+        clearArtFlyleaf();
+        if (spreadArtImg) spreadArtImg.removeAttribute("src");
+        if (spreadArt) spreadArt.classList.add("is-empty");
+        if (spreadArtBg) spreadArtBg.style.backgroundImage = "";
+        if (spreadArtCover) {
+          spreadArtCover.removeAttribute("src");
+          spreadArtCover.alt = "";
+          spreadArtCover.style.opacity = "";
+          spreadArtCover.style.visibility = "";
+        }
+        if (spreadInnerEl && spreadInnerEl.dataset && spreadInnerEl.dataset.sbArtUrl) {
+          delete spreadInnerEl.dataset.sbArtUrl;
+        }
+        if (spreadInnerEl) {
+          spreadInnerEl.classList.remove("sb-flip-spread__inner--has-art");
+        }
+        if (spreadArtNum) {
+          spreadArtNum.textContent = rightP ? "Drawing missing" : "";
+        }
+      }
+    }
+  }
+
+  /**
+   * @param {{ skipArt?: boolean }} opt  — skipArt defers `syncSpreadIllustrationFromStory` (page-turn path syncs art separately)
+   */
+  function applySpreadContent(opt) {
+    opt = opt || {};
+    if (!story || !spreadText) return;
+    var n = numSpreads();
+    if (n < 1) return;
+    spreadIndex = Math.max(0, Math.min(spreadIndex, n - 1));
+    writeSpreadTextMetaFromStory();
+    if (!opt.skipArt) {
+      syncSpreadIllustrationFromStory();
+    }
+    syncReaderFacingLayoutClasses();
+    placeTextPageForFacingLayout();
+    renderDuplexStoryType();
+    window.requestAnimationFrame(fitVisibleStoryText);
+    updateSpreadPageNumberDisplay();
+    updatePagerHints();
+    prefetchAdjacentSpreadIllustrations();
+    if (spreadListener && story && story.pages) {
+      var heard = story.pages[spreadIndex * 2] || {};
+      spreadListener({
+        pageId: heard.pageId || "",
+        text: heard.text || "",
+        index: spreadIndex
+      });
+    }
+  }
+
+  function renderSpread() {
+    applySpreadContent();
+  }
+
+  function updatePagerHints() {
+    if (!story) return;
+    var n = numSpreads();
+    var si = spreadIndex;
+    si = Math.max(0, Math.min(si, Math.max(0, n - 1)));
+    if (spreadAnimLock) {
+      if (btnPrev) btnPrev.disabled = true;
+      if (btnNext) btnNext.disabled = true;
+      return;
+    }
+    if (book && book.classList.contains("sb-book--cover-visible")) {
+      if (btnPrev) btnPrev.disabled = true;
+      if (btnNext) btnNext.disabled = true;
+      return;
+    }
+    if (btnPrev) btnPrev.disabled = si <= 0 && !(phoneReaderOn() && phoneLeaf === "right");
+    if (btnNext) btnNext.disabled = si >= n - 1 && !(phoneReaderOn() && phoneLeaf === "left");
+    updateReadChrome();
+  }
+
+  var phoneLeaf = "left";
+
+  function phoneReaderOn() {
+    return !!(
+      window.matchMedia &&
+      window.matchMedia("(max-width: 700px)").matches &&
+      book &&
+      readerStack &&
+      readerStack.classList.contains("sb-reader-stack--open") &&
+      !book.classList.contains("sb-book--cover-visible")
+    );
+  }
+
+  function applyPhoneLeaf() {
+    if (!book) return;
+    var on = phoneReaderOn();
+    book.classList.toggle("sb-book--phone-leaf", on);
+    book.classList.toggle("sb-book--phone-right", on && phoneLeaf === "right");
+    updateReadChrome();
+  }
+
+  function updateReadChrome() {
+    var titleEl = document.getElementById("sbReadChromeTitle");
+    var pagesEl = document.getElementById("sbReadChromePages");
+    if (titleEl && story) titleEl.textContent = story.title || "Your book";
+    if (!pagesEl || !story || !story.pages) return;
+    if (book && book.classList.contains("sb-book--cover-visible")) {
+      pagesEl.textContent = "";
+      return;
+    }
+    var total = story.pages.length;
+    var current = spreadIndex * 2 + 1;
+    if (book && book.classList.contains("sb-book--phone-right")) current += 1;
+    if (current > total) current = total;
+    if (current < 1) current = 1;
+    pagesEl.textContent = "Page " + current + " of " + total;
+  }
+
+  function dismissWordTip() {
+    var tip = document.getElementById("sbWordTip");
+    if (tip) tip.hidden = true;
+    try {
+      window.localStorage.setItem("wondii-word-tip", "1");
+    } catch (eTip) {}
+  }
+
+  function maybeShowWordTip() {
+    var tip = document.getElementById("sbWordTip");
+    if (!tip) return;
+    try {
+      if (window.localStorage.getItem("wondii-word-tip") === "1") {
+        tip.hidden = true;
+        return;
+      }
+    } catch (eSeen) {}
+    tip.hidden = false;
+    window.setTimeout(dismissWordTip, 5200);
+  }
+
+  function syncReadDock() {
+    var dock = document.getElementById("sbReadDock");
+    if (!dock || !book || !readerStack) return;
+    var open =
+      readerStack.classList.contains("sb-reader-stack--open") &&
+      !book.classList.contains("sb-book--cover-visible");
+    dock.hidden = !open;
+  }
+
+  var readerChromeTimer = 0;
+  function wakeReaderChrome() {
+    if (!book) return;
+    book.classList.remove("sb-chrome--quiet");
+    if (readerChromeTimer) window.clearTimeout(readerChromeTimer);
+    if (!readerStack || !readerStack.classList.contains("sb-reader-stack--open")) return;
+    if (book.classList.contains("sb-book--cover-visible")) return;
+    readerChromeTimer = window.setTimeout(function () {
+      if (book) book.classList.add("sb-chrome--quiet");
+    }, 3000);
+  }
+
+  function goNextPage() {
+    if (phoneReaderOn() && phoneLeaf === "left") {
+      phoneLeaf = "right";
+      applyPhoneLeaf();
+      wakeReaderChrome();
+      return;
+    }
+    if (story && spreadIndex >= numSpreads() - 1) return;
+    phoneLeaf = "left";
+    navigateSpread(1);
+    applyPhoneLeaf();
+    wakeReaderChrome();
+  }
+
+  function goPrevPage() {
+    if (phoneReaderOn() && phoneLeaf === "right") {
+      phoneLeaf = "left";
+      applyPhoneLeaf();
+      wakeReaderChrome();
+      return;
+    }
+    if (spreadIndex <= 0) return;
+    phoneLeaf = phoneReaderOn() ? "right" : "left";
+    navigateSpread(-1);
+    applyPhoneLeaf();
+    wakeReaderChrome();
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function escapeAttr(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+  }
+
+  /**
+   * Remote hosts that often block direct browser fetch/CORS or cold-load inconsistently.
+   * Load via clever-service GET `?url=` (same as DALL·E) so images encode for the shelf and show in the reader.
+   */
+  function storyImageNeedsEdgeProxy(url) {
+    var u = String(url || "").toLowerCase();
+    if (!u || u.indexOf("data:") === 0) return false;
+    if (u.indexOf("/functions/v1/") !== -1 && u.indexOf("url=") !== -1) return false;
+    return (
+      u.indexOf("blob.core.windows.net") !== -1 ||
+      u.indexOf("oaiusercontent.com") !== -1 ||
+      u.indexOf("fal.media") !== -1 ||
+      u.indexOf("fal-cdn") !== -1 ||
+      u.indexOf(".r2.dev") !== -1
+    );
+  }
+
+  /**
+   * Shelf storage can skip canvas JPEG re-encode when the URL is a stable public asset
+   * the browser loads at full quality (e.g. Supabase Storage). Proxied / ephemeral hosts
+   * still use tryFetchImageDataUrl.
+   */
+  function shelfKeepOriginalRemoteUrl(url) {
+    var u = String(url || "").trim().toLowerCase();
+    if (!u || u.indexOf("data:") === 0) return false;
+    if (storyImageNeedsEdgeProxy(url)) return false;
+    if (
+      u.indexOf(".supabase.co/") !== -1 &&
+      u.indexOf("/storage/v1/object/public/") !== -1
+    ) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * When true, persist only remote URL per page/scene — skip base64 blobs (IndexedDB quota).
+   * Supabase public or signed URLs work in `<img>`; ephemeral hosts still encode via proxy.
+   */
+  function shelfPreferStoredUrlWithoutBlob(url) {
+    if (shelfKeepOriginalRemoteUrl(url)) return true;
+    var u = String(url || "").trim().toLowerCase();
+    if (!u || u.indexOf("data:") === 0) return false;
+    if (storyImageNeedsEdgeProxy(url)) return false;
+    if (
+      u.indexOf(".supabase.co/") !== -1 &&
+      u.indexOf("/storage/v1/object/sign/") !== -1
+    ) {
+      return true;
+    }
+    return false;
+  }
+
+  function storyImageDisplayUrl(remoteUrl) {
+    var u = String(remoteUrl || "").trim();
+    if (!u) return u;
+    if (u.indexOf("data:") === 0) return u;
+    if (!storyImageNeedsEdgeProxy(u)) return u;
+    var base = functionUrl();
+    if (!base) return u;
+    var key = anonKey();
+    var out = base + "?url=" + encodeURIComponent(u);
+    if (key) out += "&apikey=" + encodeURIComponent(key);
+    return out;
+  }
+
+  function sanitizeFilename(raw) {
+    var s = String(raw || "my-story-book")
+      .trim()
+      .replace(/[^\w\s\-']/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "")
+      .slice(0, 64)
+      .toLowerCase();
+    return s || "my-story-book";
+  }
+
+  /** @param {{ shelfCompress?: boolean }} [opts] — smaller JPEG for “Put on shelf” (keeps reopen via imageUrlFallback). */
+  function tryFetchImageDataUrl(url, opts) {
+    opts = opts || {};
+    return Promise.resolve().then(function () {
+      if (!url) return null;
+      if (url.indexOf("data:") === 0) return url;
+      
+      // 1. First fetch the image using CORS fetch to get the raw Blob. 
+      // Proxy DALL·E + Fal (and similar) through clever-service ?url= so CORS/shelf encoding works.
+      var fetchUrl = url;
+      var fUrl = functionUrl();
+      var aKey = anonKey();
+      var reqOpts = {
+        method: "GET",
+        mode: "cors",
+        credentials: "omit",
+        cache: "default",
+        referrerPolicy: "no-referrer",
+      };
+
+      if (fUrl && storyImageNeedsEdgeProxy(url)) {
+        fetchUrl = storyImageDisplayUrl(url);
+        if (aKey) {
+          reqOpts.headers = {
+            Authorization: "Bearer " + aKey,
+            apikey: aKey,
+          };
+        }
+      }
+
+      return fetch(fetchUrl, reqOpts)
+        .then(function (r) {
+          if (!r.ok) throw new Error("bad " + r.status);
+          return r.blob();
+        })
+        .then(function (blob) {
+          // 2. Convert Blob to raw base64 data URL
+          return new Promise(function (resolve, reject) {
+            var fr = new FileReader();
+            fr.onload = function () {
+              resolve(fr.result);
+            };
+            fr.onerror = function () {
+              reject(new Error("read"));
+            };
+            fr.readAsDataURL(blob);
+          });
+        })
+        .then(function (rawBase64) {
+          // 3. Load the raw base64 data URL into an image to compress it.
+          // Because it's a data: URL, there are zero CORS restrictions and canvas won't be tainted.
+          return new Promise(function (resolve) {
+            var img = new Image();
+            // We set crossOrigin just in case the URL was NOT proxied and is a direct CDN link
+            if (rawBase64.indexOf("data:") !== 0) {
+              img.crossOrigin = "anonymous";
+            }
+            img.onload = function () {
+              try {
+                var canvas = document.createElement("canvas");
+                /* Shelf blobs: minimise size — reader prefers imageUrlFallback when present. */
+                var maxDim = opts.shelfCompress ? 520 : 1280;
+                var jpegQuality = opts.shelfCompress ? 0.65 : 0.85;
+                var w = img.width;
+                var h = img.height;
+                if (w > maxDim || h > maxDim) {
+                  var ratio = w / h;
+                  if (w > h) {
+                    w = maxDim;
+                    h = Math.round(maxDim / ratio);
+                  } else {
+                    h = maxDim;
+                    w = Math.round(maxDim * ratio);
+                  }
+                }
+                canvas.width = w || 1;
+                canvas.height = h || 1;
+                var ctx = canvas.getContext("2d");
+                if (!ctx) throw new Error("No 2d context");
+                ctx.drawImage(img, 0, 0, w, h);
+                /* Higher than 0.55 — shelf reopen looked muddy; still JPEG for quota vs PNG */
+                resolve(canvas.toDataURL("image/jpeg", jpegQuality));
+              } catch (e) {
+                console.warn("Canvas compression failed, falling back to original URL", e);
+                resolve(url); // Fallback to original URL if compression fails
+              }
+            };
+            img.onerror = function (e) {
+              console.warn("Image element failed to load raw base64", e);
+              resolve(url); // Fallback to original URL if image load fails
+            };
+            img.src = rawBase64;
+          });
+        });
+    }).catch(function (err) {
+      console.warn("Could not fetch data URL for", url, err);
+      return url; // CRITICAL FIX: Always return the original URL if the proxy/fetch fails, never null!
+    });
+  }
+
+  function fetchAllPageDataUrls() {
+    if (!story || !story.pages.length) return Promise.resolve([]);
+    return Promise.all(
+      story.pages.map(function (p) {
+        return tryFetchImageDataUrl(p.imageUrl || "");
+      })
+    );
+  }
+
+  /** Like fetchAllPageDataUrls but avoids re-encoding URLs already served at full quality (e.g. Supabase public). */
+  function fetchShelfPageDataUrls() {
+    if (!story || !story.pages.length) return Promise.resolve([]);
+    return Promise.all(
+      story.pages.map(function (p) {
+        var u = p.imageUrl || "";
+        if (shelfPreferStoredUrlWithoutBlob(u)) return Promise.resolve(null);
+        return tryFetchImageDataUrl(u, { shelfCompress: true });
+      })
+    );
+  }
+
+  function fetchSceneDataUrlForShelf(sceneUrl) {
+    if (!sceneUrl) return Promise.resolve(null);
+    if (shelfPreferStoredUrlWithoutBlob(sceneUrl)) return Promise.resolve(null);
+    return tryFetchImageDataUrl(sceneUrl, { shelfCompress: true });
+  }
+
+  /** Shelf size is bounded only by browser/IndexedDB quota — we never auto-delete stories to make room. */
+  var SHELF_STORAGE_KEY = "jigsawKids_storybookShelf_v1";
+  /** @type {Array|null} null until first hydrate from IndexedDB / localStorage */
+  var shelfCache = null;
+
+  function loadShelfSyncFromLocalStorage() {
+    return [];
+  }
+
+  /**
+   * If getJson/ready threw but shelf lives only in IndexedDB (localStorage cleared on migrate),
+   * recover from raw string without losing the library.
+   * @returns {Promise<void>}
+   */
+  function recoverShelfAfterStoreFailure(err) {
+    console.warn("[storybook shelf] Store hydrate failed:", err);
+    var lsList = loadShelfSyncFromLocalStorage();
+    if (lsList.length > 0) {
+      shelfCache = lsList;
+      return Promise.resolve();
+    }
+    if (!window.StorybookShelfStore || typeof window.StorybookShelfStore.getRaw !== "function") {
+      shelfCache = [];
+      return Promise.resolve();
+    }
+    return window.StorybookShelfStore.getRaw().then(function (raw) {
+      if (raw == null || !String(raw).length) {
+        shelfCache = [];
+        return;
+      }
+      try {
+        var data = JSON.parse(String(raw));
+        shelfCache = Array.isArray(data) ? data : [];
+      } catch (parseErr) {
+        console.warn("[storybook shelf] recover parse failed:", parseErr);
+        shelfCache = [];
+      }
+    }).catch(function (e2) {
+      console.warn("[storybook shelf] getRaw failed:", e2);
+      shelfCache = [];
+    });
+  }
+
+  function loadShelf() {
+    if (shelfCache === null) {
+      return loadShelfSyncFromLocalStorage();
+    }
+    return shelfCache;
+  }
+
+  /**
+   * Refresh in-memory shelf from the same store the cloud merge uses (needed after pull).
+   * @param {function(): void} [done]
+   */
+  function reloadShelfCacheFromStore(done) {
+    var store = window.StorybookShelfStore;
+    var read = store && (store.getVisibleJson || store.getJson);
+    if (read) {
+      read.call(store)
+        .then(function (list) {
+          shelfCache = Array.isArray(list) ? list : [];
+          if (done) {
+            done();
+          }
+        })
+        .catch(function (err) {
+          recoverShelfAfterStoreFailure(err).then(function () {
+            if (done) done();
+          });
+        });
+    } else {
+      shelfCache = loadShelfSyncFromLocalStorage();
+      if (done) {
+        done();
+      }
+    }
+  }
+
+  /**
+   * @param {function(): void} [onWritten] after data is persisted and shelfCache updated
+   */
+  function saveShelf(list, cloudDone, onWritten) {
+    cloudDone = typeof cloudDone === "function" ? cloudDone : null;
+    onWritten = typeof onWritten === "function" ? onWritten : null;
+    var tryList = list.slice();
+    var raw;
+    try {
+      raw = JSON.stringify(tryList);
+    } catch (stringifyErr) {
+      console.warn("[storybook shelf] Could not serialize library:", stringifyErr);
+      var serErr = new Error("shelf_serialize_failed");
+      if (cloudDone) cloudDone(serErr);
+      try {
+        window.alert(
+          "Could not save your library — the data could not be packed for storage.\n\n" +
+            "Try again, or remove one book and retry.",
+        );
+      } catch (e) {}
+      return;
+    }
+
+    function persistFail(e) {
+      console.warn("[storybook shelf] Persist failed — no stories were removed automatically:", e);
+      var err =
+        e instanceof Error
+          ? e
+          : new Error(typeof e === "string" ? e : "storage_quota");
+      if (cloudDone) cloudDone(err);
+      try {
+        window.alert(mergeFailedMessage(err.message || String(e)));
+      } catch (e2) {}
+    }
+
+    function afterPersistOk(savedRaw) {
+      shelfCache = tryList;
+      if (onWritten) {
+        onWritten();
+      }
+      if (window.KidsScoreCloud && window.KidsScoreCloud.scheduleStorybookUpload) {
+        window.KidsScoreCloud.scheduleStorybookUpload(savedRaw, cloudDone);
+      } else if (cloudDone) {
+        cloudDone(null);
+      }
+    }
+
+    if (window.StorybookShelfStore && window.StorybookShelfStore.isIsolated && window.StorybookShelfStore.isIsolated()) {
+      window.StorybookShelfStore.setIsolated(null, tryList);
+      afterPersistOk(raw);
+      return;
+    }
+    if (window.StorybookShelfStore && typeof window.StorybookShelfStore.setRaw === "function") {
+      window.StorybookShelfStore.setRaw(raw).then(
+        function () {
+          afterPersistOk(raw);
+        },
+        function (e) {
+          persistFail(e);
+        },
+      );
+      return;
+    }
+    try {
+      localStorage.setItem(SHELF_STORAGE_KEY, raw);
+      afterPersistOk(raw);
+    } catch (e) {
+      persistFail(e);
+    }
+  }
+
+  function hashFromString(str) {
+    var h = 2166136261;
+    var s = String(str || "");
+    for (var i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return h >>> 0;
+  }
+
+  function spineMeta(bookId, title, bookColor) {
+    var h = hashFromString(bookId + ":" + title);
+    var hue = h % 360;
+    var c = bookColor ? String(bookColor).toLowerCase() : "";
+    if (c.indexOf("navy") !== -1) hue = 222 + (h % 18);
+    else if (c.indexOf("teal") !== -1) hue = 175 + (h % 20);
+    else if (c.indexOf("mint") !== -1) hue = 145 + (h % 22);
+    else if (c.indexOf("green") !== -1) hue = 120 + (h % 40);
+    else if (c.indexOf("blue") !== -1) hue = 200 + (h % 40);
+    else if (c.indexOf("lilac") !== -1) hue = 265 + (h % 25);
+    else if (c.indexOf("purple") !== -1) hue = 275 + (h % 30);
+    else if (c.indexOf("coral") !== -1) hue = 350 + (h % 12);
+    else if (c.indexOf("pink") !== -1) hue = 320 + (h % 30);
+    else if (c.indexOf("red") !== -1) hue = 5 + (h % 18);
+    else if (c.indexOf("orange") !== -1) hue = 28 + (h % 18);
+    else if (c.indexOf("yellow") !== -1) hue = 48 + (h % 14);
+    return {
+      hue: hue,
+      pat: h % 4,
+      hPx: 112 + (h % 40),
+      wPx: 21 + (h % 16),
+    };
+  }
+
+  function spineLabel(title) {
+    var t = String(title || "Story").trim();
+    if (t.length > 44) return t.slice(0, 42) + "…";
+    return t;
+  }
+
+  function storyAtmosphereFor(extra) {
+    if (!window.WondiiStoryAtmosphere || !window.WondiiStoryAtmosphere.enabled()) return null;
+    return window.WondiiStoryAtmosphere.resolve(extra || {});
+  }
+
+  function pendingChildShelfId() {
+    var key = "";
+    try {
+      key = sessionStorage.getItem("wondii-child-book-key") || "";
+    } catch (eKey) {
+      return "";
+    }
+    if (!key) return "";
+    var auth = window.WondiiSession && window.WondiiSession.get && window.WondiiSession.get();
+    var meta = auth && auth.session && auth.session.user && auth.session.user.app_metadata;
+    if (!meta || meta.account_kind !== "child") return "";
+    var existing = loadShelf();
+    return existing[0] && existing[0].id ? String(existing[0].id) : "";
+  }
+
+  function addStoryToShelfFromData(
+    title,
+    author,
+    pages,
+    dataUrls,
+    sceneDataUrl,
+    sceneUrlFallback,
+    bookColor,
+    readerFont,
+    readerArtLayout,
+    storyTextMode,
+    storyLength,
+    cloudDone,
+    onWritten
+  ) {
+    var list = loadShelf();
+    var retryId = pendingChildShelfId();
+    var id = retryId || ("b" + Date.now() + "-" + ((Math.random() * 1e6) | 0));
+    if (retryId) {
+      list = list.filter(function (book) { return !book || book.id !== retryId; });
+    }
+    var storedPages = pages.map(function (p, i) {
+      var fb = String(p.imageUrl || "").trim();
+      var inline = dataUrls[i] || null;
+      if (fb && shelfPreferStoredUrlWithoutBlob(fb)) inline = null;
+      var stored = {
+        text: p.text,
+        imageDataUrl: inline,
+        imageUrlFallback: p.imageUrl || null,
+      };
+      if (p.textSafeZones) stored.textSafeZones = p.textSafeZones;
+      if (p.impactWords) stored.impactWords = p.impactWords;
+      if (p.textBlocks) stored.textBlocks = p.textBlocks;
+      return stored;
+    });
+    var storedSceneData = sceneDataUrl || null;
+    var sf = String(sceneUrlFallback || "").trim();
+    if (sf && shelfPreferStoredUrlWithoutBlob(sf)) storedSceneData = null;
+    list.unshift({
+      id: id,
+      title: title,
+      author: author || "",
+      bookColor: bookColor || null,
+      readerFont: readerFont || null,
+      readerArtLayout: readerArtLayout === "facing" ? "facing" : "duplex",
+      storyTextMode: storyTextMode === "prose" ? "prose" : "rhyme",
+      storyLength: coerceStoryLengthKey(storyLength),
+      savedAt: new Date().toISOString(),
+      pages: storedPages,
+      sceneDataUrl: storedSceneData,
+      sceneUrlFallback: sceneUrlFallback || null,
+      atmosphere: storyAtmosphereFor({
+        place: selectedPlace,
+        plot: plotInput ? plotInput.value : "",
+        atmosphere: story && story.atmosphere
+      }),
+    });
+    saveShelf(list, cloudDone, onWritten);
+  }
+
+  function removeShelfBook(bookId) {
+    var list = loadShelf().filter(function (b) {
+      return b.id !== bookId;
+    });
+    saveShelf(list, null, function () {
+    renderShelf();
+    });
+  }
+
+  function openShelfBook(bookId) {
+    if (!bookId) return;
+    window.location.assign("book-prototype/?book=" + encodeURIComponent(bookId));
+  }
+
+  /**
+   * First illustration on the shelf cover (persisted base64 wins over remote CDN URL).
+   * @returns {{ src: string, pageIndex: number }}
+   */
+  function firstShelfCoverMeta(item) {
+    if (item.sceneUrlFallback || item.sceneDataUrl) {
+      return { src: item.sceneUrlFallback || item.sceneDataUrl, pageIndex: -1 };
+    }
+    if (!item.pages || !item.pages.length) return { src: "", pageIndex: -1 };
+    for (var i = 0; i < item.pages.length; i++) {
+      var p = item.pages[i];
+      var du = String(p.imageDataUrl || "").trim();
+      var hu = String(p.imageUrlFallback || "").trim();
+      var src = hu || du;
+      if (src) return { src: src, pageIndex: i };
+    }
+    return { src: "", pageIndex: -1 };
+  }
+
+  function persistShelfPageDataUrl(bookId, pageIdx, dataUrl) {
+    var list = loadShelf();
+    for (var bi = 0; bi < list.length; bi++) {
+      if (list[bi].id !== bookId) continue;
+      var pages = list[bi].pages;
+      if (!pages || !pages[pageIdx]) continue;
+      pages[pageIdx].imageDataUrl = dataUrl;
+      saveShelf(list);
+      break;
+    }
+  }
+
+  var SHELF_COVERS_PER_TIER = 4;
+
+  /** Flat portrait “app cover” tile for My library (spine, framed art, title, TAP TO OPEN). */
+  function wrapShelfCoverLibraryFlat(face) {
+    var scene = document.createElement("span");
+    scene.className = "sb-cover-card__scene sb-cover-card__scene--library-flat";
+    scene.appendChild(face);
+    return scene;
+  }
+
+  function composeLibraryShelfFace(face, meta, rawTitle, imgElOpt) {
+    var titleShown = spineLabel(rawTitle);
+    face.textContent = "";
+    var root = document.createElement("span");
+    root.className = "sb-library-cover";
+
+    var spine = document.createElement("span");
+    spine.className = "sb-library-cover__spine";
+    spine.setAttribute("aria-hidden", "true");
+    spine.style.setProperty("--sb-h", String(meta.hue));
+
+    var panel = document.createElement("span");
+    panel.className = "sb-library-cover__panel";
+
+    if (imgElOpt) {
+      panel.appendChild(imgElOpt);
+    } else {
+      var ph = document.createElement("span");
+      ph.className = "sb-library-cover__placeholder-bg";
+      ph.setAttribute("aria-hidden", "true");
+      ph.style.setProperty("--sb-h", String(meta.hue));
+      panel.appendChild(ph);
+    }
+
+    var tint = document.createElement("span");
+    tint.className = "sb-library-cover__tint";
+    tint.setAttribute("aria-hidden", "true");
+    tint.style.setProperty("--sb-h", String(meta.hue));
+    panel.appendChild(tint);
+
+    var frame = document.createElement("span");
+    frame.className = "sb-library-cover__frame";
+    frame.setAttribute("aria-hidden", "true");
+    panel.appendChild(frame);
+
+    var titles = document.createElement("span");
+    titles.className = "sb-library-cover__titles";
+
+    var spark = document.createElement("span");
+    spark.className = "sb-library-cover__sparkle-icon";
+    spark.setAttribute("aria-hidden", "true");
+    spark.textContent = "\u2726";
+
+    var tit = document.createElement("span");
+    tit.className = "sb-library-cover__title";
+    tit.textContent = titleShown;
+
+    var tap = document.createElement("span");
+    tap.className = "sb-library-cover__tap";
+    tap.textContent = face.getAttribute("data-tap") || "TAP TO OPEN";
+
+    titles.appendChild(spark);
+    titles.appendChild(tit);
+    titles.appendChild(tap);
+    panel.appendChild(titles);
+
+    root.appendChild(spine);
+    root.appendChild(panel);
+    face.appendChild(root);
+  }
+
+  function isSavedPlan(item) {
+    if (!item || item.generated === true || item.recordKind === "book") return false;
+    if (item.recordKind === "plan" || item.status === "saved-plan") return true;
+    var pages = item.pages || [];
+    var hasText = pages.some(function (page) {
+      return page && String(page.text || page.prose || "").trim();
+    });
+    if (hasText) return false;
+    return item.simulated === true;
+  }
+
+  function createCoverCardWrap(item) {
+    var meta = spineMeta(item.id, item.title, item.bookColor);
+    var cover = firstShelfCoverMeta(item);
+    var coverSrc = cover.src;
+    var pageIdxCover = cover.pageIndex;
+    var wrap = document.createElement("div");
+    wrap.className = "sb-cover-card-wrap";
+    var openBtn = document.createElement("button");
+    openBtn.type = "button";
+    openBtn.className =
+      "sb-cover-card sb-cover-card--library-preview" +
+      (coverSrc ? " sb-cover-card--has-art" : " sb-cover-card--placeholder");
+    openBtn.style.setProperty("--sb-h", String(meta.hue));
+    openBtn.setAttribute("role", "listitem");
+    var planned = isSavedPlan(item);
+    openBtn.setAttribute("aria-label", planned
+      ? "Continue story idea: " + item.title + ". The illustrated book is not ready."
+      : "Open book: " + item.title);
+    if (planned) openBtn.className += " sb-cover-card--plan";
+    var face = document.createElement("span");
+    face.className = "sb-cover-card__face";
+    if (planned) face.setAttribute("data-tap", "Continue creating");
+
+    function finishCoverFallback() {
+      openBtn.className =
+        "sb-cover-card sb-cover-card--library-preview sb-cover-card--placeholder";
+      openBtn.style.setProperty("--sb-h", String(meta.hue));
+      composeLibraryShelfFace(face, meta, item.title, null);
+    }
+
+    if (coverSrc) {
+      var img = document.createElement("img");
+      img.src = coverSrc;
+      img.alt = "";
+      img.decoding = "async";
+      img.loading = "lazy";
+      img.className = "sb-cover-card__thumb-bg sb-library-cover__img";
+      img.referrerPolicy = "no-referrer";
+      var retriedCover = false;
+      img.onerror = function () {
+        var pg = pageIdxCover >= 0 && item.pages ? item.pages[pageIdxCover] : null;
+        var remoteFallback = pg && String(pg.imageUrlFallback || "").trim();
+
+        if (!retriedCover && pg && remoteFallback && /^https?:\/\//i.test(remoteFallback)) {
+          retriedCover = true;
+            tryFetchImageDataUrl(remoteFallback, { shelfCompress: true })
+            .then(function (dataUrl) {
+              if (dataUrl && String(dataUrl).indexOf("data:") === 0) {
+                persistShelfPageDataUrl(item.id, pageIdxCover, dataUrl);
+                img.src = dataUrl;
+                return;
+              }
+              finishCoverFallback();
+            })
+            .catch(function () {
+              finishCoverFallback();
+            });
+          return;
+        }
+        finishCoverFallback();
+      };
+      composeLibraryShelfFace(face, meta, item.title, img);
+    } else {
+      composeLibraryShelfFace(face, meta, item.title, null);
+    }
+
+    openBtn.appendChild(wrapShelfCoverLibraryFlat(face));
+    openBtn.addEventListener("click", function () {
+      if (!planned) {
+        openShelfBook(item.id);
+        return;
+      }
+      var key = String(item.creationKey || "");
+      if (!/^[A-Za-z0-9_-]{8,80}$/.test(key)) return;
+      window.location.assign("storybook.html?story=" + encodeURIComponent(key));
+    });
+    var rm = document.createElement("button");
+    rm.type = "button";
+    rm.className = "sb-shelf-remove";
+    rm.setAttribute("aria-label", "Remove from shelf: " + item.title);
+    rm.textContent = "×";
+    rm.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (window.confirm('Remove "' + item.title + '" from your shelf?')) {
+      removeShelfBook(item.id);
+      }
+    });
+    wrap.appendChild(openBtn);
+    wrap.appendChild(rm);
+    return wrap;
+  }
+
+  function renderShelf() {
+    if (!shelfEl) return;
+    shelfEl.textContent = "";
+    var list = loadShelf();
+    if (!list.length) {
+      shelfEl.classList.remove("sb-shelf-has-books");
+      var empty = document.createElement("p");
+      empty.className = "sb-library__empty";
+      empty.textContent =
+        "No books on the shelf yet. When you finish a story, tap “Put on my shelf”.";
+      shelfEl.appendChild(empty);
+      updateCarouselButtons();
+      return;
+    }
+
+    shelfEl.classList.add("sb-shelf-has-books");
+    for (var i = 0; i < list.length; i++) {
+      shelfEl.appendChild(createCoverCardWrap(list[i]));
+    }
+    updateCarouselButtons();
+  }
+
+  function updateCarouselButtons() {
+    var prevBtn = document.getElementById("sbCarouselPrev");
+    var nextBtn = document.getElementById("sbCarouselNext");
+    if (!prevBtn || !nextBtn || !shelfEl) return;
+
+    /* My library is a vertical scroll grid — carousel arrows unused. */
+    prevBtn.hidden = true;
+    nextBtn.hidden = true;
+    prevBtn.setAttribute("aria-hidden", "true");
+    nextBtn.setAttribute("aria-hidden", "true");
+  }
+
+  function scrollCarousel(dir) {
+    if (!shelfEl) return;
+    // Scroll by one full page
+    // Add 20px for the gap between pages to ensure it crosses the snap threshold
+    var gap = 20;
+    var amount = (shelfEl.clientWidth + gap) * dir;
+    shelfEl.scrollBy({ left: amount, behavior: "smooth" });
+  }
+
+  function shelfAlreadyHasStory() {
+    if (!story || !story.title) return false;
+    return loadShelf().some(function (b) {
+      return b && b.title === story.title && String(b.author || "") === String(story.author || "");
+    });
+  }
+
+  function saveBookToShelf() {
+    if (parentReadingChild) return;
+    if (!story || !story.pages.length || !btnShelf) return;
+    if (shelfAlreadyHasStory()) {
+      btnShelf.textContent = "On my bookshelf";
+      return;
+    }
+    var label = btnShelf.textContent;
+    btnShelf.disabled = true;
+    btnShelf.textContent = "Saving…";
+    fetchShelfPageDataUrls()
+      .then(function (dataUrls) {
+        return fetchSceneDataUrlForShelf(story.sceneImageUrl || "").then(function (sceneData) {
+          return { dataUrls: dataUrls, sceneData: sceneData };
+        });
+      })
+      .then(function (o) {
+        try {
+          addStoryToShelfFromData(
+            story.title,
+            story.author,
+            story.pages,
+            o.dataUrls,
+            o.sceneData,
+            story.sceneImageUrl || null,
+            story.bookColor || null,
+            story.readerFont || null,
+            story.readerArtLayout || "duplex",
+            story.storyTextMode === "prose" || story.storyTextMode === "rhyme"
+              ? story.storyTextMode
+              : story.readerArtLayout === "facing"
+                ? "prose"
+                : "rhyme",
+            story.storyLength === "short" ||
+            story.storyLength === "medium" ||
+            story.storyLength === "long"
+              ? story.storyLength
+              : "medium",
+            function (cloudErr) {
+              btnShelf.disabled = false;
+              btnShelf.textContent = label;
+              if (
+                !window.KidsScoreCloud ||
+                !window.KidsScoreCloud.isConfigured ||
+                !window.KidsScoreCloud.isConfigured()
+              ) {
+                return;
+              }
+              var hintEl = document.getElementById("sbLibraryHint");
+              var defaultHint =
+                (hintEl && hintEl.getAttribute("data-default-hint")) ||
+                "Put a book on the shelf after you read it — tap a cover to open it again.";
+              if (hintEl && !hintEl.getAttribute("data-default-hint")) {
+                hintEl.setAttribute("data-default-hint", hintEl.textContent.trim() || defaultHint);
+              }
+              if (!cloudErr) {
+                var childSaved = window.ChildLibrary && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession();
+                if (childSaved) renderShelf();
+                if (hintEl) {
+                  hintEl.textContent = childSaved
+                    ? "Saved to your Wondii. It will still be here when you come back."
+                    : "Saved on this device and backed up to this Wondii account. Sign in at home on another device to open the same shelf.";
+                  window.setTimeout(function () {
+                    if (hintEl) {
+                      hintEl.textContent =
+                        hintEl.getAttribute("data-default-hint") || defaultHint;
+                    }
+                  }, 12000);
+                }
+                if (childSaved) btnShelf.textContent = "Saved";
+                return;
+              }
+              var msg = cloudErr && cloudErr.message ? String(cloudErr.message) : String(cloudErr);
+              /* Local persist failed — saveShelf already alerted; do not imply “saved on device”. */
+              if (
+                msg === "storage_quota" ||
+                msg === "localStorage_quota" ||
+                msg === "shelf_serialize_failed" ||
+                /quota|QuotaExceeded/i.test(msg)
+              ) {
+                return;
+              }
+              if (msg === "no_session" || msg === "no_client") {
+                window.alert(
+                  window.ChildLibrary && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession()
+                    ? "This book is still on this device, but it is not saved to your Wondii yet. Tap “Put on my shelf” again."
+                    : "This tablet saved the book only on itself — it did not reach the cloud.\n\nSign in from the Wondii home, then tap “Put on my shelf” again.",
+                );
+              } else if (window.ChildLibrary && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession()) {
+                window.alert("This book is still open, but it is not saved to your Wondii yet. Tap “Put on my shelf” again.");
+              } else {
+                window.alert(
+                  "Saved on this device, but cloud backup failed:\n\n" +
+                    msg +
+                    "\n\nIf this keeps happening, ask a grown-up to check saved books in your account storage."
+                );
+              }
+              if (hintEl) {
+                hintEl.textContent = window.ChildLibrary && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession()
+                  ? "Not saved yet. Tap “Put on my shelf” to try again."
+                  : "Cloud backup failed — see the message above. Books are still on this device.";
+                window.setTimeout(function () {
+                  if (hintEl) {
+                    hintEl.textContent =
+                      hintEl.getAttribute("data-default-hint") || defaultHint;
+                  }
+                }, 14000);
+              }
+            },
+            function () {
+              if (!(window.ChildLibrary && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession())) {
+                renderShelf();
+              }
+            },
+          );
+        } catch (e) {
+          btnShelf.disabled = false;
+          btnShelf.textContent = label;
+          window.alert("Couldn’t save — storage might be full. Try downloading instead.");
+        }
+      })
+      .catch(function () {
+        window.alert("Couldn’t prepare pictures for the shelf. Try again.");
+        btnShelf.disabled = false;
+        btnShelf.textContent = label;
+      });
+  }
+
+  function buildStandaloneBookHtml(title, author, pages, dataUrls, sceneDataUrl, readerFont) {
+    var rf = normalizeReaderFontKey(readerFont);
+    var preset = SB_READER_FONT_PRESETS[rf];
+    var escTitle = escapeHtml(title);
+    var escAuthor = author ? escapeHtml(author) : "";
+    var authorHtml = escAuthor ? '<p class="sbdl-cover-author">' + escAuthor + '</p>' : '';
+    var bodyRule =
+      "body{font-family:" +
+      preset.body +
+      ";margin:0;background:linear-gradient(165deg,#fce7f3,#fdf2f8 45%,#e9d5ff);color:#500724}";
+    var articles = [];
+    
+    if (sceneDataUrl) {
+      articles.push(
+        '<div class="sbdl-spread sbdl-spread--cover">' +
+          '<img class="sbdl-cover-img" src="' + sceneDataUrl + '" alt="Cover" />' +
+          '<div class="sbdl-cover-title-wrap"><h1 class="sbdl-cover-title">' + escTitle + '</h1>' + authorHtml + '</div>' +
+        '</div>'
+      );
+    } else {
+      articles.push('<h1>' + escTitle + '</h1>' + authorHtml);
+    }
+
+    for (var i = 0; i < pages.length; i += 2) {
+      var leftPage = pages[i];
+      var rightPage = pages[i + 1] || null;
+      
+      var leftContent = '<div class="sbdl-side sbdl-side--left">' +
+        '<p class="sbdl-t">' + escapeHtml(leftPage.text).replace(/\n/g, "<br/>") + '</p>' +
+        '<p class="sbdl-k">Page ' + (i + 1) + '</p>' +
+      '</div>';
+      
+      var rightContent = '<div class="sbdl-side sbdl-side--right">';
+      if (rightPage) {
+         if (rightPage.imageUrl) {
+            var src = dataUrls[i + 1] || escapeAttr(rightPage.imageUrl);
+            rightContent += '<div class="sbdl-art"><img src="' + src + '" alt="Illustration for page ' + (i + 2) + '" /></div>';
+         }
+         rightContent += '<p class="sbdl-t">' + escapeHtml(rightPage.text).replace(/\n/g, "<br/>") + '</p>';
+         rightContent += '<p class="sbdl-k">Page ' + (i + 2) + '</p>';
+      }
+      rightContent += '</div>';
+
+      articles.push(
+        '<div class="sbdl-spread">' +
+          leftContent +
+          rightContent +
+        '</div>'
+      );
+    }
+
+    var css =
+      bodyRule +
+      ".sbdl-wrap{max-width:54rem;margin:0 auto;padding:1.5rem 1rem 3rem}" +
+      "h1{font-size:clamp(1.35rem,4vw,1.65rem);text-align:center;color:#9d174d;margin:0 0 1.25rem;font-weight:800;}" +
+      ".sbdl-spread{display:flex;flex-direction:column;gap:1.5rem;background:#fff;border-radius:24px;padding:1.5rem;margin:0 0 2rem;box-shadow:0 8px 32px rgba(157,23,77,.08);border:2px solid rgba(244,114,182,.3);}" +
+      "@media(min-width:768px){.sbdl-spread{flex-direction:row;padding:2.5rem;gap:3rem;}}" +
+      ".sbdl-side{flex:1;display:flex;flex-direction:column;}" +
+      ".sbdl-k{font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#be185d;margin-top:auto;padding-top:1.5rem;text-align:center;opacity:0.6;}" +
+      ".sbdl-art{border-radius:16px;overflow:hidden;margin:0 0 1.25rem;background:#fdf2f8;box-shadow:0 4px 16px rgba(0,0,0,0.06);}" +
+      ".sbdl-art img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;transform:scale(1.02);}" +
+      ".sbdl-t{font-size:1.25rem;font-weight:600;line-height:1.65;margin:0;color:#500724;font-family:" +
+      preset.body +
+      ";}" +
+      ".sbdl-spread--cover{position:relative;padding:0;overflow:hidden;border:none;box-shadow:0 12px 40px rgba(157,23,77,.2);}" +
+      "@media(min-width:768px){.sbdl-spread--cover{padding:0;}}" +
+      ".sbdl-cover-img{display:block;width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;transform:scale(1.02);}" +
+      ".sbdl-cover-title-wrap{position:absolute;inset:0;background:rgba(0,0,0,0.35);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;}" +
+      ".sbdl-cover-title{font-size:clamp(2.5rem,8vw,4rem);color:#fff;text-shadow:0 4px 24px rgba(0,0,0,0.6);margin:0;text-align:center;}" +
+      ".sbdl-cover-author{font-size:clamp(1.2rem,4vw,1.8rem);color:#fff;text-shadow:0 2px 12px rgba(0,0,0,0.6);margin:1rem 0 0;text-align:center;font-weight:600;}" +
+      ".sbdl-foot{margin-top:2.5rem;font-size:.85rem;font-weight:700;color:#9f1239;text-align:center;line-height:1.5;opacity:0.8;}" +
+      "@media print{.sbdl-spread{break-inside:avoid;flex-direction:row;padding:2rem;gap:2rem;}}";
+
+    return (
+      '<!DOCTYPE html><html lang="en-GB"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/><link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&amp;family=Comic+Neue:wght@400;700&amp;family=Fredoka:wght@400;500;600;700&amp;family=Kalam:wght@400;700&amp;family=Nunito:wght@600;700;800&amp;family=Patrick+Hand&amp;family=Schoolbell&amp;family=Sniglet:wght@400;800&amp;display=swap" rel="stylesheet"/><title>' +
+      escTitle +
+      "</title><style>" +
+      css +
+      '</style></head><body><div class="sbdl-wrap">' +
+      articles.join("") +
+      '<p class="sbdl-foot">Saved from Wondii. Keep this file to read your story any time!</p></div></body></html>'
+    );
+  }
+
+  function downloadStoryBook() {
+    if (!story || !story.pages.length || !btnDownload) return;
+    var origLabel = btnDownload.textContent;
+    btnDownload.disabled = true;
+    btnDownload.textContent = "Preparing…";
+    Promise.all([
+      fetchAllPageDataUrls(),
+      tryFetchImageDataUrl(story.sceneImageUrl || ""),
+    ])
+      .then(function (arr) {
+        var html = buildStandaloneBookHtml(
+          story.title,
+          story.author,
+          story.pages,
+          arr[0],
+          arr[1],
+          story.readerFont
+        );
+        var blob = new Blob([html], { type: "text/html;charset=utf-8" });
+        var u = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = u;
+        a.download = sanitizeFilename(story.title) + ".html";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(u);
+      })
+      .catch(function () {
+        window.alert("Couldn’t build the file. Try again in a moment.");
+      })
+      .finally(function () {
+        btnDownload.disabled = false;
+        btnDownload.textContent = origLabel;
+      });
+  }
+
+  function heroFirstToken() {
+    var n = nameInput && nameInput.value.trim() ? nameInput.value.trim() : "";
+    var first = (n.split(/\s+/)[0] || "").replace(/[^a-z]/gi, "");
+    return first.toLowerCase();
+  }
+
+  function syncHeroRefDatalist() {
+    if (!heroRefDatalist) return;
+    heroRefDatalist.replaceChildren();
+    var heroLab = nameInput && nameInput.value.trim()
+      ? nameInput.value.trim()
+      : "Hero";
+    var oHero = document.createElement("option");
+    oHero.value = heroLab;
+    heroRefDatalist.appendChild(oHero);
+    var list =
+      typeof window.KidsGameCharacters !== "undefined" &&
+      Array.isArray(window.KidsGameCharacters)
+        ? window.KidsGameCharacters
+        : [];
+    list.forEach(function (item) {
+      if (!item || !item.label) return;
+      var o = document.createElement("option");
+      o.value = item.label;
+      heroRefDatalist.appendChild(o);
+    });
+  }
+
+  function displayNameForWho(who) {
+    if (who === "hero") {
+      return nameInput && nameInput.value.trim()
+        ? nameInput.value.trim()
+        : "Hero";
+    }
+    var list =
+      typeof window.KidsGameCharacters !== "undefined" &&
+      Array.isArray(window.KidsGameCharacters)
+        ? window.KidsGameCharacters
+        : [];
+    for (var i = 0; i < list.length; i++) {
+      if (list[i] && list[i].id === who) return list[i].label;
+    }
+    if (who && /^[a-z0-9]+$/i.test(String(who))) {
+      var s = String(who);
+      return s.charAt(0).toUpperCase() + s.slice(1);
+    }
+    return who || "Friend";
+  }
+
+  /** @returns {"hero"|string|null} */
+  function resolveWhoFromText(raw) {
+    var t = (raw || "").trim();
+    if (!t.length) return "hero";
+    var tLo = t.toLowerCase();
+    var tNorm = tLo.replace(/[^a-z0-9]/gu, "");
+
+    if (!tNorm || tNorm === "hero" || tNorm === "me") return "hero";
+    if (/\(\s*hero\s*\)/i.test(t)) return "hero";
+
+    var heroName = nameInput && nameInput.value.trim()
+      ? nameInput.value.trim()
+      : "";
+    if (heroName && tLo === heroName.toLowerCase()) return "hero";
+
+    var hf = heroFirstToken();
+    if (hf && tNorm === hf) return "hero";
+
+    var list =
+      typeof window.KidsGameCharacters !== "undefined" &&
+      Array.isArray(window.KidsGameCharacters)
+        ? window.KidsGameCharacters
+        : [];
+    for (var j = 0; j < list.length; j++) {
+      var item = list[j];
+      if (!item || !item.id) continue;
+      if (item.id === tNorm || item.label.trim().toLowerCase() === tLo) {
+        return item.id;
+      }
+    }
+    if (tNorm.length >= 2 && tNorm.length <= 24 && /^[a-z0-9]+$/i.test(tNorm)) {
+      return tNorm.toLowerCase();
+    }
+    return null;
+  }
+
+  function normalizeWhoInput(idx, inp) {
+    if (!inp || idx < 0 || idx >= heroPhotoItems.length) return;
+    setHeroPhotoError("");
+    var prev = heroPhotoItems[idx].who;
+    var r = resolveWhoFromText(inp.value);
+    if (r === null) {
+      setHeroPhotoError(
+        "Use the hero’s name or a short friend name (letters and numbers only).",
+      );
+      heroPhotoItems[idx].who = prev;
+      inp.value = displayNameForWho(prev);
+      return;
+    }
+    heroPhotoItems[idx].who = r;
+    inp.value = displayNameForWho(r);
+  }
+
+  function hideHeroPhotoNameOverlayUi() {
+    if (heroPhotoNameOverlay) {
+      heroPhotoNameOverlay.classList.add("is-hidden");
+      heroPhotoNameOverlay.setAttribute("aria-hidden", "true");
+    }
+    setHeroPhotoNameInlineErr("");
+    setHeroPhotoNameVoiceHint("");
+  }
+
+  function abortHeroPhotoNamePrompt() {
+    heroPhotoPromptIndices = [];
+    heroPhotoPromptAt = 0;
+    stopSpeech({ preserveVoiceHints: true });
+    hideHeroPhotoNameOverlayUi();
+  }
+
+  function closeHeroPhotoNamePromptSequence() {
+    heroPhotoPromptIndices = [];
+    heroPhotoPromptAt = 0;
+    hideHeroPhotoNameOverlayUi();
+  }
+
+  function applyHeroPhotoWhoAtPrompt(idx, raw) {
+    setHeroPhotoNameInlineErr("");
+    var r = resolveWhoFromText(raw);
+    if (r === null) {
+      setHeroPhotoNameInlineErr("Try a short name with letters — like Ava or Jack.");
+      return false;
+    }
+    heroPhotoItems[idx].who = r;
+    return true;
+  }
+
+  function advanceHeroPhotoNamePromptAfterSuccess() {
+    heroPhotoPromptAt += 1;
+    if (heroPhotoPromptAt >= heroPhotoPromptIndices.length) {
+      closeHeroPhotoNamePromptSequence();
+      renderHeroPhotoThumbs();
+      return;
+    }
+    paintHeroPhotoNamePromptStep();
+  }
+
+  function paintHeroPhotoNamePromptStep() {
+    if (
+      !heroPhotoNameOverlay ||
+      !heroPhotoNameInput ||
+      !heroPhotoNameThumb ||
+      !heroPhotoNameLead
+    ) {
+      closeHeroPhotoNamePromptSequence();
+      return;
+    }
+    if (heroPhotoPromptAt >= heroPhotoPromptIndices.length) {
+      closeHeroPhotoNamePromptSequence();
+      renderHeroPhotoThumbs();
+      return;
+    }
+    var idxPaint = heroPhotoPromptIndices[heroPhotoPromptAt];
+    if (idxPaint < 0 || idxPaint >= heroPhotoItems.length) {
+      closeHeroPhotoNamePromptSequence();
+      renderHeroPhotoThumbs();
+      return;
+    }
+    heroPhotoNameOverlay.classList.remove("is-hidden");
+    heroPhotoNameOverlay.setAttribute("aria-hidden", "false");
+    heroPhotoNameThumb.src = heroPhotoItems[idxPaint].dataUrl;
+    heroPhotoNameThumb.alt = "Picture you added for your book";
+
+    var totalP = heroPhotoPromptIndices.length;
+    var nP = heroPhotoPromptAt + 1;
+    heroPhotoNameLead.textContent =
+      totalP > 1
+        ? "Picture " + nP + " of " + totalP + " — who's in this one?"
+        : "Who is in this picture? Tap Done when it looks right.";
+
+    heroPhotoNameInput.value = displayNameForWho(heroPhotoItems[idxPaint].who);
+    setHeroPhotoNameInlineErr("");
+
+    var myNamePaint =
+      nameInput && nameInput.value.trim() ? nameInput.value.trim() : "";
+    if (btnHeroPhotoNameMe) {
+      btnHeroPhotoNameMe.classList.toggle("is-hidden", !myNamePaint);
+    }
+
+    window.requestAnimationFrame(function () {
+      try {
+        heroPhotoNameInput.focus();
+        heroPhotoNameInput.select();
+      } catch (eFocusHp) {}
+    });
+  }
+
+  function beginHeroPhotoNamePromptForNewIndices(newIdxs) {
+    if (!newIdxs || !newIdxs.length) {
+      renderHeroPhotoThumbs();
+      return;
+    }
+    if (!heroPhotoNameOverlay) {
+      renderHeroPhotoThumbs();
+      return;
+    }
+    stopSpeech({ preserveVoiceHints: true });
+    setHeroPhotoNameInlineErr("");
+    setHeroPhotoNameVoiceHint("");
+    heroPhotoPromptIndices = newIdxs.slice();
+    heroPhotoPromptAt = 0;
+    renderHeroPhotoThumbs();
+    paintHeroPhotoNamePromptStep();
+  }
+
+  function onHeroPhotoNameDoneClick() {
+    if (!heroPhotoPromptIndices.length || heroPhotoPromptAt >= heroPhotoPromptIndices.length) {
+      closeHeroPhotoNamePromptSequence();
+      renderHeroPhotoThumbs();
+      return;
+    }
+    var idxDone = heroPhotoPromptIndices[heroPhotoPromptAt];
+    if (idxDone < 0 || idxDone >= heroPhotoItems.length) {
+      closeHeroPhotoNamePromptSequence();
+      renderHeroPhotoThumbs();
+      return;
+    }
+    if (!heroPhotoNameInput) return;
+    if (!applyHeroPhotoWhoAtPrompt(idxDone, heroPhotoNameInput.value)) return;
+    advanceHeroPhotoNamePromptAfterSuccess();
+  }
+
+  function onHeroPhotoNameMeClick() {
+    if (!heroPhotoPromptIndices.length || heroPhotoPromptAt >= heroPhotoPromptIndices.length) {
+      closeHeroPhotoNamePromptSequence();
+      renderHeroPhotoThumbs();
+      return;
+    }
+    var idxMe = heroPhotoPromptIndices[heroPhotoPromptAt];
+    if (idxMe < 0 || idxMe >= heroPhotoItems.length) {
+      closeHeroPhotoNamePromptSequence();
+      renderHeroPhotoThumbs();
+      return;
+    }
+    heroPhotoItems[idxMe].who = "hero";
+    setHeroPhotoNameInlineErr("");
+    advanceHeroPhotoNamePromptAfterSuccess();
+  }
+
+  function renderHeroPhotoThumbs() {
+    if (!heroPhotoThumbsList || !heroPhotoThumbsWrap) return;
+    syncHeroRefDatalist();
+    heroPhotoThumbsList.replaceChildren();
+    heroPhotoItems.forEach(function (item, idx) {
+      var li = document.createElement("li");
+      li.className = "sb-hero-ref__thumb-item";
+      li.setAttribute("data-idx", String(idx));
+      var wrap = document.createElement("div");
+      wrap.className = "sb-hero-ref__thumb-wrap";
+      var img = document.createElement("img");
+      img.className = "sb-hero-ref__thumb";
+      img.src = item.dataUrl;
+      img.alt = "Photo " + (idx + 1);
+      img.width = 96;
+      img.height = 96;
+      img.decoding = "async";
+      var inp = document.createElement("input");
+      inp.type = "text";
+      inp.className = "sb-hero-ref__who-input";
+      inp.setAttribute("list", "sbHeroRefWhoDatalist");
+      inp.setAttribute("autocomplete", "off");
+      inp.setAttribute("aria-label", "Who is in this photo — type a name");
+      inp.setAttribute("maxlength", "48");
+      inp.value = displayNameForWho(item.who);
+      inp.addEventListener("keydown", function (ev) {
+        if (ev.key === "Enter") {
+          ev.preventDefault();
+          inp.blur();
+        }
+      });
+      inp.addEventListener("focusout", function () {
+        normalizeWhoInput(idx, inp);
+      });
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "sb-hero-ref__thumb-remove";
+      btn.setAttribute("aria-label", "Remove this photo");
+      btn.setAttribute("data-idx", String(idx));
+      btn.textContent = "\u00d7";
+      wrap.appendChild(img);
+      wrap.appendChild(btn);
+      li.appendChild(wrap);
+      li.appendChild(inp);
+      heroPhotoThumbsList.appendChild(li);
+    });
+    heroPhotoThumbsWrap.hidden = heroPhotoItems.length === 0;
+    refreshSavedCharAdded();
+  }
+
+  function clearHeroPhoto() {
+    abortHeroPhotoNamePrompt();
+    heroPhotoItems = [];
+    if (heroPhotoInput) heroPhotoInput.value = "";
+    renderHeroPhotoThumbs();
+    if (heroPhotoErr) {
+      heroPhotoErr.textContent = "";
+      heroPhotoErr.hidden = true;
+    }
+  }
+
+  var savedCharPickBtn = document.getElementById("sbSavedCharPick");
+  var savedCharPanel = document.getElementById("sbSavedCharPanel");
+  var savedCharGrid = document.getElementById("sbSavedCharGrid");
+  var savedCharStatus = document.getElementById("sbSavedCharStatus");
+  /** @type {{ id: string, name: string, type: string }[] | null} */
+  var savedCharList = null;
+  var savedCharLoading = false;
+
+  function savedCharStoreReady() {
+    return (
+      typeof window.CharacterStore !== "undefined" &&
+      window.CharacterStore.isConfigured()
+    );
+  }
+
+  function setSavedCharStatus(msg) {
+    if (savedCharStatus) savedCharStatus.textContent = msg || "";
+  }
+
+  function savedCharIsAdded(id) {
+    return heroPhotoItems.some(function (x) {
+      return x.charId === id;
+    });
+  }
+
+  function refreshSavedCharAdded() {
+    if (!savedCharGrid) return;
+    Array.prototype.forEach.call(
+      savedCharGrid.querySelectorAll(".sb-savedchar__item"),
+      function (btn) {
+        var on = savedCharIsAdded(btn.getAttribute("data-id"));
+        btn.classList.toggle("is-added", on);
+        btn.setAttribute("aria-pressed", on ? "true" : "false");
+      },
+    );
+  }
+
+  /** Re-encode to JPEG so a saved PNG stays under the per-photo upload cap. */
+  function savedCharUrlToDataUrl(url) {
+    return fetch(url, { cache: "no-store" })
+      .then(function (r) {
+        if (!r.ok) throw new Error("download " + r.status);
+        return r.blob();
+      })
+      .then(function (blob) {
+        return new Promise(function (resolve, reject) {
+          var objUrl = URL.createObjectURL(blob);
+          var img = new Image();
+          img.onload = function () {
+            var max = 1024;
+            var scale = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+            var w = Math.max(1, Math.round(img.naturalWidth * scale));
+            var h = Math.max(1, Math.round(img.naturalHeight * scale));
+            var canvas = document.createElement("canvas");
+            canvas.width = w;
+            canvas.height = h;
+            var ctx = canvas.getContext("2d");
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, w, h);
+            ctx.drawImage(img, 0, 0, w, h);
+            URL.revokeObjectURL(objUrl);
+            var q = 0.9;
+            var out = canvas.toDataURL("image/jpeg", q);
+            while (out.length * 0.75 > HERO_PHOTO_MAX_FILE_BYTES && q > 0.5) {
+              q -= 0.1;
+              out = canvas.toDataURL("image/jpeg", q);
+            }
+            resolve(out);
+          };
+          img.onerror = function () {
+            URL.revokeObjectURL(objUrl);
+            reject(new Error("decode"));
+          };
+          img.src = objUrl;
+        });
+      });
+  }
+
+  function whoForSavedChar(c) {
+    var name = String(c.name || "").trim();
+    if (c.type !== "buddy" && nameInput) {
+      var typed = nameInput.value.trim();
+      if (!typed) {
+        nameInput.value = name.slice(0, 24);
+        return "hero";
+      }
+      if (typed.toLowerCase() === name.toLowerCase()) return "hero";
+    }
+    var r = resolveWhoFromText(name);
+    if (r) return r;
+    var first = name.split(/\s+/)[0].toLowerCase().replace(/[^a-z0-9]/g, "");
+    return first || "friend";
+  }
+
+  function toggleSavedChar(c, btn) {
+    setHeroPhotoError("");
+    var existing = -1;
+    heroPhotoItems.forEach(function (x, i) {
+      if (x.charId === c.id) existing = i;
+    });
+    if (existing >= 0) {
+      heroPhotoItems.splice(existing, 1);
+      renderHeroPhotoThumbs();
+      return;
+    }
+    if (heroPhotoItems.length >= HERO_PHOTO_MAX_COUNT) {
+      setHeroPhotoError("You already have 3 pictures — remove one to add another.");
+      return;
+    }
+    if (btn && btn.classList.contains("is-busy")) return;
+    var imgEl = btn && btn.querySelector("img");
+    var src = c.src || (imgEl && imgEl.getAttribute("src"));
+    if (!src) {
+      setHeroPhotoError("That character's picture is still loading — try again in a moment.");
+      return;
+    }
+    if (btn) btn.classList.add("is-busy");
+    savedCharUrlToDataUrl(src)
+      .then(function (dataUrl) {
+        if (btn) btn.classList.remove("is-busy");
+        if (savedCharIsAdded(c.id)) return;
+        if (heroPhotoItems.length >= HERO_PHOTO_MAX_COUNT) {
+          setHeroPhotoError("You already have 3 pictures — remove one to add another.");
+          return;
+        }
+        heroPhotoItems.push({ dataUrl: dataUrl, who: whoForSavedChar(c), charId: c.id });
+        renderHeroPhotoThumbs();
+      })
+      .catch(function () {
+        if (btn) btn.classList.remove("is-busy");
+        setHeroPhotoError("Could not load that character — try again.");
+      });
+  }
+
+  function showStoredBook(item) {
+    if (!item || !item.pages || !item.pages.length) return false;
+    story = {
+      title: item.title,
+      author: item.author || "",
+      bookColor: item.bookColor || null,
+      readerFont: item.readerFont || null,
+      readerArtLayout: item.readerArtLayout === "facing" ? "facing" : "duplex",
+      storyTextMode: storyTextModeFromShelfItem(item, item.readerArtLayout === "facing" ? "facing" : "duplex"),
+      storyLength: storyLengthFromShelfItem(item),
+      sceneImageUrl: item.sceneUrlFallback || item.sceneDataUrl || null,
+      pages: item.pages.map(function (p) {
+        var page = { text: p.text, imageUrl: p.imageUrlFallback || p.imageDataUrl || null };
+        if (p.textSafeZones) page.textSafeZones = p.textSafeZones;
+        if (p.impactWords) page.impactWords = p.impactWords;
+        if (p.textBlocks) page.textBlocks = p.textBlocks;
+        return page;
+      }),
+    };
+    spreadIndex = 0;
+    showBook();
+    return true;
+  }
+
+  var parentReadingChild = false;
+
+  function openPrivateFromUrl() {
+    var params;
+    try { params = new URLSearchParams(window.location.search || ""); } catch (e) { return; }
+    var shared = String(params.get("shared") || "").trim();
+    var sharedChar = String(params.get("sharedChar") || "").trim();
+    var child = String(params.get("child") || "").trim();
+    var book = String(params.get("book") || "").trim();
+    if (sharedChar && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession()) {
+      if (document.getElementById("sbStoryJourney")) {
+        try { sessionStorage.setItem("wondii-journey-star", sharedChar); } catch (eShare) {}
+      } else {
+        window.ChildLibrary.localArtUrl("shared/" + sharedChar + "/character.png", function (err, url) {
+          if (err || !url || typeof savedCharUrlToDataUrl !== "function") return;
+          savedCharUrlToDataUrl(url).then(function (dataUrl) {
+            if (!dataUrl) return;
+            heroPhotoItems.push({ dataUrl: dataUrl, who: "hero", charId: sharedChar });
+            if (typeof renderHeroPhotoThumbs === "function") renderHeroPhotoThumbs();
+            if (typeof openJourney === "function") openJourney();
+          }).catch(function () {});
+        });
+      }
+    }
+    if (shared) {
+      window.location.replace("book-prototype/?book=" + encodeURIComponent(shared) + "&shared=1");
+      return;
+    }
+    if (!window.ChildLibrary) return;
+    if (child && book) {
+      parentReadingChild = true;
+      window.location.replace(
+        "book-prototype/?book=" + encodeURIComponent(book) + "&child=" + encodeURIComponent(child)
+      );
+    }
+  }
+
+  /** `?book=<shelf id>` (homepage shelf) — open that book in the reader once the library has loaded. */
+  function openBookFromUrl() {
+    var params;
+    try {
+      params = new URLSearchParams(window.location.search || "");
+    } catch (eP) {
+      return;
+    }
+    if (!params.has("book")) return;
+    var id = String(params.get("book") || "").trim();
+    var child = String(params.get("child") || "").trim();
+    var shared = String(params.get("shared") || "").trim();
+    var url = "book-prototype/?book=" + encodeURIComponent(id);
+    if (child) url += "&child=" + encodeURIComponent(child);
+    if (shared === "1" || shared === "true") url += "&shared=1";
+    window.location.replace(url);
+  }
+
+  /** `?char=<saved id>` or `?char=builtin:<KidsGameCharacters id>` — open the maker with that character added. */
+  function preselectCharacterFromUrl() {
+    var raw = "";
+    try {
+      raw = String(new URLSearchParams(window.location.search || "").get("char") || "").trim();
+    } catch (eP) {
+      return;
+    }
+    if (!raw) return;
+    try {
+      var u = new URL(window.location.href);
+      u.searchParams.delete("char");
+      window.history.replaceState({}, "", u.pathname + (u.search || "") + (u.hash || ""));
+    } catch (eU) {}
+
+    if (document.getElementById("sbStoryJourney")) {
+      try { sessionStorage.setItem("wondii-journey-star", raw); } catch (eStar) {}
+      return;
+    }
+
+    openJourney();
+    goToStep(0);
+
+    if (raw.indexOf("builtin:") === 0) {
+      var bid = raw.slice(8);
+      var list = Array.isArray(window.KidsGameCharacters) ? window.KidsGameCharacters : [];
+      var found = null;
+      list.forEach(function (x) {
+        if (x && x.id === bid) found = x;
+      });
+      if (!found) return;
+      toggleSavedChar(
+        {
+          id: "builtin:" + found.id,
+          name: found.label,
+          type: found.id === "sofia" ? "hero" : "buddy",
+          src: "../" + found.portrait,
+        },
+        null,
+      );
+      return;
+    }
+
+    if (!savedCharStoreReady()) return;
+    if (savedCharPanel && savedCharPanel.hidden) toggleSavedCharPanel();
+    window.CharacterStore.loadCharacters(function (err, chars) {
+      if (err || !Array.isArray(chars)) return;
+      var c = null;
+      chars.forEach(function (x) {
+        if (x && x.id === raw) c = x;
+      });
+      if (!c) return;
+      window.CharacterStore.getCharacterSignedUrl(c.id, function (e2, url) {
+        if (e2 || !url) {
+          setHeroPhotoError("Could not load that character — try again.");
+          return;
+        }
+        toggleSavedChar({ id: c.id, name: c.name, type: c.type, src: url }, null);
+      });
+    });
+  }
+
+  function renderSavedCharGrid() {
+    if (!savedCharGrid) return;
+    savedCharGrid.replaceChildren();
+    var list = savedCharList || [];
+    if (!list.length) {
+      setSavedCharStatus("No saved characters yet — make one on the My Characters page.");
+      return;
+    }
+    setSavedCharStatus("Tap a character to put them in your book.");
+    list.forEach(function (c) {
+      var li = document.createElement("li");
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "sb-savedchar__item";
+      btn.setAttribute("data-id", c.id);
+      btn.setAttribute("aria-pressed", "false");
+      var pic = document.createElement("span");
+      pic.className = "sb-savedchar__pic";
+      pic.textContent = "…";
+      var nm = document.createElement("span");
+      nm.className = "sb-savedchar__name";
+      nm.textContent = c.name || "Friend";
+      var tick = document.createElement("span");
+      tick.className = "sb-savedchar__tick";
+      tick.setAttribute("aria-hidden", "true");
+      tick.textContent = "✓";
+      btn.appendChild(pic);
+      btn.appendChild(nm);
+      btn.appendChild(tick);
+      btn.addEventListener("click", function () {
+        toggleSavedChar(c, btn);
+      });
+      li.appendChild(btn);
+      savedCharGrid.appendChild(li);
+      window.CharacterStore.getCharacterSignedUrl(c.id, function (err, url) {
+        if (err || !url) {
+          pic.textContent = "🙈";
+          return;
+        }
+        var img = document.createElement("img");
+        img.alt = "";
+        img.decoding = "async";
+        img.src = url;
+        pic.replaceChildren(img);
+      });
+    });
+    refreshSavedCharAdded();
+  }
+
+  function loadSavedChars(force) {
+    if (savedCharLoading || !savedCharStoreReady()) return;
+    if (savedCharList && !force) {
+      renderSavedCharGrid();
+      return;
+    }
+    savedCharLoading = true;
+    setSavedCharStatus("Loading your characters…");
+    window.CharacterStore.loadCharacters(function (err, list) {
+      savedCharLoading = false;
+      if (err) {
+        setSavedCharStatus(
+          String(err.message || err) === "no_session"
+            ? "Sign in (⚙️ Settings) to use your saved characters."
+            : "Could not load your characters — try again.",
+        );
+        return;
+      }
+      savedCharList = Array.isArray(list) ? list : [];
+      renderSavedCharGrid();
+    });
+  }
+
+  function toggleSavedCharPanel() {
+    if (!savedCharPanel || !savedCharPickBtn) return;
+    var open = savedCharPanel.hidden;
+    savedCharPanel.hidden = !open;
+    savedCharPickBtn.setAttribute("aria-expanded", open ? "true" : "false");
+    if (open) loadSavedChars(false);
+  }
+
+  function setHeroPhotoError(msg) {
+    if (!heroPhotoErr) return;
+    if (msg) {
+      heroPhotoErr.textContent = msg;
+      heroPhotoErr.hidden = false;
+    } else {
+      heroPhotoErr.textContent = "";
+      heroPhotoErr.hidden = true;
+    }
+  }
+
+  function setError(msg) {
+    if (!msg) {
+      if (errEl) {
+        errEl.hidden = true;
+        errEl.textContent = "";
+      }
+      if (modalErr) {
+        modalErr.hidden = true;
+        modalErr.textContent = "";
+      }
+      return;
+    }
+    var onModal = modal && !modal.hidden;
+    if (errEl) {
+      errEl.hidden = onModal;
+      if (!onModal) errEl.textContent = msg;
+      else errEl.textContent = "";
+    }
+    if (modalErr) {
+      modalErr.hidden = !onModal;
+      if (onModal) modalErr.textContent = msg;
+      else modalErr.textContent = "";
+    }
+  }
+
+  function storybookSlug(c) {
+    var def = "clever-service";
+    if (!c || !c.storybookEdgeSlug) return def;
+    var s = String(c.storybookEdgeSlug).trim().replace(/^\/+|\/+$/g, "");
+    if (!s) return def;
+    var safe = s.replace(/[^a-zA-Z0-9\-_]/g, "");
+    return safe || def;
+  }
+
+  function functionUrl() {
+    var c =
+      typeof window.SCORE_CONFIG !== "undefined"
+        ? window.SCORE_CONFIG
+        : typeof window.SCORE_SYNC !== "undefined"
+          ? window.SCORE_SYNC
+          : null;
+    var base = c && c.supabaseUrl ? String(c.supabaseUrl).replace(/\/$/, "") : "";
+    if (!base) return "";
+    return base + "/functions/v1/" + storybookSlug(c);
+  }
+
+  /** Reject config mistakes that fetch a static HTML page (same error body as storybook.html). */
+  function storybookFunctionUrlLooksValid(u) {
+    var s = String(u || "").trim();
+    if (!s) return false;
+    var schemeOk =
+      s.indexOf("https://") === 0 ||
+      s.indexOf("http://127.0.0.1") === 0 ||
+      s.indexOf("http://localhost") === 0;
+    if (!schemeOk) return false;
+    if (s.indexOf("/functions/v1/") === -1) return false;
+    return true;
+  }
+
+  /** Skip these as “first word” when guessing narrator voice from book title. */
+  var TTS_TITLE_SKIP = {
+    the: 1, a: 1, an: 1, my: 1, our: 1, your: 1, little: 1, big: 1, great: 1, dear: 1, tiny: 1,
+    brave: 1, wonderful: 1, amazing: 1, first: 1, last: 1, super: 1, happy: 1, silly: 1, true: 1,
+    another: 1, some: 1,
+  };
+
+  function firstTokenFromTitleish(raw) {
+    var s = String(raw || "").trim();
+    if (!s) return "";
+    var head = s.split(/[''']/)[0].trim();
+    var parts = head.replace(/-/g, " ").split(/\s+/);
+    for (var i = 0; i < parts.length; i++) {
+      var w = parts[i].replace(/[^a-zA-Z]/g, "");
+      if (w.length < 2) continue;
+      var low = w.toLowerCase();
+      if (TTS_TITLE_SKIP[low]) continue;
+      return w;
+    }
+    return "";
+  }
+
+  /** First plausible name: **story title** (e.g. “Freya’s moon”), else book title field, else hero name. */
+  function firstNameForReadAloud() {
+    var t;
+    if (typeof story !== "undefined" && story && story.title) {
+      t = firstTokenFromTitleish(story.title);
+      if (t) return t;
+    }
+    if (bookTitleInput && bookTitleInput.value.trim()) {
+      t = firstTokenFromTitleish(bookTitleInput.value);
+      if (t) return t;
+    }
+    if (nameInput && nameInput.value.trim()) {
+      return firstTokenFromTitleish(nameInput.value);
+    }
+    return "";
+  }
+
+  /**
+   * `ballad` for boy-leaning names, `sage` for girl- or unisex-leaning (see name lists).
+   * Manual `STORYBOOK_TTS_VOICE` wins. Unknown names omit voice (server default).
+   */
+  function inferStorybookTtsVoiceId() {
+    var manual =
+      typeof STORYBOOK_TTS_VOICE === "string" ? STORYBOOK_TTS_VOICE.trim().toLowerCase() : "";
+    if (manual) return manual;
+    var nm = firstNameForReadAloud();
+    if (!nm) return "";
+    var k = nm.toLowerCase().replace(/[^a-z]/g, "");
+    if (!k) return "";
+    if (TTS_GIRL_NAMES[k]) return "sage";
+    if (TTS_BOY_NAMES[k]) return "ballad";
+    if (TTS_UNISEX_NAMES[k]) return "sage";
+    return "";
+  }
+
+  /** GET clever-service MP3: `?ttsText=` and optional `&ttsVoice=` (manual or inferred). */
+  function cleverServiceTtsUrl(plainText) {
+    if (plainText == null || plainText === "") return "";
+    var q = "?ttsText=" + encodeURIComponent(String(plainText));
+    var v = inferStorybookTtsVoiceId();
+    if (v) {
+      q += "&ttsVoice=" + encodeURIComponent(v);
+    }
+    var host = window.location && window.location.hostname ? window.location.hostname : "";
+    if (/(^|\.)wondii\.co\.uk$/i.test(host) && window.location.origin) {
+      return window.location.origin + "/api/speech" + q;
+    }
+    var base = functionUrl();
+    if (!base) return "";
+    return base + q;
+  }
+
+  function anonKey() {
+    var c =
+      typeof window.SCORE_CONFIG !== "undefined"
+        ? window.SCORE_CONFIG
+        : typeof window.SCORE_SYNC !== "undefined"
+          ? window.SCORE_SYNC
+          : null;
+    return c && c.supabaseAnonKey ? String(c.supabaseAnonKey) : "";
+  }
+
+  function storybookAsyncJobsEnabled() {
+    var c =
+      typeof window.SCORE_CONFIG !== "undefined"
+        ? window.SCORE_CONFIG
+        : typeof window.SCORE_SYNC !== "undefined"
+          ? window.SCORE_SYNC
+          : null;
+    if (!c) return false;
+    var v = c.storybookAsync;
+    if (v === true || v === 1 || String(v).toLowerCase() === "1") return true;
+    return false;
+  }
+
+  function storybookJobPollUrl(baseUrl, jobId) {
+    var u = String(baseUrl || "").trim();
+    if (!u) return "";
+    var sep = u.indexOf("?") >= 0 ? "&" : "?";
+    return u + sep + "storybook_job=" + encodeURIComponent(jobId);
+  }
+
+  /**
+   * Read fetch body as JSON; never throw — bad/HTML responses become `{ error: "non_json_response" }`.
+   * @param {Response} r
+   * @returns {Promise<{ ok: boolean, status: number, body: Record<string, unknown> }>}
+   */
+  function envelopeFromResponse(r) {
+    return r.text().then(function (t) {
+      var trimmed = String(t || "").trim();
+      if (!trimmed) {
+        return { ok: r.ok, status: r.status, body: {} };
+      }
+      try {
+        var j = JSON.parse(trimmed);
+        var body =
+          typeof j === "object" && j !== null ? j : { raw: trimmed };
+        return { ok: r.ok, status: r.status, body: body };
+      } catch (e) {
+        return {
+          ok: false,
+          status: r.status,
+          body: {
+            error: "non_json_response",
+            detail: trimmed.slice(0, 280),
+          },
+        };
+      }
+    });
+  }
+
+  /**
+   * @param {string} baseUrl
+   * @param {string} key
+   * @param {string} jobId
+   * @param {number} deadlineTs
+   * @param {(info: { progress: number | null, label: string }) => void} [onProgress]
+   * @returns {Promise<{ ok: boolean, status: number, body: Record<string, unknown> }>}
+   */
+  function pollStorybookJob(baseUrl, key, jobId, deadlineTs, onProgress, accessKey) {
+    var pollMs = 2500;
+    var headers = {
+      Authorization: "Bearer " + key,
+      apikey: key,
+    };
+    if (accessKey) headers["X-Wondii-Job-Key"] = String(accessKey);
+    return fetch(storybookJobPollUrl(baseUrl, jobId), {
+      method: "GET",
+      headers: headers,
+    })
+      .then(function (r) {
+        return envelopeFromResponse(r);
+      })
+      .then(function (out) {
+        var b = out.body && typeof out.body === "object" ? out.body : {};
+        if (!out.ok) {
+          return out;
+        }
+        var st = String(b.storybook_job_status || "").toLowerCase();
+        if (st === "complete") {
+          var httpSt =
+            typeof b.http_status === "number" ? b.http_status : 200;
+          var payload = b.result;
+          if (!payload || typeof payload !== "object") {
+            return {
+              ok: false,
+              status: httpSt,
+              body: { error: "storybook_job_empty_result" },
+            };
+          }
+          return { ok: httpSt >= 200 && httpSt < 300, status: httpSt, body: payload };
+        }
+        if (st === "failed") {
+          var failHttp =
+            typeof b.http_status === "number" ? b.http_status : 502;
+          var failBody =
+            b.result && typeof b.result === "object"
+              ? b.result
+              : { error: "storybook_job_failed" };
+          return { ok: false, status: failHttp, body: failBody };
+        }
+        if (st === "pending" || st === "running") {
+          if (typeof onProgress === "function") {
+            try {
+              var rawPg = b.storybook_job_progress;
+              var pg =
+                typeof rawPg === "number" && !isNaN(rawPg) ? rawPg : null;
+              var lab = b.storybook_job_label;
+              onProgress({
+                progress: pg,
+                label:
+                  typeof lab === "string" && String(lab).trim()
+                    ? String(lab).trim()
+                    : "Working on your book…",
+              });
+            } catch (eProg) {}
+          }
+          if (Date.now() > deadlineTs) {
+            return {
+              ok: false,
+              status: 504,
+              body: { error: "storybook_job_timeout" },
+            };
+          }
+          return new Promise(function (resolve) {
+            setTimeout(function () {
+              pollStorybookJob(
+                baseUrl,
+                key,
+                jobId,
+                deadlineTs,
+                onProgress,
+                accessKey
+              ).then(resolve);
+            }, pollMs);
+          });
+        }
+        return {
+          ok: false,
+          status: 502,
+          body: { error: "storybook_job_bad_status", detail: st },
+        };
+      });
+  }
+
+  function getSelectedFamilyPeople() {
+    return journeyFamilyPeople.slice();
+  }
+
+  function buildBookColorUI() {
+    if (!bookColorsQuick || !bookColorsGrid) return;
+    var quickN = 4;
+    bookColorsQuick.textContent = "";
+    bookColorsGrid.textContent = "";
+    BOOK_COLOR_OPTIONS.slice(0, quickN).forEach(function (item) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "sb-chip";
+      b.textContent = item.label;
+      b.setAttribute("role", "radio");
+      b.setAttribute("data-book-color", item.id);
+      b.setAttribute("aria-label", item.label);
+      bookColorsQuick.appendChild(b);
+    });
+    BOOK_COLOR_OPTIONS.slice(quickN).forEach(function (item) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "sb-color-swatch";
+      b.setAttribute("role", "radio");
+      b.setAttribute("data-book-color", item.id);
+      b.setAttribute("aria-label", item.label);
+      var dot = document.createElement("span");
+      dot.className = "sb-color-swatch__dot";
+      if (item.swatch) dot.style.background = item.swatch;
+      else dot.classList.add("sb-color-swatch__dot--auto");
+      b.appendChild(dot);
+      var lab = document.createElement("span");
+      lab.className = "sb-color-swatch__label";
+      lab.textContent = item.label;
+      b.appendChild(lab);
+      bookColorsGrid.appendChild(b);
+    });
+    refreshBookColorChips();
+  }
+
+  function refreshBookColorChips() {
+    if (!bookColorsWrap) return;
+    Array.prototype.forEach.call(
+      bookColorsWrap.querySelectorAll("[data-book-color]"),
+      function (btn) {
+        var v = btn.getAttribute("data-book-color");
+        if (v === null) v = "";
+        var on = v === selectedBookCoverColor;
+        btn.classList.toggle("is-selected", on);
+        btn.setAttribute("aria-checked", on ? "true" : "false");
+      }
+    );
+  }
+
+  function wireBookColorChips() {
+    if (!bookColorsWrap) return;
+    bookColorsWrap.addEventListener("click", function (e) {
+      var t = e.target;
+      if (!t || !t.closest) return;
+      var btn = t.closest("[data-book-color]");
+      if (!btn || !bookColorsWrap.contains(btn)) return;
+      var raw = btn.getAttribute("data-book-color");
+      selectedBookCoverColor = raw === null || raw === "" ? "" : raw;
+      refreshBookColorChips();
+    });
+    if (bookColorToggle && bookColorsExtra) {
+      bookColorToggle.addEventListener("click", function () {
+        var show = bookColorsExtra.hidden;
+        bookColorsExtra.hidden = !show;
+        bookColorToggle.setAttribute("aria-expanded", show ? "true" : "false");
+      });
+    }
+    refreshBookColorChips();
+  }
+
+  /** Must match clever-service `normalizeWizardKey` for character/place IDs. */
+  function normalizeWizardPresetKey(id) {
+    return String(id || "")
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, "_");
+  }
+
+  /** Must match clever-service `STORYBOOK_CUSTOM_CHOICE_MAX`. */
+  var STORYBOOK_CUSTOM_CHOICE_MAX = 200;
+
+  function trimCustomWizardText(el) {
+    if (!el) return "";
+    return String(el.value || "")
+      .trim()
+      .slice(0, STORYBOOK_CUSTOM_CHOICE_MAX);
+  }
+
+  function syncBuddyCustomPanel() {
+    if (!buddyCustomWrap) return;
+    var show = selectedChar === "custom_buddy";
+    buddyCustomWrap.hidden = !show;
+    buddyCustomWrap.setAttribute("aria-hidden", show ? "false" : "true");
+  }
+
+  function syncPlaceCustomPanel() {
+    if (!placeCustomWrap) return;
+    var show = selectedPlace === "custom_place";
+    placeCustomWrap.hidden = !show;
+    placeCustomWrap.setAttribute("aria-hidden", show ? "false" : "true");
+  }
+
+  function refreshCharacterChips() {
+    if (!charRow) return;
+    Array.prototype.forEach.call(charRow.querySelectorAll(".sb-chip"), function (el, i) {
+      var on = CHARACTERS[i].id === selectedChar;
+      el.classList.toggle("is-selected", on);
+      el.setAttribute("aria-checked", on ? "true" : "false");
+    });
+  }
+
+  function refreshPlaceChips() {
+    if (!placeRow) return;
+    Array.prototype.forEach.call(placeRow.querySelectorAll(".sb-chip"), function (el, i) {
+      var on = PLACES[i].id === selectedPlace;
+      el.classList.toggle("is-selected", on);
+      el.setAttribute("aria-checked", on ? "true" : "false");
+    });
+  }
+
+  function buildChipRows() {
+    if (charRow) {
+      charRow.textContent = "";
+      CHARACTERS.forEach(function (item) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "sb-chip sb-chip--with-icon";
+        b.setAttribute("role", "radio");
+        b.setAttribute("aria-label", item.label);
+        var ic = document.createElement("span");
+        ic.className = "sb-chip__ic";
+        ic.setAttribute("aria-hidden", "true");
+        ic.textContent = item.icon || "";
+        var lbl = document.createElement("span");
+        lbl.className = "sb-chip__lbl";
+        lbl.textContent = item.label;
+        b.appendChild(ic);
+        b.appendChild(lbl);
+        b.addEventListener("click", function () {
+          selectedChar = item.id;
+          refreshCharacterChips();
+          syncBuddyCustomPanel();
+          setError("");
+        });
+        charRow.appendChild(b);
+      });
+      refreshCharacterChips();
+      syncBuddyCustomPanel();
+    }
+    if (placeRow) {
+      placeRow.textContent = "";
+      PLACES.forEach(function (item) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "sb-chip sb-chip--with-icon";
+        b.setAttribute("role", "radio");
+        b.setAttribute("aria-label", item.label);
+        var ic = document.createElement("span");
+        ic.className = "sb-chip__ic";
+        ic.setAttribute("aria-hidden", "true");
+        ic.textContent = item.icon || "";
+        var lbl = document.createElement("span");
+        lbl.className = "sb-chip__lbl";
+        lbl.textContent = item.label;
+        b.appendChild(ic);
+        b.appendChild(lbl);
+        b.addEventListener("click", function () {
+          selectedPlace = item.id;
+          refreshPlaceChips();
+          syncPlaceCustomPanel();
+          setError("");
+        });
+        placeRow.appendChild(b);
+      });
+      refreshPlaceChips();
+      syncPlaceCustomPanel();
+    }
+    buildBookColorUI();
+    wireBookColorChips();
+  }
+
+  function renderProgress() {
+    if (!progressEl) return;
+    progressEl.textContent = "";
+    for (var i = 0; i < STEP_PROGRESS_LABELS.length; i++) {
+      var cell = document.createElement("span");
+      cell.className = "sb-progress-step";
+      if (i < journeyStep) cell.classList.add("is-done");
+      if (i === journeyStep) cell.classList.add("is-current");
+      var d = document.createElement("span");
+      d.className = "sb-dot";
+      cell.appendChild(d);
+      var pl = document.createElement("span");
+      pl.className = "sb-progress-step__label";
+      pl.textContent = STEP_PROGRESS_LABELS[i] || "";
+      cell.appendChild(pl);
+      progressEl.appendChild(cell);
+    }
+  }
+
+  function wirePlotStarters() {
+    var wrap = document.getElementById("sbPlotStarters");
+    if (!wrap || !plotInput) return;
+    wrap.textContent = "";
+    PLOT_STARTERS.forEach(function (line) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "sb-plot-starter";
+      b.textContent = line;
+      b.setAttribute("aria-label", "Use idea: " + line);
+      b.addEventListener("click", function () {
+        var cur = String(plotInput.value || "").trim();
+        if (!cur) {
+          plotInput.value = line.slice(0, PLOT_INPUT_MAX);
+        } else {
+          plotInput.value = (cur + " " + line)
+            .trim()
+            .slice(0, PLOT_INPUT_MAX);
+        }
+        try {
+          plotInput.dispatchEvent(new Event("input", { bubbles: true }));
+        } catch (eIn) {}
+      });
+      wrap.appendChild(b);
+    });
+  }
+
+  /** Reset journey picture tier to recommended default (Best for print — text/art/photo alignment). */
+  function resetPictureQualityToDefault() {
+    var std = document.querySelector(
+      'input[name="sbPictureQuality"][value="standard"]'
+    );
+    var bal = document.querySelector(
+      'input[name="sbPictureQuality"][value="balanced"]'
+    );
+    var hi = document.querySelector('input[name="sbPictureQuality"][value="high"]');
+    if (std) std.checked = false;
+    if (bal) bal.checked = false;
+    if (hi) hi.checked = true;
+  }
+
+  function goToStep(n) {
+    if (n !== journeyStep) {
+      stopSpeech();
+      stopStepGuideAudio();
+    }
+    journeyStep = Math.max(0, Math.min(STEP_HEADINGS.length - 1, n));
+    if (stepKicker) {
+      stepKicker.textContent =
+        "Step " + (journeyStep + 1) + " of " + STEP_HEADINGS.length;
+    }
+    if (stepHeading) stepHeading.textContent = STEP_HEADINGS[journeyStep] || "";
+    renderProgress();
+    var panelEls = document.querySelectorAll("#sbModal .sb-panel");
+    Array.prototype.forEach.call(panelEls, function (p) {
+      var idx = parseInt(p.getAttribute("data-panel") || "0", 10);
+      var on = idx === journeyStep;
+      p.hidden = !on;
+      p.classList.toggle("is-active", on);
+    });
+    if (journeyStep === 0 && nameInput) {
+      window.requestAnimationFrame(function () {
+        nameInput.focus();
+      });
+    }
+    if (journeyStep === 1) {
+      syncBuddyCustomPanel();
+    }
+    if (journeyStep === 2) {
+      syncPlaceCustomPanel();
+    }
+    if (journeyStep === 3 && plotInput) {
+      window.requestAnimationFrame(function () {
+        plotInput.focus();
+      });
+    }
+  }
+
+  function openJourney() {
+    stopStepGuideAudio();
+    var m = modal || document.getElementById("sbModal");
+    if (m) {
+      m.classList.remove("is-hidden");
+      m.removeAttribute("hidden");
+      m.hidden = false;
+      m.setAttribute("aria-hidden", "false");
+    }
+    document.body.classList.add("sb-modal-open");
+    setError("");
+    if (bookColorsExtra) bookColorsExtra.hidden = true;
+    if (bookColorToggle) bookColorToggle.setAttribute("aria-expanded", "false");
+    goToStep(0);
+    resetPictureQualityToDefault();
+    syncBookSpreadLayoutRadios();
+    syncIllustrationStyleRadios();
+    syncStoryTextModeRadios();
+    syncStoryLengthRadios();
+    if (stepHeading) {
+      try {
+        stepHeading.focus();
+      } catch (e1) {}
+    }
+    try {
+      var orgSeed = sessionStorage.getItem("wondii-org-starter");
+      if (orgSeed && plotInput && !String(plotInput.value || "").trim()) {
+        plotInput.value = String(orgSeed).slice(0, PLOT_INPUT_MAX);
+        sessionStorage.removeItem("wondii-org-starter");
+      }
+    } catch (eSeed) {}
+  }
+
+  function closeJourney() {
+    stopSpeech();
+    abortHeroPhotoNamePrompt();
+    stopStepGuideAudio();
+    var m = modal || document.getElementById("sbModal");
+    if (m) {
+      m.classList.add("is-hidden");
+      m.hidden = true;
+      m.setAttribute("hidden", "");
+      m.setAttribute("aria-hidden", "true");
+    }
+    document.body.classList.remove("sb-modal-open");
+  }
+
+  /** Close the build-your-book journey and return to the portal Stories section. */
+  function dismissJourneyToLanding() {
+    goToPortalStories();
+  }
+
+  function setBookActionsOpen(open) {
+    if (!book) return;
+    book.classList.toggle("sb-book--actions-open", !!open);
+    if (actionsFab) {
+      actionsFab.setAttribute("aria-expanded", open ? "true" : "false");
+    }
+  }
+
+  function setReaderImmersiveFromLayout() {
+    if (!book) return;
+    var on = !book.classList.contains("is-hidden") && !book.hidden;
+    if (on) {
+      book.classList.add("sb-book--immersive");
+      document.body.classList.add("sb-reader-immersive");
+    } else {
+      book.classList.remove("sb-book--immersive");
+      document.body.classList.remove("sb-reader-immersive");
+      book.classList.remove("sb-book--actions-open");
+      if (actionsFab) actionsFab.setAttribute("aria-expanded", "false");
+    }
+  }
+
+  function goToPortalStories() {
+    window.location.href = "../portal.html#stories";
+  }
+
+  /** Leave the reader and show the story maker. Does not reset the journey form. */
+  function returnToStoryLanding() {
+    stopReading();
+    story = null;
+    spreadIndex = 0;
+    spreadAnimLock = false;
+    if (spreadArtCover) {
+      spreadArtCover.removeAttribute("src");
+      spreadArtCover.alt = "";
+    }
+    clearArtFlyleaf();
+    if (spreadArtBg) {
+      spreadArtBg.style.backgroundImage = "";
+    }
+    clearSpreadPeelTurnClasses();
+    if (spreadArtPeelImg) {
+      spreadArtPeelImg.removeAttribute("src");
+    }
+    if (spreadArtPeelShell) {
+      spreadArtPeelShell.hidden = true;
+    }
+    if (spreadInnerEl) {
+      spreadInnerEl.classList.remove(
+        "sb-flip-spread__inner--has-art",
+        "sb-flip-spread__inner--flyleaf-pane"
+      );
+      if (spreadInnerEl.dataset && spreadInnerEl.dataset.sbArtUrl) {
+        delete spreadInnerEl.dataset.sbArtUrl;
+      }
+    }
+    clearSpreadTurnClasses();
+    resetBookCoverForWizard();
+    closeJourney();
+    document.body.classList.remove("sb-reader-immersive");
+    if (book) {
+      book.classList.remove("sb-book--immersive");
+      book.classList.remove("sb-book--actions-open");
+    }
+    if (actionsFab) {
+      actionsFab.setAttribute("aria-expanded", "false");
+    }
+    if (landing) {
+      landing.classList.remove("is-hidden");
+      landing.hidden = false;
+    }
+    var journeyHome = document.getElementById("sbStoryJourney");
+    if (journeyHome) journeyHome.hidden = true;
+    try {
+      document.dispatchEvent(new CustomEvent("wondii-story-home"));
+    } catch (eHome) {}
+    if (book) {
+      book.classList.remove("sb-reader--sample");
+      book.classList.add("is-hidden");
+      book.hidden = true;
+    }
+    clearBookTheming();
+    setError("");
+    renderShelf();
+  }
+
+  function showWizard() {
+    returnToStoryLanding();
+    if (nameInput) nameInput.value = "";
+    if (bookTitleInput) bookTitleInput.value = "";
+    if (plotInput) plotInput.value = "";
+    clearHeroPhoto();
+    goToStep(0);
+    syncBookSpreadLayoutRadios();
+    syncIllustrationStyleRadios();
+    syncStoryTextModeRadios();
+    syncStoryLengthRadios();
+  }
+
+  function showBook() {
+    if (!story || !story.pages.length) return;
+    spreadIndex = 0;
+    coverOpenGeneration += 1;
+    closeJourney();
+    if (landing) {
+      landing.classList.add("is-hidden");
+      landing.hidden = true;
+    }
+    var journeyOpen = document.getElementById("sbStoryJourney");
+    if (journeyOpen) journeyOpen.hidden = true;
+    if (book) {
+      book.classList.remove("is-hidden");
+      book.hidden = false;
+      if (story && story.isSample) {
+        book.classList.add("sb-reader--sample");
+      } else {
+        book.classList.remove("sb-reader--sample");
+      }
+    }
+    if (readerHeading) readerHeading.textContent = story.title;
+    if (coverTitle && story) coverTitle.textContent = story.title;
+    var coverWho = story && story.featuring
+      ? ""
+      : story && story.author
+        ? String(story.author).replace(/\(sample\)/i, "").trim()
+        : "";
+    var coverKicker = document.getElementById("sbCoverKicker");
+    var coverMade = document.getElementById("sbCoverMade");
+    if (coverKicker) {
+      coverKicker.textContent = story && story.featuring
+        ? "Featuring " + story.featuring
+        : coverWho
+          ? "An adventure starring " + coverWho
+          : "An adventure made for you";
+    }
+    if (coverMade) {
+      coverMade.textContent = story && story.demoExample
+        ? "Demo example"
+        : coverWho
+          ? "Made especially for " + coverWho
+          : "Made especially for you";
+    }
+    updateReadChrome();
+    syncReadDock();
+    syncFaveButton();
+    if (btnShelf) {
+      btnShelf.textContent = shelfAlreadyHasStory() ? "On my bookshelf" : "Put on my shelf";
+    }
+    if (btnOpenCover && story) {
+      btnOpenCover.setAttribute(
+        "aria-label",
+        "Open the book: " + String(story.title || "your story")
+      );
+    }
+    if (readerStack) {
+      readerStack.classList.remove("sb-reader-stack--open");
+    }
+    if (readerPages) readerPages.setAttribute("aria-hidden", "true");
+    if (btnOpenCover) {
+      btnOpenCover.removeAttribute("aria-hidden");
+      btnOpenCover.removeAttribute("tabindex");
+    }
+    if (book) book.classList.add("sb-book--cover-visible");
+    if (book) {
+      var inArt = firstSpreadArtUrlForCover();
+      if (inArt) {
+        var esc = String(inArt).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+        book.style.setProperty("--sb-cover-inside-art", 'url("' + esc + '")');
+      } else {
+        book.style.removeProperty("--sb-cover-inside-art");
+      }
+    }
+    var actionsDock = document.getElementById("sbBookActionsDock");
+    if (actionsDock) actionsDock.hidden = !!parentReadingChild;
+    var fave = document.getElementById("sbFaveBook");
+    if (fave) fave.hidden = !!parentReadingChild;
+    var readNote = document.getElementById("sbReadNote");
+    if (readNote && parentReadingChild) {
+      readNote.hidden = false;
+      readNote.textContent = "You can read this book. Only the child can change it.";
+    }
+    applyBookThemingFromStory();
+    renderSpread();
+    updateReadChrome();
+    syncCloseBookButton();
+    setBookActionsOpen(false);
+    setReaderImmersiveFromLayout();
+  }
+
+  function selectedPictureBookQuality() {
+    var el = document.querySelector('input[name="sbPictureQuality"]:checked');
+    var v = el ? String(el.value).toLowerCase() : "";
+    if (v === "high") return "high";
+    if (v === "balanced") return "balanced";
+    return "standard";
+  }
+
+  function clearStorybookBuildProgressGuessing() {
+    if (sbBuildGuessTimer != null) {
+      window.clearInterval(sbBuildGuessTimer);
+      sbBuildGuessTimer = null;
+    }
+    sbBuildGuessPct = 0;
+  }
+
+  /**
+   * @param {number} pct 0–100
+   * @param {string} label
+   * @param {{ skipDefaultMsg?: boolean }} [opts]
+   */
+  function setStorybookBuildProgressUi(pct, label, opts) {
+    opts = opts || {};
+    var p =
+      typeof pct === "number" && !isNaN(pct)
+        ? Math.max(0, Math.min(100, pct))
+        : 0;
+    if (sbBusyProgressBar) {
+      sbBusyProgressBar.setAttribute("aria-valuenow", String(Math.round(p)));
+    }
+    if (sbBusyProgressFill) {
+      sbBusyProgressFill.style.width = p + "%";
+    }
+    if (sbBusyStep) {
+      sbBusyStep.textContent =
+        label && String(label).trim() ? String(label).trim() : "Working…";
+    }
+    var msgEl = busy && busy.querySelector(".sb-busy__msg");
+    if (msgEl && !opts.skipDefaultMsg) {
+      msgEl.textContent =
+        "This can take a few minutes — please keep this page open. It is still working.";
+    }
+  }
+
+  /** When the server cannot stream progress (sync POST), creep toward ~88% so the bar never looks frozen. */
+  function startStorybookBuildProgressGuessing() {
+    clearStorybookBuildProgressGuessing();
+    setStorybookBuildProgressUi(8, "Writing and illustrating…", {
+      skipDefaultMsg: true,
+    });
+    sbBuildGuessPct = 8;
+    sbBuildGuessTimer = window.setInterval(function () {
+      if (!busy || busy.hidden) return;
+      sbBuildGuessPct = Math.min(
+        88,
+        sbBuildGuessPct + (sbBuildGuessPct < 38 ? 1.9 : 0.75)
+      );
+      if (sbBusyProgressFill) {
+        sbBusyProgressFill.style.width = sbBuildGuessPct + "%";
+      }
+      if (sbBusyProgressBar) {
+        sbBusyProgressBar.setAttribute(
+          "aria-valuenow",
+          String(Math.round(sbBuildGuessPct))
+        );
+      }
+    }, 880);
+  }
+
+  function setBusy(on) {
+    if (!busy) return;
+    if (on) {
+      busy.classList.remove("is-hidden");
+      busy.hidden = false;
+    } else {
+      clearStorybookBuildProgressGuessing();
+      busy.classList.add("is-hidden");
+      busy.hidden = true;
+      setStorybookBuildProgressUi(0, "", { skipDefaultMsg: true });
+      if (sbBusyStep) sbBusyStep.textContent = "";
+    }
+  }
+
+  function initPortalWelcome() {
+    var params;
+    try {
+      params = new URLSearchParams(window.location.search || "");
+    } catch (e) {
+      return;
+    }
+    if (document.getElementById("sbStartJourney")) return;
+    if (String(params.get("from") || "") !== "portal" && String(params.get("create") || "") !== "1") return;
+    try {
+      var u = new URL(window.location.href);
+      u.searchParams.delete("from");
+      u.searchParams.delete("create");
+      window.history.replaceState({}, "", u.pathname + (u.search || "") + (u.hash || ""));
+    } catch (e2) {}
+    openJourney();
+  }
+
+
+  function startStorybookApp() {
+  buildChipRows();
+  wirePlotStarters();
+  if (readStepBtn) {
+    readStepBtn.addEventListener("click", toggleStepGuide);
+    refreshReadStepBtn();
+  }
+  initVoiceUi();
+
+    function runAfterShelfHydrate() {
+  renderShelf();
+      setupShelfCloudSync();
+    }
+
+    if (window.StorybookShelfStore && typeof window.StorybookShelfStore.ready === "function") {
+      window.StorybookShelfStore.ready()
+        .then(function () {
+          return (window.StorybookShelfStore.getVisibleJson || window.StorybookShelfStore.getJson).call(window.StorybookShelfStore);
+        })
+        .then(function (list) {
+          shelfCache = Array.isArray(list) ? list : [];
+        })
+        .catch(recoverShelfAfterStoreFailure)
+        .then(runAfterShelfHydrate);
+    } else {
+      shelfCache = loadShelfSyncFromLocalStorage();
+      runAfterShelfHydrate();
+    }
+  }
+
+  function mergeFailedMessage(raw) {
+    var s = String(raw || "");
+    if (s === "no_account" || s === "no_session") {
+      return "This book is still here, but it is not on the bookshelf yet. Sign in with a Wondii account, then tap Put on my shelf.";
+    }
+    if (
+      s === "localStorage_quota" ||
+      s === "storage_quota" ||
+      /quota|QuotaExceeded/i.test(s)
+    ) {
+      return (
+        "Could not save your library — this phone or tablet ran out of browser storage for this site.\n\n" +
+        "None of your stories were removed automatically. The new save did not replace anything.\n\n" +
+        "Remove books yourself (tap × on a shelf cover), or clear site data for this website in Safari/Chrome settings to free space — then try again. Sign in at the Wondii home so this account can keep a backup."
+      );
+    }
+    return s;
+  }
+
+  function setupShelfCloudSync() {
+    if (!window.KidsScoreCloud || !window.KidsScoreCloud.mergeStorybookShelfFromCloud) {
+      return;
+    }
+    var shelfPullTimer = null;
+    function pullShelfFromCloudNow() {
+      window.KidsScoreCloud.mergeStorybookShelfFromCloud(function (err) {
+        if (err && !pullShelfFromCloudNow.retried && (err.message === "no_client" || err.message === "no_session")) {
+          pullShelfFromCloudNow.retried = true;
+          window.setTimeout(pullShelfFromCloudNow, 500);
+          return;
+        }
+        if (err) {
+          var child = window.ChildLibrary && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession();
+          var msg = err && err.message ? err.message : String(err);
+          var missed = msg === "no_session" || msg === "no_client" || msg === "no_account" || /not signed in/i.test(msg);
+          if (child) {
+            window.alert("Wondii could not open your books just now. Try again in a moment.");
+          } else if (!missed) {
+            window.alert(
+              "Could not load your library from the cloud.\n\n" +
+                mergeFailedMessage(msg)
+            );
+          }
+        }
+        reloadShelfCacheFromStore(function () {
+          renderShelf();
+        });
+      });
+    }
+    function pullShelfFromCloud() {
+      if (shelfPullTimer) {
+        clearTimeout(shelfPullTimer);
+      }
+      shelfPullTimer = setTimeout(function () {
+        shelfPullTimer = null;
+        pullShelfFromCloudNow();
+      }, 200);
+    }
+
+    window.addEventListener("kids-storybook-merge-failed", function (e) {
+      var raw = (e.detail && e.detail.message) || "Unknown error";
+      window.alert("Could not update your story library on this device.\n\n" + mergeFailedMessage(raw));
+      reloadShelfCacheFromStore(function () {
+        renderShelf();
+      });
+    });
+
+    pullShelfFromCloudNow();
+    window.addEventListener("kids-scorecard-refresh", function () {
+      reloadShelfCacheFromStore(function () {
+          renderShelf();
+      });
+    });
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "visible") {
+        pullShelfFromCloud();
+      }
+    });
+    window.addEventListener("pageshow", function () {
+      pullShelfFromCloud();
+    });
+
+    var btnPullLibrary = document.getElementById("sbPullLibrary");
+    if (btnPullLibrary) {
+      function syncPullButtonVisibility() {
+        var on =
+          window.KidsScoreCloud &&
+          window.KidsScoreCloud.isConfigured &&
+          window.KidsScoreCloud.isConfigured();
+        btnPullLibrary.hidden = !on;
+      }
+      syncPullButtonVisibility();
+      window.addEventListener("kids-scorecard-refresh", syncPullButtonVisibility);
+      btnPullLibrary.addEventListener("click", function () {
+        if (!window.KidsScoreCloud.isConfigured || !window.KidsScoreCloud.isConfigured()) {
+          window.alert(
+            "Turn on Sync on the main menu (gear) and sign in — then you can pull books from the cloud.",
+          );
+          return;
+        }
+        pullShelfFromCloudNow();
+      });
+    }
+  }
+
+  initPortalWelcome();
+  startStorybookApp();
+
+  if (immersiveReaderMq.addEventListener) {
+    immersiveReaderMq.addEventListener("change", setReaderImmersiveFromLayout);
+  } else if (immersiveReaderMq.addListener) {
+    immersiveReaderMq.addListener(setReaderImmersiveFromLayout);
+  }
+
+  if (actionsFab) {
+    actionsFab.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!book || !book.classList.contains("sb-book--immersive")) return;
+      var open = !book.classList.contains("sb-book--actions-open");
+      setBookActionsOpen(open);
+    });
+  }
+  document.addEventListener(
+    "click",
+    function (e) {
+      if (!book || !book.classList.contains("sb-book--immersive")) return;
+      if (!book.classList.contains("sb-book--actions-open")) return;
+      if (!actionsDock || !e.target || !e.target.closest) return;
+      if (e.target.closest("#sbBookActionsDock")) return;
+      setBookActionsOpen(false);
+    },
+    true
+  );
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape") return;
+    if (!book || !book.classList.contains("sb-book--immersive")) return;
+    if (!book.classList.contains("sb-book--actions-open")) return;
+    setBookActionsOpen(false);
+  });
+
+  var btnPreviewSample = document.getElementById("sbPreviewSample");
+
+  if (appEl) {
+    appEl.addEventListener(
+      "click",
+      function (e) {
+        if (!e.target || !e.target.closest) return;
+        if (e.target.closest("#sbJourneyClose")) {
+          e.preventDefault();
+          dismissJourneyToLanding();
+          return;
+        }
+        if (e.target.closest("#sbStartJourney")) {
+          if (document.getElementById("sbStoryJourney")) return;
+          e.preventDefault();
+          openJourney();
+        }
+        if (e.target.closest("#sbPreviewSample")) {
+          e.preventDefault();
+          openSampleBook();
+        }
+        if (e.target.closest("#sbOpenCover")) {
+          e.preventDefault();
+          openBookCover();
+        }
+        if (e.target.closest("#sbCloseBook")) {
+          e.preventDefault();
+          closeBookCover();
+        }
+        if (e.target.closest("a.sb-back.back-btn")) {
+          if (
+            book &&
+            !book.classList.contains("is-hidden") &&
+            !book.hidden
+          ) {
+            e.preventDefault();
+            goToPortalStories();
+          }
+        }
+      },
+      false
+    );
+  } else if (btnStart) {
+    btnStart.addEventListener("click", function (e) {
+      e.preventDefault();
+      openJourney();
+    });
+  }
+
+  var btnJourneyClose = document.getElementById("sbJourneyClose");
+  var modalBackdropEl = document.querySelector("#sbModal .sb-modal__backdrop");
+  if (btnJourneyClose && !appEl) {
+    btnJourneyClose.addEventListener("click", function (e) {
+      e.preventDefault();
+      dismissJourneyToLanding();
+    });
+  }
+  if (modalBackdropEl) {
+    modalBackdropEl.addEventListener("click", function () {
+      var m = modal || document.getElementById("sbModal");
+      if (!m || m.hidden || m.classList.contains("is-hidden")) return;
+      dismissJourneyToLanding();
+    });
+  }
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape") return;
+    var m = modal || document.getElementById("sbModal");
+    if (!m || m.hidden || m.classList.contains("is-hidden")) return;
+    if (
+      heroPhotoNameOverlay &&
+      !heroPhotoNameOverlay.classList.contains("is-hidden")
+    ) {
+      e.preventDefault();
+      abortHeroPhotoNamePrompt();
+      return;
+    }
+    e.preventDefault();
+    dismissJourneyToLanding();
+  });
+
+  if (btnPreviewSample && !appEl) {
+    btnPreviewSample.addEventListener("click", function (e) {
+      e.preventDefault();
+      openSampleBook();
+    });
+  }
+
+  if (btnOpenCover && !appEl) {
+    btnOpenCover.addEventListener("click", function (e) {
+      e.preventDefault();
+      openBookCover();
+    });
+  }
+
+  if (btnCloseBook && !appEl) {
+    btnCloseBook.addEventListener("click", function (e) {
+      e.preventDefault();
+      closeBookCover();
+    });
+  }
+
+  var btnLibraryBack = document.getElementById("sbLibraryBack");
+  var btnReaderDismiss = document.getElementById("sbReaderDismiss");
+  var btnFaveBook = document.getElementById("sbFaveBook");
+  var btnReadMyself = document.getElementById("sbReadMyself");
+  var btnReaderFullscreen = document.getElementById("sbReaderFullscreen");
+
+  function syncFaveButton() {
+    if (!btnFaveBook || !story) return;
+    var on = false;
+    try {
+      on = window.localStorage.getItem("wondii-fave:" + (story.title || "")) === "1";
+    } catch (eFave) {}
+    btnFaveBook.setAttribute("aria-pressed", on ? "true" : "false");
+    btnFaveBook.textContent = on ? "♥" : "♡";
+  }
+
+    if (book) {
+    book.addEventListener("click", function (e) {
+      var endBtn = e.target && e.target.closest ? e.target.closest("[data-sj-end]") : null;
+      if (!endBtn) return;
+      e.preventDefault();
+      var act = endBtn.getAttribute("data-sj-end");
+      if (act === "again") {
+        spreadIndex = 0;
+        renderSpread();
+        closeBookCover();
+      } else if (act === "shelf") {
+        returnToStoryLanding();
+      } else if (act === "another") {
+        returnToStoryLanding();
+        try {
+          document.dispatchEvent(new CustomEvent("wondii-story-create"));
+        } catch (eCreate) {}
+      }
+    });
+  }
+  if (btnLibraryBack) {
+    btnLibraryBack.addEventListener("click", function () {
+      if (document.getElementById("sbStartJourney")) returnToStoryLanding();
+      else goToPortalStories();
+    });
+  }
+  if (btnReaderDismiss) {
+    btnReaderDismiss.addEventListener("click", function () {
+      if (document.getElementById("sbStartJourney")) returnToStoryLanding();
+      else goToPortalStories();
+    });
+  }
+  if (btnFaveBook) {
+    btnFaveBook.addEventListener("click", function () {
+      if (!story) return;
+      var key = "wondii-fave:" + (story.title || "");
+      var on = btnFaveBook.getAttribute("aria-pressed") === "true";
+      try {
+        window.localStorage.setItem(key, on ? "0" : "1");
+      } catch (eSet) {}
+      syncFaveButton();
+      wakeReaderChrome();
+    });
+  }
+  if (btnReadMyself) {
+    btnReadMyself.addEventListener("click", function () {
+      stopReading();
+      btnReadMyself.setAttribute("aria-pressed", "true");
+      wakeReaderChrome();
+    });
+  }
+  if (btnReaderFullscreen) {
+    btnReaderFullscreen.addEventListener("click", function () {
+      var root = book || document.documentElement;
+      var req = root.requestFullscreen || root.webkitRequestFullscreen;
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (req) req.call(root);
+      } else if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      }
+      wakeReaderChrome();
+    });
+  }
+  document.addEventListener("fullscreenchange", function () {
+    var on = !!document.fullscreenElement;
+    if (book) book.classList.toggle("sb-reader--fs", on);
+    if (btnReaderFullscreen) {
+      btnReaderFullscreen.setAttribute("aria-pressed", on ? "true" : "false");
+      var label = btnReaderFullscreen.querySelector(".sb-read-toolbar__label");
+      if (label) label.textContent = on ? "Exit full screen" : "Full screen";
+    }
+  });
+
+  ["pointerdown", "pointermove", "keydown", "touchstart", "focusin"].forEach(function (evtName) {
+    document.addEventListener(evtName, function () {
+      if (!book || book.hidden || book.classList.contains("is-hidden")) return;
+      wakeReaderChrome();
+    }, { passive: true });
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    if (!book || book.hidden || book.classList.contains("is-hidden")) return;
+    if (book.classList.contains("sb-book--cover-visible")) return;
+    var tag = e.target && e.target.tagName ? e.target.tagName : "";
+    if (tag === "INPUT" || tag === "TEXTAREA" || (e.target && e.target.isContentEditable)) return;
+    e.preventDefault();
+    if (e.key === "ArrowLeft") goPrevPage();
+    else goNextPage();
+  });
+
+  if (bookSpreadEl) {
+    var swipeX = 0;
+    bookSpreadEl.addEventListener("touchstart", function (e) {
+      if (!e.changedTouches || !e.changedTouches[0]) return;
+      swipeX = e.changedTouches[0].clientX;
+    }, { passive: true });
+    bookSpreadEl.addEventListener("touchend", function (e) {
+      if (!e.changedTouches || !e.changedTouches[0]) return;
+      if (!book || book.classList.contains("sb-book--cover-visible")) return;
+      var dx = e.changedTouches[0].clientX - swipeX;
+      if (Math.abs(dx) < 48) return;
+      if (dx < 0) goNextPage();
+      else goPrevPage();
+    }, { passive: true });
+  }
+
+  window.addEventListener("resize", function () {
+    applyPhoneLeaf();
+  });
+
+  if (heroPhotoInput) {
+    heroPhotoInput.addEventListener("change", function () {
+      setHeroPhotoError("");
+      var files = Array.prototype.slice.call(heroPhotoInput.files || []);
+      heroPhotoInput.value = "";
+      if (!files.length) return;
+      var slotsLeft = HERO_PHOTO_MAX_COUNT - heroPhotoItems.length;
+      if (slotsLeft <= 0) {
+        setHeroPhotoError("You already have 3 photos — remove one to add another.");
+        return;
+      }
+      if (files.length > slotsLeft) {
+        setHeroPhotoError("Only room for " + slotsLeft + " more — pick fewer photos.");
+        files = files.slice(0, slotsLeft);
+      }
+      for (var i = 0; i < files.length; i++) {
+        if (!/^image\/(jpeg|png|webp)$/i.test(files[i].type)) {
+          setHeroPhotoError("Use JPG, PNG, or WebP photos only.");
+          return;
+        }
+        if (files[i].size > HERO_PHOTO_MAX_FILE_BYTES) {
+          setHeroPhotoError("Each photo must be under about 1 MB.");
+          return;
+        }
+      }
+      var reads = files.map(function (f) {
+        return new Promise(function (resolve, reject) {
+          var r = new FileReader();
+          r.onload = function () {
+            resolve(typeof r.result === "string" ? r.result : "");
+          };
+          r.onerror = function () {
+            reject(new Error("read"));
+          };
+          r.readAsDataURL(f);
+        });
+      });
+      Promise.all(reads)
+        .then(function (urls) {
+          var prevLenAdd = heroPhotoItems.length;
+          urls.forEach(function (url) {
+            if (
+              url &&
+              /^data:image\//i.test(url) &&
+              heroPhotoItems.length < HERO_PHOTO_MAX_COUNT
+            ) {
+              heroPhotoItems.push({ dataUrl: url, who: "hero" });
+            }
+          });
+          var freshIdxs = [];
+          var ai;
+          for (ai = prevLenAdd; ai < heroPhotoItems.length; ai++) {
+            freshIdxs.push(ai);
+          }
+          beginHeroPhotoNamePromptForNewIndices(freshIdxs);
+        })
+        .catch(function () {
+          setHeroPhotoError("Could not read that photo.");
+        });
+    });
+  }
+  if (heroPhotoThumbsList) {
+    heroPhotoThumbsList.addEventListener("click", function (e) {
+      var t = e.target;
+      if (!t || !t.closest) return;
+      var rm = t.closest(".sb-hero-ref__thumb-remove");
+      if (!rm) return;
+      var idx = parseInt(rm.getAttribute("data-idx") || "-1", 10);
+      if (idx >= 0 && idx < heroPhotoItems.length) {
+        heroPhotoItems.splice(idx, 1);
+        abortHeroPhotoNamePrompt();
+        renderHeroPhotoThumbs();
+        setHeroPhotoError("");
+      }
+    });
+  }
+  if (heroPhotoRemove) {
+    heroPhotoRemove.addEventListener("click", function () {
+      clearHeroPhoto();
+    });
+  }
+  if (btnHeroPhotoNameOk) {
+    btnHeroPhotoNameOk.addEventListener("click", function () {
+      onHeroPhotoNameDoneClick();
+    });
+  }
+  if (btnHeroPhotoNameMe) {
+    btnHeroPhotoNameMe.addEventListener("click", function () {
+      onHeroPhotoNameMeClick();
+    });
+  }
+  if (btnHeroPhotoNameVoice) {
+    btnHeroPhotoNameVoice.addEventListener("click", function () {
+      startHeroPhotoNameSpeech();
+    });
+  }
+  if (heroPhotoNameInput) {
+    heroPhotoNameInput.addEventListener("keydown", function (evIn) {
+      if (evIn.key !== "Enter") return;
+      evIn.preventDefault();
+      onHeroPhotoNameDoneClick();
+    });
+  }
+  if (nameInput) {
+    nameInput.addEventListener("input", function () {
+      renderHeroPhotoThumbs();
+    });
+  }
+  if (heroPhotoPickBtn && heroPhotoInput) {
+    heroPhotoPickBtn.addEventListener("click", function () {
+      heroPhotoInput.click();
+    });
+  }
+  if (savedCharPickBtn && savedCharStoreReady()) {
+    savedCharPickBtn.hidden = false;
+    savedCharPickBtn.addEventListener("click", toggleSavedCharPanel);
+  }
+
+  var btnNext0 = document.getElementById("sbNext0");
+  var btnBack2 = document.getElementById("sbBack2");
+  var btnNext2 = document.getElementById("sbNext2");
+  var btnBack4 = document.getElementById("sbBack4");
+
+  if (btnNext0) btnNext0.addEventListener("click", function () { goToStep(1); });
+  if (btnBack2) btnBack2.addEventListener("click", function () { goToStep(0); });
+  if (btnNext2) btnNext2.addEventListener("click", function () {
+    if (selectedChar === "custom_buddy") {
+      var t = trimCustomWizardText(buddyCustomInput);
+      if (t.length < 4) {
+        setError("Please describe your buddy in a few words (at least 4 letters).");
+        return;
+      }
+    }
+    setError("");
+    skippedBuddyAndPlace = false;
+    goToStep(2);
+  });
+  var btnBackPlace = document.getElementById("sbBackPlace");
+  var btnNextPlace = document.getElementById("sbNextPlace");
+  var btnBackStory = document.getElementById("sbBackStory");
+  var btnNextStory = document.getElementById("sbNextStory");
+  if (btnBackPlace) btnBackPlace.addEventListener("click", function () { goToStep(1); });
+  if (btnNextPlace) {
+    btnNextPlace.addEventListener("click", function () {
+      if (selectedPlace === "custom_place") {
+        var placeText = trimCustomWizardText(placeCustomInput);
+        if (placeText.length < 4) {
+          setError("Describe the place in a few words, or pick one above.");
+          return;
+        }
+      }
+      setError("");
+      goToStep(3);
+    });
+  }
+  if (btnBackStory) btnBackStory.addEventListener("click", function () { goToStep(2); });
+  if (btnNextStory) btnNextStory.addEventListener("click", function () { goToStep(4); });
+  if (btnBack4) {
+    btnBack4.addEventListener("click", function () {
+      goToStep(3);
+    });
+  }
+
+  if (btnGen) {
+    btnGen.addEventListener("click", function () {
+      if (sbGenerateInFlight) return;
+      setError("");
+      setReaderArtLayout(readBookSpreadLayoutFromWizard());
+      setStoryTextMode(readStoryTextModeFromWizard());
+      setStoryLength(readStoryLengthFromWizard());
+      var url = functionUrl();
+      var key = anonKey();
+      if (!url || !key) {
+        setError("Story magic isn’t set up here yet. Ask a grown-up to open ⚙️ and check sign-in / settings.");
+        return;
+      }
+      if (!storybookFunctionUrlLooksValid(url)) {
+        setError(
+          "Story server address looks wrong. Ask a grown-up to set supabaseUrl in js/score-config.js to your full Supabase project URL (it must look like https://abcdefgh.supabase.co with nothing after .co), save, and publish — not your Cloudflare or game website URL."
+        );
+        return;
+      }
+      var childName = nameInput ? nameInput.value.trim() : "";
+      var plotHint = plotInput ? plotInput.value.trim() : "";
+      var customAuthor = authorInput ? authorInput.value.trim() : "";
+      if (selectedPlace === "custom_place") {
+        var placeText = trimCustomWizardText(placeCustomInput);
+        if (placeText.length < 4) {
+          setError("Describe the place in a few words, or pick one from the list.");
+          goToStep(2);
+          return;
+        }
+      }
+      var useAsync = storybookAsyncJobsEnabled();
+      sbGenerateInFlight = true;
+      btnGen.disabled = true;
+      btnGen.setAttribute("aria-busy", "true");
+      setBusy(true);
+      clearStorybookBuildProgressGuessing();
+      if (useAsync) {
+        setStorybookBuildProgressUi(5, "Starting your book…", {
+          skipDefaultMsg: true,
+        });
+      } else {
+        startStorybookBuildProgressGuessing();
+      }
+      var familyPeople = getSelectedFamilyPeople();
+      var chosenIllustrationStyle = readIllustrationStyleFromWizard();
+      if (!journeyIllustrationHold) setIllustrationStyle(chosenIllustrationStyle);
+      var requestBody = {
+        childName: childName || "Friend",
+        character: normalizeWizardPresetKey(selectedChar),
+        place: normalizeWizardPresetKey(selectedPlace),
+        plotHint: plotHint,
+        buddyCustom:
+          selectedChar === "custom_buddy"
+            ? trimCustomWizardText(buddyCustomInput) || undefined
+            : undefined,
+        placeCustom:
+          selectedPlace === "custom_place"
+            ? trimCustomWizardText(placeCustomInput) || undefined
+            : undefined,
+        pictureBookQuality: selectedPictureBookQuality(),
+        illustrationStyle: chosenIllustrationStyle,
+        readerArtLayout: readBookSpreadLayoutFromWizard(),
+        storyTextMode: readStoryTextModeFromWizard(),
+        storyLength: readStoryLengthFromWizard(),
+        author: customAuthor || undefined,
+        familyNames: familyPeople.map(function (p) {
+          return p.label;
+        }),
+        familyPeople: familyPeople,
+        bookCoverColor: selectedBookCoverColor || undefined,
+        characterReferencePhotos: heroPhotoItems.length
+          ? heroPhotoItems.map(function (x) {
+              return { who: x.who, image: x.dataUrl };
+            })
+          : undefined,
+      };
+      if (journeyIllustrationHold) {
+        journeyIllustrationHold = false;
+        syncIllustrationStyleRadios();
+      }
+      journeyFamilyPeople = [];
+      var childBearer = "";
+      function postStorybook(asyncFlag) {
+        var body = Object.assign({}, requestBody);
+        if (asyncFlag) body.storybook_async = true;
+        var bearer = childBearer || key;
+        return fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + bearer,
+            apikey: key,
+          },
+          body: JSON.stringify(body),
+        }).then(function (r) {
+          return envelopeFromResponse(r);
+        });
+      }
+      function runStorybookOnce(asyncFlag) {
+        return postStorybook(asyncFlag).then(function (out) {
+          var b =
+            out.body && typeof out.body === "object" ? out.body : {};
+          if (
+            asyncFlag &&
+            out.status === 501 &&
+            b.error === "storybook_async_unconfigured"
+          ) {
+            return runStorybookOnce(false);
+          }
+          if (
+            asyncFlag &&
+            out.ok &&
+            out.status === 202 &&
+            b.storybook_job_id
+          ) {
+            var deadline = Date.now() + 15 * 60 * 1000;
+            return pollStorybookJob(
+              url,
+              key,
+              String(b.storybook_job_id),
+              deadline,
+              function (info) {
+                clearStorybookBuildProgressGuessing();
+                var pr =
+                  typeof info.progress === "number" && !isNaN(info.progress)
+                    ? info.progress
+                    : 12;
+                setStorybookBuildProgressUi(pr, info.label || "Working…", {
+                  skipDefaultMsg: true,
+                });
+              },
+              b.storybook_job_key
+            );
+          }
+          return out;
+        });
+      }
+      var childBookKey = "";
+      function releaseChildBook() {
+        if (childBookKey && window.ChildLibrary) window.ChildLibrary.refund(childBookKey);
+        childBookKey = "";
+      }
+      var storyStart = (window.ChildLibrary && ChildLibrary.isChildSession && ChildLibrary.isChildSession())
+        ? ChildLibrary.reserve("book")
+        : Promise.resolve({ allowed: true, reason: "adult" });
+      storyStart.then(function (gate) {
+        if (gate && gate.reason !== "adult" && gate.allowed !== true) {
+          setError("Today’s books are used up. You can make another one tomorrow.");
+          sbGenerateInFlight = false;
+          btnGen.disabled = false;
+          btnGen.removeAttribute("aria-busy");
+          setBusy(false);
+          return null;
+        }
+        if (gate && gate.key) {
+          childBookKey = gate.key;
+          requestBody.creationKey = gate.key;
+          try { sessionStorage.setItem("wondii-child-book-key", gate.key); } catch (e) {}
+          try {
+            var childAuth = window.WondiiSession && window.WondiiSession.get && window.WondiiSession.get();
+            childBearer = childAuth && childAuth.session && childAuth.session.access_token || "";
+          } catch (e2) { childBearer = ""; }
+          if (!childBearer) {
+            releaseChildBook();
+            setError("Sign in again to make a book.");
+            sbGenerateInFlight = false;
+            btnGen.disabled = false;
+            btnGen.removeAttribute("aria-busy");
+            setBusy(false);
+            return null;
+          }
+        }
+        return runStorybookOnce(useAsync);
+      }).then(function (out) {
+          if (!out) return;
+          if (!out.ok) {
+            releaseChildBook();
+            var b =
+              out.body && typeof out.body === "object" ? out.body : {};
+            /** Supabase WORKER_LIMIT or Gateway Timeout — story + six images often exceeds Edge budget */
+            var isTimeout =
+              out.status === 546 ||
+              out.status === 504 ||
+              Number(b.code) === 546 ||
+              Number(b.code) === 504;
+            var msg;
+            if (isTimeout) {
+              msg =
+                "The story maker ran out of time while drawing pictures (the server has a strict time limit — about two minutes total for the whole book). Wait a minute and try again — pick Standard pictures for a faster run (High uses heavier AI steps), use fewer uploaded family photos if you attached many, or ask a grown-up for help. Note: if the AI already started work, your account may still have been charged for some of it even though the book didn’t finish.";
+            } else if (b.error === "server_missing_openai") {
+              msg =
+                "Story drawing isn’t turned on for this game yet. A grown-up needs to finish setup on the server.";
+            } else if (b.error === "fal_failed" && b.detail) {
+              msg =
+                "We couldn’t finish all the pictures — you weren’t given a mismatched book. Wait a moment and try again, or ask a grown-up to check billing and setup. " +
+                String(b.detail).slice(0, 400);
+            } else if (b.error === "gpt_image_failed" && b.detail) {
+              msg =
+                "Couldn’t make the book (pictures). " + String(b.detail).slice(0, 500);
+            } else if (b.error === "images_failed" && b.detail) {
+              msg =
+                "Couldn’t make the book (pictures). " + String(b.detail);
+            } else if (b.error === "invalid_choices") {
+              var detail = String(b.detail || "").trim();
+              if (detail.indexOf("unknown_place:") === 0) {
+                msg =
+                  "That scene name didn’t reach the Storybook maker yet — ask a grown-up to redeploy the latest clever-service update, or try another scene for now.";
+              } else if (detail.indexOf("unknown_character:") === 0) {
+                msg =
+                  "That buddy name didn’t reach the Storybook maker yet — ask a grown-up to redeploy the latest clever-service update, or try another buddy for now.";
+              } else if (detail === "custom_place_too_short") {
+                msg =
+                  "Please describe where the story happens — at least 4 letters — or tap a scene above instead of \"Add your own scene\".";
+              } else if (detail === "custom_buddy_too_short") {
+                msg =
+                  "Please describe your buddy in a few more words — at least 4 letters.";
+              } else if (detail) {
+                msg =
+                  "We couldn’t use one of those story choices (" + detail.slice(0, 160) + "). Try another tap or refresh the page.";
+              } else {
+                msg =
+                  "We couldn’t use one of those story choices. Refresh the page, or pick a different buddy or scene.";
+              }
+            } else if (b.error === "story_failed") {
+              msg =
+                "Couldn’t finish the story text. Try again — if it keeps happening, ask a grown-up to check the setup.";
+              if (b.detail) {
+                msg += " " + String(b.detail).slice(0, 320);
+              }
+            } else if (b.error === "storybook_job_timeout") {
+              msg =
+                "The story maker is still drawing, but this page stopped waiting — often slow Wi‑Fi or very heavy pictures. Wait a minute and try again, or ask a grown-up for help.";
+            } else if (
+              b.error === "storybook_job_empty_result" ||
+              b.error === "storybook_job_bad_status"
+            ) {
+              msg =
+                "The story maker hit a snag while finishing your book in the background. Please try again in a moment, or ask a grown-up to check the server.";
+            } else if (b.error === "non_json_response" && b.detail) {
+              var rawHtmlCheck = String(b.detail || "");
+              var looksLikeWebPage =
+                /^\s*<!DOCTYPE/i.test(rawHtmlCheck) ||
+                /^\s*<html/i.test(rawHtmlCheck);
+              if (looksLikeWebPage) {
+                msg =
+                  "The app loaded a normal web page instead of the story server. Almost always supabaseUrl in js/score-config.js is your game site — it must be the Supabase project URL shown in the dashboard (Project Settings → API), like https://YOUR_PROJECT.supabase.co. Save, redeploy the site, and try again.";
+              } else {
+                msg =
+                  "The story server replied in an unexpected format (often a gateway error page). Ask a grown-up to check Edge Function logs and redeploy clever-service. " +
+                  rawHtmlCheck.slice(0, 220);
+              }
+            } else if (b.error && typeof b.error === "string") {
+              msg = "Couldn’t make the book (" + b.error + ").";
+            } else {
+              msg =
+                "Couldn’t make the book (HTTP " +
+                out.status +
+                (b.msg ? ": " + String(b.msg).slice(0, 240) : "") +
+                ").";
+            }
+            setError(msg);
+            return;
+          }
+          clearStorybookBuildProgressGuessing();
+          setStorybookBuildProgressUi(100, "Your book is ready!", {
+            skipDefaultMsg: true,
+          });
+          var apiTitle =
+            out.body && out.body.title ? String(out.body.title).trim() : "";
+          var customTitle = bookTitleInput ? bookTitleInput.value.trim() : "";
+          var customAuthor = authorInput ? authorInput.value.trim() : "";
+          story = {
+            title: customTitle || apiTitle || "Your story",
+            author: customAuthor,
+            bookColor: out.body.bookColor || null,
+            readerFont: out.body.readerFont || null,
+            readerArtLayout: readBookSpreadLayoutFromWizard(),
+            storyTextMode: readStoryTextModeFromWizard(),
+            storyLength: readStoryLengthFromWizard(),
+            pages: out.body.pages || [],
+            sceneImageUrl: out.body.sceneImageUrl || null,
+            place: selectedPlace,
+            plot: plotHint,
+          };
+          story.atmosphere = storyAtmosphereFor(story);
+          spreadIndex = 0;
+          showBook();
+          if (window.ChildLibrary && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession()) {
+            saveBookToShelf();
+          }
+        })
+        .catch(function (err) {
+          releaseChildBook();
+          if (err && err.code === "allowance") return;
+          console.error("[storybook] Make my book", err);
+          var u = functionUrl();
+          var tech =
+            err && typeof err.message === "string" && err.message.trim()
+              ? " (" + err.message.trim().slice(0, 160) + ")"
+              : "";
+          setError(
+            u
+              ? "Can’t reach the story magic right now. Check your internet, or ask a grown-up to try again in a minute." +
+                  tech
+              : "Story magic isn’t set up here yet. Ask a grown-up to open ⚙️ and check sign-in / settings." +
+                  tech
+          );
+        })
+        .finally(function () {
+          sbGenerateInFlight = false;
+          btnGen.disabled = false;
+          btnGen.removeAttribute("aria-busy");
+          setBusy(false);
+        });
+    });
+  }
+
+  if (btnPrev) {
+    btnPrev.addEventListener("click", function () {
+      goPrevPage();
+    });
+  }
+  if (btnNext) {
+    btnNext.addEventListener("click", function () {
+      goNextPage();
+    });
+  }
+  if (btnNew) {
+    btnNew.addEventListener("click", function () {
+      setBookActionsOpen(false);
+      showWizard();
+    });
+  }
+  if (btnDownload) {
+    btnDownload.addEventListener("click", function () {
+      setBookActionsOpen(false);
+      downloadStoryBook();
+    });
+  }
+  if (btnShelf) {
+    btnShelf.addEventListener("click", function () {
+      setBookActionsOpen(false);
+      saveBookToShelf();
+    });
+  }
+
+  var prevCarouselBtn = document.getElementById("sbCarouselPrev");
+  if (prevCarouselBtn) {
+    prevCarouselBtn.addEventListener("click", function () {
+      scrollCarousel(-1);
+    });
+  }
+  
+  var nextCarouselBtn = document.getElementById("sbCarouselNext");
+  if (nextCarouselBtn) {
+    nextCarouselBtn.addEventListener("click", function () {
+      scrollCarousel(1);
+    });
+  }
+  
+  if (shelfEl) {
+    shelfEl.addEventListener("scroll", function () {
+      updateCarouselButtons();
+    });
+  }
+
+  var stayOnStorybook = false;
+  try {
+    var bootParams = new URLSearchParams(window.location.search || "");
+    stayOnStorybook = !!(
+      bootParams.get("book") ||
+      bootParams.get("char") ||
+      bootParams.get("shared") ||
+      bootParams.get("sharedChar") ||
+      bootParams.get("sample") === "1" ||
+      bootParams.get("demo") === "1" ||
+      bootParams.get("create") === "1" ||
+      bootParams.get("journey") === "1" ||
+      document.getElementById("sbStartJourney")
+    );
+    if ((bootParams.get("sample") === "1" || bootParams.get("demo") === "1") && !bootParams.get("book")) {
+      window.location.replace("book-prototype/?" + (bootParams.get("demo") === "1" ? "demo=1" : "sample=1"));
+    }
+  } catch (err) {}
+
+  preselectCharacterFromUrl();
+  openBookFromUrl();
+  openPrivateFromUrl();
+  try {
+    if (sessionStorage.getItem("wondii-org-starter") && !document.getElementById("sbStoryJourney")) openJourney();
+  } catch (eOrgSeed) {}
+
+  var makerNow = document.getElementById("sbModal");
+  if (makerNow && !makerNow.hidden && !makerNow.classList.contains("is-hidden")) stayOnStorybook = true;
+  if (book && !book.hidden && !book.classList.contains("is-hidden")) stayOnStorybook = true;
+  if (!stayOnStorybook) goToPortalStories();
+
+  if (typeof KidsCore !== "undefined") {
+    KidsCore.init({ skipFullscreen: true });
+    KidsCore.bindTapSound(document.getElementById("app"));
+  }
+
+  syncBookSpreadLayoutRadios();
+  syncIllustrationStyleRadios();
+  syncStoryTextModeRadios();
+  syncStoryLengthRadios();
+
+  var DEMO_IMG = "../docs/agent/book-v2/visual-proof/e/images/";
+  var DEMO_PAGES = [
+    "Beneath the propped blue atlas, brass feet tapped without going anywhere. Mina bent low over the library reading dais. Leo crouched beside her, peering under the cover.",
+    "Mina turned the beetle's key, and its feet carried it onto the bridge plate. The entrance bridge folded against the wall. Beyond the plate, the beetle stopped; their way back was gone.",
+    "Leo tested the bench above the water; it held firm. Mina pointed past the wave and drain plates to the sun. \"Let's get it there.\"",
+    "Leo reached for the key, paused, then wound the beetle toward the sun. Its brass feet pressed the wave plate. The wall hatch swung inward, letting floodwater pour through.",
+    "Water swept the atlas off its shelf and onto the drain grille. Leo caught Mina's hand and helped her onto the bench. Below them, the blue cover vanished under the surge.",
+    "Leo's hand hovered over the key, then drew back. Mina traced the engraved lines between the brass plates. He held her sleeve clear of the water while her finger followed each groove.",
+    "The drain plate's engraved line led Mina's finger to the grille. From the sun, two more lines reached the drain latch and the inlet catch. \"Leo, this one joins both.\"",
+    "Mina wound the beetle onto the drain plate while Leo lifted the atlas. The drain opened beneath the book. Water sucked it down, pinning the cover against the grille.",
+    "The beetle stepped off the drain plate and stopped just short of the sun. The grille shut, and the atlas came loose. One blue corner floated up beside the bench.",
+    "Leo lifted the atlas clear and hugged it against his chest. Mina wound the beetle; its feet reached the sun plate. The inlet snapped shut, the drain locked open, and water rushed away.",
+    "Leo propped the wet atlas on the dry bench. Mina carried the beetle beneath its cover, keeping her fingers away from the key. Under the blue shelter, its brass feet rested."
+  ];
+
+  function buildDemoBook() {
+    var pages = [
+      { text: "", imageUrl: null },
+      { text: "Demo example. This book was already made. Opening it does not create a new story.", imageUrl: null }
+    ];
+    DEMO_PAGES.forEach(function (line, i) {
+      pages.push({ text: line, imageUrl: null });
+      pages.push({ text: "", imageUrl: DEMO_IMG + "p" + (i + 1) + ".jpg" });
+    });
+    pages.push({ text: "The End", imageUrl: null });
+    pages.push({ text: "", imageUrl: DEMO_IMG + "cover.jpg" });
+    return {
+      title: "The Beetle's Last Turn",
+      author: "Demo example",
+      bookColor: "navy",
+      readerFont: "fredoka",
+      readerArtLayout: "facing",
+      storyTextMode: "prose",
+      storyLength: "medium",
+      sceneImageUrl: DEMO_IMG + "cover.jpg",
+      featuring: "Mina and Leo",
+      pages: pages,
+      isSample: true,
+      demoExample: true
+    };
+  }
+
+  function portraitToReference(src, who) {
+    return fetch(src).then(function (response) {
+      if (!response.ok) throw new Error("portrait");
+      return response.blob();
+    }).then(function (blob) {
+      return new Promise(function (resolve, reject) {
+        var reader = new FileReader();
+        reader.onload = function () { resolve(String(reader.result || "")); };
+        reader.onerror = function () { reject(new Error("portrait")); };
+        reader.readAsDataURL(blob);
+      });
+    }).then(function (dataUrl) {
+      heroPhotoItems.push({ dataUrl: dataUrl, who: who || "hero" });
+      renderHeroPhotoThumbs();
+    });
+  }
+
+  function friendToken(name) {
+    var token = String(name || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (token.length < 2 || token.length > 24) return "";
+    return token;
+  }
+
+  function referenceForPerson(person) {
+    var src = person && person.src ? String(person.src) : "";
+    if (!src) return "";
+    var crew = /(?:^|\/)images\/characters\/crew\/([a-z0-9-]+)\.jpg(?:[?#].*)?$/i.exec(src);
+    if (!crew) return src;
+    if (person.id && crew[1] === String(person.id)) return src;
+    return "";
+  }
+
+  window.WondiiStoryDraft = {
+    apply: function (draft) {
+      var next = draft || {};
+      if (nameInput) nameInput.value = String(next.name || "").slice(0, 24);
+      if (plotInput) plotInput.value = String(next.plot || "").slice(0, PLOT_INPUT_MAX);
+      selectedChar = "nobuddy";
+      selectedPlace = next.place || "library";
+      if (next.length) {
+        setStoryLength(next.length);
+        syncStoryLengthRadios();
+        var lengthRadio = document.querySelector(
+          'input[name="sbStoryLength"][value="' + String(next.length) + '"]'
+        );
+        if (lengthRadio) lengthRadio.checked = true;
+      }
+      if (next.style === "soft_3d") {
+        var styleRadio = document.querySelector('input[name="sbIllustrationStyle"][value="soft_3d"]');
+        if (styleRadio) {
+          journeyIllustrationHold = true;
+          styleRadio.checked = true;
+        }
+      }
+      var cast = Array.isArray(next.cast) ? next.cast : [];
+      heroPhotoItems = [];
+      journeyFamilyPeople = [];
+      var seenFriend = {};
+      var jobs = [];
+      cast.forEach(function (person, index) {
+        if (!person || !person.name) return;
+        if (index > 0) {
+          var token = friendToken(person.name);
+          if (token && !seenFriend[token]) {
+            seenFriend[token] = true;
+            journeyFamilyPeople.push({ id: token, label: String(person.name).slice(0, 40) });
+          }
+        }
+        var src = referenceForPerson(person);
+        if (!src || jobs.length >= 3) return;
+        var who = index === 0 ? String(person.name) : (friendToken(person.name) || "");
+        if (!who) return;
+        jobs.push(portraitToReference(src, who).catch(function () {}));
+      });
+      if (typeof renderHeroPhotoThumbs === "function") renderHeroPhotoThumbs();
+      return Promise.all(jobs);
+    },
+    create: function () {
+      if (btnGen) btnGen.click();
+    },
+    openDemo: function () {
+      story = buildDemoBook();
+      spreadIndex = 0;
+      showBook();
+    }
+  };
+
+  window.WondiiStorybookReader = {
+    open: function (readerStory) {
+      if (!readerStory || !readerStory.pages || !readerStory.pages.length) return;
+      story = readerStory;
+      spreadIndex = 0;
+      showBook();
+    },
+    close: function () {
+      story = null;
+      spreadIndex = 0;
+      if (book) {
+        book.classList.add("is-hidden");
+        book.hidden = true;
+        book.classList.remove("sb-book--cover-visible");
+      }
+    },
+    listen: function (fn) {
+      spreadListener = typeof fn === "function" ? fn : null;
+    },
+    updatePage: function (pageId, text) {
+      if (!story || !story.pages) return;
+      story.pages.forEach(function (page) {
+        if (page.pageId === pageId) page.text = text;
+      });
+      renderSpread();
+    },
+    shelve: function (item, done) {
+      if (!item || !item.id) return;
+      reloadShelfCacheFromStore(function () {
+        var list = loadShelf().filter(function (entry) {
+          return entry.id !== item.id;
+        });
+        list.unshift(item);
+        saveShelf(list, null, done || null);
+      });
+    }
+  };
+
+})();

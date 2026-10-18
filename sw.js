@@ -1,0 +1,262 @@
+/* Minimal offline shell — network-first, cache as fallback for same-origin */
+const CACHE = "jigsaw-kids-v461";
+const SHELL = [
+  "./index.html",
+  "./portal.html",
+  "./portal.js",
+  "./portal-app.css",
+  "./characters.html",
+  "./js/account-context.js",
+  "./js/wondii-session.js",
+  "./js/organisation.js",
+  "./js/character-bible.js",
+  "./js/wondii-crew.js",
+  "./js/character-library.js",
+  "./js/portal-shell.js",
+  "./js/portal-home-model.js",
+  "./js/portal-home.js",
+  "./js/book-showcase.js",
+  "./schools/learn/home.js",
+  "./schools/learn/character-portal.js",
+  "./schools/learn/teacher-shell.css",
+  "./schools/org-portal.css",
+  "./css/character-library.css",
+  "./css/character-crew.css",
+  "./css/portal-home.css",
+  "./js/family.js",
+  "./js/qrcode.js",
+  "./js/child-join.js",
+  "./js/child-library.js",
+  "./child.html",
+  "./child-character.html",
+  "./js/child-character.js",
+  "./css/family.css",
+  "./portal-gate.js",
+  "./portal-gate.css",
+  "./welcome.css",
+  "./welcome.js",
+  "./home.css",
+  "./home-cast.js",
+  "./games/images/brand/wondi-mark.svg",
+  "./games/images/brand/wondi-wordmark.svg",
+  "./games/images/portal/hello.jpg",
+  "./games/images/portal/stories-night.jpg",
+  "./manifest.json",
+  "./icons/icon-192.png",
+  "./icons/icon-512.png",
+  "./icons/icon-384-maskable.png",
+  "./portal.css",
+  "./games/images/tilly-mascot.png",
+  "./js/kids-core.js",
+  "./js/kids-core.css",
+  "./js/score-config.js",
+  "./js/kids-game-characters.js",
+  "./js/storybook-shelf-store.js",
+  "./js/score-cloud.js",
+  "./js/game-scorecard.js",
+  "./js/game-scorecard.css",
+  "./jigsaw.css",
+  "./jigsaw.js",
+  "./tablet-ipad.css",
+  "./games/jigsaw.html",
+  "./games/images/jigsaw-presets/sofia-tractor.png",
+  "./games/images/jigsaw-presets/unicorn.jpg",
+  "./games/images/jigsaw-presets/puppy.jpg",
+  "./games/images/jigsaw-presets/kitten.jpg",
+  "./games/images/jigsaw-presets/dolphin.jpg",
+  "./games/images/jigsaw-presets/rocket.jpg",
+  "./games/images/jigsaw-presets/dino.jpg",
+  "./games/images/jigsaw-presets/sofia-baby-bedtime.png",
+  "./games/images/jigsaw-presets/baby-sister-onesie.png",
+  "./games/math-race.html",
+  "./games/math-race.css",
+  "./games/math-race.js",
+  "./games/images/math-race-dino.png",
+  "./games/images/math-race-park-wide.png",
+  "./games/images/math-race-park-bg.png",
+  "./games/images/math-race-birds-sheet.png",
+  "./games/images/math-race-finish-line.png",
+  "./games/images/math-race-hero.png",
+  "./games/noughts-crosses.html",
+  "./games/noughts-crosses.css",
+  "./games/noughts-crosses.js",
+  "./games/images/ttt-play-bg.png",
+  "./games/connect-four.html",
+  "./games/connect-four.css",
+  "./games/connect-four.js",
+  "./games/word-search.html",
+  "./games/word-search.css",
+  "./games/word-search.js",
+  "./games/snap.html",
+  "./games/snap.css",
+  "./games/snap.js",
+  "./games/memory.html",
+  "./games/memory.css",
+  "./games/memory.js",
+  "./games/rock-paper-scissors.html",
+  "./games/rock-paper-scissors.css",
+  "./games/rock-paper-scissors.js",
+  "./games/images/portal/rock-paper-scissors-card.png",
+  "./games/images/rps/rock.png",
+  "./games/images/rps/paper.png",
+  "./games/images/rps/scissors.png",
+  "./games/snake-arcade.html",
+  "./games/snake-arcade.css",
+  "./games/snake-arcade.js",
+  "./games/images/portal/snake-portal.png",
+  "./games/zuma.html",
+  "./games/zuma.css",
+  "./games/zuma.js",
+  "./games/images/portal/zuma-portal.png",
+  "./games/images/zuma/bg.svg",
+  "./games/images/zuma/bg-leaf.svg",
+  "./games/images/zuma/frog.svg",
+  "./games/images/zuma/noise.png",
+  "./games/images/zuma/leaf-01.svg",
+  "./games/images/zuma/leaf-02.svg",
+  "./games/images/zuma/leaf-03.svg",
+  "./games/images/zuma/leaf-04.svg",
+  "./games/images/zuma/leaf-05.svg",
+  "./games/images/zuma/leaf-06.svg",
+  "./games/marble-tilt.html",
+  "./games/marble-tilt.css",
+  "./games/marble-tilt.js",
+  "./games/images/portal/marble-tilt.svg",
+  "./games/link-grid.html",
+  "./games/link-grid.css",
+  "./games/link-grid-part-a.js",
+  "./games/link-grid-shapes.js",
+  "./games/link-grid-maze.js",
+  "./games/link-grid-bootstrap.js",
+  "./games/link-grid-main.js",
+  "./games/link-grid-levels-content.html",
+  "./games/images/portal/link-grid.svg",
+  "./games/drive-mad.html",
+  "./games/drive-mad.css",
+  "./games/images/portal/drive-mad.svg",
+  "./games/block-stack.html",
+  "./games/block-stack.css",
+  "./games/block-stack.js",
+  "./games/images/portal/block-stack.svg",
+  "./games/images/portal/memory.png",
+  "./games/images/memory-size-quick.png",
+  "./games/images/memory-size-normal.png",
+  "./games/images/memory-size-big.png",
+  "./games/images/portal/snap.png",
+  "./games/images/character-baby-coolegg.png",
+  "./games/images/character-kelly.png",
+  "./games/images/character-freya.png",
+  "./games/images/character-girl-blonde.png",
+  "./games/images/character-sofia-running.png",
+  "./games/images/character-babyca.png",
+  "./games/images/portal/snakes-ladders.png",
+  "./games/images/portal/noughts-crosses.png",
+  "./games/images/portal/connect-four.png",
+  "./games/images/portal/word-search.png",
+  "./games/snakes-ladders.html",
+  "./games/snakes-ladders.css",
+  "./games/snakes-ladders.js",
+  "./games/colouring.html",
+  "./games/colouring.css",
+  "./games/colouring.js",
+  "./games/storybook.html",
+  "./games/storybook-app.css",
+  "./games/storybook-wondii.css",
+  "./games/storybook.js",
+  "./js/character-store.js",
+  "./games/images/portal/storybook-nook.jpg",
+  "./games/prompt-game.html",
+  "./games/prompt-game.css",
+  "./games/prompt-game.js",
+  "./games/images/portal/prompt-game.svg",
+  "./games/star-catcher.html",
+  "./games/images/portal/star-catcher.svg",
+  "./games/images/storybook-landing-room-bg.jpg",
+  "./games/images/storybook-design-goal-reference.png",
+  "./games/images/flip-book/page-front-edge.png",
+  "./games/images/flip-book/page-back-edge.png",
+  "./games/images/flip-book/flip-book-cover-edge.png",
+  "./games/images/flip-book/page-size-reference.png",
+  "./games/images/colouring-texture-bg.png",
+  "./games/images/portal/colouring.png",
+  "./games/images/portal/jigsaw.jpg",
+  "./games/images/colouring/template-mermaid.png",
+  "./games/images/colouring/template-dino-hill.png",
+  "./games/images/colouring/template-coral-reef.png",
+  "./games/images/colouring/template-shark-party.png",
+  "./games/images/colouring/template-winged-unicorn.png",
+  "./games/images/colouring/template-pony.png",
+  "./games/images/colouring/template-winter-friend.png",
+  "./games/images/colouring/template-splash-friends.png",
+];
+
+self.addEventListener("install", function (e) {
+  e.waitUntil(
+    caches.open(CACHE).then(function (c) {
+      return c.addAll(SHELL).catch(function () {});
+    })
+  );
+  self.skipWaiting();
+});
+
+self.addEventListener("activate", function (e) {
+  e.waitUntil(
+    caches.keys().then(function (keys) {
+      return Promise.all(
+        keys
+          .filter(function (k) {
+            return k !== CACHE;
+          })
+          .map(function (k) {
+            return caches.delete(k);
+          })
+      );
+    }).then(function () {
+      return self.clients.claim();
+    }).then(function () {
+      return self.clients.matchAll({ type: "window" });
+    }).then(function (clients) {
+      clients.forEach(function (client) {
+        if (/\/portal(\.html)?\/?(\?|#|$)/.test(client.url) || /\/schools\/learn\/(create|present|class|join)(\.html)?\/?(\?|#|$)/.test(client.url) || /\/games\/[^/?#]+\.html/.test(client.url) || /\/child(-character)?\.html/.test(client.url)) {
+          client.navigate(client.url);
+        }
+      });
+    })
+  );
+});
+
+function isPrivateContentRequest(request) {
+  var url = request && request.url ? request.url : "";
+  if (url.indexOf("/storage/v1/") !== -1) return true;
+  if (url.indexOf("supabase.co") !== -1) return true;
+  return false;
+}
+
+self.addEventListener("fetch", function (e) {
+  if (e.request.method !== "GET" || e.request.url.indexOf("http") !== 0) {
+    return;
+  }
+  // Private library responses carry Cache-Control from storage. Letting the
+  // service worker refetch them can reuse a cached HTTP 200 after the device
+  // is revoked, the profile is suspended, or the access switch is turned off.
+  if (isPrivateContentRequest(e.request)) return;
+  var learnPage = e.request.mode === "navigate" && /\/schools\/learn\/(create|present|class|join)(\.html)?\/?(?:\?|#|$)/.test(e.request.url);
+  var portalPage = e.request.mode === "navigate" && /\/portal(\.html)?\/?(?:\?|#|$)/.test(e.request.url);
+  var gamePage = e.request.mode === "navigate" && /\/games\/[^/?#]+\.html/.test(e.request.url);
+  var childPage = e.request.mode === "navigate" && /\/child(-character)?\.html/.test(e.request.url);
+  var accountScript = /\/js\/(score-config|score-cloud|kids-core|wondii-session|family|child-join|child-library|child-character)\.js/.test(e.request.url)
+    || /\/portal\.js/.test(e.request.url);
+  var request = (learnPage || portalPage || gamePage || childPage || accountScript) ? new Request(e.request, { cache: "reload" }) : e.request;
+  e.respondWith(
+    fetch(request)
+      .then(function (r) {
+        return r;
+      })
+      .catch(function () {
+        if (learnPage) return caches.match("./portal.html");
+        return caches.match(e.request).then(function (c) {
+          return c || caches.match("./portal.html");
+        });
+      })
+  );
+});

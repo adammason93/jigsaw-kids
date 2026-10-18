@@ -1,0 +1,101 @@
+/* Standalone game frame. Boards keep their own art. */
+
+body[data-game-shell="v2"] {
+  margin: 0;
+  background: var(--w-surface-page, #f6f5fc);
+  color: var(--w-ink, #141b4d);
+  font-family: Nunito, "Segoe UI", sans-serif;
+}
+body[data-game-shell="v2"] :where(h1, h2, button, .ttt-btn, .memory-btn, .word-search__btn, .snake-ctrl) {
+  font-family: Fredoka, Nunito, sans-serif;
+}
+body[data-game-shell="v2"] .game-nav,
+body[data-game-shell="v2"] .snake-nav,
+body[data-game-shell="v2"] .gsc,
+body[data-game-shell="v2"] .ttt-header h1,
+body[data-game-shell="v2"] .memory-header h1,
+body[data-game-shell="v2"] .word-search__title,
+body[data-game-shell="v2"] .colour-header h1,
+body[data-game-shell="v2"] #tttWinOverlay,
+body[data-game-shell="v2"] #kellyWellDone,
+body[data-game-shell="v2"] #snakeOverlay,
+body[data-game-shell="v2"] .memory-play-header { display: none; }
+body[data-game-shell="v2"] .memory-play-line {
+  color: #141b4d;
+  text-shadow: none;
+}
+body[data-game-shell="v2"] #memoryMoves { color: #3d4468; }
+body[data-game-shell="v2"] .memory-btn--secondary {
+  background: #fff;
+  color: #141b4d;
+  border: 1px solid rgba(20, 27, 77, 0.2);
+}
+
+.wgs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1rem;
+  align-items: center;
+  padding: 0.7rem 1rem;
+  background: #fff;
+  border-bottom: 1px solid rgba(20, 27, 77, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+.wgs-back, .wgs-actions button, .wgs-link {
+  min-height: 44px;
+  border-radius: 999px;
+  border: 1px solid rgba(20, 27, 77, 0.16);
+  background: #fff;
+  color: #141b4d;
+  font-weight: 800;
+  padding: 0.4rem 0.9rem;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+.wgs-actions button[data-shell="pause"] { background: #141b4d; color: #fff; border: 0; }
+.wgs-id { flex: 1; min-width: 10rem; }
+.wgs-id h1 { margin: 0; font-size: 1.35rem; }
+.wgs-kicker { margin: 0; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.04em; color: #5c6284; }
+.wgs-score { margin: 0; font-weight: 800; }
+.wgs-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.wgs-actions button:focus-visible, .wgs-back:focus-visible, .wgs-link:focus-visible {
+  outline: 3px solid #141b4d;
+  outline-offset: 2px;
+}
+
+.wgs-dialog {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 27, 77, 0.45);
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  z-index: 40;
+}
+.wgs-dialog[hidden] { display: none; }
+.wgs-dialog__card {
+  width: min(28rem, 100%);
+  background: #fff;
+  border-radius: 22px;
+  padding: 1.2rem;
+}
+.wgs-dialog__card h2 { margin: 0 0 0.4rem; }
+.wgs-dialog__actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+.wgs-dialog--result .wgs-dialog__card { background: #e5f6ef; }
+.wgs-dialog--error .wgs-dialog__card { background: #fff6ec; }
+body.wgs-still .wgs-dialog { transition: none; }
+
+body[data-game-shell="v2"] .memory-header__lede,
+body[data-game-shell="v2"] .word-search__lede,
+body[data-game-shell="v2"] .colour-header__lede,
+body[data-game-shell="v2"] .ttt-header__lede,
+body[data-game-shell="v2"] .snake-hint {
+  color: #3d4468;
+}
+
+@media (max-width: 720px) {
+  .wgs-id h1 { font-size: 1.15rem; }
+}

@@ -1,0 +1,212 @@
+/* Character library. Uses Wondii tokens already loaded by the portal. */
+
+.cast-library { max-width: 72rem; }
+
+.cast-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr));
+  gap: var(--w-space-5);
+}
+
+.cast-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  color: inherit;
+  text-decoration: none;
+  min-height: 22rem;
+}
+
+.cast-card__frame {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 3 / 4;
+  background: var(--w-surface-sunken);
+  overflow: hidden;
+}
+
+.cast-card__art {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 18%;
+}
+
+.cast-card__art[data-frame="lineup"] {
+  object-fit: cover;
+  object-position: left top;
+  transform: scale(3.15);
+  transform-origin: 0% 0%;
+}
+
+.cast-card__initial {
+  display: grid;
+  place-items: center;
+  width: 7.25rem;
+  height: 7.25rem;
+  border-radius: var(--w-radius-pill);
+  background: rgba(255, 255, 255, 0.28);
+  font-family: var(--w-font-display);
+  font-size: 3.4rem;
+  line-height: 1;
+  color: var(--w-text-inverse);
+}
+
+.cast-card__body {
+  display: grid;
+  gap: var(--w-space-1);
+  padding: var(--w-space-4);
+}
+
+.cast-card__name {
+  font-family: var(--w-font-display);
+  font-size: 1.55rem;
+  line-height: 1.1;
+  color: var(--w-text-primary);
+}
+
+.cast-card__note {
+  color: var(--w-text-muted);
+  font-size: var(--w-font-size-small);
+  font-weight: 700;
+}
+
+.cast-card--create {
+  background:
+    linear-gradient(180deg, var(--w-surface-card) 0%, var(--w-color-warm) 100%);
+  box-shadow: inset 0 0 0 2px var(--w-border-soft);
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  min-height: 22rem;
+}
+
+.cast-card--create .cast-card__body { justify-items: center; }
+
+.cast-card__mark {
+  display: grid;
+  place-items: center;
+  width: 5.5rem;
+  height: 5.5rem;
+  margin-top: var(--w-space-5);
+  border-radius: var(--w-radius-pill);
+  background: var(--w-action-primary);
+  color: var(--w-text-on-action);
+  font-family: var(--w-font-display);
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.cast-empty { margin-bottom: var(--w-space-4); }
+
+.cast-detail {
+  display: grid;
+  grid-template-columns: minmax(16rem, 26rem) minmax(0, 1fr);
+  gap: var(--w-space-6);
+  align-items: start;
+}
+
+.cast-detail .cast-card__frame {
+  border-radius: var(--w-radius-lg);
+  box-shadow: var(--w-shadow-soft);
+  max-height: 36rem;
+}
+
+.cast-detail__copy { padding-top: var(--w-space-2); }
+
+.cast-detail__line {
+  margin: 0 0 var(--w-space-2);
+  color: var(--w-text-muted);
+  font-weight: 700;
+}
+
+.cast-detail__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--w-space-3);
+  margin-top: var(--w-space-5);
+}
+
+.cast-home {
+  display: flex;
+  gap: 0.85rem;
+  max-width: none;
+  margin: 0;
+  overflow-x: auto;
+  padding: 0.15rem 0.15rem 0.35rem;
+  scroll-snap-type: x proximity;
+}
+
+.cast-home__card {
+  flex: 0 0 auto;
+  width: 6.25rem;
+  scroll-snap-align: start;
+  color: inherit;
+  text-decoration: none;
+  text-align: center;
+}
+
+.cast-home__card:focus-visible {
+  outline: 3px solid var(--w-focus, #141b4d);
+  outline-offset: 3px;
+  border-radius: 18px;
+}
+
+.cast-home__face {
+  display: grid;
+  place-items: center;
+  width: 6.25rem;
+  height: 7.4rem;
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--w-surface-sunken, #f6f1ea);
+}
+
+.cast-home__art {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 18%;
+}
+
+.cast-home__art[data-frame="lineup"] {
+  object-fit: cover;
+  object-position: left top;
+  transform: scale(3.15);
+  transform-origin: 0% 0%;
+}
+
+.cast-home__initial {
+  font-family: var(--w-font-display, Fredoka, Nunito, sans-serif);
+  font-size: 2rem;
+  color: var(--w-text-primary, #141b4d);
+}
+
+.cast-home__name {
+  display: block;
+  margin-top: 0.4rem;
+  font-family: var(--w-font-display, Fredoka, Nunito, sans-serif);
+  font-size: 0.95rem;
+  font-weight: 650;
+  color: var(--w-text-primary, #141b4d);
+}
+
+@media (max-width: 900px) {
+  body.org-on .cast-library {
+    padding-bottom: calc(7.5rem + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 800px) {
+  .cast-gallery { grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr)); gap: var(--w-space-3); }
+  .cast-card { min-height: 0; }
+  .cast-card__name { font-size: 1.25rem; }
+  .cast-card--create { min-height: 16rem; }
+  .cast-detail { grid-template-columns: 1fr; }
+}
+
+@media (min-width: 1200px) {
+  .cast-gallery { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}

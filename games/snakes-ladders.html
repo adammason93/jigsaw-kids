@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#7c3aed" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Snakes &amp; Ladders — Wondii</title>
+  <link rel="manifest" href="../manifest.json" />
+  <link rel="stylesheet" href="../js/kids-core.css" />
+  <link rel="stylesheet" href="../js/game-scorecard.css" />
+  <link rel="stylesheet" href="snakes-ladders.css" />
+  <link rel="stylesheet" href="../tablet-ipad.css" />
+  <link rel="stylesheet" href="wondii-shell.css?v=4" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/wondii-tokens.css?v=2" />
+  <link rel="stylesheet" href="../css/wondii-p1.css?v=9" />
+</head>
+<body class="page-snakes">
+  <div class="app" id="app">
+    <nav class="game-nav" aria-label="Breadcrumb">
+      <a class="back-link back-btn" href="../portal.html" aria-label="Back to all games"><span class="back-btn__icon" aria-hidden="true">&#8592;</span><span class="back-btn__text">Back</span></a>
+    </nav>
+
+    <div
+      id="welcomePopup"
+      class="welcome-popup welcome-popup--hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="welcomeTitle"
+      aria-hidden="true"
+    >
+      <div class="welcome-popup__backdrop" aria-hidden="true"></div>
+      <div class="welcome-popup__panel">
+        <h2 id="welcomeTitle" class="welcome-popup__title">Welcome!</h2>
+        <div class="welcome-popup__stage">
+          <p class="welcome-popup__bubble" role="text">Climb the ladders and have fun!</p>
+        </div>
+        <button type="button" class="btn btn--primary" id="btnWelcomeOk">Let’s play!</button>
+      </div>
+    </div>
+
+    <div id="screenSetup" class="screen">
+      <header class="page-header">
+        <h1>Snakes &amp; Ladders</h1>
+        <p>Climb the ladders, slide past the snakes, and land <strong>exactly</strong> on the gold finish square. Choose a full board or a shorter game.</p>
+      </header>
+
+      <section class="gsc" aria-labelledby="snkscTitle">
+        <h2 id="snkscTitle" class="gsc__title">Score card</h2>
+        <p class="gsc__hint" id="snkscHint" hidden>
+          Counts every time someone reaches the finish. Separate totals for the <strong>full</strong> and <strong>shorter</strong> boards. Copy/paste to move between devices.
+        </p>
+        <div class="gsc__grid gsc__grid--cols2">
+          <div class="gsc__block">
+            <h3 class="gsc__block-title">Full board (50)</h3>
+            <ul class="gsc__list">
+              <li><span class="gsc__label">Games finished</span> <strong id="snkscFull">0</strong></li>
+            </ul>
+          </div>
+          <div class="gsc__block">
+            <h3 class="gsc__block-title">Shorter (25)</h3>
+            <ul class="gsc__list">
+              <li><span class="gsc__label">Games finished</span> <strong id="snkscQuick">0</strong></li>
+            </ul>
+          </div>
+        </div>
+        <div class="gsc__actions">
+          <button type="button" class="gsc__btn" id="snkscCopy">Copy scores</button>
+          <button type="button" class="gsc__btn" id="snkscPaste">Paste scores</button>
+          <button type="button" class="gsc__btn gsc__btn--danger" id="snkscReset">Reset scores</button>
+        </div>
+      </section>
+
+      <div class="sn-setup-columns">
+        <section class="card sn-card--board" aria-labelledby="lblBoard">
+          <h2 id="lblBoard">Board size</h2>
+          <div class="choice-row" role="group" aria-label="Board size">
+            <label class="radio-tile">
+              <input type="radio" name="boardSize" value="full" checked />
+              <span class="radio-tile__title">Full game</span>
+              <span class="radio-tile__hint">50 squares</span>
+            </label>
+            <label class="radio-tile">
+              <input type="radio" name="boardSize" value="quick" />
+              <span class="radio-tile__title">Shorter game</span>
+              <span class="radio-tile__hint">25 squares</span>
+            </label>
+          </div>
+        </section>
+
+        <section class="card sn-card--players" aria-labelledby="lblPlayers">
+          <h2 id="lblPlayers">How many players?</h2>
+          <div class="choice-row" role="group" aria-label="Number of players">
+            <label class="radio-tile">
+              <input type="radio" name="numPlayers" value="2" checked />
+              <span class="radio-tile__title">2</span>
+              <span class="radio-tile__hint">You &amp; a friend</span>
+            </label>
+            <label class="radio-tile">
+              <input type="radio" name="numPlayers" value="3" />
+              <span class="radio-tile__title">3</span>
+              <span class="radio-tile__hint">Pass &amp; play</span>
+            </label>
+            <label class="radio-tile">
+              <input type="radio" name="numPlayers" value="4" />
+              <span class="radio-tile__title">4</span>
+              <span class="radio-tile__hint">Family game</span>
+            </label>
+          </div>
+          <p class="hint" id="nameHint">Pick a character for each player — their name fills in from that choice (you can change it if you like).</p>
+          <div class="name-fields" id="nameFields" aria-label="Players"></div>
+          <button type="button" class="btn btn--primary" id="btnStart">Start game</button>
+        </section>
+      </div>
+    </div>
+
+    <div id="screenGame" class="screen screen--hidden" hidden>
+      <div class="game-layout">
+        <div class="board-wrap" id="boardWrap">
+          <div class="board" id="board" aria-label="Game board" role="img">
+            <div class="board__stack" id="boardStack">
+              <div class="board__face" id="boardFace" style="--board-aspect: 1.8">
+                <div class="board-grid" id="boardGrid"></div>
+                <svg class="board-conn" id="boardConn" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
+                <div class="board-tokens" id="tokenLayer" aria-hidden="true"></div>
+              </div>
+            </div>
+          </div>
+          <p class="start-hint" id="startHint">Start line — your characters wait here until they hop onto the board.</p>
+          <div class="start-strip" id="startStrip" role="group" aria-label="Starting area"></div>
+        </div>
+        <aside class="hud" aria-label="Game controls and players">
+          <h2 class="hud__title" id="turnLabel">Player 1’s turn</h2>
+          <ul class="player-list" id="playerList"></ul>
+          <div class="dice-block">
+            <div
+              class="dice"
+              id="dice"
+              data-face="1"
+              role="img"
+              aria-label="Die"
+            >
+              <div class="dice-scene">
+                <div class="dice-cube" aria-hidden="true">
+                  <div class="dice-face dice-face--1">
+                    <div class="dice-face-grid">
+                      <span class="pip pip--1"></span>
+                      <span class="pip pip--2"></span>
+                      <span class="pip pip--3"></span>
+                      <span class="pip pip--4"></span>
+                      <span class="pip pip--5"></span>
+                      <span class="pip pip--6"></span>
+                      <span class="pip pip--7"></span>
+                      <span class="pip pip--8"></span>
+                      <span class="pip pip--9"></span>
+                    </div>
+                  </div>
+                  <div class="dice-face dice-face--2">
+                    <div class="dice-face-grid">
+                      <span class="pip pip--1"></span>
+                      <span class="pip pip--2"></span>
+                      <span class="pip pip--3"></span>
+                      <span class="pip pip--4"></span>
+                      <span class="pip pip--5"></span>
+                      <span class="pip pip--6"></span>
+                      <span class="pip pip--7"></span>
+                      <span class="pip pip--8"></span>
+                      <span class="pip pip--9"></span>
+                    </div>
+                  </div>
+                  <div class="dice-face dice-face--3">
+                    <div class="dice-face-grid">
+                      <span class="pip pip--1"></span>
+                      <span class="pip pip--2"></span>
+                      <span class="pip pip--3"></span>
+                      <span class="pip pip--4"></span>
+                      <span class="pip pip--5"></span>
+                      <span class="pip pip--6"></span>
+                      <span class="pip pip--7"></span>
+                      <span class="pip pip--8"></span>
+                      <span class="pip pip--9"></span>
+                    </div>
+                  </div>
+                  <div class="dice-face dice-face--4">
+                    <div class="dice-face-grid">
+                      <span class="pip pip--1"></span>
+                      <span class="pip pip--2"></span>
+                      <span class="pip pip--3"></span>
+                      <span class="pip pip--4"></span>
+                      <span class="pip pip--5"></span>
+                      <span class="pip pip--6"></span>
+                      <span class="pip pip--7"></span>
+                      <span class="pip pip--8"></span>
+                      <span class="pip pip--9"></span>
+                    </div>
+                  </div>
+                  <div class="dice-face dice-face--5">
+                    <div class="dice-face-grid">
+                      <span class="pip pip--1"></span>
+                      <span class="pip pip--2"></span>
+                      <span class="pip pip--3"></span>
+                      <span class="pip pip--4"></span>
+                      <span class="pip pip--5"></span>
+                      <span class="pip pip--6"></span>
+                      <span class="pip pip--7"></span>
+                      <span class="pip pip--8"></span>
+                      <span class="pip pip--9"></span>
+                    </div>
+                  </div>
+                  <div class="dice-face dice-face--6">
+                    <div class="dice-face-grid">
+                      <span class="pip pip--1"></span>
+                      <span class="pip pip--2"></span>
+                      <span class="pip pip--3"></span>
+                      <span class="pip pip--4"></span>
+                      <span class="pip pip--5"></span>
+                      <span class="pip pip--6"></span>
+                      <span class="pip pip--7"></span>
+                      <span class="pip pip--8"></span>
+                      <span class="pip pip--9"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <p class="dice-hint" id="diceHint">Roll the die</p>
+          </div>
+          <p class="turn-ready-hint" id="turnReadyHint" role="status" hidden></p>
+          <button type="button" class="btn btn--roll" id="btnRoll">Open your turn</button>
+          <p class="message" id="message" role="status" aria-live="polite"></p>
+        </aside>
+      </div>
+
+      <div
+        id="turnPopup"
+        class="turn-popup turn-popup--hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-hidden="true"
+        aria-labelledby="turnPopupTitle"
+      >
+        <div class="turn-popup__backdrop" aria-hidden="true"></div>
+        <div class="turn-popup__panel">
+          <h2 id="turnPopupTitle" class="turn-popup__title">Your go!</h2>
+          <p class="turn-popup__sub" id="turnPopupSub">Roll the 3D die, then move on the board.</p>
+          <div class="turn-popup__mover" id="turnMoverBox" aria-hidden="true">
+            <span class="turn-popup__avatar" id="turnPlayerAvatar"></span>
+          </div>
+          <div class="turn-popup__dice-wrap">
+            <div
+              class="dice turn-popup__dice"
+              id="turnPopupDice"
+              data-face="1"
+              role="img"
+              aria-label="Die"
+            >
+              <div class="dice-scene">
+                <div class="dice-cube" aria-hidden="true">
+                  <div class="dice-face dice-face--1">
+                    <div class="dice-face-grid">
+                      <span class="pip pip--1"></span>
+                      <span class="pip pip--2"></span>
+                      <span class="pip pip--3"></span>
+                      <span class="pip pip--4"></span>
+                      <span class="pip pip--5"></span>
+                      <span class="pip pip--6"></span>
+                      <span class="pip pip--7"></span>
+                      <span class="pip pip--8"></span>
+                      <span class="pip pip--9"></span>
+                    </div>
+                  </div>
+                  <div class="dice-face dice-face--2">
+                    <div class="dice-face-grid">
+                      <span class="pip pip--1"></span>
+                      <span class="pip pip--2"></span>
+                      <span class="pip pip--3"></span>
+                      <span class="pip pip--4"></span>
+                      <span class="pip pip--5"></span>
+                      <span class="pip pip--6"></span>
+                      <span class="pip pip--7"></span>
+                      <span class="pip pip--8"></span>
+                      <span class="pip pip--9"></span>
+                    </div>
+                  </div>
+                  <div class="dice-face dice-face--3">
+                    <div class="dice-face-grid">
+                      <span class="pip pip--1"></span>
+                      <span class="pip pip--2"></span>
+                      <span class="pip pip--3"></span>
+                      <span class="pip pip--4"></span>
+                      <span class="pip pip--5"></span>
+                      <span class="pip pip--6"></span>
+                      <span class="pip pip--7"></span>
+                      <span class="pip pip--8"></span>
+                      <span class="pip pip--9"></span>
+                    </div>
+                  </div>
+                  <div class="dice-face dice-face--4">
+                    <div class="dice-face-grid">
+                      <span class="pip pip--1"></span>
+                      <span class="pip pip--2"></span>
+                      <span class="pip pip--3"></span>
+                      <span class="pip pip--4"></span>
+                      <span class="pip pip--5"></span>
+                      <span class="pip pip--6"></span>
+                      <span class="pip pip--7"></span>
+                      <span class="pip pip--8"></span>
+                      <span class="pip pip--9"></span>
+                    </div>
+                  </div>
+                  <div class="dice-face dice-face--5">
+                    <div class="dice-face-grid">
+                      <span class="pip pip--1"></span>
+                      <span class="pip pip--2"></span>
+                      <span class="pip pip--3"></span>
+                      <span class="pip pip--4"></span>
+                      <span class="pip pip--5"></span>
+                      <span class="pip pip--6"></span>
+                      <span class="pip pip--7"></span>
+                      <span class="pip pip--8"></span>
+                      <span class="pip pip--9"></span>
+                    </div>
+                  </div>
+                  <div class="dice-face dice-face--6">
+                    <div class="dice-face-grid">
+                      <span class="pip pip--1"></span>
+                      <span class="pip pip--2"></span>
+                      <span class="pip pip--3"></span>
+                      <span class="pip pip--4"></span>
+                      <span class="pip pip--5"></span>
+                      <span class="pip pip--6"></span>
+                      <span class="pip pip--7"></span>
+                      <span class="pip pip--8"></span>
+                      <span class="pip pip--9"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <p class="turn-popup__dice-hint" id="turnDiceHint">Ready to roll!</p>
+          </div>
+          <div class="turn-popup__actions">
+            <button type="button" class="btn btn--primary turn-popup__btn" id="btnTurnRoll">Roll the dice</button>
+            <button type="button" class="btn btn--roll turn-popup__btn" id="btnTurnMove" hidden>Move 0 spaces</button>
+          </div>
+        </div>
+      </div>
+
+      <div
+        id="snakeQuiz"
+        class="snake-quiz snake-quiz--hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-hidden="true"
+        aria-labelledby="snakeQuizTitle"
+      >
+        <div class="snake-quiz__backdrop" aria-hidden="true"></div>
+        <div class="snake-quiz__panel">
+          <h3 id="snakeQuizTitle" class="snake-quiz__title">Quick maths — beat the snake!</h3>
+          <p class="snake-quiz__hint">Get it right to stay on your square. Wrong answer, and you’ll slide down.</p>
+          <p class="snake-quiz__q" id="snakeQuizText" aria-live="assertive">2 + 2 = ?</p>
+          <div class="snake-quiz__opts" id="snakeQuizOptions" role="group" aria-label="Answer choices"></div>
+        </div>
+      </div>
+
+      <div
+        id="jumpPopup"
+        class="jump-popup jump-popup--hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-hidden="true"
+        aria-labelledby="jumpPopupTitle"
+      >
+        <div class="jump-popup__backdrop" aria-hidden="true"></div>
+        <div class="jump-popup__panel">
+          <h3 id="jumpPopupTitle" class="jump-popup__title">Up the ladder!</h3>
+          <div class="jump-popup__stage" id="jumpPopupStage" aria-hidden="true">
+            <div class="jump-popup__decor" id="jumpPopupDecor">🪜</div>
+            <div class="jump-popup__track" id="jumpPopupTrack">
+              <div class="jump-popup__mover" id="jumpPopupMover">
+                <span class="jump-popup__avatar" id="jumpPopupAvatar"></span>
+              </div>
+            </div>
+          </div>
+          <p class="jump-popup__meta" id="jumpPopupMeta"></p>
+          <p class="jump-popup__tap" id="jumpPopupTap">Tap outside the box or press Escape to skip</p>
+        </div>
+      </div>
+
+      <div
+        id="treasurePopup"
+        class="treasure-popup treasure-popup--hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="treasurePopupTitle"
+        aria-hidden="true"
+      >
+        <div class="treasure-popup__backdrop" aria-hidden="true"></div>
+        <div class="treasure-popup__panel">
+          <h3 id="treasurePopupTitle" class="treasure-popup__title">Hidden treasure!</h3>
+          <p class="treasure-popup__lead" id="treasurePopupLead">You’ve found a prize!</p>
+          <div class="treasure-popup__stage" aria-hidden="true">
+            <div class="treasure-chest-outer" id="treasureChest">
+              <div class="treasure-chest" aria-hidden="true">
+                <div class="treasure-chest__sparkle treasure-chest__sparkle--1">✦</div>
+                <div class="treasure-chest__sparkle treasure-chest__sparkle--2">✦</div>
+                <div class="treasure-chest__base"></div>
+                <div class="treasure-chest__gift" aria-hidden="true">🎁</div>
+                <div class="treasure-chest__hinge">
+                  <div class="treasure-chest__lid"></div>
+                  <div class="treasure-chest__lock"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="treasure-popup__prize" id="treasurePopupPrize" aria-live="polite"></p>
+          <button type="button" class="btn btn--primary treasure-popup__ok" id="btnTreasureOk">Yay! OK</button>
+          <p class="treasure-popup__tap">Tap outside or press Escape to close</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="screenWin" class="screen screen--hidden" hidden>
+      <div class="win-card" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+        <h2 id="winTitle" class="win-title">We have a winner!</h2>
+        <p class="win-name" id="winName">Player 1</p>
+        <p class="win-sub" id="winSub">reached the finish first!</p>
+        <div class="win-actions">
+          <button type="button" class="btn btn--primary" id="btnPlayAgain">Play again</button>
+          <a class="back-link back-btn win-actions__back" href="../portal.html" aria-label="Back to all games"><span class="back-btn__icon" aria-hidden="true">&#8592;</span><span class="back-btn__text">Back</span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="../js/score-config.js"></script>
+  <script src="../js/kids-core.js?v=2"></script>
+<script src="../js/wondii-session.js?v=1"></script>
+  <script src="../js/score-cloud.js?v=13"></script>
+  <script src="../js/game-scorecard.js?v=2"></script>
+  <script src="snakes-ladders.js?v=3"></script>
+  <script src="wondii-shell.js?v=3" defer></script>
+</body>
+</html>

@@ -1,0 +1,214 @@
+/* Grid link puzzle — rotate the board, drag the cub to the star */
+.page-link-grid {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  font-family: "Nunito", "Avenir Next", Avenir, sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+  color: #555;
+  background: #f0f9ff;
+  min-height: 100dvh;
+}
+
+.page-link-grid *,
+.page-link-grid *::before,
+.page-link-grid *::after {
+  box-sizing: border-box;
+}
+
+.link-grid-app {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.link-grid-nav {
+  position: relative;
+  z-index: 6;
+  padding: 8px 10px 4px;
+  flex-shrink: 0;
+}
+
+.link-grid-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  color: #0f766e;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.link-grid-back:hover {
+  color: #0ea5e9;
+}
+
+.link-grid-playfield {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.page-link-grid canvas {
+  cursor: move;
+  display: block;
+  position: absolute;
+  max-width: 100%;
+  left: 0;
+  top: 0;
+}
+
+.page-link-grid.is-cub-hovered,
+.page-link-grid.is-cub-hovered canvas {
+  cursor: -webkit-grab;
+  cursor: grab;
+}
+
+.page-link-grid.is-cub-dragging,
+.page-link-grid.is-cub-dragging canvas {
+  cursor: -webkit-grabbing;
+  cursor: grabbing;
+}
+
+.page-link-grid .instruction {
+  padding: 0 10px;
+  text-align: center;
+  position: absolute;
+  width: 100%;
+  padding-bottom: 40px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.page-link-grid .button {
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 18px;
+  padding: 6px 16px;
+  margin: 8px;
+  background: #94a3b8;
+  color: #fff;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+}
+
+.page-link-grid .button:hover {
+  background: #0ea5e9;
+}
+
+.page-link-grid .top-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 4;
+}
+
+.page-link-grid .level-select-button {
+  position: relative;
+  z-index: 2;
+}
+
+.page-link-grid .next-level-button {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-110px) scale(0.5);
+  opacity: 0;
+  background: #0ea5e9;
+  width: 200px;
+  height: 80px;
+  pointer-events: none;
+  transition: transform 0.2s, opacity 0.2s;
+  z-index: 2;
+}
+
+.page-link-grid .next-level-button:hover {
+  background: #38bdf8;
+}
+
+.page-link-grid .next-level-button.is-open {
+  display: inline-block;
+  pointer-events: auto;
+  transform: translateX(-110px) scale(1);
+  opacity: 1;
+}
+
+/* level list */
+.page-link-grid .level-list {
+  position: absolute;
+  background: #e2e8f0;
+  width: 100%;
+  min-height: 100%;
+  left: 0;
+  top: 0;
+  margin: 0;
+  list-style: none;
+  padding: 12px 10px 80px;
+  z-index: 5;
+  left: -100%;
+  transition: left 0.2s;
+  overflow-y: auto;
+}
+
+.page-link-grid .level-list.is-open {
+  left: 0;
+}
+
+.page-link-grid .level-list__item {
+  display: inline-block;
+  background: #cbd5e1;
+  margin: 5px;
+  padding: 10px;
+  width: 80px;
+  height: 80px;
+  text-align: center;
+  border-radius: 10px;
+  position: relative;
+  vertical-align: top;
+}
+
+.page-link-grid .level-list__item:hover {
+  color: #0284c7;
+  cursor: pointer;
+  background: #fff;
+}
+
+.page-link-grid .level-list__item.is-playing {
+  background: #0ea5e9;
+  color: #fff;
+}
+
+.page-link-grid .level-list__item__number {
+  display: block;
+  font-size: 26px;
+  line-height: 32px;
+}
+
+.page-link-grid .level-list__item__blurb {
+  display: block;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.page-link-grid .level-list__item__check {
+  position: absolute;
+  right: -8px;
+  top: -8px;
+  width: 28px;
+  line-height: 28px;
+  background: #475569;
+  border-radius: 14px;
+  color: #fff;
+  display: none;
+  font-size: 14px;
+}
+
+.page-link-grid .level-list__item.did-complete .level-list__item__check {
+  display: block;
+}
+
+.page-link-grid .levels {
+  display: none;
+}

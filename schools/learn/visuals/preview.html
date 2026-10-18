@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wondii living adventure · 9.8B</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
+  <style>
+    body { margin: 0; background: #141b4d; color: #fff; font-family: Nunito, sans-serif; }
+    main { width: min(1180px, calc(100% - 28px)); margin: 0 auto; padding: 24px 0 72px; }
+    h1, h2, h3 { font-family: Fredoka, Nunito, sans-serif; font-weight: 600; }
+    h1 { font-size: clamp(1.8rem, 3vw, 2.4rem); margin: 0 0 8px; }
+    .lead { max-width: 46rem; color: #d7def5; line-height: 1.45; }
+    .pair, .cast { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    figure { margin: 0 0 18px; }
+    figcaption { font-weight: 800; margin-top: 6px; }
+    .shot { position: relative; aspect-ratio: 16/9; border-radius: 18px; overflow: hidden; background: #1c2748 center/cover no-repeat; }
+    .shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .panel { position: absolute; z-index: 2; right: 3%; top: 8%; width: min(420px, 46%); display: grid; gap: 10px; }
+    .panel h3 { margin: 0; font-size: clamp(1.3rem, 2vw, 1.7rem); text-shadow: 0 2px 8px rgba(20,27,77,.6); }
+    .choices { display: grid; gap: 8px; }
+    .choices button, .go {
+      min-height: 72px; border-radius: 18px; border: 2px solid rgba(255,255,255,.45);
+      background: rgba(20,27,77,.62); color: #fff; font: inherit; font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+      font-weight: 800; text-align: left; padding: 10px 16px; cursor: pointer;
+      backdrop-filter: blur(6px);
+    }
+    .choices button:focus-visible, .go:focus-visible { outline: 4px solid #ffc53d; outline-offset: 3px; }
+    .choices button.is-on { border-color: #ffc53d; background: rgba(20,27,77,.88); }
+    .note { background: rgba(20,27,77,.82); border-radius: 16px; padding: 12px 14px; line-height: 1.35; }
+    .note strong { display: block; font-family: Fredoka, Nunito, sans-serif; font-size: 1.15rem; }
+    .magma, .mark { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+    .magma path { stroke-dasharray: 280; stroke-dashoffset: 280; animation: rise 1.4s ease forwards; }
+    .mark { display: none; }
+    .is-down .mark { display: block; }
+    @keyframes rise { to { stroke-dashoffset: 0; } }
+    @media (prefers-reduced-motion: reduce) { .magma path { animation: none; stroke-dashoffset: 0; } }
+    .who { display: grid; grid-template-columns: 160px 1fr; gap: 16px; align-items: center; background: rgba(255,255,255,.08); border-radius: 20px; padding: 16px; margin: 12px 0 24px; }
+    .who .face { width: 160px; height: 200px; border-radius: 16px; background: #243056 center 20% / 300% 100% no-repeat; }
+    .crops { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .crops span { display: block; height: 180px; border-radius: 14px; background: #243056 center 30% / cover no-repeat; }
+    details { color: #d7def5; margin: 8px 0 20px; }
+    @media (max-width: 800px) {
+      .pair, .cast, .crops { grid-template-columns: 1fr; }
+      .panel { width: auto; left: 4%; right: 4%; top: auto; bottom: 4%; }
+      .who { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <p>Development review · pictures stay off for ordinary lessons</p>
+    <h1>Living adventure</h1>
+    <p class="lead">Phase 9.8B is waiting for a person to accept or reject it. Pupil-facing moments below use a first name and a role. Placeholders stay in the review notes.</p>
+    <h2>Character consistency</h2>
+    <div id="consistency"><p>Loading pictures…</p></div>
+    <h2>The class predicts</h2>
+    <div class="shot" id="stage"></div>
+    <h2>Where next</h2>
+    <div class="shot" id="route"></div>
+    <h2>Back on the lesson</h2>
+    <div class="note" id="rejoin"><strong>What the class still has to learn</strong>Magma is molten rock under the ground. Gas and pressure can force it upwards. Both routes come back to this.</div>
+    <h2>Someone in this class</h2>
+    <p class="lead" id="classNote"></p>
+    <div class="who" id="roleMoment"></div>
+    <h2>Someone else</h2>
+    <div class="who" id="dynamicMoment"></div>
+    <h2>The whole class</h2>
+    <div class="note"><strong>Scientists, make your prediction.</strong>Nobody is picked out. The class answers together.</div>
+    <details>
+      <summary>Review notes, not shown to pupils</summary>
+      <p id="devNotes"></p>
+    </details>
+  </main>
+  <script src="/js/visual-adventure.js?v=4"></script>
+  <script>
+    var Visuals = window.WondiiVisualAdventure;
+    var manifest = { assets: [] };
+    var stageMode = "ask";
+
+    function escapeHtml(value) {
+      return String(value || "").replace(/[&<>"]/g, function (ch) {
+        return { "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[ch];
+      });
+    }
+    function byId(id) {
+      var found = null;
+      (manifest.assets || []).forEach(function (item) { if (item.id === id) found = item; });
+      return found || {};
+    }
+    function url(id, file) {
+      return byId(id).publicUrl || file;
+    }
+    function pupilsNow() {
+      var book = null;
+      try { book = JSON.parse(localStorage.getItem("wondii-school-classes") || "null"); } catch (e) { book = null; }
+      var classes = book && book.classes || [];
+      var wanted = new URLSearchParams(location.search).get("class");
+      var room = null;
+      classes.forEach(function (item) {
+        if (!room && (!wanted || item.id === wanted)) room = item;
+      });
+      return { room: room, people: Visuals.participantsFromRoom(room, []) };
+    }
+    function crop(src, position, zoom) {
+      return "<span style=\"background-image:url('" + escapeHtml(src) + "');background-position:" + position + ";background-size:" + zoom + "\"></span>";
+    }
+    function consistency() {
+      var frames = [
+        [url("characters", "/schools/learn/visuals/characters-98b.jpg"), ["12% 22%", "50% 22%", "88% 22%"], "260% auto"],
+        [url("opening", "/schools/learn/visuals/opening-98b.jpg"), ["58% 48%", "72% 46%", "88% 48%"], "280% auto"],
+        [url("discovery", "/schools/learn/visuals/discovery-98b.jpg"), ["8% 6%", "18% 5%", "30% 6%"], "360% auto"],
+        [url("resolution", "/schools/learn/visuals/resolution-98b.jpg"), ["16% 30%", "46% 32%", "78% 30%"], "240% auto"]
+      ];
+      var letters = ["A", "B", "C"];
+      document.getElementById("consistency").innerHTML = letters.map(function (letter, index) {
+        return "<figure><figcaption>Character " + letter + "</figcaption><div class=\"crops\">" +
+          frames.map(function (frame) { return crop(frame[0], frame[1][index], frame[2]); }).join("") +
+          "</div><p class=\"lead\">Sheet, arrival, discovery, resolution. Not approved.</p></figure>";
+      }).join("");
+    }
+    function choiceById(check, id) {
+      var found = check.choices[0];
+      check.choices.forEach(function (choice) { if (choice.id === id) found = choice; });
+      return found;
+    }
+    function overlay(mode) {
+      var check = Visuals.pressureInteraction();
+      var art = url("discovery", "/schools/learn/visuals/discovery-98b.jpg");
+      var visual = "";
+      var body = "";
+      var chosen = choiceById(check, mode);
+      if (mode === "correct" || mode === check.correctChoice) {
+        visual = "<svg class=\"magma\" viewBox=\"0 0 1600 900\" aria-hidden=\"true\"><path d=\"M620 760 C640 620 700 520 760 430 C800 360 830 280 860 180\" fill=\"none\" stroke=\"#ffb020\" stroke-width=\"28\" stroke-linecap=\"round\"/></svg>";
+        body = "<div class=\"note\" role=\"status\"><strong>Discovery made</strong>" + escapeHtml(check.explain) + " " + escapeHtml(chosen.consequence || "New evidence has been added to the investigation.") + "</div><button type=\"button\" class=\"go\" id=\"again\">Continue investigation</button>";
+      } else if (mode === "wrong" || mode === "sink" || mode === "cool") {
+        var sink = mode === "sink" || mode === "wrong";
+        visual = sink
+          ? "<svg class=\"mark\" viewBox=\"0 0 1600 900\" aria-hidden=\"true\"><path d=\"M780 220 L780 520\" stroke=\"#ffc53d\" stroke-width=\"18\" stroke-linecap=\"round\"/><path d=\"M740 470 L780 540 L820 470\" fill=\"none\" stroke=\"#ffc53d\" stroke-width=\"18\" stroke-linecap=\"round\"/></svg>"
+          : "<svg class=\"mark\" viewBox=\"0 0 1600 900\" aria-hidden=\"true\"><circle cx=\"760\" cy=\"640\" r=\"70\" fill=\"none\" stroke=\"#ffb020\" stroke-width=\"16\"/><circle cx=\"820\" cy=\"600\" r=\"28\" fill=\"none\" stroke=\"#ffb020\" stroke-width=\"12\"/></svg>";
+        body = "<div class=\"note\" role=\"status\"><strong>Something doesn't match the evidence</strong>" + escapeHtml((mode === "wrong" ? choiceById(check, "sink") : chosen).feedback) + "</div><button type=\"button\" class=\"go\" id=\"retry\">Look again</button>";
+      } else {
+        body = "<h3>The pressure is building</h3><p>What do you predict will happen next?</p><div class=\"choices\" role=\"group\" aria-label=\"Prediction\">" +
+          check.choices.map(function (choice) {
+            return "<button type=\"button\" data-choice=\"" + escapeHtml(choice.id) + "\">" + escapeHtml(choice.text) + "</button>";
+          }).join("") + "</div>";
+      }
+      var root = document.getElementById("stage");
+      root.className = "shot" + (mode === "wrong" || mode === "sink" || mode === "cool" ? " is-down" : "");
+      root.innerHTML = "<img alt=\"\" src=\"" + escapeHtml(art) + "\" />" + visual + "<div class=\"panel\">" + body + "</div>";
+      var buttons = root.querySelectorAll("[data-choice]");
+      Array.prototype.forEach.call(buttons, function (button) {
+        button.addEventListener("click", function () {
+          var id = button.getAttribute("data-choice");
+          Array.prototype.forEach.call(buttons, function (other) { other.classList.toggle("is-on", other === button); });
+          button.setAttribute("aria-pressed", "true");
+          var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          window.setTimeout(function () { overlay(id); }, reduce ? 0 : 420);
+        });
+      });
+      var retry = document.getElementById("retry");
+      if (retry) retry.addEventListener("click", function () { overlay("correct"); });
+      var again = document.getElementById("again");
+      if (again) again.addEventListener("click", function () { overlay("ask"); });
+    }
+    function route(which) {
+      var choice = Visuals.routeChoice();
+      var station = url("resolution", "/schools/learn/visuals/resolution-98b.jpg");
+      var rocks = url("opening", "/schools/learn/visuals/opening-98b.jpg");
+      var src = which === "rocks" ? rocks : (which === "station" ? station : station);
+      var copy = which === "rocks"
+        ? "<div class=\"note\"><strong>Rock sample site</strong>The team looks at the cracked ground beside the harbour. The same volcano is still the question.</div>"
+        : (which === "station"
+          ? "<div class=\"note\"><strong>Monitoring station</strong>The team goes inside. The same volcano is outside the window.</div>"
+          : "<h3>Where should the team investigate next?</h3><div class=\"choices\"><button type=\"button\" data-route=\"station\">Monitoring station</button><button type=\"button\" data-route=\"rocks\">Rock sample site</button></div>");
+      var root = document.getElementById("route");
+      root.innerHTML = "<img alt=\"\" src=\"" + escapeHtml(src) + "\" style=\"" + (which === "rocks" ? "object-position:20% 80%" : "") + "\" /><div class=\"panel\">" + copy +
+        (which ? "<button type=\"button\" class=\"go\" id=\"rejoinBtn\">Back to the lesson</button>" : "") + "</div>";
+      Array.prototype.forEach.call(root.querySelectorAll("[data-route]"), function (button) {
+        button.addEventListener("click", function () { route(button.getAttribute("data-route")); });
+      });
+      var back = document.getElementById("rejoinBtn");
+      if (back) back.addEventListener("click", function () {
+        document.getElementById("rejoin").scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+    }
+    function people() {
+      var loaded = pupilsNow();
+      var people = loaded.people;
+      var note = document.getElementById("classNote");
+      if (!people.length) {
+        note.textContent = "No class is saved in this browser yet. Open the page where you teach, then come back. Names are read from that class at the moment the adventure starts. They are not written into the lesson or the pictures.";
+        document.getElementById("roleMoment").innerHTML = "<div><h3>Lead Scientist</h3><p>The monitoring station has detected the first tremor. What should the team investigate first?</p></div>";
+        document.getElementById("dynamicMoment").innerHTML = "<div><p>Mission Control needs another researcher.</p><p>Look at the magma chamber. What do you predict happens next?</p></div>";
+        document.getElementById("devNotes").textContent = "No pupil names were available in this browser. The assignment code still runs in tests without calling an image model.";
+        return;
+      }
+      var session = Visuals.sessionRoleAssignments(people, Visuals.rolePlaceholders());
+      var lead = session.roles[0];
+      var next = Visuals.nextDynamicPupil(people, session, Visuals.participationState(session));
+      var face = url("characters", "/schools/learn/visuals/characters-98b.jpg");
+      note.textContent = (loaded.room && loaded.room.name ? loaded.room.name + ". " : "") + "These names come from the class saved in this browser. Changing who is here changes the names only.";
+      document.getElementById("roleMoment").innerHTML =
+        "<div class=\"face\" style=\"background-image:url('" + escapeHtml(face) + "');background-position:12% 18%;background-size:260% auto\"></div>" +
+        "<div><p>Mission control</p><h3>Lead Scientist required</h3><h3>" + escapeHtml(lead.displayName) + "</h3><p>You're our Lead Scientist.</p><p>The monitoring station has detected the first tremor. What should the team investigate first?</p></div>";
+      document.getElementById("dynamicMoment").innerHTML = next
+        ? "<div><p>Mission Control needs another researcher.</p><h3>" + escapeHtml(next.displayName) + "</h3><p>" + escapeHtml(next.task) + "</p></div>"
+        : "<div><p>Everyone here already has a part in this moment.</p></div>";
+      document.getElementById("devNotes").textContent = "Runtime map uses pupil ids, not names, inside the saved lesson. Placeholders stay in the story. This note is the only place those tokens are mentioned.";
+    }
+    var asked = location.hash.replace("#", "");
+    fetch("/schools/learn/visuals/volcano-98b.json", { cache: "no-store" }).then(function (response) {
+      return response.ok ? response.json() : { assets: [] };
+    }).catch(function () { return { assets: [] }; }).then(start);
+    function start(data) {
+      manifest = data || manifest;
+      consistency();
+      overlay(asked === "correct" || asked === "wrong" ? asked : "ask");
+      route(asked === "station" || asked === "rocks" ? asked : "");
+      people();
+      if (asked === "station" || asked === "rocks") {
+        document.querySelectorAll("h2").forEach(function (heading) {
+          if (heading.textContent !== "Where next" && heading.textContent !== "Back on the lesson") heading.hidden = true;
+        });
+        document.getElementById("consistency").hidden = true;
+        document.getElementById("stage").hidden = true;
+        document.getElementById("roleMoment").hidden = true;
+        document.getElementById("dynamicMoment").hidden = true;
+      }
+    }
+  </script>
+</body>
+</html>

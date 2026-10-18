@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#2d6a4f" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Number path — Wondii</title>
+  <link rel="manifest" href="../manifest.json" />
+  <link rel="stylesheet" href="../js/kids-core.css" />
+  <link rel="stylesheet" href="../js/game-scorecard.css" />
+  <link rel="stylesheet" href="math-race.css" />
+  <link rel="stylesheet" href="../tablet-ipad.css" />
+  <link rel="stylesheet" href="wondii-shell.css?v=4" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/wondii-tokens.css?v=2" />
+  <link rel="stylesheet" href="../css/wondii-p1.css?v=9" />
+</head>
+<body class="page-math">
+  <div class="app app--setup" id="app">
+    <nav class="game-nav" aria-label="Breadcrumb">
+      <a class="back-link back-btn" href="../portal.html" aria-label="Back to all games"><span class="back-btn__icon" aria-hidden="true">&#8592;</span><span class="back-btn__text">Back</span></a>
+    </nav>
+
+    <div id="screenSetup" class="screen">
+      <header class="page-header page-header--race">
+        <div class="page-header__art" aria-hidden="true">
+          <img
+            class="page-header__img"
+            src="images/math-race-park-wide.png"
+            alt=""
+            width="1024"
+            height="510"
+            decoding="async"
+          />
+        </div>
+        <div class="page-header__text">
+          <h1>Number path</h1>
+          <p>
+            Race the dinosaur! Get a one-step head start, then answer each sum or take-away before it can catch you.
+            Every correct answer moves you forward on the path.
+          </p>
+        </div>
+      </header>
+
+      <section class="card" aria-labelledby="lblLevel">
+        <h2 id="lblLevel">How tricky?</h2>
+        <div class="choice-row" role="group" aria-label="Difficulty level">
+          <label class="radio-tile">
+            <input type="radio" name="level" value="0" checked />
+            <span class="radio-tile__title">Step 1</span>
+            <span class="radio-tile__hint">0–5, adding</span>
+          </label>
+          <label class="radio-tile">
+            <input type="radio" name="level" value="1" />
+            <span class="radio-tile__title">Step 2</span>
+            <span class="radio-tile__hint">0–10, + and −</span>
+          </label>
+          <label class="radio-tile">
+            <input type="radio" name="level" value="2" />
+            <span class="radio-tile__title">Step 3</span>
+            <span class="radio-tile__hint">0–20, + and −</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="lblPath">
+        <h2 id="lblPath">How long is the path?</h2>
+        <div class="choice-row" role="group" aria-label="Number of steps to the finish">
+          <label class="radio-tile">
+            <input type="radio" name="pathLen" value="6" />
+            <span class="radio-tile__title">Short</span>
+            <span class="radio-tile__hint">6 steps</span>
+          </label>
+          <label class="radio-tile">
+            <input type="radio" name="pathLen" value="10" checked />
+            <span class="radio-tile__title">Medium</span>
+            <span class="radio-tile__hint">10 steps</span>
+          </label>
+          <label class="radio-tile">
+            <input type="radio" name="pathLen" value="15" />
+            <span class="radio-tile__title">Longer</span>
+            <span class="radio-tile__hint">15 steps</span>
+          </label>
+        </div>
+        <p class="card__hint">
+          <label class="checkbox-line">
+            <input type="checkbox" id="pictureHelp" />
+            <span>Picture help — show little dots for adding and taking away (up to 10/12)</span>
+          </label>
+        </p>
+      </section>
+
+      <section class="card" aria-labelledby="lblChar">
+        <h2 id="lblChar">Who is playing?</h2>
+        <p class="card__hint card__hint--tight" id="charSectionHint">
+          You race the dinosaur. After your turn, it tries a question — stay ahead on the path!
+        </p>
+        <div class="char-block" aria-label="Runner">
+          <p class="char-sofia-lock__name">You</p>
+        </div>
+      </section>
+
+      <section class="gsc" aria-labelledby="mathscTitle">
+        <h2 id="mathscTitle" class="gsc__title">Score card</h2>
+        <p class="gsc__hint" id="mathscHint" hidden>
+          Counts races <strong>won</strong> vs the dinosaur and times it <strong>caught you</strong>. Saved here — copy/paste to move.
+        </p>
+        <div class="gsc__grid gsc__grid--cols2">
+          <div class="gsc__block">
+            <ul class="gsc__list">
+              <li><span class="gsc__label">Races won</span> <strong id="mathscWin">0</strong></li>
+            </ul>
+          </div>
+          <div class="gsc__block">
+            <ul class="gsc__list">
+              <li><span class="gsc__label">Caught by dino</span> <strong id="mathscLoss">0</strong></li>
+            </ul>
+          </div>
+        </div>
+        <div class="gsc__actions">
+          <button type="button" class="gsc__btn" id="mathscCopy">Copy scores</button>
+          <button type="button" class="gsc__btn" id="mathscPaste">Paste scores</button>
+          <button type="button" class="gsc__btn gsc__btn--danger" id="mathscReset">Reset scores</button>
+        </div>
+      </section>
+
+      <button type="button" class="btn-primary" id="btnStart">Start the path</button>
+    </div>
+
+    <div id="screenPlay" class="screen is-hidden" hidden>
+      <div class="play-top">
+        <p class="play-level" id="playLevelLabel" aria-live="polite">Step 1</p>
+        <p class="play-turn" id="playTurn" aria-live="polite"></p>
+        <p class="play-progress" id="playProgress" aria-live="polite">Step 0 of 10 on the path</p>
+        <button type="button" class="btn-text" id="btnQuit">Quit to menu</button>
+      </div>
+
+      <div class="play-layout">
+      <div class="play-race-wrap">
+      <div class="race-stage" id="raceStage" aria-label="Race to the finish">
+        <div class="race-park-pane" aria-hidden="true"></div>
+        <div class="race-sky" aria-hidden="true"></div>
+        <div class="race-sun" aria-hidden="true"></div>
+        <div class="race-hill race-hill--1" aria-hidden="true"></div>
+        <div class="race-hill race-hill--2" aria-hidden="true"></div>
+        <div class="race-cloud race-cloud--a" aria-hidden="true"></div>
+        <div class="race-cloud race-cloud--b" aria-hidden="true"></div>
+        <div class="race-cloud race-cloud--c" aria-hidden="true"></div>
+        <div class="race-cloud race-cloud--d" aria-hidden="true"></div>
+        <div class="race-canopy race-canopy--l" aria-hidden="true"></div>
+        <div class="race-canopy race-canopy--r" aria-hidden="true"></div>
+        <div class="race-bird race-bird--1" aria-hidden="true"></div>
+        <div class="race-bird race-bird--2" aria-hidden="true"></div>
+        <div class="race-ground" aria-hidden="true"></div>
+        <div class="race-path-shell">
+          <div class="race-ribbon">
+            <div class="race-ribbon__inner">
+              <div class="race-lane" id="raceLane">
+                <div class="race-dashes" id="raceDashes" aria-hidden="true"></div>
+                <span class="race-flag race-flag--start race-flag--on-path" id="flagStart" aria-hidden="true">Start</span>
+                <div class="race-finish-tape race-flag--on-path" id="flagEnd" aria-hidden="true">
+                  <img
+                    class="race-finish-tape__img"
+                    src="images/math-race-finish-line.png"
+                    alt=""
+                    width="120"
+                    height="80"
+                    decoding="async"
+                  />
+                </div>
+                <div class="race-steps" id="raceSteps" role="list"></div>
+                <div class="race-runners" id="raceRunners"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+
+      <aside
+        class="math-hud"
+        id="questionModal"
+        aria-label="Answer area"
+        aria-labelledby="questionTurnTitle"
+      >
+        <div
+          class="math-hud__panel question-card question-modal__panel"
+          role="region"
+          aria-labelledby="questionTurnTitle"
+        >
+        <h2 class="math-hud__title question-modal__turn" id="questionTurnTitle">Your turn</h2>
+        <p class="question" id="questionText" aria-live="polite">0 + 0 = ?</p>
+        <div id="questionDots" class="question-dots" hidden aria-hidden="true"></div>
+        <p class="mc-hint" id="mcHint" aria-hidden="true">Tap an answer, or press 1–4 on the keyboard</p>
+        <div class="mc-grid math-hud__choices" id="choiceGrid" role="group" aria-label="Answer choices"></div>
+        <p class="feedback" id="feedbackText" role="status" aria-live="assertive"></p>
+        </div>
+      </aside>
+      </div>
+
+      <div
+        class="dino-correct-popup"
+        id="dinoCorrectPopup"
+        role="status"
+        aria-live="assertive"
+        aria-atomic="true"
+        hidden
+      >
+        <div class="dino-correct-popup__backdrop" aria-hidden="true"></div>
+        <div class="dino-correct-popup__card">
+          <p class="dino-correct-popup__mascot" aria-hidden="true">🦖</p>
+          <p class="dino-correct-popup__title">The dinosaur got it right!</p>
+          <p class="dino-correct-popup__line" id="dinoCorrectLine">It picked the right answer.</p>
+          <p class="dino-correct-popup__hint">Tap to continue</p>
+        </div>
+      </div>
+
+      <div
+        class="sofia-correct-popup"
+        id="sofiaCorrectPopup"
+        role="status"
+        aria-live="assertive"
+        aria-atomic="true"
+        hidden
+      >
+        <div class="sofia-correct-popup__backdrop" aria-hidden="true"></div>
+        <div class="sofia-correct-popup__card">
+          <p class="sofia-correct-popup__mascot" aria-hidden="true">🏃‍♀️</p>
+          <p class="sofia-correct-popup__title" id="sofiaCorrectTitle">You got it right!</p>
+          <p class="sofia-correct-popup__line" id="sofiaCorrectLine">Great answer — you move forward!</p>
+          <p class="sofia-correct-popup__hint">Tap to continue</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="screenWin" class="screen is-hidden" hidden>
+      <div class="win-card">
+        <div class="win-stars" aria-hidden="true">⭐ ⭐ ⭐</div>
+        <h2 id="winTitle">You made it!</h2>
+        <p id="winMessage">You finished the path. Brilliant!</p>
+        <div class="win-actions">
+          <button type="button" class="btn-primary" id="btnPlayAgain">Play again</button>
+          <button type="button" class="btn-secondary" id="btnMenu">Change level or friend</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="screenLose" class="screen is-hidden" hidden>
+      <div class="lose-card lose-card--dino" id="loseCard">
+        <div class="lose-mascot" aria-hidden="true">🦖</div>
+        <h2 id="loseTitle">Oh no!</h2>
+        <p id="loseMessage">The dinosaur caught up to you. Try again — you can do it!</p>
+        <div class="win-actions">
+          <button type="button" class="btn-primary" id="btnLoseAgain">Try again</button>
+          <button type="button" class="btn-secondary" id="btnLoseMenu">Back to menu</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="../js/score-config.js"></script>
+  <script src="../js/kids-core.js?v=2" defer></script>
+<script src="../js/wondii-session.js?v=1" defer></script>
+  <script src="../js/score-cloud.js?v=13" defer></script>
+  <script src="../js/game-scorecard.js?v=2" defer></script>
+  <script src="math-race.js?v=2" defer></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("../sw.js").catch(function () {});
+    }
+  </script>
+  <script src="wondii-shell.js?v=3" defer></script>
+</body>
+</html>

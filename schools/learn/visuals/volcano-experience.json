@@ -1,0 +1,185 @@
+{
+  "prototype": "year5-volcano-9.8a",
+  "enabledGlobally": false,
+  "provider": "openai",
+  "model": "gpt-image-2.5-sunburst",
+  "dimensions": "1536x864",
+  "totalMs": 74294,
+  "assets": [
+    {
+      "id": "opening",
+      "type": "story_scene",
+      "status": "ready",
+      "fallback": false,
+      "storagePath": "c90e0da5-3ba7-4c25-9e78-9519ffbc6f39/year5-volcano-9.8a/opening-b80e50b2.jpg",
+      "publicUrl": "https://enuzrcjnrxwglacivlnu.supabase.co/storage/v1/object/public/wondii_adventure_visuals/c90e0da5-3ba7-4c25-9e78-9519ffbc6f39/year5-volcano-9.8a/opening-b80e50b2.jpg",
+      "visualBriefHash": "b80e50b2",
+      "provider": "openai",
+      "model": "gpt-image-2.5-sunburst",
+      "dimensions": "1536x864",
+      "quality": "high",
+      "bytes": 286929,
+      "ms": 33342,
+      "usage": {
+        "input_tokens": 2565,
+        "input_tokens_details": {
+          "image_tokens": 1688,
+          "text_tokens": 877
+        },
+        "output_tokens": 1078,
+        "output_tokens_details": {
+          "image_tokens": 1078,
+          "text_tokens": 0
+        },
+        "total_tokens": 3643
+      },
+      "promptStrategy": "wondii-style-reference-new-shot",
+      "brief": {
+        "sceneType": "story",
+        "setting": "",
+        "subjects": [],
+        "action": "",
+        "importantObjects": [],
+        "educationalFocus": "",
+        "mood": ""
+      },
+      "importantObjects": [],
+      "usedByScenes": [
+        "Arrival",
+        "Investigation"
+      ],
+      "shot": {
+        "shotType": "wide establishing",
+        "cameraAngle": "high, looking along the coast toward the volcano",
+        "cameraDistance": "far",
+        "characterFocus": "three small Wondii explorers in the mid-ground, part of the landscape",
+        "environmentFocus": "the whole town, harbour, lighthouse, and volcano",
+        "actionFocus": "arriving to investigate a faint crack and a tremor",
+        "educationalFocus": "a volcano above a living coastal town",
+        "uiSafeArea": "LOWER_LEFT",
+        "location": "exterior coast",
+        "continuityRequirements": "Establish the notched volcano, lighthouse, dome station, and yellow vehicle."
+      },
+      "uiSafeArea": "LOWER_LEFT",
+      "createdAt": "2026-09-30T21:35:00.357Z",
+      "fileBytes": 286929
+    },
+    {
+      "id": "discovery",
+      "type": "teaching_visual",
+      "status": "ready",
+      "fallback": false,
+      "storagePath": "c90e0da5-3ba7-4c25-9e78-9519ffbc6f39/year5-volcano-9.8a/discovery-65b99aee.jpg",
+      "publicUrl": "https://enuzrcjnrxwglacivlnu.supabase.co/storage/v1/object/public/wondii_adventure_visuals/c90e0da5-3ba7-4c25-9e78-9519ffbc6f39/year5-volcano-9.8a/discovery-65b99aee.jpg",
+      "visualBriefHash": "65b99aee",
+      "provider": "openai",
+      "model": "gpt-image-2.5-sunburst",
+      "dimensions": "1536x864",
+      "quality": "high",
+      "bytes": 272515,
+      "ms": 34891,
+      "usage": {
+        "input_tokens": 3884,
+        "input_tokens_details": {
+          "image_tokens": 2984,
+          "text_tokens": 900
+        },
+        "output_tokens": 1078,
+        "output_tokens_details": {
+          "image_tokens": 1078,
+          "text_tokens": 0
+        },
+        "total_tokens": 4962
+      },
+      "promptStrategy": "wondii-style-and-world-anchor-new-composition",
+      "brief": {
+        "sceneType": "story",
+        "setting": "",
+        "subjects": [],
+        "action": "",
+        "importantObjects": [],
+        "educationalFocus": "",
+        "mood": ""
+      },
+      "importantObjects": [],
+      "usedByScenes": [
+        "The Pressure Builds",
+        "Prediction",
+        "Application"
+      ],
+      "shot": {
+        "shotType": "educational cutaway",
+        "cameraAngle": "side section through the volcano",
+        "cameraDistance": "medium, science fills the frame",
+        "characterFocus": "the same explorers small at the crater rim, looking in",
+        "environmentFocus": "the inside of the volcano",
+        "actionFocus": "observing what is underground",
+        "educationalFocus": "magma chamber, gas pockets, pressure, and magma moving upward",
+        "uiSafeArea": "RIGHT",
+        "location": "volcano cross-section",
+        "continuityRequirements": "The outside silhouette of this same notched volcano stays recognisable. No labels."
+      },
+      "uiSafeArea": "RIGHT",
+      "createdAt": "2026-09-30T21:35:38.386Z",
+      "fileBytes": 272515
+    },
+    {
+      "id": "resolution",
+      "type": "resolution",
+      "status": "ready",
+      "fallback": false,
+      "storagePath": "c90e0da5-3ba7-4c25-9e78-9519ffbc6f39/year5-volcano-9.8a/resolution-f87f332b.jpg",
+      "publicUrl": "https://enuzrcjnrxwglacivlnu.supabase.co/storage/v1/object/public/wondii_adventure_visuals/c90e0da5-3ba7-4c25-9e78-9519ffbc6f39/year5-volcano-9.8a/resolution-f87f332b.jpg",
+      "visualBriefHash": "f87f332b",
+      "provider": "openai",
+      "model": "gpt-image-2.5-sunburst",
+      "dimensions": "1536x864",
+      "quality": "high",
+      "bytes": 228929,
+      "ms": 33412,
+      "usage": {
+        "input_tokens": 3895,
+        "input_tokens_details": {
+          "image_tokens": 2984,
+          "text_tokens": 911
+        },
+        "output_tokens": 1078,
+        "output_tokens_details": {
+          "image_tokens": 1078,
+          "text_tokens": 0
+        },
+        "total_tokens": 4973
+      },
+      "promptStrategy": "wondii-style-and-world-anchor-new-composition",
+      "brief": {
+        "sceneType": "story",
+        "setting": "",
+        "subjects": [],
+        "action": "",
+        "importantObjects": [],
+        "educationalFocus": "",
+        "mood": ""
+      },
+      "importantObjects": [],
+      "usedByScenes": [
+        "The Final Presentation",
+        "What we learned"
+      ],
+      "shot": {
+        "shotType": "medium-wide mission completion",
+        "cameraAngle": "inside the monitoring station, eye level",
+        "cameraDistance": "medium",
+        "characterFocus": "the same three explorers using their notes to explain the findings",
+        "environmentFocus": "the station interior, with the same volcano visible through a wide window",
+        "actionFocus": "completing the mission for the town",
+        "educationalFocus": "the investigation has reached its conclusion",
+        "uiSafeArea": "LOWER_RIGHT",
+        "location": "monitoring station interior",
+        "continuityRequirements": "Same faces, clothes, and signature items. The volcano, lighthouse, and yellow vehicle are visible outside. Do not return to the hillside camera."
+      },
+      "uiSafeArea": "LOWER_RIGHT",
+      "createdAt": "2026-09-30T21:35:36.996Z",
+      "fileBytes": 228929
+    }
+  ]
+}

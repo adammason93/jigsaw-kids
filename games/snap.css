@@ -1,0 +1,1275 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --snap-ink: #3b2f5c;
+  --snap-table: #7c3aed;
+  --snap-table-deep: #5b21b6;
+  --snap-table-light: #a78bfa;
+  --snap-p1: #0ea5e9;
+  --snap-p1-dark: #0284c7;
+  --snap-p2: #f472b6;
+  --snap-p2-dark: #db2777;
+  --snap-card-bg: #fffef7;
+  --snap-gold: #fbbf24;
+  --snap-coral: #fb7185;
+}
+
+html {
+  font-size: 16px;
+  -webkit-tap-highlight-color: transparent;
+  height: 100%;
+}
+
+body.page-snap {
+  margin: 0;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  font-family: "Nunito", "Segoe UI", system-ui, sans-serif;
+  color: var(--snap-ink);
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  background: linear-gradient(165deg, #fef9c3 0%, #fce7f3 35%, #e0f2fe 70%, #d9f99d 100%);
+}
+
+h1,
+.snap-header h1 {
+  font-family: "Sniglet", "Nunito", system-ui, sans-serif;
+}
+
+.app {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
+  max-width: min(1200px, 100%);
+  margin: 0 auto;
+  padding: 0.5rem 0.75rem 1.25rem;
+  padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
+  padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
+  padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
+  /* Clear fixed KidsCore bar (≈3rem controls + margin) + safe area */
+  padding-bottom: max(4.5rem, calc(0.5rem + env(safe-area-inset-bottom, 0px)));
+}
+
+/* setPlayMode(true) locks body scroll; app becomes the scrollport so play controls stay reachable. */
+html.kids-play-mode .page-snap .app {
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+.snap-screen--play {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.game-nav {
+  margin-bottom: 0.35rem;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  color: #7c3aed;
+  font-weight: 800;
+  text-decoration: none;
+  font-size: 0.88rem;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+.snap-screen.is-hidden {
+  display: none !important;
+}
+
+.snap-header {
+  text-align: center;
+  margin-bottom: 1rem;
+  padding: 0.75rem 0.85rem;
+  background: linear-gradient(180deg, #fff 0%, #fffbeb 100%);
+  border-radius: 20px;
+  border: 3px solid #f9a8d4;
+  box-shadow: 0 4px 0 rgba(244, 114, 182, 0.35), 0 8px 24px rgba(124, 58, 237, 0.12);
+}
+
+.snap-header h1 {
+  margin: 0 0 0.25rem;
+  font-size: clamp(1.55rem, 4vw, 2rem);
+  color: var(--snap-table-deep);
+  letter-spacing: 0.02em;
+}
+
+.snap-header__tagline {
+  margin: 0 auto;
+  max-width: 24rem;
+  font-size: 0.93rem;
+  font-weight: 700;
+  color: #5b4d7a;
+  line-height: 1.35;
+}
+
+.snap-header__q {
+  color: var(--snap-table-deep);
+}
+
+/* Full rules — sits above mute + settings (KidsCore bar scale) */
+.snap-rules-fab {
+  position: fixed;
+  z-index: 9010;
+  right: max(0.5rem, env(safe-area-inset-right, 0px));
+  bottom: calc(max(0.5rem, env(safe-area-inset-bottom, 0px)) + 3.35rem);
+  width: 3rem;
+  height: 3rem;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 0;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  font-family: "Sniglet", "Nunito", system-ui, sans-serif;
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1;
+  color: #5b21b6;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  background: linear-gradient(180deg, #fef3c7, #fde68a);
+}
+
+.snap-rules-fab:hover {
+  filter: brightness(1.04);
+}
+
+.snap-rules-fab:active {
+  transform: translateY(1px);
+}
+
+body.snap-rules-open {
+  overflow: hidden;
+}
+
+.snap-card--setup {
+  background: #fff;
+  border-radius: 20px;
+  padding: 1rem 1rem 1.15rem;
+  border: 3px solid #c4b5fd;
+  box-shadow: 0 4px 0 #a78bfa;
+}
+
+.snap-card--setup h2 {
+  font-family: "Sniglet", "Nunito", sans-serif;
+  margin: 0 0 0.75rem;
+  font-size: 1.12rem;
+  color: var(--snap-table-deep);
+}
+
+.snap-setup-sub {
+  font-family: "Sniglet", "Nunito", sans-serif;
+  margin: 1rem 0 0.5rem;
+  font-size: 0.95rem;
+  color: var(--snap-table-deep);
+  text-align: center;
+}
+
+.snap-setup-note {
+  margin: 0.5rem 0 0.85rem;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: #64748b;
+  text-align: center;
+  max-width: 36rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Character pickers (same cast as Noughts & crosses / Number path) */
+.snap-char-block {
+  margin: 0 0 0.9rem;
+}
+
+.snap-char-block:last-of-type {
+  margin-bottom: 0.5rem;
+}
+
+.snap-char-heading {
+  margin: 0 0 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--snap-table-deep);
+  text-align: center;
+}
+
+.snap-char-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.snap-char-opt {
+  position: relative;
+  width: 2.9rem;
+  height: 2.9rem;
+  padding: 0;
+  border: 3px solid #e9d5ff;
+  border-radius: 16px;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.12s, box-shadow 0.12s, transform 0.1s;
+  overflow: hidden;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.snap-char-opt__pic {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.snap-char-opt:focus-visible {
+  outline: 3px solid var(--snap-table);
+  outline-offset: 2px;
+}
+
+.snap-char-opt[aria-pressed="true"] {
+  border-color: var(--snap-table);
+  box-shadow: 0 3px 0 var(--snap-table-light);
+  transform: translateY(-1px);
+}
+
+.snap-char-opt:hover:not([aria-pressed="true"]) {
+  border-color: #c4b5fd;
+}
+
+.snap-char-opt--emoji {
+  font-size: 1.65rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.snap-choice-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-bottom: 1rem;
+}
+
+.snap-radio {
+  display: block;
+  padding: 0.7rem 0.8rem;
+  border-radius: 16px;
+  border: 3px solid #fde68a;
+  cursor: pointer;
+  background: #fffbeb;
+  transition: border-color 0.12s, background 0.12s, transform 0.1s;
+}
+
+.snap-radio:has(:checked) {
+  border-color: var(--snap-table);
+  background: #fff;
+  box-shadow: 0 3px 0 var(--snap-table-light);
+}
+
+.snap-radio input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.snap-radio__title {
+  display: block;
+  font-weight: 800;
+  color: var(--snap-table-deep);
+  font-size: 0.95rem;
+}
+
+.snap-radio__hint {
+  display: block;
+  font-size: 0.76rem;
+  color: #64748b;
+  margin-top: 0.15rem;
+}
+
+.snap-btn {
+  font: inherit;
+  font-weight: 800;
+  border-radius: 12px;
+  padding: 0.55rem 1rem;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.snap-btn--primary {
+  background: linear-gradient(180deg, #34d399 0%, #10b981 100%);
+  color: #fff;
+  border-color: #059669;
+  box-shadow: 0 4px 0 #047857;
+  width: 100%;
+  font-family: "Sniglet", "Nunito", sans-serif;
+  font-size: 1.02rem;
+}
+
+.snap-btn--primary:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #047857;
+}
+
+.snap-btn--ghost {
+  background: #fff;
+  color: var(--snap-table-deep);
+  border-color: #c4b5fd;
+}
+
+.snap-mode-line {
+  text-align: center;
+  margin: 0 0 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--snap-table-deep);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-family: "Sniglet", "Nunito", sans-serif;
+}
+
+.snap-goal {
+  text-align: center;
+  margin: 0 0 0.6rem;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #0f766e;
+  font-family: "Sniglet", "Nunito", system-ui, sans-serif;
+  line-height: 1.3;
+  padding: 0 0.35rem;
+}
+
+.snap-deck-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0.4rem 0.75rem 0.45rem;
+  margin: 0 auto;
+  width: fit-content;
+  max-width: 100%;
+  background: linear-gradient(180deg, #fff 0%, #faf5ff 100%);
+  border-radius: 16px;
+  border: 3px solid #e9d5ff;
+  box-shadow: 0 2px 0 #ddd6fe;
+}
+
+.snap-deck-badge__label {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  text-align: center;
+}
+
+.snap-deck-badge__value {
+  font-size: 1.2rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+  color: var(--snap-table-deep);
+}
+
+.snap-score {
+  text-align: center;
+}
+
+.snap-pillar__hud--p1 .snap-score__value {
+  color: var(--snap-p1-dark);
+}
+
+.snap-pillar__hud--p2 .snap-score__value {
+  color: var(--snap-p2-dark);
+}
+
+.snap-score__label {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.snap-score__mascot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin: 0.2rem auto 0.25rem;
+  border-radius: 14px;
+  background: #f1f5f9;
+  border: 2px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.snap-score__mascot img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.snap-score__mascot--emoji {
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.snap-pillar__hud .snap-score__mascot {
+  width: 2.65rem;
+  height: 2.65rem;
+  margin: 0.15rem auto 0.2rem;
+}
+
+.snap-score__value {
+  display: block;
+  font-size: 1.45rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.snap-score__unit {
+  font-size: 0.62rem;
+  color: #94a3b8;
+}
+
+.snap-status {
+  text-align: center;
+  margin: 0 0 0.65rem;
+  min-height: 2.6em;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #5b4d7a;
+  padding: 0 0.35rem;
+}
+
+.snap-arena {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: clamp(0.4rem, 2vw, 0.85rem);
+  flex: 1 1 auto;
+  min-height: 0;
+  margin-bottom: 0.85rem;
+}
+
+.snap-pillar {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.45rem;
+  flex: 0 0 clamp(5.25rem, 19vw, 7.85rem);
+  min-width: 0;
+  align-self: stretch;
+}
+
+.snap-pillar__hud {
+  text-align: center;
+  padding: 0.38rem 0.3rem 0.48rem;
+  background: linear-gradient(180deg, #fff 0%, #faf5ff 100%);
+  border-radius: 16px;
+  border: 3px solid #e9d5ff;
+  box-shadow: 0 2px 0 #ddd6fe;
+  flex-shrink: 0;
+}
+
+.snap-side__emoji {
+  position: relative;
+  z-index: 1;
+  font-size: clamp(1.4rem, 4.2vw, 1.75rem);
+  line-height: 1;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.15));
+}
+
+.snap-side {
+  flex: 1 1 auto;
+  min-height: 5.25rem;
+  width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.22rem;
+  padding: 0.65rem 0.5rem;
+  border: none;
+  border-radius: 26px;
+  cursor: pointer;
+  font: inherit;
+  color: #fff;
+  overflow: hidden;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: transform 0.08s, filter 0.12s;
+}
+
+.snap-side:active {
+  transform: scale(0.97);
+}
+
+.snap-side:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.snap-side:disabled .snap-side__emoji {
+  opacity: 0.35;
+}
+
+.snap-side--p1 {
+  background: linear-gradient(180deg, #38bdf8 0%, var(--snap-p1-dark) 100%);
+  box-shadow: 0 5px 0 #0369a1, inset 0 2px 0 rgba(255, 255, 255, 0.35);
+}
+
+.snap-side--p2 {
+  background: linear-gradient(180deg, #f9a8d4 0%, var(--snap-p2-dark) 100%);
+  box-shadow: 0 5px 0 #be185d, inset 0 2px 0 rgba(255, 255, 255, 0.35);
+}
+
+.snap-side__burst {
+  position: absolute;
+  inset: -30%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.35) 0%, transparent 65%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.snap-side.is-press .snap-side__burst {
+  opacity: 1;
+  animation: snap-burst 0.35s ease-out forwards;
+}
+
+@keyframes snap-burst {
+  from {
+    transform: scale(0.6);
+    opacity: 0.8;
+  }
+  to {
+    transform: scale(1.2);
+    opacity: 0;
+  }
+}
+
+.snap-side__text {
+  position: relative;
+  z-index: 1;
+  font-size: clamp(1.02rem, 4vw, 1.28rem);
+  font-weight: 900;
+  font-family: "Sniglet", "Nunito", sans-serif;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.snap-side__hint {
+  position: relative;
+  z-index: 1;
+  font-size: 0.66rem;
+  font-weight: 700;
+  opacity: 0.92;
+  max-width: 100%;
+  padding: 0 0.15rem;
+  line-height: 1.15;
+}
+
+.snap-middle {
+  position: relative;
+  z-index: 2;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.55rem;
+}
+
+/* Playful “table” with two clear card slots */
+.snap-table {
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-width: 100%;
+  background: linear-gradient(145deg, var(--snap-table) 0%, var(--snap-table-deep) 55%, #4c1d95 100%);
+  border-radius: 24px;
+  border: 4px solid #fde047;
+  box-shadow: 0 6px 0 #a16207, inset 0 2px 0 rgba(255, 255, 255, 0.2);
+  padding: 0.65rem clamp(0.45rem, 2vw, 1rem) 0.75rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.snap-table::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.12) 0%, transparent 45%),
+    radial-gradient(circle at 80% 70%, rgba(253, 224, 71, 0.15) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+.snap-showcase {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.45rem;
+  height: 100%;
+  min-height: 12rem;
+}
+
+.snap-showcase__row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  justify-content: center;
+  gap: clamp(0.45rem, 2.5vw, 1.35rem);
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.snap-showcase__mid {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem 0.65rem;
+  width: 100%;
+  padding: 0.15rem 0 0;
+}
+
+.snap-showcase__arrow {
+  font-size: 1.25rem;
+  line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+}
+
+.snap-compare {
+  margin: 0;
+  text-align: center;
+  font-size: clamp(0.75rem, 2vw, 0.92rem);
+  font-weight: 800;
+  line-height: 1.25;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  max-width: min(28rem, 100%);
+}
+
+.snap-showcase.is-match .snap-compare {
+  color: #fef08a;
+  font-size: 0.78rem;
+  animation: snap-wiggle 0.85s ease-in-out infinite;
+}
+
+.snap-showcase.is-near-match .snap-compare {
+  color: #e9d5ff;
+}
+
+@keyframes snap-wiggle {
+  0%,
+  100% {
+    transform: rotate(-1deg) scale(1);
+  }
+  50% {
+    transform: rotate(1deg) scale(1.03);
+  }
+}
+
+.snap-slot {
+  flex: 1 1 0;
+  max-width: min(340px, 46vw);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.snap-slot__title {
+  font-family: "Sniglet", "Nunito", sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #fef9c3;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  line-height: 1.2;
+  max-width: 8.5rem;
+}
+
+.snap-slot__card {
+  width: 100%;
+  aspect-ratio: 52 / 72;
+  max-width: min(320px, 100%);
+  min-height: clamp(10.5rem, 32vh, 22rem);
+  margin-inline: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Face-down deal + flip reveal */
+.snap-flip {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  perspective: 1000px;
+}
+
+.snap-flip__inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.58s cubic-bezier(0.34, 1.15, 0.52, 1.02);
+}
+
+.snap-flip.is-flipped .snap-flip__inner {
+  transform: rotateY(180deg);
+}
+
+.snap-flip__back {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: rotateY(0deg);
+  background: linear-gradient(145deg, #fde047 0%, #facc15 50%, #eab308 100%);
+  border: 4px solid #fff;
+  box-shadow: 0 8px 0 rgba(0, 0, 0, 0.12), inset 0 2px 0 rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Sniglet", "Nunito", sans-serif;
+  font-size: clamp(2.2rem, 10vw, 3.5rem);
+  font-weight: 800;
+  color: var(--snap-table-deep);
+}
+
+.snap-flip__front.snap-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: rotateY(180deg);
+  width: 100%;
+  height: 100%;
+}
+
+.snap-face {
+  width: 100%;
+  height: 100%;
+  background: var(--snap-card-bg);
+  border-radius: 14px;
+  border: 4px solid #fde68a;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.15), 0 8px 20px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.18s ease-out, box-shadow 0.2s;
+}
+
+.snap-showcase.is-match .snap-face {
+  border-color: #fef08a;
+  animation: snap-glow-face 1s ease-in-out infinite;
+}
+
+.snap-showcase.is-near-match .snap-slot--prev .snap-face {
+  border-color: #a5b4fc;
+}
+
+.snap-showcase.is-near-match .snap-slot--curr .snap-face,
+.snap-showcase.is-near-match .snap-slot--curr .snap-flip__back {
+  border-color: #fda4af;
+}
+
+@keyframes snap-glow-face {
+  0%,
+  100% {
+    box-shadow: 0 6px 0 rgba(0, 0, 0, 0.12), 0 0 0 0 rgba(250, 204, 21, 0.5);
+  }
+  50% {
+    box-shadow: 0 6px 0 rgba(0, 0, 0, 0.12), 0 0 0 6px rgba(250, 204, 21, 0.45);
+  }
+}
+
+.snap-face__emoji {
+  font-size: clamp(4rem, min(32vw, 36vh), 9rem);
+  line-height: 0.95;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.12));
+}
+
+.snap-face__label {
+  margin-top: 0.25rem;
+  font-size: clamp(0.8rem, 2.8vw, 1.15rem);
+  font-weight: 800;
+  font-family: "Sniglet", "Nunito", sans-serif;
+  color: #4c1d95;
+  letter-spacing: 0.02em;
+}
+
+/* Pastel borders — same animal always keeps its colours; helps tell species apart */
+.snap-pal-0 {
+  border-color: #f9a8d4;
+  background: linear-gradient(180deg, #fffef7 0%, #fce7f3 100%);
+}
+
+.snap-pal-1 {
+  border-color: #93c5fd;
+  background: linear-gradient(180deg, #fffef7 0%, #e0f2fe 100%);
+}
+
+.snap-pal-2 {
+  border-color: #86efac;
+  background: linear-gradient(180deg, #fffef7 0%, #ecfccb 100%);
+}
+
+.snap-pal-3 {
+  border-color: #fcd34d;
+  background: linear-gradient(180deg, #fffef7 0%, #fef3c7 100%);
+}
+
+.snap-pal-4 {
+  border-color: #c4b5fd;
+  background: linear-gradient(180deg, #fffef7 0%, #f3e8ff 100%);
+}
+
+.snap-pal-5 {
+  border-color: #fda4af;
+  background: linear-gradient(180deg, #fffef7 0%, #ffe4e6 100%);
+}
+
+.snap-dummy {
+  width: 100%;
+  height: 100%;
+  min-height: clamp(10rem, 30vh, 18rem);
+  border-radius: 14px;
+  border: 3px dashed rgba(254, 243, 199, 0.65);
+  background: rgba(255, 255, 255, 0.12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  padding: 0.35rem;
+  text-align: center;
+}
+
+.snap-dummy__line {
+  display: block;
+  font-family: "Sniglet", "Nunito", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #fef9c3;
+  line-height: 1.15;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.snap-controls {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem 0.75rem;
+  width: 100%;
+  flex: 0 0 auto;
+}
+
+.snap-btn--flip {
+  width: auto;
+  min-width: 8rem;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+}
+
+.snap-auto {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+}
+
+.snap-auto input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--snap-table);
+}
+
+.snap-actions {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.snap-actions .snap-btn {
+  width: auto;
+  flex: 1 1 auto;
+  min-width: 8rem;
+}
+
+@media (min-width: 600px) {
+  .snap-choice-row {
+    flex-direction: row;
+  }
+
+  .snap-choice-row .snap-radio {
+    flex: 1;
+  }
+
+  .snap-btn--primary#btnStart {
+    width: auto;
+    display: block;
+    margin-inline: auto;
+    min-width: 12rem;
+  }
+}
+
+/* Match celebration overlay */
+.snap-popup {
+  position: fixed;
+  inset: 0;
+  z-index: 9600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(0.5rem, env(safe-area-inset-top, 0px)) max(0.5rem, env(safe-area-inset-right, 0px))
+    max(0.5rem, env(safe-area-inset-bottom, 0px)) max(0.5rem, env(safe-area-inset-left, 0px));
+  box-sizing: border-box;
+}
+
+.snap-popup.is-hidden {
+  display: none !important;
+}
+
+.snap-popup__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 12, 45, 0.55);
+  backdrop-filter: blur(4px);
+}
+
+.snap-popup__panel {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 22rem;
+  margin: 0;
+  padding: 1.5rem 1.25rem 1.35rem;
+  text-align: center;
+  background: linear-gradient(180deg, #fffef9 0%, #fffbee 100%);
+  border-radius: 28px;
+  border: 4px solid var(--snap-gold);
+  box-shadow: 0 0 0 3px #f59e0b, 0 12px 40px rgba(91, 33, 182, 0.35);
+  animation: snap-popup-in 0.5s cubic-bezier(0.34, 1.2, 0.64, 1) both;
+}
+
+@keyframes snap-popup-in {
+  from {
+    opacity: 0;
+    transform: scale(0.88) translateY(1rem) rotate(-2deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0) rotate(0);
+  }
+}
+
+.snap-popup__kicker {
+  margin: 0 0 0.35rem;
+  font-family: "Sniglet", "Nunito", system-ui, sans-serif;
+  font-size: clamp(1.8rem, 6vw, 2.4rem);
+  font-weight: 800;
+  color: #ca8a04;
+  text-shadow: 0 2px 0 #fde68a, 0 3px 0 rgba(202, 138, 4, 0.5);
+  letter-spacing: 0.08em;
+  animation: snap-kicker-bounce 0.9s ease-in-out 0.15s both;
+}
+
+@keyframes snap-kicker-bounce {
+  0%,
+  100% {
+    transform: scale(1) rotate(0);
+  }
+  40% {
+    transform: scale(1.12) rotate(-4deg);
+  }
+  60% {
+    transform: scale(1.06) rotate(3deg);
+  }
+}
+
+.snap-popup__title {
+  margin: 0 0 0.5rem;
+  font-family: "Sniglet", "Nunito", system-ui, sans-serif;
+  font-size: clamp(1.2rem, 4.2vw, 1.5rem);
+  font-weight: 800;
+  color: var(--snap-table-deep);
+  line-height: 1.2;
+}
+
+.snap-popup__sub {
+  margin: 0 0 1rem;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #4c1d95;
+  line-height: 1.4;
+}
+
+.snap-popup__count-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  margin: 0 0 1.1rem;
+}
+
+.snap-popup__count {
+  font-family: "Sniglet", "Nunito", system-ui, sans-serif;
+  font-size: clamp(2.8rem, 12vw, 3.8rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--snap-p1-dark);
+  text-shadow: 0 2px 0 #bae6fd;
+}
+
+.snap-popup--p2-win .snap-popup__count {
+  color: var(--snap-p2-dark);
+  text-shadow: 0 2px 0 #fbcfe8;
+}
+
+.snap-popup--cpu-win .snap-popup__count {
+  color: #6b21a8;
+  text-shadow: 0 2px 0 #e9d5ff;
+}
+
+.snap-popup__count-label {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #7c3aed;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.snap-btn--dismiss {
+  width: 100%;
+  max-width: 16rem;
+  margin: 0 auto;
+  display: block;
+  font-size: 1.08rem;
+  padding: 0.7rem 1rem;
+}
+
+/* Pre-round countdown 5…1, then autostart auto-flip */
+.snap-countdown {
+  position: fixed;
+  inset: 0;
+  z-index: 9800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  background: rgba(20, 8, 45, 0.58);
+  backdrop-filter: blur(4px);
+  box-sizing: border-box;
+  animation: snap-count-in 0.25s ease-out both;
+}
+
+.snap-countdown.is-hidden {
+  display: none !important;
+}
+
+@keyframes snap-count-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.snap-countdown__inner {
+  text-align: center;
+  padding: 1.5rem 1.75rem 1.35rem;
+  min-width: min(20rem, 90vw);
+  background: linear-gradient(180deg, #fff 0%, #f5f0ff 100%);
+  border-radius: 28px;
+  border: 4px solid #fde047;
+  box-shadow: 0 8px 32px rgba(91, 33, 182, 0.35);
+}
+
+.snap-countdown__kicker {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #7c3aed;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-family: "Sniglet", "Nunito", system-ui, sans-serif;
+}
+
+.snap-countdown__num {
+  margin: 0;
+  font-family: "Sniglet", "Nunito", system-ui, sans-serif;
+  font-size: clamp(3.5rem, 18vw, 5.5rem);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--snap-table-deep);
+  text-shadow: 0 2px 0 #c4b5fd;
+  animation: snap-count-pop 0.5s ease-out both;
+}
+
+@keyframes snap-count-pop {
+  0% {
+    transform: scale(0.65);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Tablets / landscape: stop side “Snap!” rails stretching full viewport — balance table vs controls. */
+@media (orientation: landscape) and (min-height: 380px) {
+  .page-snap .app {
+    max-width: min(1400px, 100%);
+    padding: 0.3rem clamp(0.35rem, 1.8vw, 0.85rem)
+      max(4.35rem, calc(0.4rem + env(safe-area-inset-bottom, 0px)));
+  }
+
+  .snap-arena {
+    align-items: stretch;
+    justify-content: center;
+    gap: clamp(0.4rem, 1.6vw, 0.95rem);
+  }
+
+  .snap-pillar {
+    flex: 0 0 clamp(5.35rem, 11.5vw, 7.75rem);
+    min-width: 5rem;
+    max-width: 8rem;
+  }
+
+  .snap-pillar .snap-side {
+    flex: 1 1 auto;
+    max-height: min(58vh, 340px);
+    min-height: 0;
+    padding: 0.5rem 0.42rem;
+  }
+
+  .snap-pillar .snap-side__text {
+    font-size: clamp(0.82rem, 2.6vw, 1.06rem);
+  }
+
+  .snap-pillar .snap-side__hint {
+    font-size: clamp(0.58rem, 1.55vw, 0.72rem);
+  }
+
+  .snap-middle {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: min(880px, 70vw);
+  }
+
+  .snap-table {
+    min-height: 0;
+    max-height: min(42vh, calc(100dvh - 10.5rem));
+    flex: 1 1 auto;
+  }
+
+  .snap-showcase {
+    min-height: 6.5rem;
+    max-height: 100%;
+  }
+
+  .snap-slot {
+    max-width: min(320px, 36vw);
+  }
+
+  .snap-slot__card {
+    min-height: 0;
+    max-height: min(34vh, 280px);
+    aspect-ratio: 52 / 72;
+    width: 100%;
+  }
+
+  .snap-face__emoji {
+    font-size: clamp(2rem, min(22vw, 18vh), 5rem);
+  }
+
+  .snap-controls,
+  .snap-actions {
+    justify-content: center;
+  }
+}
+
+@media (min-width: 900px) and (orientation: landscape) {
+  .snap-pillar {
+    flex: 0 0 clamp(5.85rem, 10vw, 8.25rem);
+  }
+
+  .snap-table {
+    max-height: min(44vh, calc(100dvh - 9.5rem));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .snap-face,
+  .snap-side__burst,
+  .snap-showcase.is-match .snap-face,
+  .snap-showcase.is-match .snap-compare {
+    animation: none;
+    transition: none;
+  }
+
+  .snap-flip__inner {
+    transition: none;
+  }
+
+  .snap-popup__panel,
+  .snap-popup__kicker {
+    animation: none;
+  }
+
+  .snap-countdown__num {
+    animation: none;
+  }
+}

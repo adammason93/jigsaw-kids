@@ -1,0 +1,766 @@
+const lessonSource = await fetch("https://wondii.co.uk/js/lesson-brain.js?v=53").then((res) => {
+  if (!res.ok) throw new Error("lesson_script");
+  return res.text();
+});
+(0, eval)(lessonSource);
+const brain = globalThis.WondiiLessonBrain;
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Cache-Control": "no-store"
+};
+function json(body, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" }
+  });
+}
+function logMeta(meta) {
+  console.log(JSON.stringify({ event: "learn-generate", ...meta }));
+}
+async function teacherAllowed(orgId, auth, apiKey, base) {
+  const userRes = await fetch(base + "/auth/v1/user", {
+    headers: { Authorization: auth, apikey: apiKey }
+  });
+  if (!userRes.ok) return "";
+  const user = await userRes.json();
+  const userId = String(user && user.id || "");
+  if (!userId) return "";
+  const query = new URL(base + "/rest/v1/organisation_members");
+  query.searchParams.set("user_id", "eq." + userId);
+  query.searchParams.set("organisation_id", "eq." + orgId);
+  query.searchParams.set("select", "role,status");
+  const memberRes = await fetch(query.toString(), {
+    headers: { Authorization: auth, apikey: apiKey, Accept: "application/json" }
+  });
+  if (!memberRes.ok) return "";
+  const rows = await memberRes.json();
+  const row = Array.isArray(rows) ? rows[0] : null;
+  if (!row || row.status !== "active") return "";
+  if (row.role !== "owner" && row.role !== "school_admin" && row.role !== "teacher") return "";
+  return userId;
+}
+async function callModel(brief, apiKey, model, timeoutMs, temperature) {
+  const control = new AbortController();
+  const timer = setTimeout(function() {
+    control.abort();
+  }, timeoutMs || 2e4);
+  try {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      signal: control.signal,
+      headers: { Authorization: "Bearer " + apiKey, "Content-Type": "application/json" },
+      body: JSON.stringify(Object.assign({
+        model,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: brief.system },
+          { role: "user", content: brief.user }
+        ]
+      }, /^(?:gpt-5|gpt-6|o\d)/.test(String(model)) ? { reasoning_effort: "low", max_completion_tokens: 16e3 } : { temperature: typeof temperature === "number" ? temperature : 0.4 }))
+    });
+    if (!response.ok) {
+      const failed = new Error("provider");
+      failed.category = response.status === 408 ? "timeout" : "provider";
+      throw failed;
+    }
+    const payload = await response.json();
+    const text = String(payload && payload.choices && payload.choices[0] && payload.choices[0].message && payload.choices[0].message.content || "");
+    try {
+      return JSON.parse(text);
+    } catch (_parseError) {
+      const invalid = new Error("parse");
+      invalid.category = "parse";
+      throw invalid;
+    }
+  } catch (error) {
+    const named = error;
+    if (named && named.category) throw error;
+    const wrapped = new Error("model");
+    wrapped.category = named && named.name === "AbortError" ? "timeout" : "provider";
+    throw wrapped;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+globalThis.handleGenerate = async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method !== "POST") return json({ ok: false, category: "method" }, 405);
+  const started = Date.now();
+  if (!brain) {
+    logMeta({ category: "unconfigured", ms: Date.now() - started });
+    return json({ ok: false, category: "unconfigured" }, 500);
+  }
+  const apiKey = (Deno.env.get("OPENAI_API_KEY") ?? "").trim();
+  const base = (Deno.env.get("SUPABASE_URL") ?? "").replace(/\/$/, "");
+  const anon = (Deno.env.get("SUPABASE_ANON_KEY") ?? "").trim();
+  const model = (Deno.env.get("LESSON_MODEL") ?? "").trim() || "gpt-4o-mini";
+  if (!apiKey || !base || !anon) {
+    logMeta({ category: "unconfigured", ms: Date.now() - started });
+    return json({ ok: false, category: "unconfigured" }, 500);
+  }
+  const auth = req.headers.get("Authorization") || "";
+  let body;
+  try {
+    body = await req.json();
+  } catch (_error) {
+    logMeta({ stage: "JSON_PARSE_FAILED", category: "invalid", ms: Date.now() - started });
+    return json({ ok: false, category: "invalid", stage: "JSON_PARSE_FAILED" }, 400);
+  }
+  const ctx = body && body.context && typeof body.context === "object" ? body.context : null;
+  const orgId = String(ctx && ctx.organisationId || "");
+  const lesson = String(ctx && (ctx.lessonText || ctx.teacherInstructions) || "").trim();
+  const attemptId = String(body && body.attemptId || "").slice(0, 40);
+  if (!ctx || !orgId || lesson.length < 12) return json({ ok: false, category: "invalid", stage: "INTERPRETING_BRIEF" }, 400);
+  const userId = await teacherAllowed(orgId, auth, anon, base);
+  if (!userId) return json({ ok: false, category: "unauthorised", stage: "INTERPRETING_BRIEF" }, 401);
+  function requestMeta(source) {
+    const brief = source && source.lessonBrief || {};
+    return {
+      topic: String(source && source.topic || brief.topic || "").slice(0, 120),
+      year: String(source && source.yearGroup || brief.yearGroup || "").slice(0, 20),
+      minutes: source && source.requestedMinutes,
+      lessonChars: String(source && source.lessonText || "").length
+    };
+  }
+  function arcMeta(plan) {
+    const arc = plan && Array.isArray(plan.lessonArc) ? plan.lessonArc : [];
+    return arc.map(function(stage) {
+      return String(stage && stage.purpose || "").slice(0, 24);
+    });
+  }
+  function digest(raw) {
+    const activities = raw && typeof raw === "object" && Array.isArray(raw.activities) ? raw.activities : [];
+    if (!activities.length && raw && raw.slots && typeof raw.slots === "object") {
+      const check = raw.slots.check || {};
+      const apply = raw.slots.apply || {};
+      return [
+        {
+          id: "check",
+          questions: [{
+            prompt: clip(check.prompt, 180),
+            choices: (Array.isArray(check.choices) ? check.choices : []).slice(0, 4).map((choice) => clip(choice, 80)),
+            correct: clip(check.correct, 80)
+          }]
+        },
+        {
+          id: "apply",
+          instruction: clip(apply.instruction),
+          knowledgeUsed: clip(apply.knowledgeUsed),
+          successCondition: clip(apply.successCondition),
+          teachingConnection: clip(apply.teachingConnection)
+        }
+      ];
+    }
+    return activities.slice(0, 8).map(function(activity, index) {
+      const config = activity && activity.config || {};
+      const questions = Array.isArray(config.questions) && config.questions.length ? config.questions : (config.prompt ? [config] : []);
+      return {
+        id: String(activity && activity.id || index + 1).slice(0, 40),
+        mechanic: String(activity && activity.mechanic || "").slice(0, 40),
+        minutes: activity && activity.minutes,
+        beat: String(activity && activity.scene && activity.scene.beat || activity && activity.beat || "").slice(0, 40),
+        questions: questions.slice(0, 4).map(function(item) {
+          return {
+            prompt: String(item && item.prompt || "").slice(0, 180),
+            choices: (item && item.choices || []).slice(0, 4).map(function(choice) { return String(choice).slice(0, 80); }),
+            correct: String(item && item.correct || "").slice(0, 80)
+          };
+        })
+      };
+    });
+  }
+  function clip(value, max) {
+    return String(value == null ? "" : value).replace(/\s+/g, " ").trim().slice(0, max || 220);
+  }
+  function applyModel(raw) {
+    const slot = raw && raw.slots && raw.slots.apply;
+    if (!slot || typeof slot !== "object") return null;
+    return {
+      instruction: clip(slot.instruction),
+      target: clip(slot.target, 80),
+      knowledgeUsed: clip(slot.knowledgeUsed),
+      successCondition: clip(slot.successCondition),
+      teachingConnection: clip(slot.teachingConnection),
+      lines: Array.isArray(slot.lines) ? slot.lines.slice(0, 3).map((line) => clip(line, 180)) : []
+    };
+  }
+  function slotModel(raw, id) {
+    const slot = raw && raw.slots && raw.slots[id];
+    if (!slot || typeof slot !== "object") return null;
+    return {
+      instruction: clip(slot.instruction),
+      lines: Array.isArray(slot.lines) ? slot.lines.slice(0, 4).map((line) => clip(line, 180)) : [],
+      prompt: clip(slot.prompt),
+      correct: clip(slot.correct, 120),
+      knowledgeUsed: clip(slot.knowledgeUsed)
+    };
+  }
+  function applyActivity(result) {
+    const activities = result && result.adventure && result.adventure.activities || result && result.previous && result.previous.activities || [];
+    const apply = activities.find((activity) => activity && activity.slotId === "apply");
+    if (!apply) return null;
+    const interaction = apply.scene && apply.scene.interaction || {};
+    return {
+      mechanic: clip(apply.mechanic, 40),
+      instruction: clip(apply.applyInstruction || interaction.instruction || ((apply.config && apply.config.lines) || []).join(" ")),
+      target: clip(interaction.target, 80),
+      interactionType: clip(apply.learningInteraction && apply.learningInteraction.type, 40),
+      knowledgeUsed: clip(apply.knowledgeUsed),
+      successCondition: clip(apply.successCondition),
+      teachingConnection: clip(apply.teachingConnection),
+      lines: ((apply.config && apply.config.lines) || []).slice(0, 3).map((line) => clip(line, 180))
+    };
+  }
+  function checkSnapshot(result) {
+    const activities = result && result.adventure && result.adventure.activities || result && result.previous && result.previous.activities || [];
+    const check = activities.find((activity) => activity && activity.slotId === "check");
+    if (!check) return null;
+    const config = check.config || {};
+    const question = (config.questions && config.questions[0]) || config;
+    const questions = Array.isArray(config.questions) && config.questions.length ? config.questions.slice(0, 4) : [question];
+    return {
+      prompt: clip(question.prompt || config.prompt),
+      choices: Array.isArray(question.choices) ? question.choices.slice(0, 4).map((choice) => clip(choice, 80)) : [],
+      correct: clip(question.correct || config.correct, 80),
+      knowledgeChecked: clip(question.knowledgeChecked || config.knowledgeChecked),
+      successEvidence: clip(question.successEvidence || config.successEvidence),
+      teachingConnection: clip(question.teachingConnection || config.teachingConnection),
+      questions: questions.map((item) => ({
+        prompt: clip(item.prompt || config.prompt),
+        choices: Array.isArray(item.choices) ? item.choices.slice(0, 4).map((choice) => clip(choice, 80)) : [],
+        correct: clip(item.correct || config.correct, 80),
+        knowledgeChecked: clip(item.knowledgeChecked || config.knowledgeChecked)
+      }))
+    };
+  }
+  function hookLines(result) {
+    const activities = result && result.adventure && result.adventure.activities || result && result.previous && result.previous.activities || [];
+    const hook = activities.find((activity) => activity && activity.slotId === "hook");
+    return hook ? ((hook.config && hook.config.lines) || []).slice(0, 4).map((line) => clip(line, 180)) : [];
+  }
+  function diagnosis(raw, result, skeleton, extra) {
+    const applySlot = (skeleton || []).find((slot) => slot.id === "apply") || {};
+    const slotIds = result && result.slotIds || [];
+    return {
+      modelSlots: raw && raw.slots && typeof raw.slots === "object" ? Object.keys(raw.slots) : [],
+      modelApply: applyModel(raw),
+      failedSlots: slotIds.map((id) => ({ id, model: slotModel(raw, id) })),
+      materialisedApply: applyActivity(result),
+      requiredKnowledge: (applySlot.requiredKnowledge || []).slice(0, 6).map((item) => clip(item, 180)),
+      interactionFamily: clip(applySlot.interactionIntent, 40),
+      mechanic: clip(applySlot.mechanic, 40),
+      issues: (result && result.issues || []).slice(0, 8),
+      slotIds,
+      ...(extra || {})
+    };
+  }
+  function failStage(issues) {
+    const text = (issues || []).join(" ");
+    if (/correct answer|no real question|needs three|needs a reveal|door number|needs something|no activities|not valid structured/.test(text)) return "SCHEMA_VALIDATION_FAILED";
+    return "EDUCATIONAL_VALIDATION_FAILED";
+  }
+  function intentMeta(source) {
+    const intent = source && source.lessonBrief && source.lessonBrief.teacherIntent || {};
+    return {
+      ok: !!intent.ok,
+      learningGoal: clip(intent.learningGoal, 180),
+      requiredEvidence: clip(intent.requiredEvidence, 220),
+      focusConcepts: (intent.focusConcepts || []).slice(0, 4),
+      priorKnowledge: (intent.priorKnowledge || []).slice(0, 4),
+      exclusions: (intent.exclusions || []).slice(0, 4),
+      preferences: (intent.preferences || []).slice(0, 4),
+      subject: clip(intent.subject, 40),
+      subjectConfidence: clip(intent.subjectConfidence, 20),
+      durationMinutes: intent.durationMinutes || null
+    };
+  }
+  function slotDiagnostic(trace, checkAlignment, applyAlignment, intent) {
+    const check = (trace && trace.finalCheck) || {};
+    const apply = (trace && trace.finalApply) || {};
+    return {
+      requiredEvidence: (intent && intent.requiredEvidence) || "",
+      check: {
+        prompt: check.prompt || "",
+        choices: check.choices || [],
+        correct: check.correct || "",
+        demonstratedEvidence: checkAlignment.demonstratedEvidence || "",
+        coverage: checkAlignment.semanticRelationship || "",
+        reason: checkAlignment.semanticReason || ""
+      },
+      apply: {
+        instruction: apply.instruction || "",
+        target: apply.target || "",
+        knowledgeUsed: apply.knowledgeUsed || "",
+        successCondition: apply.successCondition || "",
+        teachingConnection: apply.teachingConnection || "",
+        semanticOutcome: applyAlignment.semanticOutcome || "",
+        reason: applyAlignment.semanticReason || ""
+      }
+    };
+  }
+  function stampedWarnings(list) {
+    return (Array.isArray(list) ? list : []).map((item) => Object.assign({}, item, { attemptId }));
+  }
+  let phase = "TEACHER_INTENT";
+  try {
+    let intentMs = 0;
+    try {
+      const intentStarted = Date.now();
+      const rawIntent = await callModel(brain.teacherIntentBrief(ctx), apiKey, model, 12e3, 0);
+      intentMs = Date.now() - intentStarted;
+      brain.applyTeacherIntent(ctx, brain.normaliseTeacherIntent(rawIntent, ctx));
+    } catch (intentError) {
+      brain.applyTeacherIntent(ctx, { ok: false, reason: intentError && intentError.category || "error" });
+    }
+    logMeta({ stage: "TEACHER_INTENT", attemptId, model, intentMs, teacherIntent: intentMeta(ctx) });
+    // Source research is opt-in through LESSON_RESEARCH (for example "wikipedia" or
+    // "wikipedia,openai"). When it is off, the module is not loaded and nothing changes.
+    const researchMode = (Deno.env.get("LESSON_RESEARCH") ?? "").trim().toLowerCase();
+    if (researchMode && researchMode !== "off") {
+      phase = "RESEARCH";
+      const researchStarted = Date.now();
+      let research = null;
+      let researchError = "";
+      try {
+        const researchSource = await fetch("https://wondii.co.uk/js/source-research.js?v=1").then((res) => {
+          if (!res.ok) throw new Error("research_script");
+          return res.text();
+        });
+        (0, eval)(researchSource);
+        const finder = globalThis.WondiiSourceResearch;
+        const providers = [];
+        if (researchMode.indexOf("wikipedia") !== -1) providers.push(finder.wikipediaProvider());
+        if (researchMode.indexOf("openai") !== -1) providers.push(finder.openaiWebSearchProvider({ apiKey, model: (Deno.env.get("LESSON_RESEARCH_SEARCH_MODEL") ?? "").trim() || undefined }));
+        if (!providers.length) providers.push(finder.wikipediaProvider());
+        const intent = ctx.lessonBrief && ctx.lessonBrief.teacherIntent || {};
+        research = await finder.researchTopic({
+          lessonText: lesson,
+          topic: ctx.topic || (intent.focusConcepts || [])[0] || lesson,
+          yearGroup: ctx.yearGroup || intent.yearGroup || "",
+          learningGoal: intent.learningGoal || "",
+          requiredEvidence: intent.requiredEvidence || "",
+          focusConcepts: intent.focusConcepts || []
+        }, { fetch, providers, maxSources: 12 });
+      } catch (error) {
+        researchError = String(error && error.message || error).slice(0, 120);
+      }
+      const researchMeta = {
+        researchMs: Date.now() - researchStarted,
+        queries: research && research.queries || [],
+        providers: (research && research.providers || []).map((row) => ({ id: row.id, paid: row.paid, calls: row.calls || 0, found: row.found || 0, error: row.error || "" })),
+        sources: (research && research.sources || []).map((row) => ({ sourceId: row.sourceId, url: row.url, title: String(row.title || "").slice(0, 120), passages: row.passageCount })),
+        refused: (research && research.refused || []).slice(0, 12),
+        passages: research && research.passages ? research.passages.length : 0,
+        selectedPassages: research && research.selectedPassageIds ? research.selectedPassageIds.length : 0,
+        error: researchError || (research && research.error) || ""
+      };
+      logMeta({ stage: "RESEARCH", attemptId, model, ...researchMeta });
+      if (!research || !research.passages || !research.passages.length || !(research.selectedPassageIds || []).length) {
+        logMeta({ stage: "KNOWLEDGE_BLOCKED", category: "invalid", attemptId, model, reason: "NEEDS_SOURCE: research found no usable passage on the allowlist." });
+        return json({ ok: false, category: "invalid", stage: "KNOWLEDGE_BLOCKED", issues: ["NEEDS_SOURCE: research found no usable passage on the allowlist."], meta: { teacherIntent: intentMeta(ctx), research: researchMeta } });
+      }
+      ctx.researchEvidence = research;
+    }
+    phase = "KNOWLEDGE_GROUNDING";
+    // EXPERIMENTAL, research mode only: the knowledge, entailment and source-repair calls use
+    // LESSON_RESEARCH_MODEL (default gpt-6-luna). This is not a production model switch; with
+    // LESSON_RESEARCH unset every call keeps LESSON_MODEL.
+    const knowledgeModel = ctx.researchEvidence ? ((Deno.env.get("LESSON_RESEARCH_MODEL") ?? "").trim() || "gpt-6-luna") : model;
+    const packStarted = Date.now();
+    const rawPack = await callModel(brain.knowledgePackBrief(ctx), apiKey, knowledgeModel, ctx.researchEvidence ? 9e4 : 14e3, 0);
+    let packMs = Date.now() - packStarted;
+    let pack = brain.normaliseKnowledgePack(rawPack, ctx);
+    const entail = async (candidate, pass) => {
+      if (candidate.sourceMode !== "retrieved" || candidate.status === "blocked") return;
+      const entailStarted = Date.now();
+      let entailment = { ok: false, results: {} };
+      try {
+        entailment = brain.parseSourceEntailment(await callModel(brain.sourceEntailmentBrief(candidate, ctx), apiKey, knowledgeModel, 6e4, 0));
+      } catch (_entailError) {
+        entailment = { ok: false, results: {} };
+      }
+      brain.applySourceEntailment(candidate, entailment);
+      // Patch 7 trace: the model's own per-claim verdicts and link quotes, next to the code's
+      // final verdicts, so a held or kept claim shows whether the model or the code decided it.
+      const modelRows = Object.keys(entailment.results || {}).slice(0, 30).map((id) => { const r = entailment.results[id] || {}; return { claimId: id, verdict: r.verdict || "", linkQuote: String(r.linkQuote || "").slice(0, 240), missing: String(r.missing || "").slice(0, 160) }; });
+      const codeRows = (candidate.claims || []).filter((c) => c && c.provenance === "retrieved").slice(0, 30).map((c) => ({ claimId: c.claimId, final: c.entailment || "", note: String(c.entailmentNote || "").slice(0, 200), linkQuote: String(c.linkQuote || "").slice(0, 240) }));
+      logMeta({ stage: "SOURCE_ENTAILMENT", attemptId, model: knowledgeModel, pass, entailMs: Date.now() - entailStarted, ran: !!entailment.ok, counts: candidate.sourceAudit && candidate.sourceAudit.entailment || null, label: brain.SOURCE_SUPPORT_LABEL, modelRows, codeRows });
+    };
+    await entail(pack, "first");
+    let selection = brain.selectPackForLesson(pack, ctx);
+    let readiness = brain.assessPackReadiness(pack, selection, ctx);
+    // One source repair, research mode only: the exact rejections go back to the knowledge
+    // step once. The repaired pack passes the same quote check, entailment and readiness gate.
+    const repairable = pack.sourceMode === "retrieved" && !pack.falsePremise && (pack.status !== "blocked" || pack.needsSource);
+    if (repairable && (readiness.status !== "ready" || pack.status === "blocked")) {
+      const feedback = brain.sourceRepairFeedback(pack, selection, readiness, ctx);
+      logMeta({ stage: "PACK_SOURCE_REPAIR", attemptId, model: knowledgeModel, firstPass: { status: pack.status, readyPairs: readiness.distinctReady, requiredPairs: readiness.requiredPairs }, feedback: feedback.map((row) => ({ problem: row.problem, item: String(row.item || "").slice(0, 120) })) });
+      try {
+        const repairStarted = Date.now();
+        const rawRepair = await callModel(brain.sourceRepairBrief(pack, selection, readiness, ctx), apiKey, knowledgeModel, 9e4, 0);
+        const repaired = brain.normaliseKnowledgePack(rawRepair, ctx);
+        await entail(repaired, "repair");
+        const repairedSelection = brain.selectPackForLesson(repaired, ctx);
+        const repairedReadiness = brain.assessPackReadiness(repaired, repairedSelection, ctx);
+        // Both packs passed the same quote check, entailment and gate. A repair that loses
+        // ready pairs is not used; the first pack (and its verdict) stands.
+        const keptFirst = repairedReadiness.distinctReady < readiness.distinctReady && pack.status !== "blocked";
+        if (!keptFirst) {
+          pack = repaired;
+          selection = repairedSelection;
+          readiness = repairedReadiness;
+        }
+        packMs += Date.now() - repairStarted;
+        logMeta({ stage: "PACK_SOURCE_REPAIR_RESULT", attemptId, model: knowledgeModel, status: repaired.status, readyPairs: repairedReadiness.distinctReady, requiredPairs: repairedReadiness.requiredPairs, keptFirst });
+      } catch (_repairError) {
+        logMeta({ stage: "PACK_SOURCE_REPAIR_RESULT", attemptId, model: knowledgeModel, failed: true });
+      }
+    }
+    const packReadiness = {
+      status: readiness.status,
+      requiredPairs: readiness.requiredPairs,
+      distinctReady: readiness.distinctReady,
+      factuallyVerified: false,
+      readyPairs: (readiness.readyPairs || []).map((pair) => ({
+        unitId: pair.unitId || "",
+        elementClaimId: pair.elementClaimId || pair.featureClaimId,
+        explanationClaimId: pair.explanationClaimId || pair.mechanismClaimId,
+        mechanismClaimId: pair.mechanismClaimId,
+        featureClaimId: pair.featureClaimId,
+        feature: pair.feature,
+        explanation: String(pair.explanation || "").slice(0, 160)
+      })),
+      missing: (readiness.missing || []).slice(0, 8)
+    };
+    logMeta({ stage: "KNOWLEDGE_PACK", attemptId, model: knowledgeModel, packMs, packReadiness, ...brain.knowledgePackLog(pack, selection) });
+    if (pack.status === "blocked" || selection.status === "blocked") {
+      logMeta({
+        stage: "KNOWLEDGE_BLOCKED",
+        category: "invalid",
+        attemptId,
+        model,
+        packMs,
+        status: pack.status,
+        selection: selection.status,
+        reason: selection.status === "blocked" ? selection.reason : pack.statusReason
+      });
+      return json({
+        ok: false,
+        category: "invalid",
+        stage: "KNOWLEDGE_BLOCKED",
+        meta: { teacherIntent: intentMeta(ctx), knowledgePack: brain.knowledgePackLog(pack, selection) }
+      });
+    }
+    if (readiness.status !== "ready") {
+      logMeta({
+        stage: "PACK_INCOMPLETE",
+        category: "invalid",
+        attemptId,
+        model,
+        packMs,
+        requiredPairs: readiness.requiredPairs,
+        distinctReady: readiness.distinctReady,
+        missing: (readiness.missing || []).slice(0, 12),
+        issues: (readiness.issues || []).slice(0, 4)
+      });
+      return json({
+        ok: false,
+        category: "invalid",
+        stage: "PACK_INCOMPLETE",
+        issues: readiness.issues || [],
+        meta: { teacherIntent: intentMeta(ctx), knowledgePack: brain.knowledgePackLog(pack, selection), packReadiness }
+      });
+    }
+    ctx.knowledgePack = pack;
+    ctx.knowledgeSelection = selection;
+    phase = "PLAN_REQUEST";
+    logMeta({ stage: "PLAN_REQUEST", attemptId, repair: false, model, ...requestMeta(ctx) });
+    const planStarted = Date.now();
+    const firstPlan = await callModel(brain.planBrief(ctx), apiKey, model, 2e4);
+    let planMs = Date.now() - planStarted;
+    let planned = brain.normalisePlan(firstPlan, Object.assign({}, ctx, { depthRequired: true }));
+    let planRepaired = false;
+    let repairMs = 0;
+    if (!planned.ok) {
+      logMeta({
+        stage: "PLAN_VALIDATE",
+        category: "invalid",
+        repair: true,
+        model,
+        attemptId,
+        planMs,
+        issues: (planned.issues || []).slice(0, 8),
+        firstPass: planned.depth || null,
+        packPairs: planned.packPairs || null
+      });
+      planRepaired = true;
+      const planRepairStarted = Date.now();
+      const planRepairBrief = brain.planRepairBrief(ctx, planned.issues || [], planned.previous);
+      let repairInstruction = [];
+      try { repairInstruction = (JSON.parse(planRepairBrief.user).relationshipRequired || []).slice(0, 6).map((line) => String(line).slice(0, 900)); } catch (_error) { repairInstruction = []; }
+      const secondPlan = await callModel(planRepairBrief, apiKey, model, 2e4);
+      repairMs += Date.now() - planRepairStarted;
+      // breadthSettled marks the repaired breadth choice. A map that already has its strands still has to meet the depth floor.
+      planned = brain.normalisePlan(secondPlan, Object.assign({}, ctx, { depthRequired: true, breadthSettled: true, priorPlan: firstPlan }));
+      logMeta({ stage: "PLAN_REPAIR", attemptId, model, ok: !!planned.ok, repairInstruction, repaired: planned.depth || null, issues: (planned.issues || []).slice(0, 8), packPairs: planned.packPairs || null });
+      if (!planned.ok) {
+        logMeta({
+          stage: "EDUCATIONAL_VALIDATION_FAILED",
+          category: "invalid",
+          ms: Date.now() - started,
+          repair: true,
+          model,
+          attemptId,
+          issues: (planned.issues || []).slice(0, 8)
+        });
+        return json({ ok: false, category: "invalid", stage: "EDUCATIONAL_VALIDATION_FAILED", meta: { teacherIntent: intentMeta(ctx) } });
+      }
+    }
+    const withPlan = Object.assign({}, ctx, { lessonPlan: planned.plan });
+    phase = "STORY_REQUEST";
+    let storyMs = 0;
+    let storyPlan = brain.storyFromPlan(planned.plan, withPlan);
+    let storyFallback = false;
+    let storyFirstPass = false;
+    let storyRepaired = false;
+    try {
+      logMeta({ stage: "STORY_REQUEST", attemptId, repair: false, model, planMs });
+      const storyStarted = Date.now();
+      const firstStory = await callModel(brain.storyBrief(withPlan, planned.plan), apiKey, model, 18e3);
+      storyMs = Date.now() - storyStarted;
+      let story = brain.normaliseStory(firstStory, withPlan);
+      if (story.ok) storyFirstPass = true;
+      if (!story.ok) {
+        storyRepaired = true;
+        logMeta({ stage: "STORY_VALIDATE", category: "invalid", repair: true, model, attemptId, storyMs, issues: (story.issues || []).slice(0, 8) });
+        const storyRepairStarted = Date.now();
+        const secondStory = await callModel(brain.storyRepairBrief(withPlan, story.issues || [], story.previous), apiKey, model, 18e3);
+        const storyRepairMs = Date.now() - storyRepairStarted;
+        storyMs += storyRepairMs;
+        repairMs += storyRepairMs;
+        story = brain.normaliseStory(secondStory, withPlan);
+      }
+      if (story.ok && story.story) storyPlan = story.story;
+      else {
+        storyFallback = true;
+        storyPlan = brain.storyFromPlan(planned.plan, withPlan);
+        logMeta({ stage: "STORY_FALLBACK", attemptId, model, storyMs, issues: (story.issues || []).slice(0, 8) });
+      }
+    } catch (storyError) {
+      storyFallback = true;
+      storyPlan = brain.storyFromPlan(planned.plan, withPlan);
+      const storyCategory = storyError.category || "provider";
+      logMeta({ stage: "STORY_FALLBACK", category: storyCategory, attemptId, model, storyMs });
+    }
+    const withStory = Object.assign({}, withPlan, { storyPlan });
+    const skeleton = brain.planBeats(
+      brain.lessonSkeleton(planned.plan, withStory),
+      planned.plan,
+      ctx.yearGroup || planned.plan.yearGroup || (ctx.yearAssumed ? ctx.yearAssumption : "")
+    );
+    const framed = Object.assign({}, withStory, { lessonSkeleton: skeleton });
+    const learningMap = brain.learningMapReport(planned.plan, skeleton, ctx);
+    logMeta({ stage: "LEARNING_MAP", attemptId, model, ...learningMap, knowledgeTrace: brain.knowledgeTrace(planned.plan, skeleton, ctx) });
+    try {
+      const teachingPlan = typeof brain.teachingPlanReport === "function" ? brain.teachingPlanReport(planned.plan, skeleton, ctx) : null;
+      if (teachingPlan) logMeta({ stage: "TEACHING_PLAN", attemptId, model, ...teachingPlan });
+    } catch (error) {
+      logMeta({ stage: "TEACHING_PLAN", attemptId, model, error: "report-failed" });
+    }
+    phase = "CONTENT_REQUEST";
+    logMeta({ stage: "CONTENT_REQUEST", attemptId, repair: false, model, planMs, storyMs, arc: arcMeta(planned.plan) });
+    const contentStarted = Date.now();
+    const first = await callModel(brain.contentBrief(framed, planned.plan, storyPlan), apiKey, model, 28e3);
+    const contentMs = Date.now() - contentStarted;
+    logMeta({ stage: "CONTENT_VALIDATE", attemptId, repair: false, model, contentMs, contentBeats: brain.boundedBeatLog(first) });
+    // Patch 7, research mode only: the Try it task gets its own call from one unit's reason
+    // quote, is checked in code by the research rules, and gets one repair. Its raw reply,
+    // parsed task and issues are logged (APPLY_TASK) so a failure shows whether the model or
+    // the code dropped something. Without research nothing here runs.
+    if (ctx.researchEvidence && typeof brain.applyTaskBrief === "function") {
+      const taskUnit = brain.applyTaskUnit(framed);
+      if (taskUnit) {
+        const taught = brain.taughtSentences(first);
+        let task = null;
+        let taskIssues = [];
+        for (let pass = 1; pass <= 2; pass++) {
+          const taskStarted = Date.now();
+          let taskRaw = null;
+          let taskError = "";
+          try {
+            taskRaw = await callModel(brain.applyTaskBrief(framed, taskUnit, { taught, issues: taskIssues, previous: task }), apiKey, model, 28e3);
+          } catch (error) {
+            taskError = error && error.category || "error";
+          }
+          const previousTask = task;
+          task = brain.parseApplyTask(taskRaw, taskUnit);
+          taskIssues = taskError ? ["The Try it call failed (" + taskError + ")."] : brain.applyTaskIssues(task, taskUnit, Object.assign({}, framed, { applyTaskTaught: taught, applyTaskPrevious: previousTask }));
+          logMeta({ stage: "APPLY_TASK", attemptId, model, pass, taskMs: Date.now() - taskStarted, unitId: taskUnit.unitId, raw: taskRaw == null ? null : JSON.stringify(taskRaw).slice(0, 6000), parsed: task, issues: taskIssues.slice(0, 12) });
+          if (!taskIssues.length) break;
+        }
+        if (taskIssues.length) {
+          logMeta({ stage: "APPLY_TASK_FAILED", category: "invalid", attemptId, model, issues: taskIssues.slice(0, 8) });
+          return json({ ok: false, category: "invalid", stage: "APPLY_TASK_FAILED", issues: taskIssues.slice(0, 8), meta: { teacherIntent: intentMeta(ctx) } });
+        }
+        framed.applyTask = task;
+      }
+    }
+    let repairUser = null;
+    let repairRaw = null;
+    // Patch 7, research mode only: the check questions are audited (partly-true wrong choices,
+    // circular stems, goal-directed wording) by the research model before each accept; the
+    // verdicts block. Without research no port is passed, so nothing changes.
+    const auditPort = ctx.researchEvidence && typeof brain.questionAuditBrief === "function" ? {
+      questionAudit: async (input) => {
+        const auditStarted = Date.now();
+        try {
+          const payload = await callModel(brain.questionAuditBrief(input), apiKey, knowledgeModel, 6e4, 0);
+          const parsed = brain.parseQuestionAudit(payload);
+          logMeta({ stage: "QUESTION_AUDIT", attemptId, model: knowledgeModel, auditMs: Date.now() - auditStarted, ok: parsed.ok, questions: (input && input.questions || []).map((q) => String(q.prompt || "").slice(0, 160)), verdicts: parsed.questions });
+          return parsed;
+        } catch (error) {
+          logMeta({ stage: "QUESTION_AUDIT", attemptId, model: knowledgeModel, auditMs: Date.now() - auditStarted, ok: false, error: error && error.category || "error" });
+          return { ok: false, questions: [] };
+        }
+      }
+    } : {};
+    const resolved = await brain.resolveLessonContent(first, framed, Object.assign({
+      judge: async (input) => {
+        const judgeStarted = Date.now();
+        try {
+          const payload = await callModel(brain.applySemanticBrief(input), apiKey, model, 12e3, 0);
+          const parsed = brain.parseApplySemantic(payload);
+          return { ok: parsed.ok, relationship: parsed.relationship, reason: parsed.reason, ms: Date.now() - judgeStarted };
+        } catch (error) {
+          return { ok: false, relationship: null, reason: error && error.category || "error", ms: Date.now() - judgeStarted };
+        }
+      },
+      checkJudge: async (input) => {
+        const judgeStarted = Date.now();
+        try {
+          const evidencePayload = await callModel(brain.checkEvidenceBrief(input), apiKey, model, 12e3, 0);
+          const evidence = brain.parseCheckEvidence(evidencePayload);
+          if (!evidence.ok) return { ok: false, coverage: null, reason: "malformed", ms: Date.now() - judgeStarted };
+          const coveragePayload = await callModel(brain.checkCoverageBrief({
+            requiredEvidence: input && input.requiredEvidence,
+            demonstratedEvidence: evidence.demonstratedEvidence
+          }), apiKey, model, 12e3, 0);
+          const coverage = brain.parseCheckCoverage(coveragePayload);
+          if (!coverage.ok) return { ok: false, coverage: null, reason: "malformed", ms: Date.now() - judgeStarted };
+          return {
+            ok: true,
+            coverage: coverage.coverage,
+            reason: coverage.reason,
+            demonstratedEvidence: evidence.demonstratedEvidence,
+            ms: Date.now() - judgeStarted
+          };
+        } catch (error) {
+          return { ok: false, coverage: null, reason: error && error.category || "error", ms: Date.now() - judgeStarted };
+        }
+      },
+      repair: async (accepted) => {
+        const repairBrief = brain.slotRepairBrief(framed, accepted.slotIds || [], accepted.issues || [], accepted.previous);
+        repairUser = JSON.parse(repairBrief.user);
+        const slotStarted = Date.now();
+        repairRaw = await callModel(repairBrief, apiKey, model, 28e3);
+        repairMs += Date.now() - slotStarted;
+        logMeta({ stage: "CONTENT_REPAIR", attemptId, repair: true, model, repairBeats: brain.boundedBeatLog(repairRaw) });
+        return repairRaw;
+      }
+    }, auditPort));
+    const applyAlignment = resolved.applyAlignment || {};
+    logMeta({
+      stage: "APPLY_ALIGNMENT",
+      attemptId,
+      model,
+      deterministicStatus: applyAlignment.deterministicStatus || "",
+      deterministicReason: applyAlignment.deterministicReason || "",
+      semanticJudgeUsed: !!applyAlignment.semanticJudgeUsed,
+      semanticRelationship: applyAlignment.semanticRelationship || "",
+      semanticOutcome: applyAlignment.semanticOutcome || "",
+      semanticMs: applyAlignment.semanticMs,
+      semanticCalls: applyAlignment.semanticCalls || 0
+    });
+    const checkAlignment = resolved.checkAlignment || {};
+    logMeta({
+      stage: "CHECK_ALIGNMENT",
+      attemptId,
+      model,
+      deterministicStatus: checkAlignment.deterministicStatus || "",
+      deterministicReason: checkAlignment.deterministicReason || "",
+      semanticJudgeUsed: !!checkAlignment.semanticJudgeUsed,
+      semanticRelationship: checkAlignment.semanticRelationship || "",
+      semanticOutcome: checkAlignment.semanticOutcome || "",
+      semanticMs: checkAlignment.semanticMs,
+      semanticCalls: checkAlignment.semanticCalls || 0
+    });
+    if (resolved.structuralOk === false && !resolved.repairUsed) {
+      logMeta({
+        stage: "STRUCTURAL_VALIDATION_FAILED",
+        category: "invalid",
+        repair: false,
+        model,
+        attemptId,
+        issues: (resolved.issues || []).slice(0, 8),
+        output: digest(first)
+      });
+      return json({ ok: false, category: "invalid", stage: "STRUCTURAL_VALIDATION_FAILED", issues: (resolved.issues || []).slice(0, 8), meta: { structuralOk: false, repairKind: "none", repairUsed: false, applyAlignment, checkAlignment, teacherIntent: intentMeta(ctx) } });
+    }
+    const routeMeta = { planFirstPass: !planRepaired, planRepaired, storyFirstPass, storyRepaired, storyFallback, applyAlignment, checkAlignment, teacherIntent: intentMeta(ctx) };
+    const repairedSlots = resolved.repairedSlots || [];
+    const applyRepair = repairedSlots.indexOf("apply") !== -1;
+    const durationRepair = repairedSlots.some((id) => id !== "apply");
+    const trace = diagnosis(first, resolved, skeleton, {
+      repairModelApply: applyModel(repairRaw),
+      repairSlots: repairRaw && repairRaw.slots ? Object.keys(repairRaw.slots) : [],
+      repairSpecs: ((repairUser && repairUser.slotsToRewrite) || []).map((spec) => ({ slotType: spec.slotType, failure: spec.failure || [] })),
+      repairHook: slotModel(repairRaw, "hook"),
+      finalHook: hookLines(resolved),
+      finalApply: applyActivity(resolved),
+      finalCheck: checkSnapshot(resolved),
+      finalIssues: (resolved.issues || []).slice(0, 8),
+      applyAlignment,
+      checkAlignment
+    });
+    const intentRecord = intentMeta(ctx);
+    const diagnostic = slotDiagnostic(trace, checkAlignment, applyAlignment, intentRecord);
+    const qualityWarnings = stampedWarnings(resolved.qualityWarnings);
+    // ID lineage: every gate-ready unit is planned, taught and assessed, followed by id.
+    const lineage = resolved.ok && resolved.adventure && typeof brain.unitLineage === "function" ? brain.unitLineage(resolved.adventure, ctx) : { skipped: true, units: [], issues: [] };
+    if (!lineage.skipped) logMeta({ stage: "UNIT_LINEAGE", attemptId, model, ok: !lineage.issues.length, units: lineage.units, issues: lineage.issues.slice(0, 8) });
+    if (!lineage.skipped && lineage.issues.length) {
+      return json({ ok: false, category: "invalid", stage: "LINEAGE_VALIDATION_FAILED", issues: lineage.issues.slice(0, 8), meta: { lineage, teacherIntent: intentMeta(ctx) } });
+    }
+    if (resolved.ok && resolved.adventure) {
+      if (!lineage.skipped) resolved.adventure.unitLineage = lineage;
+      const timing = { durationMs: Date.now() - started, planMs, storyMs, contentMs, repairMs, repairUsed: !!resolved.repairUsed, repairKind: resolved.repairUsed ? "slot" : "none", structuralOk: true, planRepaired, storyFallback, storyFirstPass, storyRepaired, repairedSlots, applyRepair, durationRepair, applyAlignment, checkAlignment, teacherIntent: intentRecord, qualityWarnings, slotDiagnostic: diagnostic, diagnosis: trace, learningMap };
+      logMeta({ stage: "COMPLETE", category: "ok", ms: timing.durationMs, repair: !!resolved.repairUsed, repairKind: timing.repairKind, structuralOk: true, planRepaired, model, attemptId, planMs, contentMs, repairMs, applyRepair, durationRepair, semanticOutcome: applyAlignment.semanticOutcome || "", qualityWarnings, slotDiagnostic: diagnostic });
+      return json({ ok: true, adventure: resolved.adventure, stage: "COMPLETE", meta: timing });
+    }
+    const stage = resolved.structuralOk === false ? "STRUCTURAL_VALIDATION_FAILED" : failStage(resolved.issues || []);
+    logMeta({
+      stage,
+      category: "invalid",
+      ms: Date.now() - started,
+      repair: !!resolved.repairUsed,
+      model,
+      attemptId,
+      structuralOk: resolved.structuralOk !== false,
+      issues: (resolved.issues || []).slice(0, 8),
+      pupilBeatDiagnostics: (resolved.pupilBeatDiagnostics || []).slice(0, 12),
+      repairAction: resolved.repairUsed ? "slot" : "none",
+      semanticOutcome: applyAlignment.semanticOutcome || "",
+      qualityWarnings,
+      slotDiagnostic: diagnostic,
+      output: digest(repairRaw || first)
+    });
+    return json({ ok: false, category: "invalid", stage, issues: (resolved.issues || []).slice(0, 8), meta: { structuralOk: resolved.structuralOk !== false, repairKind: resolved.repairUsed ? "slot" : "none", repairUsed: !!resolved.repairUsed, repairedSlots, applyRepair, durationRepair, ...routeMeta, qualityWarnings, pupilBeatDiagnostics: (resolved.pupilBeatDiagnostics || []).slice(0, 12), slotDiagnostic: diagnostic, diagnosis: trace } });
+  } catch (error) {
+    const category = error.category || "provider";
+    const stage = category === "parse" ? phase === "PLAN_REQUEST" ? "PLAN_PARSE" : phase === "STORY_REQUEST" ? "STORY_PARSE" : phase === "KNOWLEDGE_GROUNDING" ? "KNOWLEDGE_PARSE" : "CONTENT_PARSE" : category === "timeout" ? phase : "AI_REQUEST_FAILED";
+    logMeta({ stage, category, ms: Date.now() - started, repair: false, model, attemptId });
+    return json({ ok: false, category: category === "timeout" ? "timeout" : category === "parse" ? "invalid" : "provider", stage });
+  }
+};
