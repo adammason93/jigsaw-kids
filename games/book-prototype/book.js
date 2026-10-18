@@ -1447,9 +1447,13 @@ function paintCompositionLeaf(page, side) {
     return c;
   }
   if (role === "spread-left" || role === "spread-right") {
-    if (image && fit !== "planned") {
-      coverDraw(g, image, 0, 0, c.width, c.height, 0.5, 0.45);
-      if (text) paintOverArt(g, text, side, leaf.age, leaf.mood, leaf.discoveries, "lower");
+    if (image && comp.spreadLeafPresentation(role, fit) === "paper") {
+      featherPlate(g, image);
+      if (text) {
+        const column = comp.textColumn(side, c.width);
+        const safe = comp.safeRead(c.width, c.height);
+        compositionCopy(g, text, column, leaf.age || "7-9", leaf.mood || "quiet", c.height * 0.62, safe.bottom, leaf.discoveries);
+      }
       gutterShade(g, side);
       return c;
     }
@@ -1505,8 +1509,9 @@ function paintCompositionBook(plan) {
     const left = pages[i];
     const right = pages[i + 1];
     const kind = left && left.leaf && left.leaf.composition;
-    const placement = window.WondiiComposition.picturePlacement(leafView(left), leafView(right));
-    if (placement.continuous && left && right && left.image && right.image && window.WondiiArtDirection) {
+    const opening = window.WondiiComposition.spreadOpening(leafView(left), leafView(right));
+    const placement = opening.placement;
+    if (opening.continuous && left && right && left.image && right.image && window.WondiiArtDirection) {
       const where = spreadQuietWhere(left.leaf) && spreadQuietWhere(left.leaf) === spreadQuietWhere(right.leaf)
         ? spreadQuietWhere(left.leaf)
         : "";
@@ -1520,7 +1525,7 @@ function paintCompositionBook(plan) {
     }
     let leftPage = left;
     let rightPage = right;
-    if (!placement.continuous && placement.left === "once" && placement.right === "text" && left && left.leaf && left.leaf.role === "spread-left") {
+    if (opening.paperSplit || (!placement.continuous && placement.left === "once" && placement.right === "text" && left && left.leaf && left.leaf.role === "spread-left")) {
       leftPage = Object.assign({}, left, { text: "" });
       rightPage = Object.assign({}, right || {}, {
         text: (left && left.text) || (right && right.text) || "",

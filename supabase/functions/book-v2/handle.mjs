@@ -10588,6 +10588,23 @@ var require_book_spread = __commonJS({
     return region;
   }
 
+  function acceptedReport(pictures, page) {
+    if (!page || !pictures) return null;
+    var id = page.pageId || page.id;
+    var shot = id ? pictures[id] : null;
+    if (!shot || shot.accepted !== true) return null;
+    return shot.report || null;
+  }
+
+  function restoreQuiet(composition, pages, plan, pictures) {
+    return (plan && plan.selected || []).map(function (pair) {
+      var left = pages && pages[pair.leftIndex];
+      var report = acceptedReport(pictures, left);
+      if (!report) report = acceptedReport(pictures, pages && pages[pair.rightIndex]);
+      return assignQuiet(composition, pages, pair, report, "lower");
+    });
+  }
+
   function textFit(text, art, side) {
     var size = Math.round(PAGE.width * 0.06);
     var floor = Math.round(PAGE.width * 0.03);
@@ -11273,6 +11290,7 @@ var require_book_spread = __commonJS({
     bindComposition: bindComposition,
     confirmedQuiet: confirmedQuiet,
     assignQuiet: assignQuiet,
+    restoreQuiet: restoreQuiet,
     record: record,
     textFit: textFit,
     copyHeight: copyHeight
@@ -12011,6 +12029,7 @@ var require_produce = __commonJS({
                   var spreadPlan = Spread.review(pages, { art: Art, limit: 1, composition: composition });
                   checkpoint.spreadPlan = spreadPlan;
                   Spread.bindComposition(composition, pages, spreadPlan);
+                  Spread.restoreQuiet(composition, pages, spreadPlan, pictures);
                   function rememberShared(url) {
                     (spreadPlan.selected || []).forEach(function(pair) {
                       var beat = composition.beats[pair.leftIndex];
@@ -12093,6 +12112,7 @@ var require_produce = __commonJS({
                       };
                       page.imageDataUrl = sharedUrl;
                       rememberShared(sharedUrl);
+                      Spread.restoreQuiet(composition, pages, spreadPlan, pictures);
                       checkpoint.pictures = pictures;
                       return persist().then(function() {
                         var next = PictureStep.nextPictureStep(illustrationPages(), pictures, spend, checkpoint.pictureHolds || {}, { maxRepairs: Visual.MAX_VISUAL_REPAIRS });
@@ -12275,6 +12295,7 @@ var require_produce = __commonJS({
                         pictures[pageId] = { accepted: true, dataUrl: sharedUrl, shared: true, report: pictures[leftPage.pageId] && pictures[leftPage.pageId].report };
                         page.imageDataUrl = sharedUrl;
                         rememberShared(sharedUrl);
+                        Spread.restoreQuiet(composition, pages, spreadPlan, pictures);
                         return "";
                       }
                       var prompt = Visual.spreadPrompt(book.bible, spread, lineup);

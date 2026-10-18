@@ -505,7 +505,10 @@
         var same = !!(left && right && left.unitId && left.unitId === right.unitId);
         var width = Number(left && (left.imageWidth || left.width)) || 0;
         var height = Number(left && (left.imageHeight || left.height)) || 0;
-        var continuous = same && leftRole === "spread-left" && rightRole === "spread-right" && assetFit("spread", width, height) === "planned";
+        var rightWidth = Number(right && (right.imageWidth || right.width)) || 0;
+        var rightHeight = Number(right && (right.imageHeight || right.height)) || 0;
+        var bothPlanned = assetFit("spread", width, height) === "planned" && assetFit("spread", rightWidth, rightHeight) === "planned";
+        var continuous = same && leftRole === "spread-left" && rightRole === "spread-right" && bothPlanned;
         if (continuous) return { left: "half", right: "half", copies: 1, continuous: true };
         function draws(role) {
           return !!(role && role !== "text" && role !== "blank");
@@ -519,6 +522,24 @@
           right: rightDraws ? "once" : rightRole === "text" ? "text" : "blank",
           copies: (draws(leftRole) ? 1 : 0) + (rightDraws ? 1 : 0),
           continuous: false
+        };
+      }
+      /* An unsuitable spread image keeps its words on paper. A planned
+         spread can still use the quiet half. Other page roles are unchanged. */
+      function spreadLeafPresentation(role, fit) {
+        if (role !== "spread-left" && role !== "spread-right") return "";
+        return fit === "planned" ? "planned" : "paper";
+      }
+      function spreadOpening(left, right) {
+        var placement = picturePlacement(left, right);
+        var leftRole = left && left.role || "";
+        var rightRole = right && right.role || "";
+        var same = !!(left && right && left.unitId && left.unitId === right.unitId);
+        var pair = leftRole === "spread-left" && rightRole === "spread-right" && same;
+        return {
+          continuous: !!(placement.continuous && pair),
+          paperSplit: !!(pair && !placement.continuous),
+          placement: placement
         };
       }
       function typeSize(age, pageW) {
@@ -587,6 +608,8 @@
         safeRead,
         textFrame,
         picturePlacement,
+        spreadLeafPresentation,
+        spreadOpening,
         spreadSlice,
         typeSize,
         wordCount,

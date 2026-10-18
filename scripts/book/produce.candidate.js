@@ -729,6 +729,7 @@ var require_produce = __commonJS({
                   var spreadPlan = Spread.review(pages, { art: Art, limit: 1, composition: composition });
                   checkpoint.spreadPlan = spreadPlan;
                   Spread.bindComposition(composition, pages, spreadPlan);
+                  Spread.restoreQuiet(composition, pages, spreadPlan, pictures);
                   function rememberShared(url) {
                     (spreadPlan.selected || []).forEach(function(pair) {
                       var beat = composition.beats[pair.leftIndex];
@@ -811,6 +812,7 @@ var require_produce = __commonJS({
                       };
                       page.imageDataUrl = sharedUrl;
                       rememberShared(sharedUrl);
+                      Spread.restoreQuiet(composition, pages, spreadPlan, pictures);
                       checkpoint.pictures = pictures;
                       return persist().then(function() {
                         var next = PictureStep.nextPictureStep(illustrationPages(), pictures, spend, checkpoint.pictureHolds || {}, { maxRepairs: Visual.MAX_VISUAL_REPAIRS });
@@ -993,6 +995,7 @@ var require_produce = __commonJS({
                         pictures[pageId] = { accepted: true, dataUrl: sharedUrl, shared: true, report: pictures[leftPage.pageId] && pictures[leftPage.pageId].report };
                         page.imageDataUrl = sharedUrl;
                         rememberShared(sharedUrl);
+                        Spread.restoreQuiet(composition, pages, spreadPlan, pictures);
                         return "";
                       }
                       var prompt = Visual.spreadPrompt(book.bible, spread, lineup);

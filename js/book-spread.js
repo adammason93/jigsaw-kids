@@ -227,6 +227,27 @@
     return region;
   }
 
+  /* Re-approve a quiet area from the stored vision report. Binding rebuilds
+     the leaves, so an old quietRegion is never copied across a checkpoint.
+     A report is used only after that half has been accepted, and only
+     textSafeUsable === true can survive assignQuiet. */
+  function acceptedReport(pictures, page) {
+    if (!page || !pictures) return null;
+    var id = page.pageId || page.id;
+    var shot = id ? pictures[id] : null;
+    if (!shot || shot.accepted !== true) return null;
+    return shot.report || null;
+  }
+
+  function restoreQuiet(composition, pages, plan, pictures) {
+    return (plan && plan.selected || []).map(function (pair) {
+      var left = pages && pages[pair.leftIndex];
+      var report = acceptedReport(pictures, left);
+      if (!report) report = acceptedReport(pictures, pages && pages[pair.rightIndex]);
+      return assignQuiet(composition, pages, pair, report, "lower");
+    });
+  }
+
   function textFit(text, art, side) {
     var size = Math.round(PAGE.width * 0.06);
     var floor = Math.round(PAGE.width * 0.03);
@@ -912,6 +933,7 @@
     bindComposition: bindComposition,
     confirmedQuiet: confirmedQuiet,
     assignQuiet: assignQuiet,
+    restoreQuiet: restoreQuiet,
     record: record,
     textFit: textFit,
     copyHeight: copyHeight
