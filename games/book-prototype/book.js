@@ -1497,6 +1497,47 @@ function leafView(page) {
   };
 }
 
+function storyPiece(page) {
+  if (!page || page.text == null) return "";
+  const text = String(page.text);
+  return text.trim() ? text : "";
+}
+
+function spreadFallbackCopy(left, right) {
+  const parts = [];
+  const first = storyPiece(left);
+  const second = storyPiece(right);
+  if (first) parts.push(first);
+  if (second) parts.push(second);
+  return parts.join("\n\n");
+}
+
+function spreadFallbackPages(left, right) {
+  const copy = spreadFallbackCopy(left, right);
+  const leftImage = left && left.image;
+  const rightImage = right && right.image;
+  const leftReady = !!(leftImage && leftImage.width > 0 && leftImage.height > 0);
+  const rightReady = !!(rightImage && rightImage.width > 0 && rightImage.height > 0);
+  const pictureSide = leftReady ? "left" : rightReady ? "right" : "";
+  const paper = function (leaf) {
+    return Object.assign({}, leaf || {}, { role: "text", composition: "facing" });
+  };
+  if (pictureSide === "right") {
+    return {
+      copy: copy,
+      pictureSide: "right",
+      left: Object.assign({}, left || {}, { text: copy, image: null, leaf: paper(left && left.leaf) }),
+      right: Object.assign({}, right, { text: "" })
+    };
+  }
+  return {
+    copy: copy,
+    pictureSide: pictureSide,
+    left: Object.assign({}, left || {}, { text: "" }),
+    right: Object.assign({}, right || {}, { text: copy, image: null, leaf: paper(right && right.leaf) })
+  };
+}
+
 function paintCompositionBook(plan) {
   const pages = plan.pages || [];
   const painted = [{
@@ -1525,19 +1566,18 @@ function paintCompositionBook(plan) {
     }
     let leftPage = left;
     let rightPage = right;
+    let spoken = [left && left.text, right && right.text].filter(Boolean).join(" ");
     if (opening.paperSplit || (!placement.continuous && placement.left === "once" && placement.right === "text" && left && left.leaf && left.leaf.role === "spread-left")) {
-      leftPage = Object.assign({}, left, { text: "" });
-      rightPage = Object.assign({}, right || {}, {
-        text: (left && left.text) || (right && right.text) || "",
-        image: null,
-        leaf: Object.assign({}, (right && right.leaf) || {}, { role: "text", composition: "facing" })
-      });
+      const fallback = spreadFallbackPages(left, right);
+      leftPage = fallback.left;
+      rightPage = fallback.right;
+      spoken = fallback.copy;
     }
     painted.push({
       label: kind || "Story",
       left: paintCompositionLeaf(leftPage, "left"),
       right: rightPage ? paintCompositionLeaf(rightPage, "right") : drawBlankLeaf(),
-      text: [left && left.text, right && right.text].filter(Boolean).join(" ")
+      text: spoken
     });
   }
   painted.push(closingSpread());

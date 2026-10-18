@@ -206,4 +206,190 @@ var reloadedViews = Composition.spreadOpening(
 assert.strictEqual(reloadedViews.continuous, true);
 assert.strictEqual(opened.pages[0].leaf.quietRegion, opened.pages[1].leaf.quietRegion);
 
+var fallbackSource = reader.slice(reader.indexOf("function storyPiece"), reader.indexOf("function paintCompositionBook"));
+var spreadFallbackPages = new Function(fallbackSource + "\nreturn spreadFallbackPages;")();
+var spreadFallbackCopy = new Function(fallbackSource + "\nreturn spreadFallbackCopy;")();
+assert.ok(reader.indexOf("(left && left.text) || (right && right.text)") < 0);
+assert.ok(reader.indexOf("spreadFallbackPages(left, right)") >= 0);
+
+function leaf(role) {
+  return { role: role, unitId: "spread-1-2", composition: "spread", age: "7-9", mood: "story", discoveries: [] };
+}
+function side(text, image, role) {
+  return { text: text, image: image, leaf: leaf(role) };
+}
+var wide = { width: 1536, height: 1024 };
+var box = { width: 800, height: 800 };
+var firstSentence = "Maya holds the lantern.";
+var secondSentence = "The star glows beside her.";
+
+function unchanged(pair, painted) {
+  assert.strictEqual(pair.left.text, painted.leftText);
+  assert.strictEqual(pair.right.text, painted.rightText);
+  assert.strictEqual(pair.left.image, painted.leftImage);
+  assert.strictEqual(pair.right.image, painted.rightImage);
+}
+
+var mismatchedPages = {
+  left: side(firstSentence, wide, "spread-left"),
+  right: side(secondSentence, box, "spread-right")
+};
+var mismatchedPaint = spreadFallbackPages(mismatchedPages.left, mismatchedPages.right);
+assert.strictEqual(mismatchedPaint.copy, firstSentence + "\n\n" + secondSentence);
+assert.strictEqual(mismatchedPaint.pictureSide, "left");
+assert.strictEqual(mismatchedPaint.left.text, "");
+assert.strictEqual(mismatchedPaint.left.image, wide);
+assert.strictEqual(mismatchedPaint.right.text, mismatchedPaint.copy);
+assert.strictEqual(mismatchedPaint.right.image, null);
+assert.strictEqual(mismatchedPaint.right.leaf.role, "text");
+assert.deepStrictEqual(mismatchedPaint.copy.split("\n\n"), [firstSentence, secondSentence]);
+unchanged(mismatchedPages, { leftText: firstSentence, rightText: secondSentence, leftImage: wide, rightImage: box });
+
+var missingRightPages = {
+  left: side(firstSentence, wide, "spread-left"),
+  right: side(secondSentence, null, "spread-right")
+};
+var missingRightPaint = spreadFallbackPages(missingRightPages.left, missingRightPages.right);
+assert.strictEqual(missingRightPaint.copy, firstSentence + "\n\n" + secondSentence);
+assert.strictEqual(missingRightPaint.pictureSide, "left");
+assert.strictEqual(missingRightPaint.right.image, null);
+assert.strictEqual(missingRightPaint.right.text, missingRightPaint.copy);
+assert.strictEqual(missingRightPaint.left.image, wide);
+assert.strictEqual(missingRightPaint.left.text, "");
+unchanged(missingRightPages, { leftText: firstSentence, rightText: secondSentence, leftImage: wide, rightImage: null });
+
+var missingLeftPages = {
+  left: side(firstSentence, null, "spread-left"),
+  right: side(secondSentence, wide, "spread-right")
+};
+var missingLeftPaint = spreadFallbackPages(missingLeftPages.left, missingLeftPages.right);
+assert.strictEqual(missingLeftPaint.copy, firstSentence + "\n\n" + secondSentence);
+assert.strictEqual(missingLeftPaint.pictureSide, "right");
+assert.strictEqual(missingLeftPaint.left.image, null);
+assert.strictEqual(missingLeftPaint.left.text, missingLeftPaint.copy);
+assert.strictEqual(missingLeftPaint.left.leaf.role, "text");
+assert.strictEqual(missingLeftPaint.right.image, wide);
+assert.strictEqual(missingLeftPaint.right.text, "");
+unchanged(missingLeftPages, { leftText: firstSentence, rightText: secondSentence, leftImage: null, rightImage: wide });
+
+var emptyRight = spreadFallbackPages(side(firstSentence, wide, "spread-left"), side("", box, "spread-right"));
+assert.strictEqual(emptyRight.copy, firstSentence);
+assert.strictEqual(emptyRight.copy.split("\n\n").length, 1);
+assert.strictEqual(emptyRight.right.text, firstSentence);
+assert.strictEqual(emptyRight.left.text, "");
+var emptyLeft = spreadFallbackPages(side("   ", wide, "spread-left"), side(secondSentence, box, "spread-right"));
+assert.strictEqual(emptyLeft.copy, secondSentence);
+assert.strictEqual(emptyLeft.right.text, secondSentence);
+
+var markedLeft = "Maya holds the lantern!";
+var markedRight = "Look — the star glows beside her.";
+var marked = spreadFallbackPages(side(markedLeft, wide, "spread-left"), side(markedRight, null, "spread-right"));
+assert.strictEqual(marked.copy, markedLeft + "\n\n" + markedRight);
+assert.ok(marked.copy.indexOf("!") >= 0);
+assert.ok(marked.copy.indexOf("—") >= 0);
+assert.deepStrictEqual(marked.copy.split("\n\n"), [markedLeft, markedRight]);
+
+var layoutSource = reader.slice(reader.indexOf("function compositionFace"), reader.indexOf("function paintCompositionText"));
+var compositionLayout = new Function(layoutSource + "\nreturn compositionLayout;")();
+var pageW = 1200;
+var pageH = Math.round(1200 * (1.83 / 1.22));
+var measure = {
+  canvas: { width: pageW, height: pageH },
+  font: "",
+  measureText: function (text) {
+    var size = 48;
+    var found = String(this.font).match(/(\d+(?:\.\d+)?)px/);
+    if (found) size = Number(found[1]);
+    return { width: String(text).length * size * 0.52 };
+  }
+};
+function paperFit(text) {
+  var age = "7-9";
+  var size = Composition.typeSize(age, pageW);
+  var floor = Math.round(pageW * 0.024);
+  var column = Composition.textColumn("right", pageW);
+  var safe = Composition.safeRead(pageW, pageH);
+  var room = safe.bottom - safe.top;
+  var lead = Composition.leading(age);
+  var marks = Composition.chooseMarks(text, { age: age, mood: "story", discoveries: [] });
+  var layout = compositionLayout(measure, text, column.w, size, lead, marks);
+  var guard = 0;
+  while (layout.height > room && size > floor && guard < 14) {
+    size = Math.max(floor, Math.round(size * 0.9));
+    layout = compositionLayout(measure, text, column.w, size, lead, marks);
+    guard += 1;
+  }
+  return { fitted: layout.height <= room + 1, size: size, floor: floor };
+}
+var nearWords = [];
+var near = "";
+var nearFit = null;
+while (nearWords.length < 400) {
+  nearWords.push("lantern");
+  var candidate = "Maya holds the lantern, " + nearWords.join(" ") + ".\n\nThe star glows beside her.";
+  var candidateFit = paperFit(candidate);
+  if (!candidateFit.fitted) break;
+  near = candidate;
+  nearFit = candidateFit;
+}
+assert.ok(nearFit && nearFit.fitted);
+assert.ok(nearFit.size >= nearFit.floor);
+assert.ok(nearFit.size < Composition.typeSize("7-9", pageW));
+var nearPaint = spreadFallbackCopy(
+  { text: near.split("\n\n")[0] },
+  { text: near.split("\n\n")[1] }
+);
+assert.strictEqual(nearPaint, near);
+var over = near + " " + "lantern ".repeat(80).trim();
+var overFit = paperFit(over);
+assert.strictEqual(overFit.fitted, false);
+assert.strictEqual(overFit.size, overFit.floor);
+assert.ok(overFit.size >= Math.round(pageW * 0.024));
+var copyFn = reader.slice(reader.indexOf("function compositionCopy"), reader.indexOf("function layoutWidth"));
+assert.ok(copyFn.indexOf("paintUnfitted") >= 0);
+assert.ok(copyFn.indexOf("paintUnfitted") < copyFn.indexOf("paintCompositionText"));
+assert.ok(copyFn.indexOf("g.canvas.width * 0.024") >= 0);
+
+function storyBook(sentences) {
+  var pages = sentences.map(function (text, index) {
+    return { pageId: "p" + (index + 1), text: text, prose: text };
+  });
+  return {
+    id: "synthetic-story",
+    title: "Synthetic",
+    author: "Wondii",
+    generated: true,
+    pages: pages,
+    composition: Composition.plan(pages.map(function (item) {
+      return { id: item.pageId, text: item.text };
+    }), { ageBand: "7-9" })
+  };
+}
+var savedSentences = [markedLeft, markedRight];
+var savedBook = storyBook(savedSentences);
+savedBook.composition.units.forEach(function (unit) { unit.imageSrc = ""; });
+savedBook.pages[0].imageUrlFallback = "/fixtures/spread.png";
+savedBook.pages[1].imageUrlFallback = "/fixtures/square.png";
+var openedBook = Data.plan(JSON.parse(JSON.stringify(savedBook)));
+var reopenedBook = Data.plan(JSON.parse(JSON.stringify(savedBook)));
+assert.deepStrictEqual(openedBook.pages.map(function (item) { return item.text; }), savedSentences);
+assert.deepStrictEqual(reopenedBook.pages.map(function (item) { return item.text; }), savedSentences);
+var reopenedPaint = spreadFallbackPages(
+  Object.assign({}, openedBook.pages[0], { image: wide }),
+  Object.assign({}, openedBook.pages[1], { image: box })
+);
+assert.strictEqual(reopenedPaint.copy, markedLeft + "\n\n" + markedRight);
+assert.deepStrictEqual(openedBook.pages.map(function (item) { return item.text; }), savedSentences);
+
+var twelveSentences = [];
+for (var sentenceIndex = 1; sentenceIndex <= 12; sentenceIndex += 1) {
+  twelveSentences.push("Sentence " + sentenceIndex + " stays whole.");
+}
+var twelveBook = storyBook(twelveSentences);
+var twelveOpened = Data.plan(JSON.parse(JSON.stringify(twelveBook)));
+var twelveReopened = Data.plan(JSON.parse(JSON.stringify(twelveBook)));
+assert.deepStrictEqual(twelveOpened.pages.map(function (item) { return item.text; }), twelveSentences);
+assert.deepStrictEqual(twelveReopened.pages.map(function (item) { return item.text; }), twelveSentences);
+assert.strictEqual(twelveOpened.pages.length, 12);
+
 console.log("continuous spread fix tests ok");
