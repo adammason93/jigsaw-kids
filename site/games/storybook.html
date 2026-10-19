@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="preload" href="/games/images/connect-four-world.jpg" as="image" />
+  <link rel="preload" href="/games/images/storybook-landing-room-bg.jpg" as="image" />
+  <meta name="theme-color" content="#141b4d" />
+  <title>Make a book — Wondii</title>
+  <link rel="manifest" href="../manifest.json" />
+  <link rel="stylesheet" href="../js/kids-core.css" />
+  <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
+  <link rel="stylesheet" href="storybook-app.css?v=182" />
+  <link rel="stylesheet" href="storybook-wondii.css?v=13" />
+  <link rel="stylesheet" href="../home.css?v=8" />
+  <link rel="stylesheet" href="story-journey.css?v=53" />
+  <link rel="stylesheet" href="book-workshop.css?v=2" />
+  <link rel="stylesheet" href="../tablet-ipad.css" />
+  <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
+  <style>
+    body.page-storybook.sb-route-story .sb-shelf-unit {
+      border: 3px solid rgba(168, 85, 247, 0.55) !important;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.95),
+        0 0 0 1px rgba(255, 255, 255, 0.35),
+        0 8px 32px rgba(88, 28, 135, 0.22),
+        0 0 40px rgba(168, 85, 247, 0.2) !important;
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Comic+Neue:wght@400;700&family=Fredoka:wght@400;500;600;700&family=Kalam:wght@400;700&family=Nunito:wght@500;600;700;800&family=Patrick+Hand&family=Schoolbell&family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/wondii-tokens.css?v=2" />
+  <link rel="stylesheet" href="../css/wondii-p1.css?v=9" />
+</head>
+<body class="page-storybook sb-route-story">
+  <!-- Magical welcome when arriving from main portal (?from=portal) -->
+  <div
+    class="sb-portal-welcome"
+    id="sbPortalWelcome"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="sbPortalWelcomeTitle"
+    aria-hidden="true"
+    hidden
+  >
+    <div class="sb-portal-welcome__veil" aria-hidden="true"></div>
+    <div class="sb-portal-welcome__inner">
+      <div class="sb-portal-welcome__sparkles" aria-hidden="true"></div>
+      <div class="sb-portal-welcome__mascot" aria-hidden="true">
+        <img
+          class="sb-portal-welcome__char"
+          src="/games/images/brand/wondi-mark.svg"
+          alt=""
+          width="140"
+          height="140"
+          decoding="async"
+        />
+      </div>
+      <p class="sb-portal-welcome__kicker">Wondii</p>
+      <h2 class="sb-portal-welcome__title" id="sbPortalWelcomeTitle">Welcome back!</h2>
+      <p class="sb-portal-welcome__lead" id="sbPortalWelcomeLead">
+        Let’s get creative — start a new book or open one you’ve put on your shelf.
+      </p>
+      <button type="button" class="sb-portal-welcome__dismiss sb-btn sb-btn--primary" id="sbPortalWelcomeDismiss">
+        Let’s go
+      </button>
+    </div>
+  </div>
+  <div class="sb-app" id="app">
+    <header class="home-bar home-bar--menu sb-nav">
+      <button type="button" class="home-nav-menu" id="sjNavMenu" aria-expanded="false" aria-controls="sjMainNav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <a class="home-logo" href="../portal.html" aria-label="Wondii — home">
+        <img class="home-logo__pad" src="images/brand/wondi-wordmark.svg" width="168" height="56" alt="" />
+      </a>
+      <nav class="home-nav" id="sjMainNav" aria-label="Main">
+        <a class="home-nav__link" href="../portal.html">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.2 12 4l9 7.2V20a1 1 0 0 1-1 1h-5.5v-6h-5v6H4a1 1 0 0 1-1-1z"/></svg>
+          <span>Home</span>
+        </a>
+        <a class="home-nav__link is-active" href="../portal.html#stories" aria-current="page">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5C6.5 4.3 9.2 4.3 12 6c2.8-1.7 5.5-1.7 8-.5V19c-2.5-1.2-5.2-1.2-8 .5-2.8-1.7-5.5-1.7-8-.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 6v13.5" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+          <span>Stories</span>
+        </a>
+        <a class="home-nav__link" href="../portal.html#games">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10a5 5 0 0 1 4.9 6l-.8 4a2.5 2.5 0 0 1-4.3 1.2L14.5 16h-5l-2.3 2.2A2.5 2.5 0 0 1 2.9 17l-.8-4A5 5 0 0 1 7 7zm0 3v1.5H5.5v1.5H7v1.5h1.5V13H10v-1.5H8.5V10zm9.5 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm-2 2a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>
+          <span>Games</span>
+        </a>
+        <a class="home-nav__link" href="../portal.html#favourites">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.3 2.3 4 6.3 4c2.3 0 3.9 1.3 5.7 3.3C13.8 5.3 15.4 4 17.7 4c4 0 5.9 4.3 4.3 7.7C19.5 16.4 12 21 12 21z"/></svg>
+          <span><span class="home-nav__my">My </span>Favourites</span>
+        </a>
+        <a class="home-nav__link" href="../portal.html#about">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1.3 15h-2.6v-6.5h2.6zM12 9.2a1.6 1.6 0 1 1 0-3.2 1.6 1.6 0 0 1 0 3.2z"/></svg>
+          <span>About</span>
+        </a>
+      </nav>
+      <div class="home-bar__end">
+        <button type="button" class="home-gear" id="sjHelp" title="Help" aria-label="Help">?</button>
+        <a class="home-avatar" href="../characters.html" title="My characters">
+          <img src="images/brand/wondi-mark.svg" alt="My characters" width="46" height="46" decoding="async" />
+        </a>
+        <button type="button" class="home-gear" id="sjSettings" title="Grown-up settings" aria-label="Grown-up settings">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.4 7.4 0 0 0 1.7 1l.3 2.6h4l.4-2.6a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.5zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>
+        </button>
+      </div>
+    </header>
+    <div class="sj-help" id="sjHelpDialog" hidden>
+      <div class="sj-help__card" role="dialog" aria-modal="true" aria-labelledby="sjHelpTitle">
+        <h2 id="sjHelpTitle">Making your story</h2>
+        <p>Choose your stars, your world, and your idea.</p>
+        <p>Surprise me picks a friend for you. Nothing is made until you approve the book and press Create book.</p>
+        <button type="button" class="sj-pill sj-pill--primary" id="sjHelpClose">Got it</button>
+      </div>
+    </div>
+
+    <!-- Story creation welcome. The finished reader keeps the book. -->
+    <section class="sb-landing sj-room" id="sbLanding" aria-labelledby="sbLandingTitle">
+      <div class="sj-room__copy">
+        <p class="sj-room__kicker">Step into Wondii and make a story that's all yours.</p>
+        <h1 class="sj-room__title" id="sbLandingTitle">Every great story starts somewhere...</h1>
+      </div>
+      <div class="sj-welcome" id="sjDesk">
+        <figure class="sj-companion" hidden>
+          <img src="images/characters/crew/wondii-maya.jpg" alt="" width="120" height="120" />
+          <figcaption>Maya</figcaption>
+        </figure>
+        <div class="sj-teasers" aria-hidden="true">
+          <p>Explore some magical worlds</p>
+          <div>
+            <figure><img src="images/connect-four-world.jpg" alt="" /><figcaption>Wondii World</figcaption></figure>
+            <figure><img src="images/storybook-landing-room-bg.jpg" alt="" /><figcaption>At home</figcaption></figure>
+            <figure><img src="images/jigsaw-presets/dino.jpg" alt="" /><figcaption>In nature</figcaption></figure>
+            <figure><img src="images/jigsaw-presets/dolphin.jpg" alt="" /><figcaption>Under the sea</figcaption></figure>
+            <figure><img src="images/jigsaw-presets/unicorn.jpg" alt="" /><figcaption>Somewhere magical</figcaption></figure>
+          </div>
+        </div>
+        <button type="button" class="sj-tome" id="sjTome" tabindex="-1" aria-hidden="true">
+          <span class="sj-tome__pages" aria-hidden="true"></span>
+          <span class="sj-tome__cover">
+            <span class="sj-tome__window">
+              <img src="images/characters/crew/wondii-maya.jpg" alt="" width="240" height="300" />
+            </span>
+            <span class="sj-tome__name">Your story</span>
+          </span>
+          <span class="sj-sparkles" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        </button>
+      </div>
+      <p class="sb-note sb-note--landing" id="sbError" role="alert" hidden></p>
+      <div class="sj-room__actions">
+        <button type="button" class="sj-pill sj-pill--primary" id="sbStartJourney">Start my story</button>
+        <button type="button" class="sj-pill" id="sbSurprise">Surprise me</button>
+        <button type="button" class="sj-quiet" id="sbPreviewSample">Open a demo story</button>
+      </div>
+      <p class="sj-quiet-note">The demo story is already finished.</p>
+      <div class="sb-landing__split">
+        <div class="sb-landing__left" hidden></div>
+        <div class="sb-landing__right">
+          <div class="sb-library" id="sbLibrary">
+            <h2 class="sb-library__h" id="sbLibraryHeading">My bookshelf</h2>
+            <p class="sb-library__hint" id="sbLibraryHint">
+              Saved books stay here. Tap a cover to open it again.
+            </p>
+            <div class="sb-carousel" aria-label="Saved books library">
+              <button type="button" class="sb-carousel__btn sb-carousel__btn--prev" id="sbCarouselPrev" aria-label="Scroll left">
+                <span aria-hidden="true">&lsaquo;</span>
+              </button>
+              <div class="sb-carousel__track" id="sbShelf" role="region" aria-label="Books in your library"></div>
+              <button type="button" class="sb-carousel__btn sb-carousel__btn--next" id="sbCarouselNext" aria-label="Scroll right">
+                <span aria-hidden="true">&rsaquo;</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sj-room sj-room--journey" id="sbStoryJourney" hidden aria-labelledby="sjJourneyTitle">
+      <p class="sj-crumbs" id="sjStepLabel">Your stars</p>
+      <h1 class="sj-title" id="sjJourneyTitle">Who will star in your story?</h1>
+      <div id="sjStage" class="sj-stage"></div>
+      <p class="sj-status" id="sjStatus" role="status"></p>
+      <div class="sj-desk-actions">
+        <button type="button" class="sj-pill" id="sjBack">Back</button>
+        <button type="button" class="sj-pill sj-pill--primary" id="sjNext">Continue</button>
+      </div>
+    </section>
+
+    <!-- Modal: one step at a time -->
+    <div
+      class="sb-modal is-hidden"
+      id="sbModal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="sbStepHeading"
+      aria-hidden="true"
+      hidden
+    >
+      <div class="sb-modal__backdrop" aria-hidden="true"></div>
+      <div class="sb-modal__sheet">
+        <button type="button" class="sb-modal__close" id="sbJourneyClose" aria-label="Close">
+          <span class="sb-modal__close-x" aria-hidden="true">✕</span>
+        </button>
+        <div class="sb-modal__progress" id="sbProgress" aria-hidden="true"></div>
+        <p class="sb-note sb-note--modal" id="sbModalError" role="alert" hidden></p>
+        <p class="sb-modal__kicker" id="sbStepKicker">Step 1 of 5</p>
+        <h2 class="sb-modal__heading" id="sbStepHeading">Who’s the hero?</h2>
+        <div class="sb-modal__read-step-wrap">
+          <button type="button" class="sb-read-step" id="sbReadStepBtn" aria-label="Read this step out loud">
+            <span aria-hidden="true">🔊</span> Read this to me
+          </button>
+        </div>
+
+        <div class="sb-panel is-active" data-panel="0" id="sbPanel0">
+          <p class="sb-panel__why" id="sbPanelWhy0">This is the child on every page.</p>
+          <label class="sb-label" for="sbName">What’s their name?</label>
+          <div class="sb-voice-row">
+            <input class="sb-input sb-input--flex" id="sbName" type="text" maxlength="24" autocomplete="given-name" placeholder="Their name" />
+            <button type="button" class="sb-voice-btn" id="sbVoiceName" aria-pressed="false" aria-label="Speak your name">
+              <span class="sb-voice-btn__ic" aria-hidden="true">🎤</span>
+              <span class="sb-voice-btn__txt">Speak</span>
+            </button>
+          </div>
+          <p class="sb-voice-hint" id="sbVoiceNameHint" aria-live="polite"></p>
+          <div class="sb-hero-ref" id="sbHeroRefBlock">
+            <label class="sb-label sb-label--secondary" for="sbHeroPhotoPick">Add a face (optional)</label>
+            <p class="sb-panel__hint sb-panel__hint--tight">
+              A photo, or a character you already made. Up to 3. We’ll ask who is in each picture.
+            </p>
+            <datalist id="sbHeroRefWhoDatalist"></datalist>
+            <div class="sb-filepick">
+              <input
+                class="sb-hero-ref__input visually-hidden"
+                type="file"
+                id="sbHeroPhoto"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                autocomplete="off"
+                aria-hidden="true"
+                tabindex="-1"
+              />
+              <button type="button" class="sb-btn sb-btn--ghost sb-filepick__btn" id="sbHeroPhotoPick">
+                Add photos…
+              </button>
+              <button type="button" class="sb-btn sb-btn--ghost sb-filepick__btn sb-savedchar__open" id="sbSavedCharPick" aria-expanded="false" aria-controls="sbSavedCharPanel" hidden>
+                Use a saved character
+              </button>
+            </div>
+            <div class="sb-savedchar" id="sbSavedCharPanel" hidden>
+              <p class="sb-savedchar__status" id="sbSavedCharStatus" aria-live="polite"></p>
+              <ul class="sb-savedchar__grid" id="sbSavedCharGrid" aria-label="Your saved characters"></ul>
+              <a class="sb-savedchar__make" href="../characters.html">+ Make a new character</a>
+            </div>
+            <p class="sb-note sb-note--inline" id="sbHeroPhotoErr" role="alert" hidden></p>
+            <div class="sb-hero-ref__preview" id="sbHeroPhotoThumbsWrap" hidden>
+              <ul class="sb-hero-ref__thumbs" id="sbHeroPhotoThumbs" aria-label="Hero photo previews"></ul>
+              <button type="button" class="sb-hero-ref__remove-all" id="sbHeroPhotoRemove">Remove all</button>
+            </div>
+          </div>
+          <div class="sb-modal__actions">
+            <button type="button" class="sb-btn sb-btn--primary sb-btn--modal" id="sbNext0">Next</button>
+          </div>
+        </div>
+
+        <div class="sb-panel" data-panel="1" id="sbPanel2" hidden>
+          <p class="sb-panel__why" id="sbPanelWhy2">A friend to go with them. Or pick no buddy.</p>
+          <div class="sb-chip-row" id="sbCharacters" role="radiogroup" aria-label="Character"></div>
+          <div class="sb-custom-choice-wrap" id="sbBuddyCustomWrap" hidden aria-hidden="true">
+            <label class="sb-label sb-label--secondary" for="sbBuddyCustom">Describe your buddy</label>
+            <textarea
+              id="sbBuddyCustom"
+              class="sb-textarea sb-textarea--compact"
+              rows="3"
+              maxlength="200"
+              placeholder="e.g. a tiny teal robot with rollers for feet"
+            ></textarea>
+          </div>
+          <div class="sb-modal__actions sb-modal__actions--split">
+            <button type="button" class="sb-btn sb-btn--ghost sb-btn--modal" id="sbBack2">Back</button>
+            <button type="button" class="sb-btn sb-btn--primary sb-btn--modal" id="sbNext2">Next</button>
+          </div>
+        </div>
+
+        <div class="sb-panel" data-panel="2" id="sbPanelPlace" hidden>
+          <p class="sb-panel__why">One place for the pictures.</p>
+          <div class="sb-chip-row" id="sbPlaces" role="radiogroup" aria-label="Place"></div>
+          <div class="sb-custom-choice-wrap" id="sbPlaceCustomWrap" hidden aria-hidden="true">
+            <label class="sb-label sb-label--secondary" for="sbPlaceCustom">Describe the place</label>
+            <textarea
+              id="sbPlaceCustom"
+              class="sb-textarea sb-textarea--compact"
+              rows="3"
+              maxlength="200"
+              placeholder="e.g. Grandma’s allotment with a pumpkin patch and a squeaky greenhouse door"
+            ></textarea>
+          </div>
+          <div class="sb-modal__actions sb-modal__actions--split">
+            <button type="button" class="sb-btn sb-btn--ghost sb-btn--modal" id="sbBackPlace">Back</button>
+            <button type="button" class="sb-btn sb-btn--primary sb-btn--modal" id="sbNextPlace">Next</button>
+          </div>
+        </div>
+
+        <div class="sb-panel" data-panel="3" id="sbPanelStory" hidden>
+          <p class="sb-panel__why">One sentence is enough. Or tap an idea.</p>
+          <div class="sb-panel__story-idea-wrap">
+            <label class="sb-label" for="sbPlot">What happens?</label>
+            <textarea
+              class="sb-textarea"
+              id="sbPlot"
+              rows="6"
+              maxlength="6000"
+              placeholder="We found a magic door…"
+            ></textarea>
+            <p class="sb-plot-starters-label" id="sbPlotStartersLabel">Try an idea</p>
+            <div class="sb-plot-starters" id="sbPlotStarters" role="group" aria-labelledby="sbPlotStartersLabel"></div>
+            <div class="sb-voice-plot-actions">
+              <button type="button" class="sb-voice-btn sb-voice-btn--block" id="sbVoicePlot" aria-pressed="false" aria-label="Speak your story idea">
+                <span class="sb-voice-btn__ic" aria-hidden="true">🎤</span>
+                <span class="sb-voice-btn__txt">Speak your idea</span>
+              </button>
+            </div>
+            <p class="sb-voice-hint" id="sbVoicePlotHint" aria-live="polite"></p>
+          </div>
+          <div class="sb-modal__actions sb-modal__actions--split">
+            <button type="button" class="sb-btn sb-btn--ghost sb-btn--modal" id="sbBackStory">Back</button>
+            <button type="button" class="sb-btn sb-btn--primary sb-btn--modal" id="sbNextStory">Next</button>
+          </div>
+        </div>
+
+        <div class="sb-panel" data-panel="4" id="sbPanel4" hidden>
+          <p class="sb-panel__why">Pick a look. The whole book will match.</p>
+          <fieldset class="sb-illustration-styles" id="sbIllustrationStyles" aria-describedby="sbIllustrationStylesHint">
+            <legend class="sb-label sb-label--secondary">Picture style</legend>
+            <p class="sb-panel__micro sb-illustration-styles__hint" id="sbIllustrationStylesHint">
+              Tap a card. Clay is the usual choice.
+            </p>
+            <div class="sb-style-picks" role="radiogroup" aria-labelledby="sbIllustrationStylesHint">
+              <label class="sb-style-pick">
+                <input type="radio" name="sbIllustrationStyle" value="clay3d" checked />
+                <span class="sb-style-pick__card">
+                  <span class="sb-style-pick__thumb">
+                    <img
+                      class="sb-style-pick__thumb-img"
+                      src="/games/storybook-illustration-clay3d.png"
+                      alt=""
+                      width="320"
+                      height="240"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </span>
+                  <span class="sb-style-pick__text">
+                    <span class="sb-style-pick__title">Clay &amp; toy plastic</span>
+                    <span class="sb-style-pick__sub">Rounded 3D — default</span>
+                  </span>
+                </span>
+              </label>
+              <label class="sb-style-pick">
+                <input type="radio" name="sbIllustrationStyle" value="vector_flat" />
+                <span class="sb-style-pick__card">
+                  <span class="sb-style-pick__thumb">
+                    <img
+                      class="sb-style-pick__thumb-img"
+                      src="/games/storybook-illustration-vector-flat.png"
+                      alt=""
+                      width="320"
+                      height="240"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </span>
+                  <span class="sb-style-pick__text">
+                    <span class="sb-style-pick__title">Flat vector</span>
+                    <span class="sb-style-pick__sub">Bold shapes &amp; colours</span>
+                  </span>
+                </span>
+              </label>
+              <label class="sb-style-pick">
+                <input type="radio" name="sbIllustrationStyle" value="watercolor" />
+                <span class="sb-style-pick__card">
+                  <span class="sb-style-pick__thumb">
+                    <img
+                      class="sb-style-pick__thumb-img"
+                      src="/games/storybook-illustration-watercolor.png"
+                      alt=""
+                      width="320"
+                      height="240"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </span>
+                  <span class="sb-style-pick__text">
+                    <span class="sb-style-pick__title">Watercolour</span>
+                    <span class="sb-style-pick__sub">Soft painted washes</span>
+                  </span>
+                </span>
+              </label>
+              <label class="sb-style-pick">
+                <input type="radio" name="sbIllustrationStyle" value="papercut" />
+                <span class="sb-style-pick__card">
+                  <span class="sb-style-pick__thumb">
+                    <img
+                      class="sb-style-pick__thumb-img"
+                      src="/games/storybook-illustration-papercut.png"
+                      alt=""
+                      width="320"
+                      height="240"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </span>
+                  <span class="sb-style-pick__text">
+                    <span class="sb-style-pick__title">Paper collage</span>
+                    <span class="sb-style-pick__sub">Cut-paper layers</span>
+                  </span>
+                </span>
+              </label>
+              <label class="sb-style-pick">
+                <input type="radio" name="sbIllustrationStyle" value="soft_3d" />
+                <span class="sb-style-pick__card">
+                  <span class="sb-style-pick__thumb">
+                    <img
+                      class="sb-style-pick__thumb-img"
+                      src="/games/storybook-illustration-soft-3d.png"
+                      alt=""
+                      width="320"
+                      height="240"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </span>
+                  <span class="sb-style-pick__text">
+                    <span class="sb-style-pick__title">Soft 3D animation</span>
+                    <span class="sb-style-pick__sub">Film-style, still gentle</span>
+                  </span>
+                </span>
+              </label>
+            </div>
+          </fieldset>
+          <details class="sb-more">
+            <summary>More about this book</summary>
+            <label class="sb-label sb-label--secondary" for="sbBookTitle">Book title</label>
+            <input
+              class="sb-input"
+              id="sbBookTitle"
+              type="text"
+              maxlength="48"
+              autocomplete="off"
+              placeholder="Leave blank and we’ll name it"
+            />
+            <p class="sb-label sb-label--secondary">Cover colour</p>
+            <div class="sb-book-colors" id="sbBookColorsWrap">
+              <div class="sb-chip-row sb-book-colors__quick" id="sbBookColorsQuick" role="radiogroup" aria-label="Book colour"></div>
+              <button
+                type="button"
+                class="sb-btn sb-btn--ghost sb-btn--small sb-book-colors__toggle"
+                id="sbBookColorToggle"
+                aria-expanded="false"
+                aria-controls="sbBookColorsExtra"
+              >
+                More colours
+              </button>
+              <div class="sb-book-colors__extra" id="sbBookColorsExtra" hidden>
+                <div class="sb-color-grid" id="sbBookColorsGrid" role="radiogroup" aria-label="More book colours"></div>
+              </div>
+            </div>
+            <label class="sb-label sb-label--secondary" for="sbAuthor">Written by (optional)</label>
+            <input
+              class="sb-input"
+              id="sbAuthor"
+              type="text"
+              maxlength="48"
+              autocomplete="off"
+              placeholder="e.g. Written by you"
+            />
+          <fieldset class="sb-picture-quality">
+            <legend class="sb-label sb-label--secondary">Picture quality</legend>
+            <p class="sb-panel__micro sb-picture-quality__hint" id="sbPictureQualityHint">
+              Best pictures is the usual choice. Everyday is quicker. Clearer faces sits in between.
+            </p>
+            <div class="sb-quality-row" role="radiogroup" aria-labelledby="sbPictureQualityHint">
+              <label class="sb-quality-opt">
+                <input type="radio" name="sbPictureQuality" value="standard" />
+                <span class="sb-quality-opt__body">
+                  <span class="sb-quality-opt__title">Everyday</span>
+                  <span class="sb-quality-opt__sub">Quicker pictures</span>
+                </span>
+              </label>
+              <label class="sb-quality-opt">
+                <input type="radio" name="sbPictureQuality" value="balanced" />
+                <span class="sb-quality-opt__body">
+                  <span class="sb-quality-opt__title">Clearer faces</span>
+                  <span class="sb-quality-opt__sub">Keeps people looking the same</span>
+                </span>
+              </label>
+              <label class="sb-quality-opt">
+                <input type="radio" name="sbPictureQuality" value="high" checked />
+                <span class="sb-quality-opt__body">
+                  <span class="sb-quality-opt__title">Best pictures</span>
+                  <span class="sb-quality-opt__sub">The usual choice</span>
+                </span>
+              </label>
+            </div>
+          </fieldset>
+          <fieldset class="sb-book-spread-layout" id="sbBookSpreadLayout" aria-describedby="sbBookSpreadLayoutHint">
+            <legend class="sb-label sb-label--secondary">How pictures sit</legend>
+            <p class="sb-panel__micro sb-book-spread-layout__hint" id="sbBookSpreadLayoutHint">
+              Wide across both pages, or the picture on one side and the words on the other.
+            </p>
+            <div class="sb-quality-row" role="radiogroup" aria-labelledby="sbBookSpreadLayoutHint">
+              <label class="sb-quality-opt">
+                <input type="radio" name="sbBookSpreadLayout" value="duplex" checked />
+                <span class="sb-quality-opt__body">
+                  <span class="sb-quality-opt__title">Across both pages</span>
+                  <span class="sb-quality-opt__sub">One wide picture</span>
+                </span>
+              </label>
+              <label class="sb-quality-opt">
+                <input type="radio" name="sbBookSpreadLayout" value="facing" />
+                <span class="sb-quality-opt__body">
+                  <span class="sb-quality-opt__title">One page only</span>
+                  <span class="sb-quality-opt__sub">Picture on one side, words on the other</span>
+                </span>
+              </label>
+            </div>
+          </fieldset>
+          <fieldset class="sb-story-text-mode" id="sbStoryTextMode" aria-describedby="sbStoryTextModeHint">
+            <legend class="sb-label sb-label--secondary">How it reads</legend>
+            <p class="sb-panel__micro sb-story-text-mode__hint" id="sbStoryTextModeHint">
+              Rhymes, or a normal story.
+            </p>
+            <div class="sb-quality-row" role="radiogroup" aria-labelledby="sbStoryTextModeHint">
+              <label class="sb-quality-opt">
+                <input type="radio" name="sbStoryTextMode" value="rhyme" checked />
+                <span class="sb-quality-opt__body">
+                  <span class="sb-quality-opt__title">Rhymes</span>
+                  <span class="sb-quality-opt__sub">The usual choice</span>
+                </span>
+              </label>
+              <label class="sb-quality-opt">
+                <input type="radio" name="sbStoryTextMode" value="prose" />
+                <span class="sb-quality-opt__body">
+                  <span class="sb-quality-opt__title">A normal story</span>
+                  <span class="sb-quality-opt__sub">Short paragraphs</span>
+                </span>
+              </label>
+            </div>
+          </fieldset>
+          <fieldset class="sb-story-length" id="sbStoryLength" aria-describedby="sbStoryLengthHint">
+            <legend class="sb-label sb-label--secondary">How long each page is</legend>
+            <p class="sb-panel__micro sb-story-length__hint" id="sbStoryLengthHint">
+              The book still has twelve pages. This only changes how full each page feels.
+            </p>
+            <div class="sb-quality-row" role="radiogroup" aria-labelledby="sbStoryLengthHint">
+              <label class="sb-quality-opt">
+                <input type="radio" name="sbStoryLength" value="short" />
+                <span class="sb-quality-opt__body">
+                  <span class="sb-quality-opt__title">Short</span>
+                  <span class="sb-quality-opt__sub">Quicker read — lighter pages</span>
+                </span>
+              </label>
+              <label class="sb-quality-opt">
+                <input type="radio" name="sbStoryLength" value="medium" checked />
+                <span class="sb-quality-opt__body">
+                  <span class="sb-quality-opt__title">Medium</span>
+                  <span class="sb-quality-opt__sub">The usual choice</span>
+                </span>
+              </label>
+              <label class="sb-quality-opt">
+                <input type="radio" name="sbStoryLength" value="long" />
+                <span class="sb-quality-opt__body">
+                  <span class="sb-quality-opt__title">Long</span>
+                  <span class="sb-quality-opt__sub">Richer detail on every page</span>
+                </span>
+              </label>
+            </div>
+          </fieldset>
+          </details>
+          <div class="sb-modal__actions sb-modal__actions--split">
+            <button type="button" class="sb-btn sb-btn--ghost sb-btn--modal" id="sbBack4">Back</button>
+            <button type="button" class="sb-btn sb-btn--primary sb-btn--modal" id="sbGenerate">
+              Make my book
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- Pop-over on top of the wizard sheet (photo just added → name it) -->
+      <div id="sbHeroPhotoNameOverlay" class="sb-hero-name-overlay is-hidden" aria-hidden="true">
+        <div class="sb-hero-name-overlay__card" role="dialog" aria-modal="true" aria-labelledby="sbHeroPhotoNameTitle">
+          <h3 class="sb-hero-name-overlay__title" id="sbHeroPhotoNameTitle">What’s their name?</h3>
+          <p class="sb-hero-name-overlay__lead" id="sbHeroPhotoNameLead">Who’s in this picture?</p>
+          <div class="sb-hero-name-overlay__thumb-wrap">
+            <img class="sb-hero-name-overlay__thumb" id="sbHeroPhotoNameThumb" alt="" width="112" height="112" decoding="async" />
+          </div>
+          <div class="sb-hero-name-overlay__voice-row">
+            <input
+              class="sb-input sb-hero-name-overlay__input"
+              id="sbHeroPhotoNameInput"
+              type="text"
+              maxlength="48"
+              autocomplete="off"
+              autocapitalize="words"
+              enterkeyhint="done"
+              placeholder="Type their name…"
+              aria-describedby="sbHeroPhotoNameVoiceHint sbHeroPhotoNameErrInline"
+            />
+            <button
+              type="button"
+              class="sb-voice-btn sb-voice-btn--hero-photo"
+              id="sbHeroPhotoNameVoice"
+              aria-pressed="false"
+              aria-label="Speak their name into the microphone"
+            >
+              <span class="sb-voice-btn__ic" aria-hidden="true">🎤</span>
+              <span class="sb-voice-btn__txt">Speak</span>
+            </button>
+          </div>
+          <p class="sb-hero-name-overlay__voice-hint" id="sbHeroPhotoNameVoiceHint" aria-live="polite" hidden></p>
+          <p class="sb-hero-name-overlay__err" id="sbHeroPhotoNameErrInline" role="alert" hidden></p>
+          <div class="sb-hero-name-overlay__quick">
+            <button type="button" class="sb-btn sb-btn--ghost sb-hero-name-overlay__quick-btn is-hidden" id="sbHeroPhotoNameMe">
+              It’s me
+            </button>
+          </div>
+          <div class="sb-hero-name-overlay__actions">
+            <button type="button" class="sb-btn sb-btn--primary sb-hero-name-overlay__done" id="sbHeroPhotoNameOk">Done</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section class="sb-book is-hidden" id="sbBook" aria-labelledby="sbBookHeading" hidden>
+      <header class="sb-read-chrome" id="sbReadChrome">
+        <button type="button" class="sb-chrome-btn" id="sbLibraryBack">
+          <span aria-hidden="true">←</span> Stories
+        </button>
+        <div class="sb-read-chrome__center">
+          <p class="sb-read-chrome__title" id="sbReadChromeTitle" aria-hidden="true"></p>
+          <p class="sb-read-chrome__pages" id="sbReadChromePages"></p>
+        </div>
+        <div class="sb-read-chrome__end">
+          <button type="button" class="sb-chrome-btn sb-chrome-btn--icon" id="sbFaveBook" aria-pressed="false" aria-label="Love this book">♡</button>
+          <button type="button" class="sb-chrome-btn sb-chrome-btn--icon" id="sbReaderDismiss" aria-label="Close and return to your stories">×</button>
+        </div>
+      </header>
+      <h2 class="sb-book-title" id="sbBookHeading"></h2>
+      <p class="sb-book-close-tool">
+        <button
+          type="button"
+          class="sb-btn sb-btn--ghost sb-close-book"
+          id="sbCloseBook"
+          hidden
+          aria-hidden="true"
+        >
+          Close book
+        </button>
+      </p>
+      <div class="sb-book-spread" id="sbBookSpread">
+        <button
+          type="button"
+          class="sb-btn sb-btn--ghost sb-read-arrow"
+          id="sbPrev"
+          aria-label="Previous pages"
+        >
+          ◀
+        </button>
+        <div class="sb-read-stage">
+          <div class="sb-reader-stack" id="sbReaderStack">
+            <div class="sb-reader-book">
+              <button
+                type="button"
+                class="sb-cover"
+                id="sbOpenCover"
+                aria-label="Open the book"
+              >
+                <span class="sb-cover__pivot" id="sbCoverPivot">
+                    <span class="sb-cover__outside">
+                      <span class="sb-cover__face">
+                        <span class="sb-cover__spine" aria-hidden="true"></span>
+                        <span class="sb-cover__panel" id="sbCoverPanel">
+                        <span class="sb-cover__wash" aria-hidden="true"></span>
+                        <span class="sb-cover__deco" aria-hidden="true">✨</span>
+                        <span class="sb-cover__title" id="sbCoverTitle"></span>
+                        <span class="sb-cover__kicker" id="sbCoverKicker"></span>
+                        <span class="sb-cover__author" id="sbCoverAuthor"></span>
+                        <span class="sb-cover__open" aria-hidden="true"><span aria-hidden="true">✨</span> Open book</span>
+                        <span class="sb-cover__made" id="sbCoverMade"></span>
+                        <span class="sb-cover__hint">Tap to open</span>
+                        </span>
+                      </span>
+                    </span>
+                  <span class="sb-cover__inside" aria-hidden="true"></span>
+                </span>
+              </button>
+              <div class="sb-reader-pages" id="sbReaderPages" aria-hidden="true">
+                <div class="sb-flip-spread" id="sbFlipSpread" aria-live="polite">
+                  <div class="sb-flip-spread__inner" id="sbFlipSpreadInner">
+                    <!-- Duplex panorama: one picture per spread, full width behind text + gutter (illus = pages pair) -->
+                    <div id="sbSpreadArtBg" class="sb-flip-spread__art-bg" aria-hidden="true">
+                      <!-- Base layer: shows the incoming spread (Left 2, Right 2) -->
+                      <div class="sb-flip-spread__art-base" id="sbSpreadArtBase">
+                        <img
+                          class="sb-flip-spread__art-cover"
+                          id="sbSpreadArtCover"
+                          alt=""
+                          decoding="sync"
+                        />
+                        <div
+                          class="sb-flip-spread__art-flyleaf"
+                          id="sbSpreadArtFlyleaf"
+                          hidden
+                        ></div>
+                      </div>
+                      
+                      <!-- Static outgoing left page (Left 1), sits over the incoming left page during turn -->
+                      <div class="sb-flip-spread__art-outgoing-left" id="sbSpreadArtOutgoingLeft" aria-hidden="true" hidden>
+                        <img
+                          class="sb-flip-spread__art-cover"
+                          id="sbSpreadArtOutgoingLeftImg"
+                          alt=""
+                          decoding="async"
+                        />
+                      </div>
+                    </div>
+
+                    <!-- Turning leaf: sibling of art-bg — inside art-bg it stacked under gutter (z5) / prose shells (z4). -->
+                    <div
+                      id="sbSpreadArtPeel"
+                      class="sb-flip-spread__art-peel sb-story-pageflip"
+                      aria-hidden="true"
+                      hidden
+                    >
+                      <!-- Wrapper required: backface-visibility + rotateY(180deg) on back only (raw imgs broke 3D book fold). -->
+                      <div class="sb-flip-spread__peel-front">
+                        <img
+                          class="sb-flip-spread__art-cover sb-flip-spread__art-peel__img"
+                          id="sbSpreadArtPeelImg"
+                          alt=""
+                          decoding="async"
+                          referrerpolicy="no-referrer"
+                        />
+                        <div
+                          class="sb-flip-spread__peel-front-text"
+                          id="sbSpreadPeelFrontText"
+                          aria-hidden="true"
+                        ></div>
+                      </div>
+                      <div class="sb-flip-spread__peel-back">
+                        <img
+                          class="sb-flip-spread__art-cover sb-flip-spread__art-peel__back-img"
+                          id="sbSpreadArtPeelBackImg"
+                          alt=""
+                          decoding="async"
+                          referrerpolicy="no-referrer"
+                        />
+                        <div
+                          class="sb-flip-spread__peel-back-text"
+                          id="sbSpreadPeelBackText"
+                          aria-hidden="true"
+                        ></div>
+                      </div>
+                    </div>
+
+                    <div class="sb-flip-left-shell" id="sbFlipLeftShell">
+                      <div class="sb-flip-page sb-flip-page--text">
+                        <div class="sb-flip-page__sheet">
+                          <svg
+                            class="sb-flip-facing-blobs"
+                            viewBox="0 0 100 100"
+                            preserveAspectRatio="none"
+                            aria-hidden="true"
+                            focusable="false"
+                          >
+                            <path
+                              fill="var(--sb-facing-corner-strong, #ffffff)"
+                              d="M-14 82C-28 6 52-28 88 16c26 28 18 86-20 96-52 14-96-6-82-30z"
+                            />
+                            <!-- Mirror of the large TL wash into BR (flip about page centre). -->
+                            <path
+                              transform="matrix(-1 0 0 -1 100 100)"
+                              fill="var(--sb-facing-corner-strong, #ffffff)"
+                              d="M-14 82C-28 6 52-28 88 16c26 28 18 86-20 96-52 14-96-6-82-30z"
+                            />
+                            <path
+                              fill="var(--sb-facing-corner-mid, #ffffff)"
+                              d="M116 8c38 52-10 108-62 112-58 4-82-62-38-92 36-28 100-82 100-20z"
+                            />
+                            <path
+                              fill="var(--sb-facing-corner-soft, #ffffff)"
+                              d="M-8 108c48-48 78 12 32 52-44 40-88-12-32-52z"
+                            />
+                            <path
+                              fill="var(--sb-facing-corner-mid, #ffffff)"
+                              d="M112-10c42 48-22 88-66 56-48-36 8-128 66-56z"
+                            />
+                            <ellipse
+                              cx="74"
+                              cy="28"
+                              rx="16"
+                              ry="14"
+                              fill="var(--sb-facing-corner-accent, #ffffff)"
+                            />
+                            <!-- Bottom white washes (mirror top corner feel) -->
+                            <path
+                              fill="var(--sb-facing-corner-mid, #ffffff)"
+                              d="M-10 108c22-36 68-28 104-8 40 22 48 68-6 86-58 20-130-6-98-78z"
+                            />
+                            <path
+                              fill="var(--sb-facing-corner-strong, #ffffff)"
+                              d="M118 108c-34-38-86-32-120-4-36 30-12 88 58 88 58 0 104-38 62-84z"
+                            />
+                            <ellipse
+                              cx="26"
+                              cy="88"
+                              rx="20"
+                              ry="16"
+                              fill="var(--sb-facing-corner-accent, #ffffff)"
+                            />
+                          </svg>
+                          <span class="sb-page-num" id="sbSpreadPageNum" aria-hidden="true"></span>
+                          <p class="sb-flip-text" id="sbSpreadTextPanel">
+                            <span class="sb-flip-text__clip" id="sbSpreadTextClip">
+                              <span class="sb-flip-text__highlight" id="sbSpreadText"></span>
+                            </span>
+                            <span class="sb-story-overflow" id="sbStoryOverflow" hidden>This page has more words than fit</span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="sb-flip-gutter" aria-hidden="true"></div>
+                    <div
+                      class="sb-flip-right-shell sb-flip-right-shell--flip"
+                      id="sbFlipRightShell"
+                      aria-hidden="true"
+                    ></div>
+                    <div class="sb-story-type" id="sbStoryType" hidden></div>
+                    <div class="sb-flip-book-legacy-art" aria-hidden="true" hidden>
+                      <div class="sb-flip-art" id="sbSpreadArt">
+                        <span class="sb-flip-art__num" id="sbSpreadArtNum"></span>
+                        <img id="sbSpreadArtImg" alt="" decoding="async" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="sb-read-dock" id="sbReadDock">
+            <p class="sb-word-tip" id="sbWordTip" hidden><span aria-hidden="true">👆</span> Tap any word to hear it</p>
+            <p class="sb-word-tip" id="sbReadNote" hidden></p>
+            <div class="sb-read-toolbar" id="sbReadToolbar" role="toolbar" aria-label="Reading tools">
+              <button
+                type="button"
+                class="sb-btn sb-btn--ghost sb-read-to-me sb-read-toolbar__btn"
+                id="sbReadToMe"
+                aria-label="Read page to me"
+                aria-pressed="false"
+              >
+                <span class="sb-read-toolbar__icon" aria-hidden="true">🔊</span>
+                <span class="sb-read-toolbar__label">Read to me</span>
+              </button>
+              <button type="button" class="sb-read-toolbar__btn" id="sjTextSize" aria-pressed="false">
+                <span class="sb-read-toolbar__icon" aria-hidden="true">A</span>
+                <span class="sb-read-toolbar__label">Text size</span>
+              </button>
+              <button type="button" class="sb-read-toolbar__btn" id="sbReadMyself" aria-pressed="false">
+                <span class="sb-read-toolbar__icon" aria-hidden="true">✨</span>
+                <span class="sb-read-toolbar__label">Read myself</span>
+              </button>
+              <button type="button" class="sb-read-toolbar__btn" id="sbReaderFullscreen" aria-pressed="false">
+                <span class="sb-read-toolbar__icon" aria-hidden="true">⛶</span>
+                <span class="sb-read-toolbar__label">Full screen</span>
+              </button>
+            </div>
+          </div>
+          <div
+            class="sb-book-side-actions"
+            id="sbSpreadTextActions"
+            hidden
+            aria-label="Read aloud controls"
+          ></div>
+        </div>
+        <button
+          type="button"
+          class="sb-btn sb-btn--ghost sb-read-arrow"
+          id="sbNext"
+          aria-label="Next pages"
+        >
+          ▶
+        </button>
+      </div>
+      <div class="sb-book__actions-dock" id="sbBookActionsDock">
+        <div class="sb-book__actions" id="sbBookActions" role="group" aria-label="Book actions">
+          <button type="button" class="sb-btn sb-btn--primary" id="sbDownloadBook">
+            Download my book
+          </button>
+          <button type="button" class="sb-btn sb-btn--secondary" id="sbShelfBook">
+            Put on my shelf
+          </button>
+          <button type="button" class="sb-btn sb-btn--secondary" id="sbNew">Build another book</button>
+        </div>
+        <button
+          type="button"
+          class="sb-book__actions-fab"
+          id="sbBookActionsFab"
+          aria-expanded="false"
+          aria-controls="sbBookActions"
+          title="Book menu"
+        >
+          <span class="sb-book__actions-fab-icon" aria-hidden="true">📚</span>
+          <span class="visually-hidden">Book menu — download, shelf, new story</span>
+        </button>
+      </div>
+    </section>
+
+    <div class="sb-busy is-hidden" id="sbBusy" aria-live="polite" aria-busy="true" hidden>
+      <div class="sb-busy__card">
+        <p class="sb-busy__title">Creating your book…</p>
+        <p class="sb-busy__msg">
+          This can take a few minutes — please keep this page open. It is still working.
+        </p>
+        <div
+          class="sb-busy__progress-track"
+          id="sbBusyProgressBar"
+          role="progressbar"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="0"
+          aria-label="Book creation progress"
+        >
+          <div class="sb-busy__progress-fill" id="sbBusyProgressFill"></div>
+        </div>
+        <p class="sb-busy__step" id="sbBusyStep">Starting…</p>
+        <div class="sb-busy__dots" aria-hidden="true"><span></span><span></span><span></span></div>
+      </div>
+    </div>
+
+    <button
+      type="button"
+      class="sb-cloud-pull-fab"
+      id="sbPullLibrary"
+      hidden
+      title="Get latest books from cloud"
+      aria-label="Get latest books from cloud"
+    >
+      <span class="sb-cloud-pull-fab__ic" aria-hidden="true">☁️</span>
+    </button>
+  </div>
+
+  <script src="../js/kids-game-characters.js?v=2"></script>
+  <script src="../js/score-config.js"></script>
+  <script src="../js/kids-core.js?v=2"></script>
+  <script>
+    /* Fullscreen on first tap (where allowed) hides browser chrome; PWA meta helps “Add to Home Screen”. */
+    if (window.K && typeof K.init === "function") {
+      K.init();
+    }
+  </script>
+  <!-- IndexedDB shelf (mobile); must load before score-cloud + storybook -->
+  <script src="../js/storybook-shelf-store.js?v=3" defer></script>
+  <!-- Required for cloud shelf sync + upload (same as other games) -->
+  <script src="../js/wondii-session.js?v=2" defer></script>
+  <script src="../js/child-library.js?v=4" defer></script>
+  <script src="../js/score-cloud.js?v=15" defer></script>
+  <script src="../js/organisation.js?v=14" defer></script>
+  <script src="../js/character-personality.js?v=1" defer></script>
+  <script src="../js/character-store.js?v=6" defer></script>
+  <script src="storybook.js?v=370" defer></script>
+  <script src="../js/story-atmosphere.js?v=1" defer></script>
+  <script src="../js/book-v2-budget.js?v=1" defer></script>
+  <script src="../js/book-v2-approval-cost.js?v=1" defer></script>
+  <script src="../js/book-v2-shelf.js?v=6" defer></script>
+  <script src="../js/book-v2-progress.js?v=8" defer></script>
+  <script src="../js/book-workshop.js?v=4" defer></script>
+  <script src="story-journey.js?v=50" defer></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("../sw.js").catch(function () {});
+    }
+  </script>
+</body>
+</html>
